@@ -1,2 +1,1 @@
-# taulib
-Contributor-facing TauLib repo for active formal code development.
+# TauLib\n\nContributor-facing TauLib repo for active formal code development. Issues, discussions, and pull requests are welcome here.\n
