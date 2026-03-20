@@ -37,9 +37,9 @@ NON_TAULIB_DIRS = [
 NON_TAULIB_ROOT_PAGES = [f"{d}.html" for d in NON_TAULIB_DIRS]
 
 # Additional pages that reference only non-TauLib content
-EXTRA_REMOVALS = [
-    "foundational_types.html",  # References Lean core types (Init, Lean)
-]
+# NOTE: Do NOT include foundational_types.html here — doc-gen4's index step
+# needs it, and the docbuild/.lake cache persists between CI runs.
+EXTRA_REMOVALS = []
 
 
 def count_html_files(directory: Path) -> int:
