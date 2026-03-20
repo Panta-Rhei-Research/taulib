@@ -1,64 +1,614 @@
 /* ================================================================
-   TauLib / Panta Rhei Theme Override
+   TauLib / Panta Rhei — Documentation Theme
    ================================================================
-   Appended to doc-gen4's style.css during post-build.
-   Colors drawn from the Panta Rhei book series covers.
-   All overrides use CSS custom properties defined by doc-gen4.
+
+   Brand-consistent with panta-rhei-books.org while optimized for
+   technical documentation readability. Appended to doc-gen4's
+   style.css during post-build (Step 4 of build_docs.sh).
+
+   Design tokens extracted from the main website:
+     Font:      Manrope (self-hosted woff2, latin + latin-ext)
+     Palette:   void (deep navy-black), paper (warm parchment),
+                ink (cool gray scale), 7 book accent colors
+     Radii:     24px cards, 999px pills
+     Shadows:   soft diffuse, paper inset, accent glow
+     Motion:    cubic-bezier(.22, 1, .36, 1)
+
+   Approach: The main website is immersive and cinematic (dark void
+   background, glassmorphism, orb animations). The docs are clean
+   and focused — a "paper" reading surface with the same type, color
+   tokens, and micro-interactions, but stripped of spectacle.
+
    ================================================================ */
 
+/* ----------------------------------------------------------------
+   Self-hosted Manrope — matching panta-rhei-books.org exactly
+   ---------------------------------------------------------------- */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('fonts/manrope-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('fonts/manrope-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC,
+    U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ----------------------------------------------------------------
+   Light Theme (default) — "Paper" surface
+   ----------------------------------------------------------------
+   Warm parchment from the website's --gradient-paper and
+   --paper-050, with ink-scale text colors. The header uses the
+   website's void palette for visual anchoring.
+   ---------------------------------------------------------------- */
 :root {
-  /* Header: deep sienna (matches book cover spines) */
-  --header-bg: #2c1810;
+  /* ---- Header: void-925 from website ---- */
+  --header-bg: #09101d;
 
-  /* Body: warm parchment off-white */
-  --body-bg: #faf8f5;
+  /* ---- Body: warm paper from website's --paper-050 ---- */
+  --body-bg: #f7f4ee;
 
-  /* Code blocks: warm tone */
-  --code-bg: #f5f0eb;
+  /* ---- Code: slightly cooler paper tone ---- */
+  --code-bg: #f0ede6;
 
-  /* Text: soft black for readability */
-  --text-color: #1a1a1a;
+  /* ---- Text: website's --ink-900 ---- */
+  --text-color: #121a2a;
 
-  /* Links: warm amber-brown */
-  --link-color: hsl(25, 80%, 35%);
+  /* ---- Links: website's --accent (purple) for distinction ---- */
+  --link-color: #7b5fbf;
 
-  /* Declaration badges — semantic color coding */
-  --def-color: #d4a76a;                        /* Golden: definitions */
-  --def-color-hsl-angle: 35;
-  --theorem-color: #8fa388;                    /* Sage green: theorems */
-  --theorem-color-hsl-angle: 110;
-  --axiom-and-constant-color: #8b4513;         /* Saddle brown: axioms */
-  --axiom-and-constant-color-hsl-angle: 25;
-  --structure-and-inductive-color: #c4782a;    /* Burnt orange: structures */
-  --structure-and-inductive-color-hsl-angle: 28;
+  /* ---- Implicit args: softer than main text ---- */
+  --implicit-arg-text-color: #32415b;
 
-  /* UI elements */
-  --hamburger-bg-color: #e8ddd0;
-  --hamburger-border-color: #c4b09a;
+  /* ---- Declaration badges — 4 book colors from website ---- */
+  --def-color: #8fb6ff;                          /* Book I blue: definitions */
+  --def-color-hsl-angle: 218;
+  --theorem-color: #95f3a1;                      /* Book IV green: theorems */
+  --theorem-color-hsl-angle: 130;
+  --axiom-and-constant-color: #ff6156;           /* Book VI red: axioms */
+  --axiom-and-constant-color-hsl-angle: 3;
+  --structure-and-inductive-color: #ffb24d;      /* Book V amber: structures */
+  --structure-and-inductive-color-hsl-angle: 35;
+
+  /* ---- Starting percentage for fn hover gradients ---- */
+  --starting-percentage: 95;
+
+  /* ---- UI chrome ---- */
+  --hamburger-bg-color: #eef3fb;
+  --hamburger-active-color: white;
+  --hamburger-border-color: #dce5f2;
+  --tags-border-color: #32415b;
+
+  /* ---- Panta Rhei tokens (new) ---- */
+  --pr-accent: #b28fff;
+  --pr-accent-soft: rgba(178, 143, 255, 0.12);
+  --pr-radius: 8px;
+  --pr-radius-lg: 12px;
+  --pr-shadow-soft: 0 2px 12px rgba(18, 26, 42, 0.06);
+  --pr-shadow-card: 0 4px 16px rgba(18, 26, 42, 0.08);
+  --pr-transition: 200ms cubic-bezier(.22, 1, .36, 1);
+  --pr-spectral: linear-gradient(135deg,
+    #7fb3ff 0%, #b28fff 18%, #80ebff 38%,
+    #8ff0b0 58%, #ffbd58 78%, #ff6b62 100%);
+  --pr-header-border: rgba(178, 143, 255, 0.3);
 }
 
-/* ---- Dark mode ---- */
+/* ----------------------------------------------------------------
+   Dark Theme — "Void" surface
+   ----------------------------------------------------------------
+   Directly from the website's void palette: deep navy-black
+   with ink-scale text and muted book-color badges.
+   ---------------------------------------------------------------- */
 [data-theme="dark"] {
-  --header-bg: #1a0f08;
-  --body-bg: #1e1810;
-  --code-bg: #2a2018;
-  --text-color: #e8ddd0;
-  --link-color: hsl(30, 70%, 60%);
-  --def-color: #c4a060;
-  --theorem-color: #7a9a72;
-  --axiom-and-constant-color: #c87040;
-  --structure-and-inductive-color: #d08a3a;
-  --hamburger-bg-color: #2a2018;
-  --hamburger-border-color: #4a3828;
+  /* ---- Header: deepest void ---- */
+  --header-bg: #03060f;
+
+  /* ---- Body: website's void-900 ---- */
+  --body-bg: #0b1020;
+
+  /* ---- Code: void-850 ---- */
+  --code-bg: #12192b;
+
+  /* ---- Text: website's ink-050 ---- */
+  --text-color: #f6fbff;
+
+  /* ---- Links: brighter accent for dark bg ---- */
+  --link-color: #b28fff;
+
+  /* ---- Implicit args ---- */
+  --implicit-arg-text-color: #a9b8d0;
+
+  /* ---- Badges: same hues, reduced lightness ---- */
+  --def-color: #4a7cc9;
+  --def-color-hsl-angle: 218;
+  --theorem-color: #3a8a48;
+  --theorem-color-hsl-angle: 130;
+  --axiom-and-constant-color: #b04038;
+  --axiom-and-constant-color-hsl-angle: 3;
+  --structure-and-inductive-color: #b07830;
+  --structure-and-inductive-color-hsl-angle: 35;
+
+  --starting-percentage: 30;
+
+  /* ---- UI chrome ---- */
+  --hamburger-bg-color: #172033;
+  --hamburger-active-color: #0b1020;
+  --hamburger-border-color: #32415b;
+  --tags-border-color: #a9b8d0;
+
+  /* ---- Panta Rhei tokens ---- */
+  --pr-accent: #b28fff;
+  --pr-accent-soft: rgba(178, 143, 255, 0.18);
+  --pr-shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.3);
+  --pr-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --pr-header-border: rgba(178, 143, 255, 0.2);
 }
 
-/* Header text should be light on dark header */
+/* Also override the @media prefers-color-scheme dark defaults */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --header-bg: #03060f;
+    --body-bg: #0b1020;
+    --code-bg: #12192b;
+    --text-color: #f6fbff;
+    --link-color: #b28fff;
+    --implicit-arg-text-color: #a9b8d0;
+    --def-color: #4a7cc9;
+    --def-color-hsl-angle: 218;
+    --theorem-color: #3a8a48;
+    --theorem-color-hsl-angle: 130;
+    --axiom-and-constant-color: #b04038;
+    --axiom-and-constant-color-hsl-angle: 3;
+    --structure-and-inductive-color: #b07830;
+    --structure-and-inductive-color-hsl-angle: 35;
+    --starting-percentage: 30;
+    --hamburger-bg-color: #172033;
+    --hamburger-active-color: #0b1020;
+    --hamburger-border-color: #32415b;
+    --tags-border-color: #a9b8d0;
+    --pr-accent: #b28fff;
+    --pr-accent-soft: rgba(178, 143, 255, 0.18);
+    --pr-shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.3);
+    --pr-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --pr-header-border: rgba(178, 143, 255, 0.2);
+  }
+}
+
+/* Explicit light override */
+[data-theme="light"] {
+  --header-bg: #09101d;
+  --body-bg: #f7f4ee;
+  --code-bg: #f0ede6;
+  --text-color: #121a2a;
+  --link-color: #7b5fbf;
+  --implicit-arg-text-color: #32415b;
+  --def-color: #8fb6ff;
+  --def-color-hsl-angle: 218;
+  --theorem-color: #95f3a1;
+  --theorem-color-hsl-angle: 130;
+  --axiom-and-constant-color: #ff6156;
+  --axiom-and-constant-color-hsl-angle: 3;
+  --structure-and-inductive-color: #ffb24d;
+  --structure-and-inductive-color-hsl-angle: 35;
+  --starting-percentage: 95;
+  --hamburger-bg-color: #eef3fb;
+  --hamburger-active-color: white;
+  --hamburger-border-color: #dce5f2;
+  --tags-border-color: #32415b;
+  --pr-accent: #b28fff;
+  --pr-accent-soft: rgba(178, 143, 255, 0.12);
+  --pr-shadow-soft: 0 2px 12px rgba(18, 26, 42, 0.06);
+  --pr-shadow-card: 0 4px 16px rgba(18, 26, 42, 0.08);
+  --pr-header-border: rgba(178, 143, 255, 0.3);
+}
+
+/* ----------------------------------------------------------------
+   Typography — Manrope replaces Lato
+   ---------------------------------------------------------------- */
+body {
+  font-family: 'Manrope', system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Manrope', system-ui, -apple-system, "Segoe UI", sans-serif;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+main h1 { font-size: 1.8rem; margin-top: 0; }
+main h2 { font-size: 1.35rem; }
+main h3 { font-size: 1.15rem; }
+
+/* Module docstrings — the primary reading surface */
+.mod_doc {
+  line-height: 1.72;
+  max-width: 72ch;
+}
+
+.mod_doc p {
+  margin-bottom: 0.8em;
+}
+
+.mod_doc ul, .mod_doc ol {
+  padding-left: 1.5em;
+}
+
+.mod_doc li {
+  margin-bottom: 0.3em;
+}
+
+/* ----------------------------------------------------------------
+   Header — void-dark with spectral accent border
+   ---------------------------------------------------------------- */
+header {
+  border-bottom: 2px solid var(--pr-header-border);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.15);
+  transition: background var(--pr-transition);
+}
+
+header h1 {
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.3em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 header a,
 header .header_filename {
-  color: #e8ddd0 !important;
+  color: #dfe8f6 !important;
+  transition: color var(--pr-transition);
 }
 
-/* Subtle border under header */
-header {
-  border-bottom: 2px solid #8b4513;
+header a:hover {
+  color: #f6fbff !important;
+  text-decoration: none;
+}
+
+header .header_filename {
+  color: #a9b8d0 !important;
+  font-size: 15px;
+}
+
+/* ----------------------------------------------------------------
+   Spectral accent bar under header
+   ----------------------------------------------------------------
+   A 2px gradient line using the website's spectral gradient,
+   providing the signature Panta Rhei visual identity.
+   ---------------------------------------------------------------- */
+header::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--pr-spectral);
+  opacity: 0.7;
+}
+
+/* ----------------------------------------------------------------
+   Navigation sidebar
+   ---------------------------------------------------------------- */
+.nav {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.nav summary {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: color var(--pr-transition);
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin-left: -4px;
+}
+
+.nav summary:hover {
+  color: var(--link-color);
+  background: var(--pr-accent-soft);
+}
+
+.nav .nav_link {
+  font-size: 13px;
+  padding: 1px 0;
+  transition: color var(--pr-transition);
+}
+
+.nav .nav_link:hover {
+  color: var(--link-color);
+}
+
+/* ----------------------------------------------------------------
+   Declarations — the core documentation blocks
+   ---------------------------------------------------------------- */
+.decl {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  border-radius: 0 var(--pr-radius) var(--pr-radius) 0;
+  background: var(--code-bg);
+  box-shadow: var(--pr-shadow-soft);
+  transition: box-shadow var(--pr-transition), transform var(--pr-transition);
+  overflow: hidden;
+}
+
+.decl:hover {
+  box-shadow: var(--pr-shadow-card);
+}
+
+.decl > div {
+  padding: 10px 14px;
+}
+
+/* Declaration type badges — refined borders */
+.def, .instance {
+  border-left: 4px solid var(--def-color);
+  border-top: 1px solid color-mix(in srgb, var(--def-color) 40%, transparent);
+}
+
+.theorem {
+  border-left: 4px solid var(--theorem-color);
+  border-top: 1px solid color-mix(in srgb, var(--theorem-color) 40%, transparent);
+}
+
+.axiom, .opaque {
+  border-left: 4px solid var(--axiom-and-constant-color);
+  border-top: 1px solid color-mix(in srgb, var(--axiom-and-constant-color) 40%, transparent);
+}
+
+.structure, .inductive, .class {
+  border-left: 4px solid var(--structure-and-inductive-color);
+  border-top: 1px solid color-mix(in srgb, var(--structure-and-inductive-color) 40%, transparent);
+}
+
+/* Sorried declarations — subtle but clear */
+.decl.sorried {
+  position: relative;
+}
+.decl.sorried::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-top: 20px solid #cca733;
+  border-left: 20px solid transparent;
+  opacity: 0.6;
+  z-index: 1;
+}
+
+/* ----------------------------------------------------------------
+   Code — monospace with refined presentation
+   ---------------------------------------------------------------- */
+code, pre {
+  border-radius: var(--pr-radius);
+}
+
+pre {
+  padding: 14px 16px;
+  box-shadow: var(--pr-shadow-soft);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] pre {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+code {
+  padding: 2px 6px;
+  font-size: 90%;
+}
+
+/* ----------------------------------------------------------------
+   Links — smooth transitions
+   ---------------------------------------------------------------- */
+a:link, a:visited, a:active {
+  color: var(--link-color);
+  text-decoration: none;
+  transition: color var(--pr-transition);
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ----------------------------------------------------------------
+   Search — polished autocomplete
+   ---------------------------------------------------------------- */
+#search_form input {
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 14px;
+  border-radius: 999px;
+  padding: 6px 14px;
+  border: 1px solid var(--hamburger-border-color);
+  background: var(--hamburger-bg-color);
+  color: var(--text-color);
+  transition: border-color var(--pr-transition), box-shadow var(--pr-transition);
+  outline: none;
+}
+
+#search_form input:focus {
+  border-color: var(--pr-accent);
+  box-shadow: 0 0 0 3px var(--pr-accent-soft);
+}
+
+#autocomplete_results {
+  border-radius: 0 0 var(--pr-radius-lg) var(--pr-radius-lg);
+  border: 1px solid var(--hamburger-border-color);
+  box-shadow: var(--pr-shadow-card);
+  overflow: hidden;
+}
+
+#autocomplete_results a {
+  padding: 8px 12px;
+  transition: background var(--pr-transition);
+  border-left: 3px solid transparent;
+}
+
+#autocomplete_results .selected .result_link a {
+  background: var(--pr-accent-soft);
+  border-left-color: var(--pr-accent);
+}
+
+/* ----------------------------------------------------------------
+   Tags and pills
+   ---------------------------------------------------------------- */
+.tags li {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-color: var(--tags-border-color);
+  transition: background var(--pr-transition);
+}
+
+.tags li:hover {
+  background: var(--pr-accent-soft);
+}
+
+/* ----------------------------------------------------------------
+   Dark/light theme switcher — refined radio buttons
+   ---------------------------------------------------------------- */
+#color-theme-switcher input {
+  border-radius: 50%;
+  transition: border-color var(--pr-transition), box-shadow var(--pr-transition);
+}
+
+#color-theme-switcher input:checked {
+  box-shadow: 0 0 0 2px var(--pr-accent-soft);
+}
+
+#color-theme-dark { background-color: #0b1020; }
+#color-theme-light { background-color: #f7f4ee; }
+#color-theme-system {
+  background-image: linear-gradient(60deg, #0b1020, #0b1020 50%, #f7f4ee 50%, #f7f4ee);
+}
+
+/* ----------------------------------------------------------------
+   Scrollbar — minimal, matching the palette
+   ---------------------------------------------------------------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover {
+  scrollbar-color: rgba(178, 143, 255, 0.3) transparent;
+}
+
+/* Webkit scrollbar (Safari, Chrome) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(178, 143, 255, 0.2);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(178, 143, 255, 0.4);
+}
+
+/* ----------------------------------------------------------------
+   Responsive refinements
+   ---------------------------------------------------------------- */
+@media screen and (max-width: 1000px) {
+  label[for="nav_toggle"] {
+    border-radius: var(--pr-radius);
+    font-family: 'Manrope', system-ui, sans-serif;
+    font-weight: 700;
+    padding: 6px 12px;
+    transition: background var(--pr-transition);
+  }
+
+  label[for="nav_toggle"]:hover {
+    background: var(--pr-accent-soft);
+  }
+}
+
+/* ----------------------------------------------------------------
+   Selection highlight — brand accent
+   ---------------------------------------------------------------- */
+::selection {
+  background: rgba(178, 143, 255, 0.25);
+  color: inherit;
+}
+
+/* ----------------------------------------------------------------
+   Subtle page transitions — fade content in
+   ---------------------------------------------------------------- */
+main {
+  animation: fadeIn 300ms cubic-bezier(.22, 1, .36, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ----------------------------------------------------------------
+   Tactic/note blocks — refined separators
+   ---------------------------------------------------------------- */
+.tactic, .note {
+  border-top: 2px solid var(--pr-accent);
+  border-radius: 0;
+}
+
+/* ----------------------------------------------------------------
+   Implicit arguments — smoother fade
+   ---------------------------------------------------------------- */
+.decl_header:not(:hover) .impl_arg,
+.constructor:not(:hover) .impl_arg,
+.structure_field_info:not(:hover) .impl_arg {
+  opacity: 25%;
+  transition: opacity 600ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.impl_arg {
+  transition: opacity 200ms cubic-bezier(.22, 1, .36, 1);
+}
+
+/* ----------------------------------------------------------------
+   Print styles — clean output
+   ---------------------------------------------------------------- */
+@media print {
+  header { position: static; border-bottom: 1px solid #ccc; }
+  header::after { display: none; }
+  .nav, .internal_nav { display: none; }
+  main { margin: 0; max-width: 100%; }
+  .decl { box-shadow: none; border: 1px solid #ddd; }
+  a { color: inherit; }
+  a::after { content: " (" attr(href) ")"; font-size: 80%; color: #666; }
 }

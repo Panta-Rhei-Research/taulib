@@ -106,11 +106,17 @@ fi
 echo "--- Step 4/7: Applying Panta Rhei CSS theme ---"
 if [ -f "$SCRIPT_DIR/taulib_theme.css" ]; then
   # Only append if not already appended (idempotent)
-  if ! grep -q "TauLib / Panta Rhei Theme Override" "$DOC_OUTPUT/style.css" 2>/dev/null; then
+  if ! grep -q "TauLib / Panta Rhei — Documentation Theme" "$DOC_OUTPUT/style.css" 2>/dev/null; then
     cat "$SCRIPT_DIR/taulib_theme.css" >> "$DOC_OUTPUT/style.css"
     echo "  CSS theme appended to style.css"
   else
     echo "  CSS theme already present in style.css (skipped)"
+  fi
+  # Copy self-hosted Manrope font files
+  if [ -d "$SCRIPT_DIR/fonts" ]; then
+    mkdir -p "$DOC_OUTPUT/fonts"
+    cp "$SCRIPT_DIR/fonts/"*.woff2 "$DOC_OUTPUT/fonts/" 2>/dev/null
+    echo "  Manrope font files copied to doc output"
   fi
 else
   echo "  WARNING: scripts/taulib_theme.css not found, skipping theme"

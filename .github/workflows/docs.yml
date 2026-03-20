@@ -94,8 +94,14 @@ jobs:
           DOC_OUTPUT="docbuild/.lake/build/doc"
 
           # CSS theme (idempotent)
-          if ! grep -q "TauLib / Panta Rhei Theme Override" "$DOC_OUTPUT/style.css" 2>/dev/null; then
+          if ! grep -q "TauLib / Panta Rhei — Documentation Theme" "$DOC_OUTPUT/style.css" 2>/dev/null; then
             cat scripts/taulib_theme.css >> "$DOC_OUTPUT/style.css"
+          fi
+
+          # Self-hosted fonts (Manrope)
+          if [ -d "scripts/fonts" ]; then
+            mkdir -p "$DOC_OUTPUT/fonts"
+            cp scripts/fonts/*.woff2 "$DOC_OUTPUT/fonts/"
           fi
 
           # Landing page
