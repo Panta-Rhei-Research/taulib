@@ -1,0 +1,142 @@
+<a id="top"></a>
+<div style="max-width: 800px; margin: 0 auto; padding: 2em 1em;">
+
+<h1 style="margin-bottom: 0.3em;">TauLib &mdash; API Documentation</h1>
+<p style="color: #666; margin-top: 0; font-size: 1.1em;">
+  Mechanized Formalization of Category &tau;
+</p>
+
+<p>
+  <strong>TauLib</strong> is a 125,000-line Lean 4 formalization of
+  <strong>Category &tau;</strong> &mdash; a categorical framework built from
+  7 axioms (K0&ndash;K6) on 5 generators (&alpha;, &pi;, &gamma;, &eta;, &omega;)
+  with a single primitive iterator &rho;. All mathematical structures are built
+  from scratch; Mathlib is used for proof tactics only.
+</p>
+<p>
+  Companion to the 7-book
+  <a href="https://panta-rhei-books.org">Panta Rhei</a> series
+  by Thorsten Fuchs and Anna-Sophie Fuchs (2nd Edition, 2026).
+</p>
+
+<hr style="border: none; border-top: 1px solid #ddd; margin: 1.5em 0;">
+
+<h2>Library at a Glance</h2>
+
+<table style="border-collapse: collapse; width: 100%;">
+  <tr><td style="padding: 4px 12px;"><strong>Source files</strong></td>
+      <td style="padding: 4px 12px; text-align: right;">445</td></tr>
+  <tr><td style="padding: 4px 12px;"><strong>Lines of Lean 4</strong></td>
+      <td style="padding: 4px 12px; text-align: right;">124,684</td></tr>
+  <tr><td style="padding: 4px 12px;"><strong>Theorems &amp; lemmas</strong></td>
+      <td style="padding: 4px 12px; text-align: right;">4,420</td></tr>
+  <tr><td style="padding: 4px 12px;"><strong>Definitions</strong></td>
+      <td style="padding: 4px 12px; text-align: right;">3,570</td></tr>
+  <tr><td style="padding: 4px 12px;"><strong>Computations (<code>#eval</code>)</strong></td>
+      <td style="padding: 4px 12px; text-align: right;">3,700</td></tr>
+  <tr><td style="padding: 4px 12px;"><strong>Axioms</strong></td>
+      <td style="padding: 4px 12px; text-align: right;">4 (3 conjectural, 1 structural)</td></tr>
+  <tr><td style="padding: 4px 12px;"><strong>Sorry</strong></td>
+      <td style="padding: 4px 12px; text-align: right;">3 (Book VII only)</td></tr>
+  <tr><td style="padding: 4px 12px;"><strong>Mathlib usage</strong></td>
+      <td style="padding: 4px 12px; text-align: right;">Tactics only &mdash; all math from scratch</td></tr>
+</table>
+
+<hr style="border: none; border-top: 1px solid #ddd; margin: 1.5em 0;">
+
+<h2>Browse by Book</h2>
+
+<table style="border-collapse: collapse; width: 100%;">
+  <tr style="border-bottom: 2px solid #ddd;">
+    <th style="padding: 6px 12px; text-align: left;">Book</th>
+    <th style="padding: 6px 12px; text-align: right;">Modules</th>
+    <th style="padding: 6px 12px; text-align: left;">Start Here</th>
+  </tr>
+  <tr style="border-bottom: 1px solid #eee;">
+    <td style="padding: 6px 12px;"><a href="TauLib/BookI.html">I &mdash; Categorical Foundations</a></td>
+    <td style="padding: 6px 12px; text-align: right;">94</td>
+    <td style="padding: 6px 12px;"><a href="TauLib/BookI/Kernel/Signature.html">Kernel.Signature</a></td>
+  </tr>
+  <tr style="border-bottom: 1px solid #eee;">
+    <td style="padding: 6px 12px;"><a href="TauLib/BookII.html">II &mdash; Categorical Holomorphy</a></td>
+    <td style="padding: 6px 12px; text-align: right;">65</td>
+    <td style="padding: 6px 12px;"><a href="TauLib/BookII/Interior/Tau3Fibration.html">Interior.Tau3Fibration</a></td>
+  </tr>
+  <tr style="border-bottom: 1px solid #eee;">
+    <td style="padding: 6px 12px;"><a href="TauLib/BookIII.html">III &mdash; Categorical Spectrum</a></td>
+    <td style="padding: 6px 12px; text-align: right;">70</td>
+    <td style="padding: 6px 12px;"><a href="TauLib/BookIII/Enrichment/CanonicalLadder.html">Enrichment.CanonicalLadder</a></td>
+  </tr>
+  <tr style="border-bottom: 1px solid #eee;">
+    <td style="padding: 6px 12px;"><a href="TauLib/BookIV.html">IV &mdash; Categorical Microcosm</a></td>
+    <td style="padding: 6px 12px; text-align: right;">89</td>
+    <td style="padding: 6px 12px;"><a href="TauLib/BookIV/Sectors/SectorParameters.html">Sectors.SectorParameters</a></td>
+  </tr>
+  <tr style="border-bottom: 1px solid #eee;">
+    <td style="padding: 6px 12px;"><a href="TauLib/BookV.html">V &mdash; Categorical Macrocosm</a></td>
+    <td style="padding: 6px 12px; text-align: right;">80</td>
+    <td style="padding: 6px 12px;"><a href="TauLib/BookV/Gravity/GravitationalConstant.html">Gravity.GravitationalConstant</a></td>
+  </tr>
+  <tr style="border-bottom: 1px solid #eee;">
+    <td style="padding: 6px 12px;"><a href="TauLib/BookVI.html">VI &mdash; Categorical Life</a></td>
+    <td style="padding: 6px 12px; text-align: right;">30</td>
+    <td style="padding: 6px 12px;"><a href="TauLib/BookVI/LifeCore/Distinction.html">LifeCore.Distinction</a></td>
+  </tr>
+  <tr>
+    <td style="padding: 6px 12px;"><a href="TauLib/BookVII.html">VII &mdash; Categorical Metaphysics</a></td>
+    <td style="padding: 6px 12px; text-align: right;">7</td>
+    <td style="padding: 6px 12px;"><a href="TauLib/BookVII/Meta/Saturation.html">Meta.Saturation</a></td>
+  </tr>
+</table>
+
+<hr style="border: none; border-top: 1px solid #ddd; margin: 1.5em 0;">
+
+<h2>Reading Paths</h2>
+
+<ul style="line-height: 1.8;">
+  <li><strong>Mathematicians:</strong>
+    <a href="TauLib/BookI/Kernel/Signature.html">Signature</a> &rarr;
+    <a href="TauLib/BookI/Kernel/Axioms.html">Axioms</a> &rarr;
+    <a href="TauLib/BookI/Orbit/Rigidity.html">Rigidity</a> &rarr;
+    <a href="TauLib/BookI/Boundary/Iota.html">Iota</a> &rarr;
+    <a href="TauLib/BookII/CentralTheorem/CentralTheorem.html">Central Theorem</a>
+  </li>
+  <li><strong>Physicists:</strong>
+    <a href="TauLib/Tour/Physics.html">Tour.Physics</a> &rarr;
+    <a href="TauLib/BookIV/Electroweak/EWSynthesis.html">EWSynthesis</a> &rarr;
+    <a href="TauLib/BookV/Cosmology/CMBSpectrum.html">CMBSpectrum</a> &rarr;
+    <a href="TauLib/BookV/Astrophysics/RotationCurves.html">RotationCurves</a>
+  </li>
+  <li><strong>Lean users:</strong>
+    <a href="TauLib/Tour/Foundations.html">Tour.Foundations</a> &rarr;
+    <a href="TauLib/Tour/CentralTheorem.html">Tour.CentralTheorem</a> &rarr;
+    <a href="TauLib/Tour/Physics.html">Tour.Physics</a>
+  </li>
+  <li><strong>Philosophers:</strong>
+    <a href="TauLib/BookVII/Meta/Saturation.html">Saturation</a> &rarr;
+    <a href="TauLib/BookVII/Ethics/CIProof.html">CIProof</a> &rarr;
+    <a href="TauLib/BookVII/Final/Boundary.html">Boundary</a>
+  </li>
+</ul>
+
+<hr style="border: none; border-top: 1px solid #ddd; margin: 1.5em 0;">
+
+<h2>Additional Resources</h2>
+
+<ul style="line-height: 1.8;">
+  <li><a href="stats.html">Statistics Dashboard</a> &mdash;
+      Per-book formalization coverage, scope breakdown, and registry metrics</li>
+  <li><a href="depgraph.html">Dependency Graph</a> &mdash;
+      Interactive visualization of the 4,500+ entry mathematical registry</li>
+  <li><a href="TauLib/BookI.html">Book I &mdash; Start of the Foundation</a> &mdash;
+      Where everything begins: 5 generators, 7 axioms, &rho; operator</li>
+</ul>
+
+<hr style="border: none; border-top: 1px solid #ddd; margin: 1.5em 0;">
+
+<p style="color: #999; font-size: 0.85em; text-align: center;">
+  Generated by <a href="https://github.com/leanprover/doc-gen4" style="color: #999;">doc-gen4</a>
+  with Panta Rhei theme
+</p>
+
+</div>

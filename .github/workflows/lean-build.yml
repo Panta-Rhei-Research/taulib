@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build TauLib
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lean build (via lean-action)
+        uses: leanprover/lean-action@v1
+        with:
+          build-args: ""
+          # lean-action automatically handles:
+          # - elan/Lean installation from lean-toolchain
+          # - .lake directory caching
+          # - Mathlib cache detection (lake exe cache get)
+          # - Running lake build
+
+      - name: Report statistics
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "## Build Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Files | $(find TauLib -name '*.lean' | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lines | $(find TauLib -name '*.lean' -exec cat {} + | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Sorry | $(grep -r ':= sorry' TauLib/ --include='*.lean' | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Axioms | $(grep -r '^axiom ' TauLib/ --include='*.lean' | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,25 @@
+# Lean 4 / Lake build artifacts
+.lake/
+lake-packages/
+*.olean
+*.ilean
+*.trace
+*.c
+*.o
+*.h
+
+# Documentation build artifacts (generated, not committed)
+docbuild/.lake/
+
+# Claude Code session data
+.claude/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor artifacts
+*.swp
+*.swo
+*~
+.vscode/settings.json

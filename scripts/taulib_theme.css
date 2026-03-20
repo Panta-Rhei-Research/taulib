@@ -1,0 +1,64 @@
+/* ================================================================
+   TauLib / Panta Rhei Theme Override
+   ================================================================
+   Appended to doc-gen4's style.css during post-build.
+   Colors drawn from the Panta Rhei book series covers.
+   All overrides use CSS custom properties defined by doc-gen4.
+   ================================================================ */
+
+:root {
+  /* Header: deep sienna (matches book cover spines) */
+  --header-bg: #2c1810;
+
+  /* Body: warm parchment off-white */
+  --body-bg: #faf8f5;
+
+  /* Code blocks: warm tone */
+  --code-bg: #f5f0eb;
+
+  /* Text: soft black for readability */
+  --text-color: #1a1a1a;
+
+  /* Links: warm amber-brown */
+  --link-color: hsl(25, 80%, 35%);
+
+  /* Declaration badges — semantic color coding */
+  --def-color: #d4a76a;                        /* Golden: definitions */
+  --def-color-hsl-angle: 35;
+  --theorem-color: #8fa388;                    /* Sage green: theorems */
+  --theorem-color-hsl-angle: 110;
+  --axiom-and-constant-color: #8b4513;         /* Saddle brown: axioms */
+  --axiom-and-constant-color-hsl-angle: 25;
+  --structure-and-inductive-color: #c4782a;    /* Burnt orange: structures */
+  --structure-and-inductive-color-hsl-angle: 28;
+
+  /* UI elements */
+  --hamburger-bg-color: #e8ddd0;
+  --hamburger-border-color: #c4b09a;
+}
+
+/* ---- Dark mode ---- */
+[data-theme="dark"] {
+  --header-bg: #1a0f08;
+  --body-bg: #1e1810;
+  --code-bg: #2a2018;
+  --text-color: #e8ddd0;
+  --link-color: hsl(30, 70%, 60%);
+  --def-color: #c4a060;
+  --theorem-color: #7a9a72;
+  --axiom-and-constant-color: #c87040;
+  --structure-and-inductive-color: #d08a3a;
+  --hamburger-bg-color: #2a2018;
+  --hamburger-border-color: #4a3828;
+}
+
+/* Header text should be light on dark header */
+header a,
+header .header_filename {
+  color: #e8ddd0 !important;
+}
+
+/* Subtle border under header */
+header {
+  border-bottom: 2px solid #8b4513;
+}

@@ -1,0 +1,176 @@
+# ============================================================
+# TauLib Documentation — Build & Deploy to GitHub Pages
+# ============================================================
+#
+# Pipeline:
+#   1. Build TauLib (lean-action: elan, cache, lake build)
+#   2. Generate doc-gen4 HTML (all 445 modules)
+#   3. Filter to TauLib-only (strip Lean/Mathlib/Std/etc.)
+#   4. Apply Panta Rhei CSS theme + custom landing page
+#   5. Generate statistics dashboard + dependency graph
+#   6. Deploy to GitHub Pages (artifact-based, no gh-pages branch)
+#
+# Triggers:
+#   - Push to main (when source files change)
+#   - Manual dispatch via Actions tab
+#
+# One-time setup (in repo Settings → Pages → Source):
+#   Select "GitHub Actions" (not "Deploy from a branch")
+#
+# Architecture:
+#   - No gh-pages branch required
+#   - All output links are relative (hosting-agnostic)
+#   - Output: ~44 MB (well within 1 GB Pages limit)
+#   - Registry JSONL files should be at registry/ in the repo
+#     (if absent, stats dashboard and depgraph are skipped)
+# ============================================================
+
+name: Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'TauLib/**'
+      - 'docbuild/**'
+      - 'scripts/**'
+      - 'registry/**'
+      - 'lakefile.lean'
+      - 'lean-toolchain'
+      - 'lake-manifest.json'
+  workflow_dispatch:    # Manual trigger from Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write      # Required for OIDC-based Pages deployment
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  # ── Job 1: Build everything ───────────────────────────────
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Build TauLib ──────────────────────────────────────
+      - name: Build TauLib
+        uses: leanprover/lean-action@v1
+        with:
+          build-args: ""
+          # Handles: elan install, .lake cache, mathlib cache, lake build
+
+      # ── Generate doc-gen4 HTML ────────────────────────────
+      - name: Cache docbuild
+        uses: actions/cache@v4
+        with:
+          path: docbuild/.lake
+          key: docbuild-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'docbuild/lakefile.toml') }}
+          restore-keys: docbuild-${{ runner.os }}-
+
+      - name: Initialize doc-gen4
+        run: |
+          cd docbuild
+          MATHLIB_NO_CACHE_ON_UPDATE=1 lake update doc-gen4
+
+      - name: Generate documentation
+        run: |
+          cd docbuild
+          lake build TauLib:docs
+
+      # ── Post-process: filter + theme + landing page ───────
+      - name: Filter to TauLib-only
+        run: python3 scripts/filter_docs.py --doc-dir docbuild/.lake/build/doc
+
+      - name: Apply theme and landing page
+        run: |
+          DOC_OUTPUT="docbuild/.lake/build/doc"
+
+          # CSS theme (idempotent)
+          if ! grep -q "TauLib / Panta Rhei Theme Override" "$DOC_OUTPUT/style.css" 2>/dev/null; then
+            cat scripts/taulib_theme.css >> "$DOC_OUTPUT/style.css"
+          fi
+
+          # Landing page
+          python3 -c "
+          import re
+          with open('$DOC_OUTPUT/index.html') as f: html = f.read()
+          with open('scripts/landing_page.html') as f: content = f.read()
+          html = re.sub(r'(<main>).*?(</main>)',
+                        lambda m: m.group(1) + '\n' + content + '\n' + m.group(2),
+                        html, flags=re.DOTALL)
+          with open('$DOC_OUTPUT/index.html', 'w') as f: f.write(html)
+          print('Landing page replaced')
+          "
+
+      # ── Stats dashboard + dependency graph ────────────────
+      - name: Generate statistics and dependency graph
+        run: |
+          DOC_OUTPUT="docbuild/.lake/build/doc"
+
+          # Try registry/ in the repo root (preferred)
+          if [ -d "registry" ]; then
+            REGISTRY_DIR="registry"
+          else
+            echo "No registry/ directory found — skipping stats & depgraph"
+            exit 0
+          fi
+
+          python3 scripts/generate_stats.py \
+            --output "$DOC_OUTPUT/stats.html" \
+            --registry-dir "$REGISTRY_DIR" \
+            --lean-src TauLib
+
+          python3 scripts/generate_depgraph.py \
+            --output "$DOC_OUTPUT/depgraph.html" \
+            --registry-dir "$REGISTRY_DIR"
+
+      # ── Report ────────────────────────────────────────────
+      - name: Build summary
+        run: |
+          DOC_OUTPUT="docbuild/.lake/build/doc"
+          MODULE_COUNT=$(find "$DOC_OUTPUT/TauLib" -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
+          TOTAL_SIZE=$(du -sh "$DOC_OUTPUT" | cut -f1)
+          DECL_COUNT=$(python3 -c "
+          import json
+          with open('$DOC_OUTPUT/declarations/declaration-data.bmp') as f:
+              d = json.load(f)
+          print(len(d.get('declarations', {})))
+          " 2>/dev/null || echo "?")
+
+          echo "## Documentation Build" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| TauLib module pages | $MODULE_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Searchable declarations | $DECL_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Output size | $TOTAL_SIZE |" >> $GITHUB_STEP_SUMMARY
+
+      # ── Upload for Pages deployment ───────────────────────
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: docbuild/.lake/build/doc
+
+  # ── Job 2: Deploy to GitHub Pages ─────────────────────────
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
