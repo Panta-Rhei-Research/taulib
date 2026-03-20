@@ -121,13 +121,7 @@ jobs:
         run: |
           DOC_OUTPUT="docbuild/.lake/build/doc"
 
-          # Try registry/ in the repo root (preferred)
-          if [ -d "registry" ]; then
-            REGISTRY_DIR="registry"
-          else
-            echo "No registry/ directory found — skipping stats & depgraph"
-            exit 0
-          fi
+          REGISTRY_DIR="registry"
 
           python3 scripts/generate_stats.py \
             --output "$DOC_OUTPUT/stats.html" \

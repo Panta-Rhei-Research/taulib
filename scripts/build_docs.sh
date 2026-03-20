@@ -32,8 +32,8 @@ TAULIB_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 DOCBUILD="$TAULIB_ROOT/docbuild"
 DOC_OUTPUT="$DOCBUILD/.lake/build/doc"
 
-# Default registry path: ../../registry relative to TauLib root
-REGISTRY_DIR="${TAULIB_ROOT}/../../registry"
+# Default registry path: registry/ in the TauLib repo root
+REGISTRY_DIR="${TAULIB_ROOT}/registry"
 
 SKIP_LAKE_BUILD=false
 SKIP_DOCGEN=false
