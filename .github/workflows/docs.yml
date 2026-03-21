@@ -3,12 +3,19 @@
 # ============================================================
 #
 # Pipeline:
-#   1. Build TauLib (lean-action: elan, cache, lake build)
-#   2. Generate doc-gen4 HTML (all 445 modules)
-#   3. Filter to TauLib-only (strip Lean/Mathlib/Std/etc.)
-#   4. Apply Panta Rhei CSS theme + custom landing page
-#   5. Generate statistics dashboard + dependency graph
-#   6. Deploy to GitHub Pages (artifact-based, no gh-pages branch)
+#   1. Build TauLib library (lean-action: elan, cache, lake build)
+#   2. Generate doc-gen4 HTML (all modules, into docbuild/.lake)
+#   3. Copy doc output to _site/ (preserves cache integrity)
+#   4. Filter _site/ to TauLib-only (strip Lean/Mathlib/Std/etc.)
+#   5. Apply Panta Rhei CSS theme + custom landing page
+#   6. Generate statistics dashboard + dependency graph
+#   7. Deploy _site/ to GitHub Pages (artifact-based)
+#
+# Key architecture decision:
+#   Post-processing (filter, theme, stats) operates on _site/,
+#   NOT on docbuild/.lake/build/doc/. This keeps the docbuild
+#   cache pristine — doc-gen4's index step can find all files
+#   on subsequent cached runs.
 #
 # Triggers:
 #   - Push to main (when source files change)
@@ -16,13 +23,6 @@
 #
 # One-time setup (in repo Settings → Pages → Source):
 #   Select "GitHub Actions" (not "Deploy from a branch")
-#
-# Architecture:
-#   - No gh-pages branch required
-#   - All output links are relative (hosting-agnostic)
-#   - Output: ~44 MB (well within 1 GB Pages limit)
-#   - Registry JSONL files should be at registry/ in the repo
-#     (if absent, stats dashboard and depgraph are skipped)
 # ============================================================
 
 name: Documentation
@@ -38,6 +38,7 @@ on:
       - 'lakefile.lean'
       - 'lean-toolchain'
       - 'lake-manifest.json'
+      - '.github/workflows/docs.yml'
   workflow_dispatch:    # Manual trigger from Actions tab
 
 permissions:
@@ -60,20 +61,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Build TauLib ──────────────────────────────────────
+      # ── Build TauLib library ────────────────────────────────
       - name: Build TauLib
         uses: leanprover/lean-action@v1
         with:
           build-args: ""
-          # Handles: elan install, .lake cache, mathlib cache, lake build
 
-      # ── Generate doc-gen4 HTML ────────────────────────────
+      # ── Generate doc-gen4 HTML (cached) ─────────────────────
       - name: Cache docbuild
         uses: actions/cache@v4
         with:
           path: docbuild/.lake
-          key: docbuild-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'docbuild/lakefile.toml') }}
-          restore-keys: docbuild-${{ runner.os }}-
+          # Cache key v2: busts old corrupted cache from filtered builds
+          key: docbuild-v2-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'docbuild/lakefile.toml') }}
 
       - name: Initialize doc-gen4
         run: |
@@ -85,82 +85,87 @@ jobs:
           cd docbuild
           lake build TauLib:docs
 
-      # ── Post-process: filter + theme + landing page ───────
+      # ── Copy to deploy directory (cache stays pristine) ─────
+      - name: Prepare deploy directory
+        run: |
+          echo "Copying doc output to _site/ ..."
+          cp -r docbuild/.lake/build/doc _site
+          echo "  Size: $(du -sh _site | cut -f1)"
+          echo "  HTML files: $(find _site -name '*.html' | wc -l | tr -d ' ')"
+
+      # ── Post-process: filter + theme + landing page ─────────
       - name: Filter to TauLib-only
-        run: python3 scripts/filter_docs.py --doc-dir docbuild/.lake/build/doc
+        run: python3 scripts/filter_docs.py --doc-dir _site
 
       - name: Apply theme and landing page
         run: |
-          DOC_OUTPUT="docbuild/.lake/build/doc"
-
-          # CSS theme (idempotent)
-          if ! grep -q "TauLib / Panta Rhei — Documentation Theme" "$DOC_OUTPUT/style.css" 2>/dev/null; then
-            cat scripts/taulib_theme.css >> "$DOC_OUTPUT/style.css"
-          fi
+          # CSS theme (always fresh since _site is a copy)
+          cat scripts/taulib_theme.css >> _site/style.css
 
           # Self-hosted fonts (Manrope)
           if [ -d "scripts/fonts" ]; then
-            mkdir -p "$DOC_OUTPUT/fonts"
-            cp scripts/fonts/*.woff2 "$DOC_OUTPUT/fonts/"
+            mkdir -p _site/fonts
+            cp scripts/fonts/*.woff2 _site/fonts/
           fi
 
           # Landing page
           python3 -c "
           import re
-          with open('$DOC_OUTPUT/index.html') as f: html = f.read()
+          with open('_site/index.html') as f: html = f.read()
           with open('scripts/landing_page.html') as f: content = f.read()
           html = re.sub(r'(<main>).*?(</main>)',
                         lambda m: m.group(1) + '\n' + content + '\n' + m.group(2),
                         html, flags=re.DOTALL)
-          with open('$DOC_OUTPUT/index.html', 'w') as f: f.write(html)
+          with open('_site/index.html', 'w') as f: f.write(html)
           print('Landing page replaced')
           "
 
-      # ── Stats dashboard + dependency graph ────────────────
-      - name: Generate statistics and dependency graph
+      # ── Stats dashboard + dependency graph ──────────────────
+      - name: Generate statistics dashboard
         run: |
-          DOC_OUTPUT="docbuild/.lake/build/doc"
-
-          REGISTRY_DIR="registry"
-
           python3 scripts/generate_stats.py \
-            --output "$DOC_OUTPUT/stats.html" \
-            --registry-dir "$REGISTRY_DIR" \
+            --output _site/stats.html \
+            --registry-dir registry \
             --lean-src TauLib
 
+      - name: Generate dependency graph
+        run: |
           python3 scripts/generate_depgraph.py \
-            --output "$DOC_OUTPUT/depgraph.html" \
-            --registry-dir "$REGISTRY_DIR"
+            --output _site/depgraph.html \
+            --registry-dir registry
 
-      # ── Report ────────────────────────────────────────────
+      # ── Report ──────────────────────────────────────────────
       - name: Build summary
         run: |
-          DOC_OUTPUT="docbuild/.lake/build/doc"
-          MODULE_COUNT=$(find "$DOC_OUTPUT/TauLib" -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
-          TOTAL_SIZE=$(du -sh "$DOC_OUTPUT" | cut -f1)
+          MODULE_COUNT=$(find _site/TauLib -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
+          TOTAL_SIZE=$(du -sh _site | cut -f1)
           DECL_COUNT=$(python3 -c "
           import json
-          with open('$DOC_OUTPUT/declarations/declaration-data.bmp') as f:
+          with open('_site/declarations/declaration-data.bmp') as f:
               d = json.load(f)
           print(len(d.get('declarations', {})))
           " 2>/dev/null || echo "?")
+          STATS_OK=$([ -f _site/stats.html ] && echo "✅" || echo "❌")
+          GRAPH_OK=$([ -f _site/depgraph.html ] && echo "✅" || echo "❌")
 
-          echo "## Documentation Build" >> $GITHUB_STEP_SUMMARY
+          echo "## 📖 Documentation Build" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| TauLib module pages | $MODULE_COUNT |" >> $GITHUB_STEP_SUMMARY
           echo "| Searchable declarations | $DECL_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Statistics dashboard | $STATS_OK |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency graph | $GRAPH_OK |" >> $GITHUB_STEP_SUMMARY
           echo "| Output size | $TOTAL_SIZE |" >> $GITHUB_STEP_SUMMARY
 
-      # ── Upload for Pages deployment ───────────────────────
+      # ── Upload for Pages deployment ─────────────────────────
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: docbuild/.lake/build/doc
+          path: _site
 
   # ── Job 2: Deploy to GitHub Pages ─────────────────────────
   deploy:

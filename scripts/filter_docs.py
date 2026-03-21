@@ -5,15 +5,20 @@ Doc-gen4 always generates documentation for all transitive dependencies
 (Lean, Init, Std, Mathlib, Aesop, Batteries, etc.). This script strips
 everything except TauLib, producing a clean, focused documentation site.
 
+IMPORTANT: In CI, this script runs on a COPY of the doc output (_site/),
+not on the cached docbuild/.lake/build/doc/ directory. This preserves
+the cache for future runs — doc-gen4's index step needs all files intact.
+
 What it does:
   1. Deletes 12 non-TauLib directories and their root HTML files
   2. Rebuilds navbar.html to show only TauLib modules
   3. Filters declaration-data.bmp to contain only TauLib declarations
-  4. Removes foundational_types.html (references Lean core types)
-  5. Reports before/after statistics
+  4. Creates TauLib.html redirect if missing
+  5. Validates output and reports before/after statistics
 
 Usage:
-    python3 filter_docs.py --doc-dir docbuild/.lake/build/doc
+    python3 filter_docs.py --doc-dir _site              # CI (on copy)
+    python3 filter_docs.py --doc-dir docbuild/.lake/build/doc  # local
 
 All links in the output remain relative — hosting-agnostic.
 """
@@ -36,10 +41,13 @@ NON_TAULIB_DIRS = [
 # Root-level HTML pages for those dependencies (e.g., Aesop.html, Init.html)
 NON_TAULIB_ROOT_PAGES = [f"{d}.html" for d in NON_TAULIB_DIRS]
 
-# Additional pages that reference only non-TauLib content
-# NOTE: Do NOT include foundational_types.html here — doc-gen4's index step
-# needs it, and the docbuild/.lake cache persists between CI runs.
-EXTRA_REMOVALS = []
+# Additional root-level pages that reference only non-TauLib content.
+# Safe to delete because the CI workflow now copies doc output to _site/
+# before filtering — the docbuild cache stays pristine.
+EXTRA_REMOVALS = [
+    "foundational_types.html",   # References Lean core types (Init, Lean)
+    "404.html",                  # Generic 404 page from doc-gen4
+]
 
 
 def count_html_files(directory: Path) -> int:
