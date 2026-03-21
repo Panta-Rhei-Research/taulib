@@ -14,21 +14,21 @@ from pathlib import Path
 
 
 BOOK_COLORS = {
-    "I":   "#e74c3c",
-    "II":  "#e67e22",
-    "III": "#f1c40f",
-    "IV":  "#2ecc71",
-    "V":   "#3498db",
-    "VI":  "#9b59b6",
-    "VII": "#1abc9c",
+    "I":   "#8fb6ff",      # Categorical Foundations — blue
+    "II":  "#b08cff",      # Categorical Holomorphy — purple
+    "III": "#86efff",      # Categorical Spectrum — cyan
+    "IV":  "#95f3a1",      # Categorical Microcosm — green
+    "V":   "#ffb24d",      # Categorical Macrocosm — amber
+    "VI":  "#ff6156",      # Categorical Life — red
+    "VII": "#c8d4e8",      # Categorical Metaphysics — ink-200 (visible on all bgs)
 }
 
 SCOPE_COLORS = {
-    "established":  "#4a90d9",
-    "tau-effective": "#5cb85c",
-    "conjectural":  "#f0ad4e",
-    "metaphorical": "#999999",
-    "framework":    "#8b6fb0",
+    "established":  "#8fb6ff",      # Book I blue
+    "tau-effective": "#95f3a1",      # Book IV green
+    "conjectural":  "#ffb24d",      # Book V amber
+    "metaphorical": "#a9b8d0",      # ink-300 (muted)
+    "framework":    "#b28fff",      # accent lavender
 }
 
 BOOK_NAMES = {
@@ -101,11 +101,11 @@ def build_graph_data(entries):
             "size": round(size, 1),
             "color": {
                 "background": color,
-                "border": "#333" if formalization == "formalized" else "#aaa",
-                "highlight": {"background": color, "border": "#000"},
+                "border": "#09101d" if formalization == "formalized" else "#a9b8d0",
+                "highlight": {"background": color, "border": "#b28fff"},
             },
             "borderWidth": border_width,
-            "font": {"size": 8, "color": "#333"},
+            "font": {"size": 8, "color": "#121a2a"},
             "docUrl": doc_url,
         }
         if dashes:
@@ -157,57 +157,118 @@ def generate_html(nodes, edges, vis_js_path, output_path):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TauLib &mdash; Dependency Graph</title>
 <style>
+  @font-face {{
+    font-family: 'Manrope';
+    src: url('fonts/manrope-latin.woff2') format('woff2');
+    font-weight: 400 800;
+    font-display: swap;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+                   U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+                   U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }}
+  @font-face {{
+    font-family: 'Manrope';
+    src: url('fonts/manrope-latin-ext.woff2') format('woff2');
+    font-weight: 400 800;
+    font-display: swap;
+    unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F,
+                   U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+                   U+2C60-2C7F, U+A720-A7FF;
+  }}
+
+  :root {{
+    --pr-bg: #f7f4ee;
+    --pr-surface: #ffffff;
+    --pr-text: #121a2a;
+    --pr-text-muted: #32415b;
+    --pr-accent: #b28fff;
+    --pr-border: #dce5f2;
+    --pr-header-bg: #09101d;
+    --pr-header-text: #f6fbff;
+    --pr-shadow: 0 4px 16px rgba(18, 26, 42, 0.08);
+    --pr-transition: 200ms cubic-bezier(.22, 1, .36, 1);
+  }}
+
+  @media (prefers-color-scheme: dark) {{
+    :root {{
+      --pr-bg: #0b1020;
+      --pr-surface: rgba(11, 16, 32, 0.95);
+      --pr-text: #f6fbff;
+      --pr-text-muted: #a9b8d0;
+      --pr-border: #172033;
+      --pr-header-bg: #03060f;
+      --pr-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }}
+  }}
+
+  *, *::before, *::after {{ box-sizing: border-box; }}
+
   body {{
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Manrope', system-ui, -apple-system, "Segoe UI", sans-serif;
     margin: 0; padding: 0;
-    background: var(--body-bg, #faf8f5);
-    color: var(--text-color, #1a1a1a);
+    background: var(--pr-bg);
+    color: var(--pr-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }}
   #controls {{
     padding: 12px 20px;
-    background: #2c1810;
-    color: #e8ddd0;
+    background: var(--pr-header-bg);
+    color: var(--pr-header-text);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 12px;
     font-size: 0.9em;
   }}
-  #controls a {{ color: #d4a76a; text-decoration: none; }}
-  #controls a:hover {{ text-decoration: underline; }}
+  #controls a {{ color: var(--pr-accent); text-decoration: none; text-underline-offset: 2px; transition: opacity var(--pr-transition); }}
+  #controls a:hover {{ opacity: 0.8; text-decoration: underline; }}
   #controls select, #controls input {{
+    font-family: inherit;
     padding: 4px 8px;
-    border: 1px solid #666;
-    border-radius: 4px;
-    background: #1a0f08;
-    color: #e8ddd0;
+    border: 1px solid var(--pr-text-muted);
+    border-radius: 8px;
+    background: #03060f;
+    color: var(--pr-header-text);
     font-size: 0.9em;
+    transition: border-color var(--pr-transition);
   }}
-  #controls label {{ color: #ccc; font-size: 0.85em; }}
+  #controls select:focus, #controls input:focus {{
+    outline: none;
+    border-color: var(--pr-accent);
+    box-shadow: 0 0 0 2px rgba(178, 143, 255, 0.3);
+  }}
+  #controls label {{ color: var(--pr-text-muted); font-size: 0.85em; transition: color var(--pr-transition); }}
+  #controls label:hover {{ color: var(--pr-header-text); }}
   #graph-container {{
     width: 100%;
     height: calc(100vh - 100px);
-    border-top: 2px solid #8b4513;
+    border-top: 3px solid transparent;
+    border-image: linear-gradient(90deg, #7fb3ff, #b28fff, #80ebff, #8ff0b0, #ffbd58, #ff6b62) 1;
   }}
   #info-panel {{
     position: absolute;
     bottom: 20px;
     right: 20px;
-    background: rgba(255,255,255,0.95);
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 12px 16px;
-    max-width: 350px;
+    background: var(--pr-surface);
+    border: 1px solid var(--pr-border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    max-width: 380px;
     font-size: 0.85em;
     display: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--pr-shadow);
+    backdrop-filter: blur(12px);
+    line-height: 1.5;
   }}
+  #info-panel a {{ color: var(--pr-accent); }}
+  #info-panel small {{ color: var(--pr-text-muted); }}
   #stats-bar {{
     padding: 4px 20px;
-    background: #f5f0eb;
+    background: var(--pr-bg);
     font-size: 0.8em;
-    color: #666;
-    border-bottom: 1px solid #e0d8d0;
+    color: var(--pr-text-muted);
+    border-bottom: 1px solid var(--pr-border);
   }}
 </style>
 <script>
@@ -246,14 +307,18 @@ def generate_html(nodes, edges, vis_js_path, output_path):
   var edgesDataset = new vis.DataSet(allEdges);
 
   var container = document.getElementById('graph-container');
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var edgeBase = isDark ? '#172033' : '#dce5f2';
+  var edgeHi = '#b28fff';
+
   var options = {{
     nodes: {{
       shape: 'dot',
-      font: {{ size: 8 }},
+      font: {{ size: 8, color: isDark ? '#f6fbff' : '#121a2a' }},
     }},
     edges: {{
       arrows: {{ to: {{ enabled: true, scaleFactor: 0.4 }} }},
-      color: {{ color: '#ccc', highlight: '#666' }},
+      color: {{ color: edgeBase, highlight: edgeHi, hover: edgeHi, opacity: 0.6 }},
       width: 0.5,
     }},
     physics: {{
@@ -316,7 +381,7 @@ def generate_html(nodes, edges, vis_js_path, output_path):
         if (node.docUrl) {{
           html += '<br><br><a href="' + node.docUrl + '">Open in docs &rarr;</a>';
         }}
-        html += '<br><small style="color:#999;">Double-click to navigate</small>';
+        html += '<br><small>Double-click to navigate</small>';
         panel.innerHTML = html;
         panel.style.display = 'block';
       }}

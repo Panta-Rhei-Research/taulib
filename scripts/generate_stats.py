@@ -24,11 +24,11 @@ BOOK_META = {
 }
 
 SCOPE_COLORS = {
-    "established":   "#4a90d9",
-    "tau-effective":  "#5cb85c",
-    "conjectural":   "#f0ad4e",
-    "metaphorical":  "#999999",
-    "framework":     "#8b6fb0",
+    "established":   "#8fb6ff",      # Book I blue
+    "tau-effective":  "#95f3a1",      # Book IV green
+    "conjectural":   "#ffb24d",      # Book V amber
+    "metaphorical":  "#a9b8d0",      # ink-300 (muted)
+    "framework":     "#b28fff",      # accent lavender
 }
 
 
@@ -135,34 +135,117 @@ def generate_html(all_stats, all_registry, output_path):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TauLib &mdash; Statistics Dashboard</title>
 <style>
+  @font-face {{
+    font-family: 'Manrope';
+    src: url('fonts/manrope-latin.woff2') format('woff2');
+    font-weight: 400 800;
+    font-display: swap;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+                   U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+                   U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }}
+  @font-face {{
+    font-family: 'Manrope';
+    src: url('fonts/manrope-latin-ext.woff2') format('woff2');
+    font-weight: 400 800;
+    font-display: swap;
+    unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F,
+                   U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+                   U+2C60-2C7F, U+A720-A7FF;
+  }}
+
+  :root {{
+    --pr-bg: #f7f4ee;
+    --pr-surface: #ffffff;
+    --pr-text: #121a2a;
+    --pr-text-muted: #32415b;
+    --pr-accent: #b28fff;
+    --pr-accent-soft: rgba(178, 143, 255, 0.06);
+    --pr-border: #dce5f2;
+    --pr-header-bg: #09101d;
+    --pr-header-text: #f6fbff;
+    --pr-bar-track: #dce5f2;
+    --pr-shadow: 0 4px 16px rgba(18, 26, 42, 0.08);
+    --pr-transition: 200ms cubic-bezier(.22, 1, .36, 1);
+  }}
+
+  @media (prefers-color-scheme: dark) {{
+    :root {{
+      --pr-bg: #0b1020;
+      --pr-surface: #12192b;
+      --pr-text: #f6fbff;
+      --pr-text-muted: #a9b8d0;
+      --pr-accent-soft: rgba(178, 143, 255, 0.12);
+      --pr-border: #172033;
+      --pr-header-bg: #03060f;
+      --pr-bar-track: #172033;
+      --pr-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }}
+  }}
+
+  *, *::before, *::after {{ box-sizing: border-box; }}
+
   body {{
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+    font-family: 'Manrope', system-ui, -apple-system, "Segoe UI", sans-serif;
     max-width: 900px;
     margin: 0 auto;
     padding: 2em 1em;
-    background: var(--body-bg, #faf8f5);
-    color: var(--text-color, #1a1a1a);
+    background: var(--pr-bg);
+    color: var(--pr-text);
     line-height: 1.6;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    animation: pr-fade-in 400ms ease-out;
   }}
-  a {{ color: var(--link-color, hsl(25, 80%, 35%)); }}
-  h1 {{ border-bottom: 2px solid #8b4513; padding-bottom: 0.3em; }}
-  h2 {{ margin-top: 2em; color: #2c1810; }}
+  @keyframes pr-fade-in {{ from {{ opacity: 0; transform: translateY(6px); }} to {{ opacity: 1; transform: none; }} }}
+
+  a {{ color: var(--pr-accent); text-decoration-thickness: 1px; text-underline-offset: 2px; transition: opacity var(--pr-transition); }}
+  a:hover {{ opacity: 0.8; }}
+
+  h1 {{
+    border-bottom: 3px solid transparent;
+    border-image: linear-gradient(90deg, #7fb3ff, #b28fff, #80ebff, #8ff0b0, #ffbd58, #ff6b62) 1;
+    padding-bottom: 0.3em;
+    font-weight: 700;
+  }}
+  h2 {{ margin-top: 2em; color: var(--pr-text); font-weight: 700; }}
+
   table {{ border-collapse: collapse; width: 100%; margin: 1em 0; }}
-  th {{ background: #2c1810; color: #e8ddd0; padding: 8px 12px; text-align: left; font-weight: 600; }}
-  td {{ padding: 6px 12px; border-bottom: 1px solid #e0d8d0; }}
-  tr:hover td {{ background: #f0ebe5; }}
+  th {{ background: var(--pr-header-bg); color: var(--pr-header-text); padding: 8px 12px; text-align: left; font-weight: 600; font-size: 0.9em; letter-spacing: 0.02em; }}
+  th:first-child {{ border-radius: 8px 0 0 0; }}
+  th:last-child {{ border-radius: 0 8px 0 0; }}
+  td {{ padding: 6px 12px; border-bottom: 1px solid var(--pr-border); transition: background var(--pr-transition); }}
+  tr:hover td {{ background: var(--pr-accent-soft); }}
+
   .num {{ text-align: right; font-variant-numeric: tabular-nums; }}
-  .bar-container {{ width: 100%; background: #e8ddd0; border-radius: 4px; height: 20px; position: relative; }}
-  .bar-fill {{ height: 100%; border-radius: 4px; background: #5cb85c; transition: width 0.3s; }}
-  .bar-label {{ position: absolute; right: 6px; top: 1px; font-size: 0.8em; color: #333; font-weight: 600; }}
+  .bar-container {{ width: 100%; background: var(--pr-bar-track); border-radius: 999px; height: 20px; position: relative; overflow: hidden; }}
+  .bar-fill {{ height: 100%; border-radius: 999px; background: linear-gradient(90deg, #7fb3ff, #b28fff); transition: width 0.4s cubic-bezier(.22, 1, .36, 1); }}
+  .bar-label {{ position: absolute; right: 8px; top: 1px; font-size: 0.8em; color: var(--pr-text); font-weight: 600; }}
   .scope-dot {{ display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }}
+
   .overview-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 1em 0; }}
-  .overview-card {{ background: #fff; border: 1px solid #e0d8d0; border-radius: 8px; padding: 16px; text-align: center; }}
-  .overview-card .value {{ font-size: 2em; font-weight: 700; color: #2c1810; }}
-  .overview-card .label {{ font-size: 0.85em; color: #666; margin-top: 4px; }}
-  .sorry-zero {{ color: #5cb85c; font-weight: 700; }}
-  .sorry-nonzero {{ color: #f0ad4e; }}
-  footer {{ margin-top: 3em; padding-top: 1em; border-top: 1px solid #ddd; color: #999; font-size: 0.85em; text-align: center; }}
+  .overview-card {{
+    background: var(--pr-surface);
+    border: 1px solid var(--pr-border);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+    box-shadow: var(--pr-shadow);
+    transition: transform var(--pr-transition), box-shadow var(--pr-transition);
+  }}
+  .overview-card:hover {{ transform: translateY(-2px); }}
+  .overview-card .value {{ font-size: 2em; font-weight: 700; color: var(--pr-accent); }}
+  .overview-card .label {{ font-size: 0.85em; color: var(--pr-text-muted); margin-top: 4px; }}
+
+  .sorry-zero {{ color: #95f3a1; font-weight: 700; }}
+  .sorry-nonzero {{ color: #ffb24d; }}
+
+  .total-row {{ font-weight: 700; }}
+  .total-row td {{ border-top: 2px solid var(--pr-header-bg); }}
+
+  footer {{ margin-top: 3em; padding-top: 1em; border-top: 1px solid var(--pr-border); color: var(--pr-text-muted); font-size: 0.85em; text-align: center; }}
+  footer a {{ color: var(--pr-text-muted); }}
 </style>
 </head>
 <body>
@@ -232,7 +315,7 @@ def generate_html(all_stats, all_registry, output_path):
   <td class="num {sorry_cls}">{b['sorry']}</td>
 </tr>
 """
-    html += f"""<tr style="font-weight: 700; border-top: 2px solid #2c1810;">
+    html += f"""<tr class="total-row">
   <td>Total</td>
   <td class="num">{totals['files']}</td>
   <td class="num">{totals['lines']:,}</td>
@@ -268,7 +351,7 @@ def generate_html(all_stats, all_registry, output_path):
 </tr>
 """
     total_pct = (total_formalized / total_registry * 100) if total_registry > 0 else 0
-    html += f"""<tr style="font-weight: 700; border-top: 2px solid #2c1810;">
+    html += f"""<tr class="total-row">
   <td>Total</td>
   <td class="num">{total_registry:,}</td>
   <td class="num">{total_formalized:,}</td>
@@ -299,7 +382,7 @@ def generate_html(all_stats, all_registry, output_path):
         html += "</tr>\n"
 
     # Totals row
-    html += '<tr style="font-weight: 700; border-top: 2px solid #2c1810;">\n  <td>Total</td>\n'
+    html += '<tr class="total-row">\n  <td>Total</td>\n'
     for scope in SCOPE_COLORS:
         total = sum(b["scopes"].get(scope, 0) for b in book_rows)
         html += f'  <td class="num">{total}</td>\n'
