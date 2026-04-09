@@ -3,7 +3,7 @@ import TauLib.BookI.Boundary.SplitComplex
 import Mathlib.Tactic.Ring
 
 /-!
-# TauLib.Boundary.ComplexField
+# TauLib.BookI.Boundary.ComplexField
 
 The elliptic complex field: TauComplex = TauReal[i]/(i² + 1).
 

@@ -10,11 +10,11 @@ Determination theorem.
 
 ## Registry Cross-References
 
-- [II.L02] Refinement-Spectral Equivalence -- `refine_spectral_check`
-- [II.L03] Spectral-Germ Equivalence -- `spectral_germ_check`
-- [II.L04] Germ-Character Equivalence -- `germ_character_check`
-- [II.L05] Character-Hartogs Equivalence -- `character_hartogs_check`
-- [II.T27] Mutual Determination Theorem -- `mutual_determination_check`
+- [II.L02] Refinement-Spectral Equivalence — `refine_spectral_check`
+- [II.L03] Spectral-Germ Equivalence — `spectral_germ_check`
+- [II.L04] Germ-Character Equivalence — `germ_character_check`
+- [II.L05] Character-Hartogs Equivalence — `character_hartogs_check`
+- [II.T27] Mutual Determination Theorem — `mutual_determination_check`
 
 ## Mathematical Content
 

@@ -6,7 +6,7 @@ import TauLib.BookI.Boundary.Characters
 import Mathlib.Tactic.Ring
 
 /-!
-# TauLib.Holomorphy.TauHolomorphic
+# TauLib.BookI.Holomorphy.TauHolomorphic
 
 τ-holomorphic functions: ω-germ transformers with tower coherence.
 

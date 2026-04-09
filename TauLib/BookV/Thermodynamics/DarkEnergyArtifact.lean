@@ -9,15 +9,15 @@ cosmological constant. Finite universe, no proliferating infinity.
 
 ## Registry Cross-References
 
-- [V.D95] Capacity Surplus -- `CapacitySurplus`
-- [V.T68] Defect-Driven Acceleration -- `DefectDrivenAcceleration`
-- [V.T69] Dark Energy is a Readout Artifact -- `dark_energy_artifact`
-- [V.P40] No Lambda in the tau-Einstein Equation -- `no_lambda`
-- [V.P41] The 68% is Refinement Entropy -- `the_68_percent`
-- [V.R133] Data versus Interpretation -- `data_vs_interpretation`
-- [V.R134] Two Faces of the Same Problem -- `two_faces`
-- [V.R135] Where Does the 68% Go? -- `where_68_goes`
-- [V.R136] Testability -- `DarkEnergyTestability`
+- [V.D95] Capacity Surplus — `CapacitySurplus`
+- [V.T68] Defect-Driven Acceleration — `DefectDrivenAcceleration`
+- [V.T69] Dark Energy is a Readout Artifact — `dark_energy_artifact`
+- [V.P40] No Lambda in the tau-Einstein Equation — `no_lambda`
+- [V.P41] The 68% is Refinement Entropy — `the_68_percent`
+- [V.R133] Data versus Interpretation — `data_vs_interpretation`
+- [V.R134] Two Faces of the Same Problem — `two_faces`
+- [V.R135] Where Does the 68% Go? — `where_68_goes`
+- [V.R136] Testability — `DarkEnergyTestability`
 
 ## Mathematical Content
 

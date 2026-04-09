@@ -10,10 +10,10 @@ closure.
 
 ## Registry Cross-References
 
-- [V.D197] Threshold-Dependent Admissibility -- `ThresholdDependentAdmissibility`
-- [V.D198] Baryogenesis Window -- `BaryogenesisWindow`
-- [V.T151] N_eff from Sector Exhaustion -- `n_eff_eq_three`
-- [V.P113] Dark Sector Closure -- `n_eff_upper_bound`
+- [V.D197] Threshold-Dependent Admissibility — `ThresholdDependentAdmissibility`
+- [V.D198] Baryogenesis Window — `BaryogenesisWindow`
+- [V.T151] N_eff from Sector Exhaustion — `n_eff_eq_three`
+- [V.P113] Dark Sector Closure — `n_eff_upper_bound`
 
 ## Mathematical Content
 

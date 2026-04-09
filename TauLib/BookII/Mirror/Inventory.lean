@@ -8,7 +8,7 @@ between orthodox and tau approaches.
 
 ## Registry Cross-References
 
-- [II.D72] The Rewiring Table -- `RewiringRow`, `full_rewiring_table`,
+- [II.D72] The Rewiring Table — `RewiringRow`, `full_rewiring_table`,
   `rewiring_table_complete`
 
 ## Mathematical Content

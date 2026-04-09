@@ -7,10 +7,10 @@ Positive Regularity, Stabilized ω-Germ, Defect Contractivity, and Stability Cri
 
 ## Registry Cross-References
 
-- [III.T25] Positive Regularity -- `positive_regularity_check`
-- [III.D42] Stabilized ω-Germ -- `stabilized_germ_check`
-- [III.P14] Defect Contractivity -- `defect_contractivity_check`
-- [III.P15] Stability Criterion -- `stability_criterion_check`
+- [III.T25] Positive Regularity — `positive_regularity_check`
+- [III.D42] Stabilized ω-Germ — `stabilized_germ_check`
+- [III.P14] Defect Contractivity — `defect_contractivity_check`
+- [III.P15] Stability Criterion — `stability_criterion_check`
 
 ## Mathematical Content
 

@@ -8,9 +8,9 @@ and Independence of Prime-Level Actions.
 
 ## Registry Cross-References
 
-- [III.T10] CRT Decomposition Theorem -- `crt_spectral_check`
-- [III.D20] Reconstruction Functor -- `reconstruction_functor_check`
-- [III.P05] Independence of Prime-Level Actions -- `prime_independence_check`
+- [III.T10] CRT Decomposition Theorem — `crt_spectral_check`
+- [III.D20] Reconstruction Functor — `reconstruction_functor_check`
+- [III.P05] Independence of Prime-Level Actions — `prime_independence_check`
 
 ## Mathematical Content
 

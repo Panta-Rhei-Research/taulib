@@ -1,12 +1,12 @@
 import TauLib.BookI.Polarity.BipolarAlgebra
 
 /-!
-# TauLib.Logic.Truth4
+# TauLib.BookI.Logic.Truth4
 
 The four-valued logic earned from bipolar prime polarity.
 
 ## Registry Cross-References
-- [I.D21] Truth4 Logic -- `Truth4`, `Truth4.meet`, `Truth4.join`, `Truth4.neg`
+- [I.D21] Truth4 Logic — `Truth4`, `Truth4.meet`, `Truth4.join`, `Truth4.neg`
 
 ## Ground Truth Sources
 - chunk_0228_M002194: Split-complex algebra, bipolar balance

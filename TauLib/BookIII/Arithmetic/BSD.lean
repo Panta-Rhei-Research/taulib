@@ -7,8 +7,8 @@ BSD Coherence Theorem and BSD Three-Ingredient Proof.
 
 ## Registry Cross-References
 
-- [III.T35] BSD Coherence Theorem -- `bsd_coherence_check`
-- [III.P27] BSD Three-Ingredient Proof -- `bsd_three_ingredient_check`
+- [III.T35] BSD Coherence Theorem — `bsd_coherence_check`
+- [III.P27] BSD Three-Ingredient Proof — `bsd_three_ingredient_check`
 
 ## Mathematical Content
 

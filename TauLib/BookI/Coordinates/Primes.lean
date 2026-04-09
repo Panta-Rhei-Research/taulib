@@ -1,7 +1,7 @@
 import TauLib.BookI.Denotation.Arithmetic
 
 /-!
-# TauLib.Coordinates.Primes
+# TauLib.BookI.Coordinates.Primes
 
 Primes, divisibility, GCD, Euclid's Lemma, and FTA on τ-Idx.
 

@@ -3,7 +3,7 @@ import TauLib.BookI.Coordinates.Descent
 import TauLib.BookI.Coordinates.ABCD
 
 /-!
-# TauLib.Coordinates.Hyperfact
+# TauLib.BookI.Coordinates.Hyperfact
 
 Hyperfactorization: existence and uniqueness of the ABCD decomposition.
 

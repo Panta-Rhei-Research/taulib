@@ -2,7 +2,7 @@ import TauLib.BookI.MetaLogic.LinearDiscipline
 import TauLib.BookI.MetaLogic.Substrate
 
 /-!
-# TauLib.MetaLogic.StructuralExclusion
+# TauLib.BookI.MetaLogic.StructuralExclusion
 
 The K5 Structural Exclusion theorem and the Enrichment Frontier Classification.
 

@@ -1,6 +1,6 @@
 # Contributing to TauLib
 
-TauLib is the official formalization of Category &tau;, maintained by the authors of the [Panta Rhei](https://panta-rhei-books.org) book series. This document covers issue reporting, code style conventions, and citation guidelines.
+TauLib is the official formalization of Category &tau;, maintained by the authors of the [Panta Rhei](https://panta-rhei.site) book series. This document covers issue reporting, code style conventions, and citation guidelines.
 
 ---
 
@@ -28,7 +28,7 @@ This repository is the **official release** of TauLib. We do not accept external
 
 If you want to:
 - **Experiment** &mdash; fork the repo and work freely under the Apache 2.0 license
-- **Contribute** &mdash; see the community development repository (link forthcoming)
+- **Contribute** &mdash; open a pull request or issue on the [TauLib repository](https://github.com/panta-rhei-framework/taulib)
 - **Report fixes** &mdash; open an issue; we will credit you in the changelog
 
 ---
@@ -170,7 +170,7 @@ If you use TauLib in academic work, please cite:
   year      = {2026},
   version   = {2.0.0},
   url       = {https://github.com/panta-rhei-framework/taulib},
-  note      = {445 modules, 124{,}684 lines of Lean 4, 4{,}420 theorems},
+  note      = {450 modules, 125{,}771 lines of Lean 4, 4{,}332 theorems},
   license   = {Apache-2.0}
 }
 ```

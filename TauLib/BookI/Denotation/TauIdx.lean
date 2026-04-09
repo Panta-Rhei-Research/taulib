@@ -1,7 +1,7 @@
 import TauLib.BookI.Orbit.Closure
 
 /-!
-# TauLib.Denotation.TauIdx
+# TauLib.BookI.Denotation.TauIdx
 
 τ-Idx: the alpha orbit IS the natural numbers. The swap operator σ
 permutes seeds between orbits.

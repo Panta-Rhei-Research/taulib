@@ -7,9 +7,9 @@ Split-Complex Zeta Function, Functional Equation Involution, and Bipolar Euler P
 
 ## Registry Cross-References
 
-- [III.D26] Split-Complex Zeta ζ_τ -- `split_zeta_b`, `split_zeta_c`, `split_zeta_check`
-- [III.D27] Functional Equation Involution J -- `fe_involution`, `fe_involution_check`
-- [III.T16] Bipolar Euler Product -- `bipolar_euler_check`
+- [III.D26] Split-Complex Zeta ζ_τ — `split_zeta_b`, `split_zeta_c`, `split_zeta_check`
+- [III.D27] Functional Equation Involution J — `fe_involution`, `fe_involution_check`
+- [III.T16] Bipolar Euler Product — `bipolar_euler_check`
 
 ## Mathematical Content
 

@@ -1,7 +1,7 @@
 import TauLib.BookI.Sets.Operations
 
 /-!
-# TauLib.Sets.Powerset
+# TauLib.BookI.Sets.Powerset
 
 Well-foundedness of strict τ-membership and the powerset hierarchy.
 

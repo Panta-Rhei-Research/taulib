@@ -7,9 +7,9 @@ Euler's number e earned from the factorial series and primorial growth.
 
 ## Registry Cross-References
 
-- [II.D30] e as Iterator Eigenvalue -- `e_factorial_scaled`
-- [II.D31] Growth Base -- `primorial_growth_check`
-- [II.T23] e from Index Arithmetic -- `e_convergence_check`
+- [II.D30] e as Iterator Eigenvalue — `e_factorial_scaled`
+- [II.D31] Growth Base — `primorial_growth_check`
+- [II.T23] e from Index Arithmetic — `e_convergence_check`
 
 ## Mathematical Content
 

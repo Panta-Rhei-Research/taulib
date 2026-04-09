@@ -1,7 +1,7 @@
 import TauLib.BookI.Kernel.Signature
 
 /-!
-# TauLib.Kernel.Axioms
+# TauLib.BookI.Kernel.Axioms
 
 The six structural axioms K1–K6 of Category τ.
 

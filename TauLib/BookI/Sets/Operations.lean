@@ -3,7 +3,7 @@ import Mathlib.Tactic.Set
 import Mathlib.Tactic.Ring
 
 /-!
-# TauLib.Sets.Operations
+# TauLib.BookI.Sets.Operations
 
 τ-Set operations: union (lcm), intersection (gcd), and their lattice laws.
 

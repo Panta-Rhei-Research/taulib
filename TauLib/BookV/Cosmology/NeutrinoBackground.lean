@@ -8,8 +8,8 @@ Neutrino background origin and density gradient monotonicity from the
 
 ## Registry Cross-References
 
-- [V.P114] Neutrino Background Origin -- `NeutrinoBackgroundOrigin`
-- [V.T152] Density Gradient Monotonicity -- `DensityGradientMonotonicity`
+- [V.P114] Neutrino Background Origin — `NeutrinoBackgroundOrigin`
+- [V.T152] Density Gradient Monotonicity — `DensityGradientMonotonicity`
 
 ## Mathematical Content
 

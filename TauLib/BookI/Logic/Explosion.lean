@@ -2,12 +2,12 @@ import TauLib.BookI.Logic.Truth4
 import TauLib.BookI.Polarity.BipolarAlgebra
 
 /-!
-# TauLib.Logic.Explosion
+# TauLib.BookI.Logic.Explosion
 
 The explosion barrier: paraconsistent behavior of Truth4 material implication.
 
 ## Registry Cross-References
-- [I.T13] Explosion Barrier -- `explosion_barrier`, `explosion_exists_counterexample`
+- [I.T13] Explosion Barrier — `explosion_barrier`, `explosion_exists_counterexample`
 
 ## Ground Truth Sources
 - chunk_0228_M002194: Split-complex algebra, bipolar balance

@@ -2,7 +2,7 @@ import TauLib.BookI.Denotation.RankTransfer
 import TauLib.BookI.Orbit.Ladder
 
 /-!
-# TauLib.Denotation.Arithmetic
+# TauLib.BookI.Denotation.Arithmetic
 
 Earned arithmetic: addition, multiplication, exponentiation, and tetration
 derived from the iterator ρ.

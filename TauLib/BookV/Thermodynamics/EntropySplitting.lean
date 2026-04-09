@@ -10,20 +10,20 @@ not maximal chaos.
 
 ## Registry Cross-References
 
-- [V.D85] Defect Partition of Paths -- `DefectPartitionOfPaths`
-- [V.D86] Defect Entropy -- `MacroDefectEntropy`
-- [V.D87] Refinement Entropy -- `MacroRefinementEntropy`
-- [V.T56] Entropy Splitting Theorem -- `MacroEntropySplitThm`
-- [V.T57] Defect Entropy is Bounded -- `defect_entropy_bounded`
-- [V.T58] Defect Entropy is Monotonically Decreasing -- `defect_entropy_monotone`
-- [V.T59] Refinement Entropy Grows Without Bound -- `refinement_entropy_unbounded`
-- [V.C06] Defect Entropy Reaches Zero -- `defect_entropy_reaches_zero`
-- [V.P27] Readout Projects onto Total Entropy -- `ReadoutProjection`
-- [V.P28] iota_tau Controls the Splitting Ratio -- `SplittingRatioControl`
-- [V.P29] Defect Entropy from Defect Functional -- `DefectEntropyFromFunctional`
+- [V.D85] Defect Partition of Paths — `DefectPartitionOfPaths`
+- [V.D86] Defect Entropy — `MacroDefectEntropy`
+- [V.D87] Refinement Entropy — `MacroRefinementEntropy`
+- [V.T56] Entropy Splitting Theorem — `MacroEntropySplitThm`
+- [V.T57] Defect Entropy is Bounded — `defect_entropy_bounded`
+- [V.T58] Defect Entropy is Monotonically Decreasing — `defect_entropy_monotone`
+- [V.T59] Refinement Entropy Grows Without Bound — `refinement_entropy_unbounded`
+- [V.C06] Defect Entropy Reaches Zero — `defect_entropy_reaches_zero`
+- [V.P27] Readout Projects onto Total Entropy — `ReadoutProjection`
+- [V.P28] iota_tau Controls the Splitting Ratio — `SplittingRatioControl`
+- [V.P29] Defect Entropy from Defect Functional — `DefectEntropyFromFunctional`
 - [V.R119] Why epsilon is Harmless -- structural remark
-- [V.R120] The Paradox Resolved -- `paradox_resolved`
-- [V.R121] The 99.99% That is Noise -- `noise_dominance`
+- [V.R120] The Paradox Resolved — `paradox_resolved`
+- [V.R121] The 99.99% That is Noise — `noise_dominance`
 - [V.R122] The Penrose Puzzle -- structural remark
 
 ## Mathematical Content

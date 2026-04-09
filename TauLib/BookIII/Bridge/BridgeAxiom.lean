@@ -8,11 +8,11 @@ Bridge Ledger, and Honest Claim Theorem.
 
 ## Registry Cross-References
 
-- [III.D71] Bridge Axiom (CONJECTURAL) -- `bridge_functor_exists` (Lean axiom)
-- [III.D72] Shadow Diagram -- `shadow_diagram_check`
-- [III.T45] RH Bridge Three-Layer -- `rh_bridge_three_layer`
-- [III.T46] Bridge Ledger -- `bridge_ledger_check`
-- [III.T47] Honest Claim Theorem -- `honest_claim_check`
+- [III.D71] Bridge Axiom (CONJECTURAL) — `bridge_functor_exists` (Lean axiom)
+- [III.D72] Shadow Diagram — `shadow_diagram_check`
+- [III.T45] RH Bridge Three-Layer — `rh_bridge_three_layer`
+- [III.T46] Bridge Ledger — `bridge_ledger_check`
+- [III.T47] Honest Claim Theorem — `honest_claim_check`
 
 ## Mathematical Content
 

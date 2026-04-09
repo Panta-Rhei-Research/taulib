@@ -9,12 +9,12 @@ The Central Theorem: O(tau^3) ≅ A_spec(L).
 
 ## Registry Cross-References
 
-- [II.D60] Spectral Algebra A_spec(L) -- `SpectralAlgebraElement`,
+- [II.D60] Spectral Algebra A_spec(L) — `SpectralAlgebraElement`,
   `spectral_algebra_tower_check`
-- [II.T40] Central Theorem -- `central_theorem_forward_check`,
+- [II.T40] Central Theorem — `central_theorem_forward_check`,
   `central_theorem_inverse_check`, `central_theorem_roundtrip_check`,
   `central_theorem_check`
-- [II.C01] Holographic Principle -- `holographic_check`
+- [II.C01] Holographic Principle — `holographic_check`
 
 ## Mathematical Content
 

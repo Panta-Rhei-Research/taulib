@@ -6,7 +6,7 @@ open Lake DSL
 
   A Lean 4 library formalizing Category τ — a categorical framework built from
   5 generators and axioms K0–K6, deriving all structure from the sole primitive
-  iterator ρ. Companion to the 7-book Panta Rhei series (https://panta-rhei-books.org).
+  iterator ρ. Companion to the 7-book Panta Rhei series (https://panta-rhei.site).
 
   DEPENDENCY POLICY:
   - Mathlib is required for TACTICS ONLY (simp, omega, ring, aesop, decide, etc.)

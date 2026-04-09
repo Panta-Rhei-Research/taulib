@@ -9,10 +9,10 @@ authors:
   - family-names: Fuchs
     given-names: Anna-Sophie
 repository-code: "https://github.com/panta-rhei-framework/taulib"
-url: "https://panta-rhei-books.org"
+url: "https://panta-rhei.site"
 license: Apache-2.0
 version: "2.0.0"
-date-released: "2026-03-20"
+date-released: "2026-04-12"
 keywords:
   - lean4
   - formalization
@@ -24,8 +24,8 @@ keywords:
 abstract: >-
   TauLib is a Lean 4 formalization of Category tau, a categorical framework
   built from 7 axioms (K0-K6) on 5 generators with a single primitive
-  iterator. It spans 445 modules and 124,684 lines of Lean 4 code, containing
-  4,420 theorems and 3,700 live computations across foundations, complex
+  iterator. It spans 450 modules and 125,771 lines of Lean 4 code, containing
+  4,332 theorems and 3,721 live computations across foundations, complex
   analysis, spectral theory, quantum mechanics, gravity, cosmology, biology,
   and philosophy. All mathematical structures are built from scratch — Mathlib
   is used for proof tactics only. Books I-VI contain zero sorry. Companion to

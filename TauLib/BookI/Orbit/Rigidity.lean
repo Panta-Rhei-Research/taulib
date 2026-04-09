@@ -1,7 +1,7 @@
 import TauLib.BookI.Orbit.Closure
 
 /-!
-# TauLib.Orbit.Rigidity
+# TauLib.BookI.Orbit.Rigidity
 
 Rigidity (Aut(τ) = {id}) and Categoricity of τ₀.
 

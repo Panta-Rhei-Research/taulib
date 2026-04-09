@@ -1,7 +1,7 @@
 import TauLib.BookI.Polarity.Spectral
 
 /-!
-# TauLib.Polarity.Polarity
+# TauLib.BookI.Polarity.Polarity
 
 Prime Polarity Theorem: the canonical bipolar partition of primes.
 

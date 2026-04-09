@@ -7,9 +7,9 @@ Master constant iota_tau = 2/(pi + e) confirmed with earned pi and e.
 
 ## Registry Cross-References
 
-- [II.T25] Master Constant Confirmed -- `iota_tau_confirmed_check`
-- [II.D34] Archimedean Bridge -- `archimedean_bridge_check`
-- [II.P07] Refinement Resolution Bound -- `refinement_resolution_check`
+- [II.T25] Master Constant Confirmed — `iota_tau_confirmed_check`
+- [II.D34] Archimedean Bridge — `archimedean_bridge_check`
+- [II.P07] Refinement Resolution Bound — `refinement_resolution_check`
 
 ## Mathematical Content
 

@@ -1,7 +1,7 @@
 import TauLib.BookI.Holomorphy.Thinness
 
 /-!
-# TauLib.Holomorphy.GlobalHartogs
+# TauLib.BookI.Holomorphy.GlobalHartogs
 
 The Global Hartogs Extension Theorem — the CLIMAX of Book I.
 

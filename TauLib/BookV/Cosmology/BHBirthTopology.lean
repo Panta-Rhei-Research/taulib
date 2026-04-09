@@ -10,16 +10,16 @@ No interior singularity — the interior is a compact subset of T².
 
 ## Registry Cross-References
 
-- [V.D163] Gravitational Tension -- `GravitationalTension`
-- [V.D164] Spherical Capacity -- `SphericalCapacity`
-- [V.D165] Linking Class -- `LinkingClass`
-- [V.D166] Black Hole (Topological Event) -- `BlackHoleTopologicalEvent`
-- [V.T109] BH Threshold Theorem -- `bh_threshold_theorem`
-- [V.T110] BH Toroidal Topology -- `bh_toroidal_topology`
+- [V.D163] Gravitational Tension — `GravitationalTension`
+- [V.D164] Spherical Capacity — `SphericalCapacity`
+- [V.D165] Linking Class — `LinkingClass`
+- [V.D166] Black Hole (Topological Event) — `BlackHoleTopologicalEvent`
+- [V.T109] BH Threshold Theorem — `bh_threshold_theorem`
+- [V.T110] BH Toroidal Topology — `bh_toroidal_topology`
 - [V.R222] Event horizon as linking boundary -- structural remark
-- [V.P93]  No Interior Singularity -- `no_interior_singularity`
-- [V.C18]  Information Preservation -- `information_preservation`
-- [V.D167] Canonical BH Neighborhood -- `CanonicalBHNeighborhood`
+- [V.P93]  No Interior Singularity — `no_interior_singularity`
+- [V.C18]  Information Preservation — `information_preservation`
+- [V.D167] Canonical BH Neighborhood — `CanonicalBHNeighborhood`
 
 ## Mathematical Content
 

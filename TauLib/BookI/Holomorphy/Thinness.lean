@@ -1,7 +1,7 @@
 import TauLib.BookI.Holomorphy.SpectralCoefficients
 
 /-!
-# TauLib.Holomorphy.Thinness
+# TauLib.BookI.Holomorphy.Thinness
 
 Primorial thinness and the removable singularity criterion.
 

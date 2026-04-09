@@ -7,9 +7,9 @@ import TauLib.BookIII.Spectral.LocalFields
 
 ## Registry Cross-References
 
-- [III.D22] τ-Adele Ring -- `AdeleElement`, `adele_ring_check`
-- [III.T12] Adelic Embedding Theorem -- `adelic_embedding_check`
-- [III.P07] Adelic Euler Product -- `euler_product_check`
+- [III.D22] τ-Adele Ring — `AdeleElement`, `adele_ring_check`
+- [III.T12] Adelic Embedding Theorem — `adelic_embedding_check`
+- [III.P07] Adelic Euler Product — `euler_product_check`
 
 ## Mathematical Content
 

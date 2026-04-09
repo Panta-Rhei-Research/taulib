@@ -7,9 +7,9 @@ Solenoidal circles and S^1 as a profinite limit.
 
 ## Registry Cross-References
 
-- [II.D26] Solenoidal Circle -- `solenoidal_b_orbit`, `solenoidal_c_orbit`
-- [II.T21] S^1 as Profinite Limit -- `circle_profinite_check`
-- [II.D27] Geometric-Topological Unification -- `geo_topo_check`
+- [II.D26] Solenoidal Circle — `solenoidal_b_orbit`, `solenoidal_c_orbit`
+- [II.T21] S^1 as Profinite Limit — `circle_profinite_check`
+- [II.D27] Geometric-Topological Unification — `geo_topo_check`
 
 ## Mathematical Content
 

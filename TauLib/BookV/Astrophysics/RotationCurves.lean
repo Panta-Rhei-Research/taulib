@@ -9,16 +9,16 @@ galactic acceleration scales. Dark matter is unnecessary.
 
 ## Registry Cross-References
 
-- [V.D123] Boundary Holonomy Correction -- `BoundaryHolonomyCorrection`
-- [V.T85] Flat Rotation Curve Theorem -- `flat_rotation_theorem`
-- [V.C13] MOND Acceleration Scale from ι_τ -- `mond_scale_from_iota`
-- [V.P67] Newtonian Regime Recovery -- `newtonian_recovery`
+- [V.D123] Boundary Holonomy Correction — `BoundaryHolonomyCorrection`
+- [V.T85] Flat Rotation Curve Theorem — `flat_rotation_theorem`
+- [V.C13] MOND Acceleration Scale from ι_τ — `mond_scale_from_iota`
+- [V.P67] Newtonian Regime Recovery — `newtonian_recovery`
 - [V.R174] a₀ from ι_τ and H₀ -- structural remark
-- [V.P68] RAR from Single Coupling -- `rar_from_single_coupling`
+- [V.P68] RAR from Single Coupling — `rar_from_single_coupling`
 - [V.R175] McGaugh RAR Data Match -- structural remark
-- [V.P69] Dwarf Galaxy Prediction -- `dwarf_galaxy_prediction`
+- [V.P69] Dwarf Galaxy Prediction — `dwarf_galaxy_prediction`
 - [V.R176] Ultra-Diffuse Galaxies as Test -- structural remark
-- [V.P70] No Dark Matter Halo Required -- `no_dark_halo`
+- [V.P70] No Dark Matter Halo Required — `no_dark_halo`
 
 ## Mathematical Content
 

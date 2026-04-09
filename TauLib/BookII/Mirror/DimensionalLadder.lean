@@ -10,15 +10,15 @@ classical rungs simultaneously, collapsing the ladder into a single point.
 
 ## Registry Cross-References
 
-- [II.D75] Archimedean-Elliptic Engine -- `ArchimedeanEllipticEngine`,
+- [II.D75] Archimedean-Elliptic Engine — `ArchimedeanEllipticEngine`,
   `engine_active`, `engine_for_quadrant`
-- [II.D76] Dimensional Rigidity -- `DimensionalRigidity`, `tau_rigidity`,
+- [II.D76] Dimensional Rigidity — `DimensionalRigidity`, `tau_rigidity`,
   `fibration_forced`
-- [II.T47] Simultaneous Rung Theorem -- `simultaneous_rung`,
+- [II.T47] Simultaneous Rung Theorem — `simultaneous_rung`,
   `tau_spans_three_rungs`
-- [II.T48] Fourth Quadrant Ladder Collapse -- `ladder_collapse`,
+- [II.T48] Fourth Quadrant Ladder Collapse — `ladder_collapse`,
   `tau_engine_inactive`
-- [II.R31] Categoricity Implies No Ladder -- `categoricity_no_ladder`
+- [II.R31] Categoricity Implies No Ladder — `categoricity_no_ladder`
 - [II.R32] Honest Scope -- (doc comment only)
 
 ## Mathematical Content

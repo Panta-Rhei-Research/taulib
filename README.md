@@ -7,14 +7,14 @@
   <a href="https://lean-lang.org"><img src="https://img.shields.io/badge/Lean_4-v4.28.0--rc1-blue?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSJub25lIi8+PHRleHQgeD0iMyIgeT0iMTIiIGZpbGw9IndoaXRlIiBmb250LXNpemU9IjEyIj5MPC90ZXh0Pjwvc3ZnPg==" alt="Lean 4"></a>
   <a href="https://github.com/panta-rhei-framework/taulib/actions"><img src="https://github.com/panta-rhei-framework/taulib/actions/workflows/lean-build.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-green.svg" alt="License"></a>
-  <a href="https://panta-rhei-books.org"><img src="https://img.shields.io/badge/Panta_Rhei-Books-8B4513" alt="Panta Rhei"></a>
+  <a href="https://panta-rhei.site"><img src="https://img.shields.io/badge/Panta_Rhei-Books-8B4513" alt="Panta Rhei"></a>
 </p>
 
 ---
 
 TauLib is a **125,000-line Lean 4 formalization** of **Category &tau;** &mdash; a categorical framework built from 7 axioms (K0&ndash;K6) on 5 generators (&alpha;, &pi;, &gamma;, &eta;, &omega;) with a single primitive iterator &rho;. Starting from these axioms alone, TauLib derives arithmetic, analysis, geometry, physics, biology, and philosophy as earned consequences &mdash; all compiled and verified by Lean's kernel with **zero sorry in Books I&ndash;VI**.
 
-Companion to the 7-book [**Panta Rhei**](https://panta-rhei-books.org) series by Thorsten Fuchs and Anna-Sophie Fuchs (2nd Edition, 2026).
+Companion to the 7-book [**Panta Rhei**](https://panta-rhei.site) series by Thorsten Fuchs and Anna-Sophie Fuchs (2nd Edition, 2026).
 
 ---
 
@@ -22,14 +22,14 @@ Companion to the 7-book [**Panta Rhei**](https://panta-rhei-books.org) series by
 
 | Metric | Value |
 |--------|------:|
-| Source files | 445 |
-| Lines of Lean 4 | 124,684 |
-| Theorems &amp; lemmas | 4,420 |
-| Definitions | 3,570 |
+| Source files | 450 |
+| Lines of Lean 4 | 125,771 |
+| Theorems &amp; lemmas | 4,332 |
+| Definitions | 3,542 |
 | Structures, classes &amp; inductives | 1,685 |
 | Instances | 28 |
 | Examples | 350 |
-| Computations (`#eval`) | 3,700 |
+| Computations (`#eval`) | 3,721 |
 | Axioms | 4 (3 conjectural, 1 structural) |
 | Sorry | 3 (methodological, Book VII only) |
 | Books I&ndash;VI sorry | **0** |
@@ -41,7 +41,7 @@ Companion to the 7-book [**Panta Rhei**](https://panta-rhei-books.org) series by
 
 - **Everything from scratch.** TauLib does not import mathematical content from Mathlib or any other library. All arithmetic, algebra, analysis, topology, category theory, quantum mechanics, and cosmology are derived within the framework, from the 5 generators and 7 axioms. Mathlib is used for proof *tactics* only (`simp`, `omega`, `ring`, `decide`, `linarith`, `norm_num`).
 
-- **3,700 live computations.** Every quantitative claim is backed by `#eval` statements that execute in the Lean kernel, producing concrete numerical values from the master constant &iota;<sub>&tau;</sub> = 2/(&pi; + e).
+- **3,721 live computations.** Every quantitative claim is backed by `#eval` statements that execute in the Lean kernel, producing concrete numerical values from the master constant &iota;<sub>&tau;</sub> = 2/(&pi; + e).
 
 - **Physics predictions at ppm accuracy.** The library formalizes predictions for 9 electroweak quantities, CMB first peak position (+69 ppm), 20 galaxy rotation curves, baryon asymmetry, and more &mdash; all derived from a single constant with zero free parameters.
 
@@ -99,7 +99,7 @@ cd docbuild/.lake/build/doc && python3 -m http.server 8000
 ```
 
 The generated documentation includes:
-- **API pages** for all 445 modules with rendered docstrings and cross-linked types
+- **API pages** for all 450 modules with rendered docstrings and cross-linked types
 - **Statistics dashboard** with per-book formalization coverage from the registry
 - **Interactive dependency graph** visualizing 4,500+ mathematical registry entries across 7 books
 
@@ -111,18 +111,25 @@ Open these files in VS Code with the Lean 4 extension and step through line by l
 
 | Tour | Time | What You'll See |
 |------|:----:|----------------|
+| [`Tour/VerifyItYourself.lean`](TauLib/Tour/VerifyItYourself.lean) | 15 min | **Start here.** 5 surprising claims, verified live &mdash; the skeptic&rsquo;s tour |
 | [`Tour/Foundations.lean`](TauLib/Tour/Foundations.lean) | 10 min | 5 generators, 7 axioms, &rho; operator, master constant, rigidity |
 | [`Tour/CentralTheorem.lean`](TauLib/Tour/CentralTheorem.lean) | 10 min | Split-complex ring, &tau;&sup3; fibration, O(&tau;&sup3;) &cong; A<sub>spec</sub>(&Lscr;) |
 | [`Tour/Physics.lean`](TauLib/Tour/Physics.lean) | 15 min | EW synthesis, 3 generations, CMB, rotation curves, baryogenesis |
+| [`Tour/OneConstant.lean`](TauLib/Tour/OneConstant.lean) | 10 min | Full constants ledger: &alpha;, h, &ell;&#8321;, &omega;<sub>b</sub>, r &mdash; all from &iota;<sub>&tau;</sub> |
+| [`Tour/MillenniumProblems.lean`](TauLib/Tour/MillenniumProblems.lean) | 15 min | GRH, BSD, Poincar&eacute;, Hodge, Navier-Stokes through the &tau;-lens |
+| [`Tour/LifeFromPhysics.lean`](TauLib/Tour/LifeFromPhysics.lean) | 10 min | 4+1 life sectors, genetic code, neural architecture, crossing limit |
+| [`Tour/MindAndEthics.lean`](TauLib/Tour/MindAndEthics.lean) | 15 min | Categorical Imperative, consciousness, free will, Logos, the 3 sorry |
 
 ### Pick Your Path
 
 | Audience | Start With | Then Explore |
 |----------|-----------|-------------|
-| **Mathematician** | `Tour/Foundations` &rarr; `BookI/Kernel/Axioms` | `BookI/Orbit/Rigidity` &rarr; `BookII/CentralTheorem` |
-| **Physicist** | `Tour/Physics` &rarr; `BookIV/Electroweak/EWSynthesis` | `BookV/Cosmology/CMBSpectrum` &rarr; `BookV/Astrophysics/RotationCurves` |
-| **Lean user** | `Tour/Foundations` &rarr; `lakefile.lean` | Browse any module &mdash; all 445 files have 30+ line docstrings |
-| **Philosopher** | `BookVII/Meta/Saturation` &rarr; `BookVII/Ethics/CIProof` | `BookVII/Social/Ontology` &rarr; `BookVII/Final/Boundary` |
+| **Skeptic / Reviewer** | `Tour/VerifyItYourself` | `Tour/OneConstant` &rarr; any module you doubt |
+| **Mathematician** | `Tour/Foundations` &rarr; `Tour/CentralTheorem` | `Tour/MillenniumProblems` &rarr; `BookIII/Doors/GrandGRH` |
+| **Physicist** | `Tour/Physics` &rarr; `Tour/OneConstant` | `BookIV/Electroweak/EWSynthesis` &rarr; `BookV/Cosmology/CMBSpectrum` |
+| **Biologist** | `Tour/LifeFromPhysics` | `BookVI/Source/GeneticCode` &rarr; `BookVI/Consumer/Neural` |
+| **Philosopher** | `Tour/MindAndEthics` | `BookVII/Ethics/CIProof` &rarr; `BookVII/Final/Boundary` |
+| **Lean user** | `Tour/Foundations` &rarr; `lakefile.lean` | Browse any module &mdash; all 450 files have 30+ line docstrings |
 
 See the [Architecture Guide](docs/ARCHITECTURE.md) for detailed reading paths, dependency graphs, and per-book start files.
 
@@ -130,7 +137,7 @@ See the [Architecture Guide](docs/ARCHITECTURE.md) for detailed reading paths, d
 
 ## Module Architecture
 
-All 445 modules are organized under seven book namespaces. The dependency order is strict: each book builds only on what came before.
+All 450 modules are organized under seven book namespaces. The dependency order is strict: each book builds only on what came before.
 
 ```
 TauLib
@@ -254,7 +261,7 @@ TauLib formalizes content from the *Panta Rhei* series (2nd Edition, 2026):
 | VII | Categorical Metaphysics | 74 | 521 |
 | | **Total** | **552** | **3,252** |
 
-Available at [panta-rhei-books.org](https://panta-rhei-books.org).
+Available at [panta-rhei.site](https://panta-rhei.site).
 
 ---
 
@@ -300,7 +307,7 @@ If you use TauLib in academic work, please cite:
   year      = {2026},
   version   = {2.0.0},
   url       = {https://github.com/panta-rhei-framework/taulib},
-  note      = {445 modules, 124{,}684 lines of Lean 4, 4{,}420 theorems},
+  note      = {450 modules, 125{,}771 lines of Lean 4, 4{,}332 theorems},
   license   = {Apache-2.0}
 }
 ```

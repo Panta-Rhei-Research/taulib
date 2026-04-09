@@ -2,7 +2,7 @@
    TauLib / Panta Rhei — Documentation Theme
    ================================================================
 
-   Brand-consistent with panta-rhei-books.org while optimized for
+   Brand-consistent with panta-rhei.site while optimized for
    technical documentation readability. Appended to doc-gen4's
    style.css during post-build (Step 4 of build_docs.sh).
 
@@ -22,7 +22,7 @@
    ================================================================ */
 
 /* ----------------------------------------------------------------
-   Self-hosted Manrope — matching panta-rhei-books.org exactly
+   Self-hosted Manrope — matching panta-rhei.site exactly
    ---------------------------------------------------------------- */
 @font-face {
   font-family: 'Manrope';

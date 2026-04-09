@@ -7,9 +7,9 @@ Proto-Code, BSD Functional, and Bridgehead Proposition.
 
 ## Registry Cross-References
 
-- [III.D61] Proto-Code -- `ProtoCode`, `proto_code_check`
-- [III.D62] BSD Functional -- `bsd_functional`, `bsd_functional_check`
-- [III.P26] Bridgehead Proposition -- `bridgehead_check`
+- [III.D61] Proto-Code — `ProtoCode`, `proto_code_check`
+- [III.D62] BSD Functional — `bsd_functional`, `bsd_functional_check`
+- [III.P26] Bridgehead Proposition — `bridgehead_check`
 
 ## Mathematical Content
 

@@ -11,18 +11,18 @@ physics needed — sector completeness is a structural theorem.
 
 - [V.R202] Every Astrophysical Phenomenon Maps to Sectors -- structural remark
 - [V.R203] No Sixth Force -- structural remark
-- [V.D144] Astrophysical Phenomenon Catalog -- `AstroPhenomenon`
-- [V.P86] Each Phenomenon Has a Sector Assignment -- `sector_assignment`
-- [V.D145] Sector Exhaustion Map -- `SectorExhaustionMap`
-- [V.T99] Exhaustion Theorem -- `exhaustion_theorem`
-- [V.D146] Multi-Sector Phenomenon -- `MultiSectorPhenomenon`
-- [V.T100] No Orphan Phenomenon -- `no_orphan_phenomenon`
-- [V.C14] D-Sector Covers All Gravitational -- `d_covers_gravity`
-- [V.C15] B-Sector Covers All EM -- `b_covers_em`
-- [V.C16] C-Sector Covers All Nuclear -- `c_covers_nuclear`
+- [V.D144] Astrophysical Phenomenon Catalog — `AstroPhenomenon`
+- [V.P86] Each Phenomenon Has a Sector Assignment — `sector_assignment`
+- [V.D145] Sector Exhaustion Map — `SectorExhaustionMap`
+- [V.T99] Exhaustion Theorem — `exhaustion_theorem`
+- [V.D146] Multi-Sector Phenomenon — `MultiSectorPhenomenon`
+- [V.T100] No Orphan Phenomenon — `no_orphan_phenomenon`
+- [V.C14] D-Sector Covers All Gravitational — `d_covers_gravity`
+- [V.C15] B-Sector Covers All EM — `b_covers_em`
+- [V.C16] C-Sector Covers All Nuclear — `c_covers_nuclear`
 - [V.R204] Dark Matter and Dark Energy Unnecessary -- structural remark
-- [V.D147] Sector Coverage Summary -- `SectorCoverageSummary`
-- [V.P87] Completeness Implies No BSM Astrophysics -- `no_bsm_astro`
+- [V.D147] Sector Coverage Summary — `SectorCoverageSummary`
+- [V.P87] Completeness Implies No BSM Astrophysics — `no_bsm_astro`
 
 ## Mathematical Content
 

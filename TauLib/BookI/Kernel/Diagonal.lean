@@ -1,7 +1,7 @@
 import TauLib.BookI.Kernel.Axioms
 
 /-!
-# TauLib.Kernel.Diagonal
+# TauLib.BookI.Kernel.Diagonal
 
 The Diagonal Discipline: why exactly 4 orbit channels, and why
 the iterator ladder saturates at tetration (level 3).

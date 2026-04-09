@@ -7,9 +7,9 @@ Spectral Trichotomy Lemma, Boundary Normal Form, and B/C Non-Collapse Theorem.
 
 ## Registry Cross-References
 
-- [III.T14] Spectral Trichotomy Lemma -- `trichotomy_check`
-- [III.D24] Boundary Normal Form -- `boundary_normal_form`, `bnf_check`
-- [III.T15] B/C Non-Collapse Theorem -- `bc_non_collapse_check`
+- [III.T14] Spectral Trichotomy Lemma — `trichotomy_check`
+- [III.D24] Boundary Normal Form — `boundary_normal_form`, `bnf_check`
+- [III.T15] B/C Non-Collapse Theorem — `bc_non_collapse_check`
 
 ## Mathematical Content
 

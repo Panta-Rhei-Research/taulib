@@ -2,7 +2,7 @@ import TauLib.BookI.Topos.Functors
 import TauLib.BookI.Polarity.ChineseRemainder
 
 /-!
-# TauLib.Topos.LimitsSites
+# TauLib.BookI.Topos.LimitsSites
 
 Finite limits, the τ-site (primorial coverage), and the presheaf topos.
 

@@ -7,9 +7,9 @@ import TauLib.BookIII.Computation.E2Agent
 
 ## Registry Cross-References
 
-- [III.D51] τ-Tower Machine -- `TTMConfig`, `ttm_step`, `ttm_check`
-- [III.T30] TTM τ-Nativity -- `ttm_nativity_check`
-- [III.D52] Observable Transition -- `observable_transition_check`
+- [III.D51] τ-Tower Machine — `TTMConfig`, `ttm_step`, `ttm_check`
+- [III.T30] TTM τ-Nativity — `ttm_nativity_check`
+- [III.D52] Observable Transition — `observable_transition_check`
 
 ## Mathematical Content
 

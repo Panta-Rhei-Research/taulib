@@ -8,12 +8,12 @@ This document provides a detailed inventory of TauLib's formalization coverage, 
 
 | Metric | Value |
 |--------|------:|
-| Total modules | 445 |
-| Total lines | 124,684 |
-| Theorems & lemmas | 4,420 |
-| Definitions | 3,570 |
+| Total modules | 450 |
+| Total lines | 125,771 |
+| Theorems & lemmas | 4,332 |
+| Definitions | 3,542 |
 | Structures & types | 1,685 |
-| Computations (`#eval`) | 3,700 |
+| Computations (`#eval`) | 3,721 |
 | Examples | 350 |
 | Axioms | 4 |
 | Sorry | 3 |
@@ -31,8 +31,8 @@ This document provides a detailed inventory of TauLib's formalization coverage, 
 | V &mdash; Macrocosm | 80 | 28,394 | ~900 | ~850 | 0 | **0** |
 | VI &mdash; Life | 30 | 5,221 | ~200 | ~200 | 0 | **0** |
 | VII &mdash; Metaphysics | 7 | 4,278 | ~120 | ~100 | 0 | 3 |
-| Tour | 3 | 674 | &mdash; | &mdash; | 0 | **0** |
-| **Total** | **445** | **124,684** | **~4,420** | **~3,700** | **4** | **3** |
+| Tour | 8 | ~1,850 | &mdash; | &mdash; | 0 | **0** |
+| **Total** | **450** | **125,771** | **~4,332** | **~3,721** | **4** | **3** |
 
 ---
 
@@ -107,7 +107,7 @@ Lean 4 kernel (trusted)
             ├── 3 sorry (methodological, Book VII only)
             │       └── All typed True := sorry; no mathematical dependency
             │
-            └── 4,420 theorems + 3,700 #eval computations
+            └── 4,332 theorems + 3,721 #eval computations
                     └── Verified by Lean's kernel
 ```
 

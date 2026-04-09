@@ -8,7 +8,7 @@ E1 Export Package: the complete set of data that Book II exports to Book III.
 
 ## Registry Cross-References
 
-- [II.D66] E1 Export Package -- `E1ExportPackage`, `compute_e1_export`,
+- [II.D66] E1 Export Package — `E1ExportPackage`, `compute_e1_export`,
   `full_export_check`
 
 ## Mathematical Content

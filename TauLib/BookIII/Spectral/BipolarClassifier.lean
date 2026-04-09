@@ -8,9 +8,9 @@ and Label-Idempotent Compatibility.
 
 ## Registry Cross-References
 
-- [III.D23] Internal Bipolar Classifier -- `PrimeLabel`, `label_at_depth`, `classifier_check`
-- [III.T13] Label Convergence -- `label_convergence_check`
-- [III.P08] Label-Idempotent Compatibility -- `label_idem_check`
+- [III.D23] Internal Bipolar Classifier — `PrimeLabel`, `label_at_depth`, `classifier_check`
+- [III.T13] Label Convergence — `label_convergence_check`
+- [III.P08] Label-Idempotent Compatibility — `label_idem_check`
 
 ## Mathematical Content
 

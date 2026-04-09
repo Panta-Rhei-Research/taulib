@@ -1,7 +1,7 @@
 import TauLib.BookI.Orbit.Generation
 
 /-!
-# TauLib.Orbit.Countability
+# TauLib.BookI.Orbit.Countability
 
 Each orbit ray is countable (bijection with Nat), and Obj(τ) is countable.
 

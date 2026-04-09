@@ -3,7 +3,7 @@ import TauLib.BookI.Denotation.ProgramMonoid
 import TauLib.BookI.Logic.Truth4
 
 /-!
-# TauLib.MetaLogic.LinearDiscipline
+# TauLib.BookI.MetaLogic.LinearDiscipline
 
 The Diagonal-Linear Correspondence: K5's diagonal discipline maps onto
 the !-free fragment of Girard's linear logic.

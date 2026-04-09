@@ -7,7 +7,7 @@ The E0/E1 enrichment transition and the enrichment ladder.
 
 ## Registry Cross-References
 
-- [II.D58] E0/E1 Transition -- `EnrichmentLevel`, `e0_e1_transition_check`, `enrichment_gap_check`
+- [II.D58] E0/E1 Transition — `EnrichmentLevel`, `e0_e1_transition_check`, `enrichment_gap_check`
 
 ## Mathematical Content
 

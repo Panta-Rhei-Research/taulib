@@ -8,10 +8,10 @@ and the moduli space is a single point.
 
 ## Registry Cross-References
 
-- [II.T41] Liouville Categorical Dodge -- `liouville_dodge_check`, `nonconstant_bounded_check`
-- [II.T42] Categoricity -- `categoricity_check`
-- [II.D61] Moduli Space -- `moduli_singleton_check`
-- [II.C02] Uniqueness -- `uniqueness_check`, `full_categoricity_check`
+- [II.T41] Liouville Categorical Dodge — `liouville_dodge_check`, `nonconstant_bounded_check`
+- [II.T42] Categoricity — `categoricity_check`
+- [II.D61] Moduli Space — `moduli_singleton_check`
+- [II.C02] Uniqueness — `uniqueness_check`, `full_categoricity_check`
 
 ## Mathematical Content
 

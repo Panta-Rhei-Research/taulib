@@ -10,15 +10,15 @@ as readouts of the primordial boundary character spectrum.
 ## Registry Cross-References
 
 - [V.R200] Bullet Cluster as Dark Matter "Proof" -- structural remark
-- [V.D140] Bullet Cluster Tau Analysis -- `BulletClusterAnalysis`
-- [V.T97] Lensing-Gas Offset from Boundary Correction -- `lensing_gas_offset`
-- [V.P84] Collisionless Component is Stellar -- `collisionless_stellar`
-- [V.D141] Large-Scale Structure Data -- `LSSData`
-- [V.D142] Cosmic Web Classification -- `CosmicWebType`
-- [V.T98] BAO from Primordial Boundary Spectrum -- `bao_from_boundary`
+- [V.D140] Bullet Cluster Tau Analysis — `BulletClusterAnalysis`
+- [V.T97] Lensing-Gas Offset from Boundary Correction — `lensing_gas_offset`
+- [V.P84] Collisionless Component is Stellar — `collisionless_stellar`
+- [V.D141] Large-Scale Structure Data — `LSSData`
+- [V.D142] Cosmic Web Classification — `CosmicWebType`
+- [V.T98] BAO from Primordial Boundary Spectrum — `bao_from_boundary`
 - [V.R201] BAO Scale 150 Mpc -- structural remark
-- [V.D143] Power Spectrum Data -- `PowerSpectrumData`
-- [V.P85] LSS from Boundary Character Growth -- `lss_from_boundary_growth`
+- [V.D143] Power Spectrum Data — `PowerSpectrumData`
+- [V.P85] LSS from Boundary Character Growth — `lss_from_boundary_growth`
 
 ## Mathematical Content
 

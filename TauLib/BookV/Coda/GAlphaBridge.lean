@@ -9,10 +9,10 @@ holonomy exponent 18.
 
 ## Registry Cross-References
 
-- [V.T154] The G-alpha Bridge -- `GAlphaBridge`
-- [V.T155] Mass Hierarchy Exponent -- `MassHierarchyExponent`
-- [V.P115] Hierarchy as Power Law -- `HierarchyPowerLaw`
-- [V.P116] Precision Budget -- `PrecisionBudget`
+- [V.T154] The G-alpha Bridge — `GAlphaBridge`
+- [V.T155] Mass Hierarchy Exponent — `MassHierarchyExponent`
+- [V.P115] Hierarchy as Power Law — `HierarchyPowerLaw`
+- [V.P116] Precision Budget — `PrecisionBudget`
 
 ## Mathematical Content
 

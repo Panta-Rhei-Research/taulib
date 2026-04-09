@@ -2,7 +2,7 @@ import TauLib.BookI.Polarity.ChineseRemainder
 import TauLib.BookI.Polarity.NthPrime
 
 /-!
-# TauLib.Polarity.CRTBasis
+# TauLib.BookI.Polarity.CRTBasis
 
 Formal proofs of CRT basis orthogonality and the CRT round-trip theorem.
 All results are universal (∀ depth, ∀ inputs), parameterized by `CRTHyp k`.

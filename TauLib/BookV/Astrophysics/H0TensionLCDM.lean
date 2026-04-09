@@ -9,16 +9,16 @@ reflect different readout depths, not new physics.
 
 ## Registry Cross-References
 
-- [V.D148] H0 Measurement Data -- `H0MeasurementData`
-- [V.D149] H0 Tension Classification -- `H0TensionType`
+- [V.D148] H0 Measurement Data — `H0MeasurementData`
+- [V.D149] H0 Tension Classification — `H0TensionType`
 - [V.R205] 5σ Tension Current Status -- structural remark
-- [V.T101] H0 Tension as Readout Artifact -- `h0_tension_artifact`
-- [V.P88] Early vs Late Readout Depth -- `early_late_depth`
-- [V.D150] LCDM Limitation Catalog -- `LCDMLimitation`
+- [V.T101] H0 Tension as Readout Artifact — `h0_tension_artifact`
+- [V.P88] Early vs Late Readout Depth — `early_late_depth`
+- [V.D150] LCDM Limitation Catalog — `LCDMLimitation`
 - [V.R206] LCDM as Depth-1 Approximation -- structural remark
-- [V.D151] Tau Resolution Data -- `TauResolutionData`
-- [V.P89] Cosmological Constant from Boundary -- `cosmo_const_boundary`
-- [V.T102] No Fine-Tuning of Lambda -- `no_lambda_fine_tuning`
+- [V.D151] Tau Resolution Data — `TauResolutionData`
+- [V.P89] Cosmological Constant from Boundary — `cosmo_const_boundary`
+- [V.T102] No Fine-Tuning of Lambda — `no_lambda_fine_tuning`
 - [V.R207] 120 Orders of Magnitude Problem Dissolved -- structural remark
 - [V.R208] Future Tests from CMB-S4 and DESI -- structural remark
 

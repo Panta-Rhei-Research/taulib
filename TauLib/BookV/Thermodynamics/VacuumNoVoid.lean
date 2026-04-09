@@ -9,15 +9,15 @@ category error. Casimir effect from boundary modes.
 
 ## Registry Cross-References
 
-- [V.D94] The tau-Vacuum -- `TauVacuum`
-- [V.T65] Vacuum Energy is Boundary Energy -- `vacuum_energy_is_boundary`
-- [V.T66] The Vacuum Catastrophe is a Category Error -- `vacuum_catastrophe_category_error`
-- [V.T67] Ground State Uniqueness -- `GroundStateUniqueness`
-- [V.C08] Vacuum Source Term is Finite -- `vacuum_source_finite`
-- [V.P38] QFT Vacuum = Refinement Sum -- `QFTVacuumAsRefinement`
-- [V.P39] Casimir Effect from Boundary Modes -- `CasimirFromBoundary`
+- [V.D94] The tau-Vacuum — `TauVacuum`
+- [V.T65] Vacuum Energy is Boundary Energy — `vacuum_energy_is_boundary`
+- [V.T66] The Vacuum Catastrophe is a Category Error — `vacuum_catastrophe_category_error`
+- [V.T67] Ground State Uniqueness — `GroundStateUniqueness`
+- [V.C08] Vacuum Source Term is Finite — `vacuum_source_finite`
+- [V.P38] QFT Vacuum = Refinement Sum — `QFTVacuumAsRefinement`
+- [V.P39] Casimir Effect from Boundary Modes — `CasimirFromBoundary`
 - [V.R130] Why No Divergence -- structural remark
-- [V.R131] Comparison with Normal Ordering -- `normal_ordering_comparison`
+- [V.R131] Comparison with Normal Ordering — `normal_ordering_comparison`
 - [V.R132] Casimir Does Not Prove Mode Summation -- structural remark
 
 ## Mathematical Content

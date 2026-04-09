@@ -1,7 +1,7 @@
 import TauLib.BookI.Boundary.Measure
 
 /-!
-# TauLib.Boundary.Integration
+# TauLib.BookI.Boundary.Integration
 
 Constructive integration on the primorial tower.
 

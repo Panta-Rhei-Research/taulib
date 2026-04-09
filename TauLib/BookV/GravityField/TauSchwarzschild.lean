@@ -9,17 +9,17 @@ and the three BH evolution channels.
 
 ## Registry Cross-References
 
-- [V.D61] Torus Vacuum (restated) -- `FieldTorusVacuum`
-- [V.D62] G_tau (restated) -- `FieldGravConstant`
-- [V.D63] Geometric Relaxation -- `GeometricRelaxation`
-- [V.D64] Topological Relaxation -- `TopologicalRelaxation`
-- [V.D65] Three BH Evolution Modes -- `FieldEvolutionMode`
-- [V.T38] Torus Vacuum Shape Ratio = iota_tau -- `field_vacuum_shape_ratio`
-- [V.T39] Chart Readout gives Schwarzschild -- `chart_readout_schwarzschild`
-- [V.T40] R = 2G_tau M Relation -- `field_schwarzschild_relation`
-- [V.T41] No-Shrink Theorem Preview -- `field_no_shrink`
-- [V.P17] G_tau Well-Defined -- `field_g_tau_well_defined`
-- [V.P18] Torus Vacuum Regularity -- `vacuum_is_regular`
+- [V.D61] Torus Vacuum (restated) — `FieldTorusVacuum`
+- [V.D62] G_tau (restated) — `FieldGravConstant`
+- [V.D63] Geometric Relaxation — `GeometricRelaxation`
+- [V.D64] Topological Relaxation — `TopologicalRelaxation`
+- [V.D65] Three BH Evolution Modes — `FieldEvolutionMode`
+- [V.T38] Torus Vacuum Shape Ratio = iota_tau — `field_vacuum_shape_ratio`
+- [V.T39] Chart Readout gives Schwarzschild — `chart_readout_schwarzschild`
+- [V.T40] R = 2G_tau M Relation — `field_schwarzschild_relation`
+- [V.T41] No-Shrink Theorem Preview — `field_no_shrink`
+- [V.P17] G_tau Well-Defined — `field_g_tau_well_defined`
+- [V.P18] Torus Vacuum Regularity — `vacuum_is_regular`
 - [V.R82] Torus Topology -- structural remark
 - [V.R85] Torus Core -- structural remark
 - [V.R87] No Hawking Evaporation -- structural remark

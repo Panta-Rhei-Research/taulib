@@ -7,9 +7,9 @@ The evolution operator E_{n->m} and the causal arrow from B/C asymmetry.
 
 ## Registry Cross-References
 
-- [II.D37] Evolution Operator -- `evolution_op`, `evolution_semigroup_check`
-- [II.D38] Causal Arrow -- `causal_arrow`, `bc_asymmetry_check`
-- [II.T28] Evolution Semigroup -- `evolution_semigroup_thm`
+- [II.D37] Evolution Operator — `evolution_op`, `evolution_semigroup_check`
+- [II.D38] Causal Arrow — `causal_arrow`, `bc_asymmetry_check`
+- [II.T28] Evolution Semigroup — `evolution_semigroup_thm`
 
 ## Mathematical Content
 

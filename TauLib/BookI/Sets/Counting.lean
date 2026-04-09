@@ -2,15 +2,15 @@ import TauLib.BookI.Sets.Universe
 import TauLib.BookI.Orbit.Ladder
 
 /-!
-# TauLib.Sets.Counting
+# TauLib.BookI.Sets.Counting
 
 Generative counting: the bijection that simultaneously creates and enumerates
 orbit elements, and countability of Obj(tau) as a structural consequence.
 
 ## Registry Cross-References
 
-- [I.D75] Generative Counting Principle -- `generative_counting_principle`
-- [I.P33] Counting as Structural Feature -- `counting_structural`
+- [I.D75] Generative Counting Principle — `generative_counting_principle`
+- [I.P33] Counting as Structural Feature — `counting_structural`
 
 ## Ground Truth Sources
 - Part IX "The Cantor Mirage": Countability is earned via orbit generation,

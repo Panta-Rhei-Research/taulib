@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.Primes
 
 /-!
-# TauLib.Coordinates.PrimeEnumeration
+# TauLib.BookI.Coordinates.PrimeEnumeration
 
 Prime enumeration, counting, and orbit value projection —
 the semantic projection between solenoidal orbits and the α-orbit.

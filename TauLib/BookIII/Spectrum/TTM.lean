@@ -8,8 +8,8 @@ The tau-Tower Machine (TTM): register+port computation with the 5-generator alph
 
 ## Registry Cross-References
 
-- [I.D69] tau-Tower Machine -- `TTM`
-- [I.D70] tau-Computability -- `TauComputable`
+- [I.D69] tau-Tower Machine — `TTM`
+- [I.D70] tau-Computability — `TauComputable`
 
 ## Mathematical Content
 

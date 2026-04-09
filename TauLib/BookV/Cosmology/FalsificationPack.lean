@@ -9,7 +9,7 @@ testable predictions. Experimental program for the τ-framework.
 ## Registry Cross-References
 
 - [V.R243] Scope note: CMB predictions C2, C5, C6 -- structural remark
-- [V.D184] Falsification Levels -- `FalsificationLevels`
+- [V.D184] Falsification Levels — `FalsificationLevels`
 
 ## Mathematical Content
 

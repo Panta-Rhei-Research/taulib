@@ -5,7 +5,7 @@ import TauLib.BookI.Polarity.ModArith
 import Mathlib.Tactic.Ring
 
 /-!
-# TauLib.Holomorphy.IdentityTheorem
+# TauLib.BookI.Holomorphy.IdentityTheorem
 
 The τ-Identity Theorem: finite agreement implies global equality for HolFuns.
 

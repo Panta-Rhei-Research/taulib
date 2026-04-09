@@ -3,7 +3,7 @@ import TauLib.BookI.Polarity.Lemniscate
 import Mathlib.Tactic.Ring
 
 /-!
-# TauLib.Boundary.Characters
+# TauLib.BookI.Boundary.Characters
 
 Lemniscate characters: ring homomorphisms from the bipolar spectral algebra
 into the split-complex scalars.

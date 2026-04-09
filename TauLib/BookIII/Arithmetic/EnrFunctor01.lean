@@ -8,9 +8,9 @@ and Three-Reading Equivalence.
 
 ## Registry Cross-References
 
-- [III.D57] Enrichment Functor Enr₀₁ -- `enr_01_check`
-- [III.D58] E₁ Mutual Determination Instance -- `e1_md_instance_check`
-- [III.P24] Three-Reading Equivalence at E₁ -- `three_reading_check`
+- [III.D57] Enrichment Functor Enr₀₁ — `enr_01_check`
+- [III.D58] E₁ Mutual Determination Instance — `e1_md_instance_check`
+- [III.P24] Three-Reading Equivalence at E₁ — `three_reading_check`
 
 ## Mathematical Content
 

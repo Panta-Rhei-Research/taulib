@@ -9,16 +9,16 @@ identified by the readout interpretation protocol.
 
 ## Registry Cross-References
 
-- [V.D185] Structural Artifact -- `StructuralArtifact`
-- [V.D186] Ontic and Readout Layers -- `OnticReadoutLayers`
-- [V.D187] Readout Interpretation Protocol -- `ReadoutProtocol`
-- [V.T121] Properties of the Correspondence Functor -- `correspondence_functor_props`
-- [V.R252] Entries with No Counterpart -- `no_counterpart_count`
+- [V.D185] Structural Artifact — `StructuralArtifact`
+- [V.D186] Ontic and Readout Layers — `OnticReadoutLayers`
+- [V.D187] Readout Interpretation Protocol — `ReadoutProtocol`
+- [V.T121] Properties of the Correspondence Functor — `correspondence_functor_props`
+- [V.R252] Entries with No Counterpart — `no_counterpart_count`
 - [V.R253] Preservation does not mean identity -- comment-only
 - [V.R254] The common thread -- comment-only
-- [V.R255] Orthodox physics is not wrong -- `orthodox_not_wrong`
+- [V.R255] Orthodox physics is not wrong — `orthodox_not_wrong`
 - [V.R256] Where tau adds value -- comment-only
-- [V.R257] The vacuum catastrophe as diagnostic -- `vacuum_catastrophe_diagnostic`
+- [V.R257] The vacuum catastrophe as diagnostic — `vacuum_catastrophe_diagnostic`
 - [V.R258] The analogy of cartography -- comment-only
 - [V.R259] Non-surjectivity is a feature -- comment-only
 

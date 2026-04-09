@@ -7,9 +7,9 @@ Alpha-ray lines and the real line as an inverse limit.
 
 ## Registry Cross-References
 
-- [II.D24] Alpha-Ray Line -- `alpha_ray_member`
-- [II.D25] Level Circle -- `level_circle_mem`
-- [II.T20] R as Inverse Limit -- `real_inverse_limit_check`
+- [II.D24] Alpha-Ray Line — `alpha_ray_member`
+- [II.D25] Level Circle — `level_circle_mem`
+- [II.T20] R as Inverse Limit — `real_inverse_limit_check`
 
 ## Mathematical Content
 

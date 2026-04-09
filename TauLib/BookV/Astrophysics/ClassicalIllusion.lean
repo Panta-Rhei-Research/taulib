@@ -9,16 +9,16 @@ the τ-framework — only sector couplings read out at macroscopic scale.
 
 ## Registry Cross-References
 
-- [V.T78] Classical Limit Theorem -- `classical_limit_theorem`
+- [V.T78] Classical Limit Theorem — `classical_limit_theorem`
 - [V.R161] Newton as Readout -- structural remark
-- [V.P56] Force-Free Ontology -- `force_free_ontology`
-- [V.D117] Classical Readout Map -- `ClassicalReadoutMap`
+- [V.P56] Force-Free Ontology — `force_free_ontology`
+- [V.D117] Classical Readout Map — `ClassicalReadoutMap`
 - [V.R162] Inertia from Defect Persistence -- structural remark
-- [V.T79] Euler-Lagrange Recovery -- `euler_lagrange_recovery`
+- [V.T79] Euler-Lagrange Recovery — `euler_lagrange_recovery`
 - [V.R163] Hamilton-Jacobi as Character Flow -- structural remark
-- [V.P57] Action Principle from Defect Minimization -- `action_from_defect`
-- [V.P58] Conservation Laws from Sector Symmetries -- `conservation_from_sectors`
-- [V.T80] Classical Completeness -- `classical_completeness`
+- [V.P57] Action Principle from Defect Minimization — `action_from_defect`
+- [V.P58] Conservation Laws from Sector Symmetries — `conservation_from_sectors`
+- [V.T80] Classical Completeness — `classical_completeness`
 - [V.R164] No Hidden Variables Needed -- structural remark
 
 ## Mathematical Content

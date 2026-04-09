@@ -3,7 +3,7 @@ import TauLib.BookI.Logic.BooleanRecovery
 import TauLib.BookI.Logic.Explosion
 
 /-!
-# TauLib.Topos.EarnedTopos
+# TauLib.BookI.Topos.EarnedTopos
 
 The earned topos E_τ with subobject classifier Ω_τ = Truth4.
 

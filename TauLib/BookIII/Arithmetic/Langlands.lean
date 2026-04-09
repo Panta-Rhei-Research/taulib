@@ -8,11 +8,11 @@ Functoriality Theorem, and Base Change-Transfer Naturality.
 
 ## Registry Cross-References
 
-- [III.D63] Automorphic-Galois Duality -- `ag_duality_check`
-- [III.D64] Local Langlands Instance -- `local_langlands_check`
-- [III.P28] Duality as Mutual Determination on ℤ² -- `duality_md_check`
-- [III.T36] Functoriality Theorem -- `functoriality_check`
-- [III.T37] Base Change-Transfer Naturality -- `base_change_check`
+- [III.D63] Automorphic-Galois Duality — `ag_duality_check`
+- [III.D64] Local Langlands Instance — `local_langlands_check`
+- [III.P28] Duality as Mutual Determination on ℤ² — `duality_md_check`
+- [III.T36] Functoriality Theorem — `functoriality_check`
+- [III.T37] Base Change-Transfer Naturality — `base_change_check`
 
 ## Mathematical Content
 

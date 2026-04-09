@@ -10,19 +10,19 @@ Wilson loops, gravitational deconfinement, Aharonov-Bohm phase.
 ## Registry Cross-References
 
 - [V.R228] Why overlap forces merger -- structural remark
-- [V.T115] Merger Normal Form -- `merger_normal_form`
+- [V.T115] Merger Normal Form — `merger_normal_form`
 - [V.R229] What the Normal Form does not give -- structural remark
-- [V.D175] Ringdown Mode -- `RingdownMode`
-- [V.P97]  Ringdown Damping is Structural -- `ringdown_damping_structural`
-- [V.D176] BH Mass Scale at Depth n -- `BHMassScale`
-- [V.P98]  Mass Gap Between Adjacent Primorial Levels -- `mass_gap_primorial`
+- [V.D175] Ringdown Mode — `RingdownMode`
+- [V.P97]  Ringdown Damping is Structural — `ringdown_damping_structural`
+- [V.D176] BH Mass Scale at Depth n — `BHMassScale`
+- [V.P98]  Mass Gap Between Adjacent Primorial Levels — `mass_gap_primorial`
 - [V.R230] The mass gap and the IMBH desert -- structural remark
 - [V.R231] Scope note on mass spectrum predictions -- structural remark
-- [V.D177] Base Wilson Loop -- `BaseWilsonLoop`
-- [V.P99]  Gravitational Deconfinement -- `gravitational_deconfinement`
+- [V.D177] Base Wilson Loop — `BaseWilsonLoop`
+- [V.P99]  Gravitational Deconfinement — `gravitational_deconfinement`
 - [V.R232] Contrast with the strong sector -- structural remark
-- [V.P100] BH Gravitational Aharonov-Bohm Phase -- `bh_ab_phase`
-- [V.P101] Radiated Energy Bound -- `radiated_energy_bound`
+- [V.P100] BH Gravitational Aharonov-Bohm Phase — `bh_ab_phase`
+- [V.P101] Radiated Energy Bound — `radiated_energy_bound`
 - [V.R233] The 1/√2 -- structural remark
 
 ## Mathematical Content

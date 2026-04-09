@@ -9,22 +9,22 @@ shadow. Singularity-free physics. No dark sectors.
 
 ## Registry Cross-References
 
-- [V.T125] GR as Chart Shadow of tau-Einstein -- `gr_as_chart_shadow`
-- [V.T126] Readout Quantization Obstruction -- `quantization_obstruction`
-- [V.T127] No Singularity Theorem -- `no_singularity`
-- [V.T128] Sector Exhaustion (No Dark Sector) -- `sector_exhaustion_no_dark`
-- [V.T129] Landscape Collapse -- `landscape_collapse`
-- [V.T130] Native Holography -- `native_holography`
-- [V.R268] GR's Scope -- `gr_scope`
+- [V.T125] GR as Chart Shadow of tau-Einstein — `gr_as_chart_shadow`
+- [V.T126] Readout Quantization Obstruction — `quantization_obstruction`
+- [V.T127] No Singularity Theorem — `no_singularity`
+- [V.T128] Sector Exhaustion (No Dark Sector) — `sector_exhaustion_no_dark`
+- [V.T129] Landscape Collapse — `landscape_collapse`
+- [V.T130] Native Holography — `native_holography`
+- [V.R268] GR's Scope — `gr_scope`
 - [V.R269] Spacetime in tau -- comment-only
 - [V.R270] Gravity is already quantum -- comment-only
 - [V.R271] The metric is a derived quantity -- comment-only
 - [V.R272] Dualities as structural echoes -- comment-only
 - [V.R273] Occam and dimensions -- comment-only
-- [V.R274] AdS/CFT as a partial echo -- `ads_cft_echo`
-- [V.R275] iota_tau is a mathematical constant -- `iota_tau_mathematical`
-- [V.R276] Why SUSY was not found at LHC -- `susy_not_found`
-- [V.R277] The parable of the library -- `library_parable`
+- [V.R274] AdS/CFT as a partial echo — `ads_cft_echo`
+- [V.R275] iota_tau is a mathematical constant — `iota_tau_mathematical`
+- [V.R276] Why SUSY was not found at LHC — `susy_not_found`
+- [V.R277] The parable of the library — `library_parable`
 
 ## Mathematical Content
 

@@ -8,8 +8,8 @@ and uniqueness of the Hartogs extension.
 
 ## Registry Cross-References
 
-- [II.L12] Extension in H_tau -- `extension_channel_check`
-- [II.T37] Hartogs Extension Uniqueness -- `hartogs_uniqueness_check`, `boundary_determines_interior_check`
+- [II.L12] Extension in H_tau — `extension_channel_check`
+- [II.T37] Hartogs Extension Uniqueness — `hartogs_uniqueness_check`, `boundary_determines_interior_check`
 
 ## Mathematical Content
 

@@ -1,7 +1,7 @@
 import TauLib.BookI.Boundary.Characters
 
 /-!
-# TauLib.Boundary.Spectral
+# TauLib.BookI.Boundary.Spectral
 
 The spectral decomposition theorem for the bipolar spectral algebra.
 

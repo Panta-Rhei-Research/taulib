@@ -9,21 +9,21 @@ from the τ-framework's bipolar lemniscate boundary L = S¹ ∨ S¹.
 
 ## Registry Cross-References
 
-- [V.P77] Accretion as Defect Infall -- `accretion_as_defect_infall`
-- [V.D129] Accretion Disk Structure -- `AccretionDiskStructure`
+- [V.P77] Accretion as Defect Infall — `accretion_as_defect_infall`
+- [V.D129] Accretion Disk Structure — `AccretionDiskStructure`
 - [V.R185] Shakura-Sunyaev from D-Sector Viscosity -- structural remark
-- [V.D130] Eddington Limit Data -- `EddingtonLimitData`
-- [V.P78] Eddington from Sector Balance -- `eddington_sector_balance`
-- [V.T90] Bipolar Jet Theorem -- `bipolar_jet_theorem`
+- [V.D130] Eddington Limit Data — `EddingtonLimitData`
+- [V.P78] Eddington from Sector Balance — `eddington_sector_balance`
+- [V.T90] Bipolar Jet Theorem — `bipolar_jet_theorem`
 - [V.R186] Lemniscate Topology Forces Bipolarity -- structural remark
-- [V.T91] Jet Power from Spin Readout -- `jet_power_from_spin`
+- [V.T91] Jet Power from Spin Readout — `jet_power_from_spin`
 - [V.R187] Blandford-Znajek as Readout Mechanism -- structural remark
-- [V.D131] Jet Collimation Data -- `JetCollimationData`
+- [V.D131] Jet Collimation Data — `JetCollimationData`
 - [V.R188] AGN Unification from Viewing Angle -- structural remark
-- [V.P79] Quasar Luminosity from Accretion Rate -- `quasar_luminosity`
+- [V.P79] Quasar Luminosity from Accretion Rate — `quasar_luminosity`
 - [V.R189] Feedback from Jet-ISM Interaction -- structural remark
-- [V.D132] AGN Classification -- `AGNType`
-- [V.T92] Accretion Efficiency Bound -- `accretion_efficiency_bound`
+- [V.D132] AGN Classification — `AGNType`
+- [V.T92] Accretion Efficiency Bound — `accretion_efficiency_bound`
 - [V.R190] Efficiency Exceeds Nuclear -- structural remark
 - [V.R191] Accretion-Jet Cycle as Defect Pump -- structural remark
 

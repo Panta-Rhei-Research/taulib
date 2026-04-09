@@ -7,8 +7,8 @@ Simply Connected in Category τ and Poincaré as Gluing Guarantee.
 
 ## Registry Cross-References
 
-- [III.D35] Simply Connected in Category τ -- `simply_connected_check`
-- [III.P13] Poincaré as Gluing Guarantee -- `gluing_guarantee_check`
+- [III.D35] Simply Connected in Category τ — `simply_connected_check`
+- [III.P13] Poincaré as Gluing Guarantee — `gluing_guarantee_check`
 
 ## Mathematical Content
 

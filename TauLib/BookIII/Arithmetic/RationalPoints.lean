@@ -7,9 +7,9 @@ import TauLib.BookIII.Arithmetic.EnrFunctor01
 
 ## Registry Cross-References
 
-- [III.D59] τ-Rational Point -- `TauRationalPoint`, `rational_point_check`
-- [III.D60] Rank as Tower Depth -- `rank_as_depth`, `rank_check`
-- [III.P25] Mordell-Weil Analogue -- `mordell_weil_check`
+- [III.D59] τ-Rational Point — `TauRationalPoint`, `rational_point_check`
+- [III.D60] Rank as Tower Depth — `rank_as_depth`, `rank_check`
+- [III.P25] Mordell-Weil Analogue — `mordell_weil_check`
 
 ## Mathematical Content
 

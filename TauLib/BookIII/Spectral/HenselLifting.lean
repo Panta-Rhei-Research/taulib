@@ -7,7 +7,7 @@ Constructive Hensel Lifting: modular Newton iteration without signed arithmetic.
 
 ## Registry Cross-References
 
-- [III.T11] Constructive Hensel Lifting -- `hensel_lift`, `hensel_check`
+- [III.T11] Constructive Hensel Lifting — `hensel_lift`, `hensel_check`
 
 ## Mathematical Content
 

@@ -9,22 +9,22 @@ restatement. Testable seams for future experiments.
 
 ## Registry Cross-References
 
-- [V.T141] No Shrink Restatement -- `no_shrink_restatement`
-- [V.T142] E-layer 1 Complete -- `elayer1_complete`
-- [V.R295] Timeline for the Topology Test -- `topology_test_timeline`
+- [V.T141] No Shrink Restatement — `no_shrink_restatement`
+- [V.T142] E-layer 1 Complete — `elayer1_complete`
+- [V.R295] Timeline for the Topology Test — `topology_test_timeline`
 - [V.R296] The Honest Status of Galaxy Fits -- comment-only (not_applicable)
-- [V.R297] The Subtlety of Lambda = 0 -- `lambda_zero_subtlety`
-- [V.R298] Precision of the Neutrino Prediction -- `neutrino_precision`
+- [V.R297] The Subtlety of Lambda = 0 — `lambda_zero_subtlety`
+- [V.R298] Precision of the Neutrino Prediction — `neutrino_precision`
 - [V.R299] Scope of the delta_A Prediction -- comment-only (not_applicable)
-- [V.R300] What Would Vindicate Inflation -- `vindicate_inflation`
-- [V.R301] The Information Paradox as Diagnostic -- `info_paradox_diagnostic`
-- [V.R302] Fifth Force vs. Sixth Force -- `fifth_vs_sixth`
-- [V.R303] What Would NOT Falsify tau -- `would_not_falsify`
+- [V.R300] What Would Vindicate Inflation — `vindicate_inflation`
+- [V.R301] The Information Paradox as Diagnostic — `info_paradox_diagnostic`
+- [V.R302] Fifth Force vs. Sixth Force — `fifth_vs_sixth`
+- [V.R303] What Would NOT Falsify tau — `would_not_falsify`
 - [V.R304] Falsifiability as Strength -- comment-only (not_applicable)
-- [V.R305] One Anchor, Not Zero -- `one_anchor_not_zero`
-- [V.R306] The sqrt(3) -- `sqrt3_remark`
+- [V.R305] One Anchor, Not Zero — `one_anchor_not_zero`
+- [V.R306] The sqrt(3) — `sqrt3_remark`
 - [V.R307] The Neutrino Exponent -- comment-only (not_applicable)
-- [V.R308] Comparison with the Standard Model -- `comparison_sm`
+- [V.R308] Comparison with the Standard Model — `comparison_sm`
 
 ## Mathematical Content
 

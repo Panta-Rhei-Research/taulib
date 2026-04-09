@@ -9,15 +9,15 @@ from compactness (T² is compact with zero Gaussian curvature).
 
 ## Registry Cross-References
 
-- [V.D155] Regime Invariance -- `RegimeInvariance`
-- [V.T105] Regime Invariance Theorem -- `regime_invariance_theorem`
+- [V.D155] Regime Invariance — `RegimeInvariance`
+- [V.T105] Regime Invariance Theorem — `regime_invariance_theorem`
 - [V.R214] Contrast with running couplings -- structural remark
-- [V.C17]  Inflaton No-Go Corollary -- `inflaton_nogo`
-- [V.D156] Inflationary Regime -- `InflationaryRegime`
-- [V.D157] e-Fold Readout -- `EFoldReadout`
+- [V.C17]  Inflaton No-Go Corollary — `inflaton_nogo`
+- [V.D156] Inflationary Regime — `InflationaryRegime`
+- [V.D157] e-Fold Readout — `EFoldReadout`
 - [V.R215] Slow Roll Unnecessary -- structural remark
-- [V.T106] Flatness from Compactness -- `flatness_from_compactness`
-- [V.P91]  Horizon Resolution -- `horizon_resolution`
+- [V.T106] Flatness from Compactness — `flatness_from_compactness`
+- [V.P91]  Horizon Resolution — `horizon_resolution`
 - [V.R216] Compactness vs. inflation -- structural remark
 - [V.R217] A falsifiable prediction -- structural remark
 

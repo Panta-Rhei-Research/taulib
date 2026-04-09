@@ -2,17 +2,17 @@ import TauLib.BookI.Sets.Counting
 import TauLib.BookI.Topos.CartesianProduct
 
 /-!
-# TauLib.Sets.CantorRefutation
+# TauLib.BookI.Sets.CantorRefutation
 
 The Cantor Diagonal Inapplicability Theorem: three independent failures
 block the diagonal argument within Category tau.
 
 ## Registry Cross-References
 
-- [I.T35] Cantor Diagonal Inapplicability -- `cantor_inapplicable`
-- [I.P34] No Unearned Decimal Diagonal -- `no_unearned_decimal_diagonal`
-- [I.P35] No Comprehension -- `no_comprehension`
-- [I.P36] No Free Cartesian Diagonal -- `no_free_cartesian_diagonal`
+- [I.T35] Cantor Diagonal Inapplicability — `cantor_inapplicable`
+- [I.P34] No Unearned Decimal Diagonal — `no_unearned_decimal_diagonal`
+- [I.P35] No Comprehension — `no_comprehension`
+- [I.P36] No Free Cartesian Diagonal — `no_free_cartesian_diagonal`
 
 ## Ground Truth Sources
 - Part IX "The Cantor Mirage": The diagonal argument requires three structural

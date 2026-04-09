@@ -9,15 +9,15 @@ Information paradox dissolved. Permanence hallmark.
 
 ## Registry Cross-References
 
-- [V.D173] Mature Black Hole -- `MatureBlackHole`
-- [V.T113] Defect-Mass Coupling -- `defect_mass_coupling`
-- [V.T114] No-Shrink Theorem -- `no_shrink_theorem`
-- [V.P95]  Hawking Readout -- `hawking_readout`
-- [V.C19]  No BH Evaporation -- `no_bh_evaporation`
+- [V.D173] Mature Black Hole — `MatureBlackHole`
+- [V.T113] Defect-Mass Coupling — `defect_mass_coupling`
+- [V.T114] No-Shrink Theorem — `no_shrink_theorem`
+- [V.P95]  Hawking Readout — `hawking_readout`
+- [V.C19]  No BH Evaporation — `no_bh_evaporation`
 - [V.R226] Information Paradox Dissolved -- structural remark
-- [V.D174] Permanence Hallmark -- `PermanenceHallmark`
+- [V.D174] Permanence Hallmark — `PermanenceHallmark`
 - [V.R227] Permanence Export to Book VI -- structural remark
-- [V.P96]  BH Entropy Formula -- `bh_entropy_formula`
+- [V.P96]  BH Entropy Formula — `bh_entropy_formula`
 
 ## Mathematical Content
 

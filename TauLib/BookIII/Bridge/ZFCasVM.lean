@@ -7,9 +7,9 @@ ZFC as an E2 Virtual Machine: modeling ZFC axioms within the layer template.
 
 ## Registry Cross-References
 
-- [III.D67] ZFC as E2 VM -- `ZFCAxiom`, `zfc_vm_check`
-- [III.D68] ZFC Axiom Encoding -- `axiom_encoding_check`
-- [III.D70] Set-Theoretic Universe -- `set_universe_check`
+- [III.D67] ZFC as E2 VM — `ZFCAxiom`, `zfc_vm_check`
+- [III.D68] ZFC Axiom Encoding — `axiom_encoding_check`
+- [III.D70] Set-Theoretic Universe — `set_universe_check`
 
 ## Mathematical Content
 

@@ -8,11 +8,11 @@ and YM Sector Coupling.
 
 ## Registry Cross-References
 
-- [III.T26] τ-Gap Meta-Theorem -- `tau_gap_meta_check`
-- [III.D45] Gap Constant -- `gap_constant`, `gap_constant_check`
-- [III.P17] Mass Existence -- `mass_existence_check`
-- [III.T27] Yang-Mills Instantiation -- `yang_mills_gap_check`
-- [III.D46] YM Sector Coupling -- `ym_sector_coupling`, `ym_coupling_check`
+- [III.T26] τ-Gap Meta-Theorem — `tau_gap_meta_check`
+- [III.D45] Gap Constant — `gap_constant`, `gap_constant_check`
+- [III.P17] Mass Existence — `mass_existence_check`
+- [III.T27] Yang-Mills Instantiation — `yang_mills_gap_check`
+- [III.D46] YM Sector Coupling — `ym_sector_coupling`, `ym_coupling_check`
 
 ## Mathematical Content
 

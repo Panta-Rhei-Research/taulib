@@ -1,13 +1,13 @@
 import TauLib.BookI.Logic.Explosion
 
 /-!
-# TauLib.Logic.BooleanRecovery
+# TauLib.BookI.Logic.BooleanRecovery
 
 Boolean recovery: the forgetful functor from Truth4 to Bool.
 
 ## Registry Cross-References
-- [I.P13] Boolean Recovery -- `boolean_recovery`, `forget_preserves_meet`, `forget_preserves_join`
-- [I.D41] Subobject Classifier Preview -- `Omega_tau`
+- [I.P13] Boolean Recovery — `boolean_recovery`, `forget_preserves_meet`, `forget_preserves_join`
+- [I.D41] Subobject Classifier Preview — `Omega_tau`
 
 ## Ground Truth Sources
 - chunk_0228_M002194: Split-complex algebra, bipolar balance

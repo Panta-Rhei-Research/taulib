@@ -12,17 +12,17 @@ Three independent decompositions:
 
 ## Registry Cross-References
 
-- [V.D192] He-4 Packing Maximum -- `HePacking`
-- [V.D193] Face-Conflict Probability -- `FaceConflict`
-- [V.D194] Domain-Wall Correction -- `DomainCorrection`
-- [V.D195] Primordial He-4 Mass Fraction -- `HeliumPrediction`
-- [V.D196] Neutron-to-Proton Ratio -- `NeutronProtonRatio`
-- [V.T146] Packing Maximum Theorem -- `packing_is_8_27`
-- [V.T147] Face-Conflict Theorem -- `face_conflict_is_1_3`
-- [V.T148] Three Decompositions Identity -- `three_routes_agree`
-- [V.T149] Y_p Derivation -- `yp_is_20_81`
-- [V.T150] n/p Ratio Derivation -- `np_from_yp`
-- [V.P112] Y_p Observational Consistency -- `yp_in_observational_range`
+- [V.D192] He-4 Packing Maximum — `HePacking`
+- [V.D193] Face-Conflict Probability — `FaceConflict`
+- [V.D194] Domain-Wall Correction — `DomainCorrection`
+- [V.D195] Primordial He-4 Mass Fraction — `HeliumPrediction`
+- [V.D196] Neutron-to-Proton Ratio — `NeutronProtonRatio`
+- [V.T146] Packing Maximum Theorem — `packing_is_8_27`
+- [V.T147] Face-Conflict Theorem — `face_conflict_is_1_3`
+- [V.T148] Three Decompositions Identity — `three_routes_agree`
+- [V.T149] Y_p Derivation — `yp_is_20_81`
+- [V.T150] n/p Ratio Derivation — `np_from_yp`
+- [V.P112] Y_p Observational Consistency — `yp_in_observational_range`
 - [V.R322] 71 = p₂₀ -- structural remark
 
 ## Mathematical Content

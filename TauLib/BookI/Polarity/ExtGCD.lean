@@ -3,7 +3,7 @@ import Mathlib.Tactic.Ring
 import Mathlib.Tactic.LinearCombination
 
 /-!
-# TauLib.Polarity.ExtGCD
+# TauLib.BookI.Polarity.ExtGCD
 
 Extended GCD algorithm, Bézout identity, and modular inverse existence.
 

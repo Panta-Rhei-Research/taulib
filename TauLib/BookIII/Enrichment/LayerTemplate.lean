@@ -8,11 +8,11 @@ The 4-level enrichment ladder and the uniform layer template.
 
 ## Registry Cross-References
 
-- [III.D05] Layer Template -- `LayerTemplate`, `layer_template_check`
-- [III.D06] E₀ Layer (Mathematics) -- `e0_layer`
-- [III.D07] E₁ Layer (Physics) -- `e1_layer_book3`
-- [III.D08] E₂ Layer (Computation) -- `e2_layer`
-- [III.D09] E₃ Layer (Metaphysics) -- `e3_layer`
+- [III.D05] Layer Template — `LayerTemplate`, `layer_template_check`
+- [III.D06] E₀ Layer (Mathematics) — `e0_layer`
+- [III.D07] E₁ Layer (Physics) — `e1_layer_book3`
+- [III.D08] E₂ Layer (Computation) — `e2_layer`
+- [III.D09] E₃ Layer (Metaphysics) — `e3_layer`
 
 ## Mathematical Content
 

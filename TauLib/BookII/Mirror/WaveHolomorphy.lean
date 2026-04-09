@@ -9,10 +9,10 @@ idempotents.
 
 ## Registry Cross-References
 
-- [II.D70] PDE Type Classification -- `PDEType`, `PDEClassification`
-- [II.T44] Asymmetric Determination -- `hyperbolic_hartogs_natural`, `elliptic_hartogs_not_natural`
-- [II.D71] Stage-Finite Euclidean Geometry -- `StageGeometry`
-- [II.T45] Parallel Preservation -- `stage_euclidean`, `stage_no_light_cones`
+- [II.D70] PDE Type Classification — `PDEType`, `PDEClassification`
+- [II.T44] Asymmetric Determination — `hyperbolic_hartogs_natural`, `elliptic_hartogs_not_natural`
+- [II.D71] Stage-Finite Euclidean Geometry — `StageGeometry`
+- [II.T45] Parallel Preservation — `stage_euclidean`, `stage_no_light_cones`
 
 ## Mathematical Content
 

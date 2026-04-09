@@ -9,14 +9,14 @@ converges to a fixed point.
 
 ## Registry Cross-References
 
-- [V.D168] BH Bipolarity -- `BHBipolarity`
-- [V.T111] Necessary Bipolarity -- `necessary_bipolarity`
-- [V.D169] Polarity Imbalance -- `PolarityImbalance`
-- [V.P94]  Polarity Convergence -- `polarity_convergence`
-- [V.D170] Blueprint -- `BHBlueprint`
-- [V.D171] Blueprint Fusion -- `BlueprintFusion`
-- [V.D172] Blueprint Monoid -- `BlueprintMonoid`
-- [V.T112] Blueprint Monoid Closure -- `blueprint_monoid_closure`
+- [V.D168] BH Bipolarity — `BHBipolarity`
+- [V.T111] Necessary Bipolarity — `necessary_bipolarity`
+- [V.D169] Polarity Imbalance — `PolarityImbalance`
+- [V.P94]  Polarity Convergence — `polarity_convergence`
+- [V.D170] Blueprint — `BHBlueprint`
+- [V.D171] Blueprint Fusion — `BlueprintFusion`
+- [V.D172] Blueprint Monoid — `BlueprintMonoid`
+- [V.T112] Blueprint Monoid Closure — `blueprint_monoid_closure`
 - [V.R223] Irreversibility of mergers -- structural remark
 - [V.R224] BH Entropy Formula -- structural remark
 - [V.R225] Export to Book VI -- structural remark

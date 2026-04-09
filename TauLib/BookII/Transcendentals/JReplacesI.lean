@@ -10,9 +10,9 @@ imaginary unit i (i^2 = -1) as the fundamental algebraic unit.
 
 ## Registry Cross-References
 
-- [II.D32] Interior j-Unit -- `j_unit`, `j_squared_check`
-- [II.D33] Bipolar Idempotents Interior -- `idempotent_check`
-- [II.T24] j Replaces i -- `j_vs_i_check`
+- [II.D32] Interior j-Unit — `j_unit`, `j_squared_check`
+- [II.D33] Bipolar Idempotents Interior — `idempotent_check`
+- [II.T24] j Replaces i — `j_vs_i_check`
 
 ## Mathematical Content
 

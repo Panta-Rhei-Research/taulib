@@ -3,7 +3,7 @@ import TauLib.BookI.Polarity.OmegaRing
 import TauLib.BookI.Polarity.CRTBasis
 
 /-!
-# TauLib.Polarity.TeichmuellerLift
+# TauLib.BookI.Polarity.TeichmuellerLift
 
 Teichmüller-style canonical lifts from single-prime residues to omega-tails via CRT.
 

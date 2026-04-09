@@ -8,9 +8,9 @@ L-Functions as Spectral Determinants.
 
 ## Registry Cross-References
 
-- [III.D31] Grand GRH (τ-effective) -- `grand_grh_finite_check` [AXIOM at adelic level]
-- [III.T20] Prime Polarity Scaling Theorem -- `prime_polarity_scaling_check`
-- [III.D32] L-Function as Spectral Determinant -- `l_function_spectral_check`
+- [III.D31] Grand GRH (τ-effective) — `grand_grh_finite_check` [AXIOM at adelic level]
+- [III.T20] Prime Polarity Scaling Theorem — `prime_polarity_scaling_check`
+- [III.D32] L-Function as Spectral Determinant — `l_function_spectral_check`
 
 ## Mathematical Content
 

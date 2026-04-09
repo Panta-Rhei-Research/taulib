@@ -7,8 +7,8 @@ Five Forbidden Moves and Move-Bridge Correspondence.
 
 ## Registry Cross-References
 
-- [III.D69] Five Forbidden Moves -- `ForbiddenMove`, `forbidden_moves_check`
-- [III.T43] Move-Bridge Correspondence -- `move_bridge_check`
+- [III.D69] Five Forbidden Moves — `ForbiddenMove`, `forbidden_moves_check`
+- [III.T43] Move-Bridge Correspondence — `move_bridge_check`
 
 ## Mathematical Content
 

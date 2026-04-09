@@ -7,8 +7,8 @@ import TauLib.BookIII.Spectral.HenselLifting
 
 ## Registry Cross-References
 
-- [III.D21] τ-Native Local Field -- `LocalField`, `local_field_check`
-- [III.P06] Completeness Without Topology -- `completeness_check`
+- [III.D21] τ-Native Local Field — `LocalField`, `local_field_check`
+- [III.P06] Completeness Without Topology — `completeness_check`
 
 ## Mathematical Content
 

@@ -2,7 +2,7 @@ import TauLib.BookI.Polarity.ModArith
 import TauLib.BookI.Polarity.ExtGCD
 
 /-!
-# TauLib.Polarity.ChineseRemainder
+# TauLib.BookI.Polarity.ChineseRemainder
 
 Chinese Remainder Theorem decomposition and reconstruction on the primorial ladder.
 

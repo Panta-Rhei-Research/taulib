@@ -1,7 +1,7 @@
 import TauLib.BookI.Sets.Powerset
 
 /-!
-# TauLib.Sets.Universe
+# TauLib.BookI.Sets.Universe
 
 τ-Universe properties: countability, no Russell set, no infinite descent.
 

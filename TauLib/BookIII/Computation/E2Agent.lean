@@ -7,8 +7,8 @@ E₂ Computational Agent and Operational Closure.
 
 ## Registry Cross-References
 
-- [III.D49] E₂ Computational Agent -- `E2Agent`, `e2_agent_check`
-- [III.D50] Operational Closure -- `operational_closure_check`
+- [III.D49] E₂ Computational Agent — `E2Agent`, `e2_agent_check`
+- [III.D50] Operational Closure — `operational_closure_check`
 
 ## Mathematical Content
 

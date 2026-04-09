@@ -1,7 +1,7 @@
 import TauLib.BookI.Denotation.TauIdx
 
 /-!
-# TauLib.Denotation.RankTransfer
+# TauLib.BookI.Denotation.RankTransfer
 
 Rank transfer maps: canonical bijections TauIdx ↔ OrbitRay g.
 

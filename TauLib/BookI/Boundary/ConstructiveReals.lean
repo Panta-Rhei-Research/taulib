@@ -3,7 +3,7 @@ import Mathlib.Tactic.Ring
 import Mathlib.Tactic.NormNum
 
 /-!
-# TauLib.Boundary.ConstructiveReals
+# TauLib.BookI.Boundary.ConstructiveReals
 
 The constructive reals ℝ_τ: Cauchy completion of TauRat.
 

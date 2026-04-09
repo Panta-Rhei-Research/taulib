@@ -9,13 +9,13 @@ GW echo times, entropy comparison, and no-Hawking argument.
 
 ## Registry Cross-References
 
-- [V.D234] T² QNM Mode Structure -- `TorusMode`
-- [V.T168] QNM Fundamental Frequency Ratio = ι_τ⁻¹ -- `qnm_ratio_is_iota_inv`
-- [V.T169] GW Echo Times t± = 4GM·ι_τ^{±1}/c³ -- `echo_time_outer`, `echo_time_inner`
-- [V.P124] T² Shadow Radius vs EHT -- `m87_shadow_tau_outer_uas`
-- [V.P125] T² Entropy = π·ι_τ × S² Entropy -- `torus_entropy_ratio`
-- [V.R373] LIGO Echo Window -- `echo_separation`
-- [V.R374] No-Hawking from τ-vacuum -- `no_hawking_argument`
+- [V.D234] T² QNM Mode Structure — `TorusMode`
+- [V.T168] QNM Fundamental Frequency Ratio = ι_τ⁻¹ — `qnm_ratio_is_iota_inv`
+- [V.T169] GW Echo Times t± = 4GM·ι_τ^{±1}/c³ — `echo_time_outer`, `echo_time_inner`
+- [V.P124] T² Shadow Radius vs EHT — `m87_shadow_tau_outer_uas`
+- [V.P125] T² Entropy = π·ι_τ × S² Entropy — `torus_entropy_ratio`
+- [V.R373] LIGO Echo Window — `echo_separation`
+- [V.R374] No-Hawking from τ-vacuum — `no_hawking_argument`
 
 ## Physical Context
 

@@ -10,12 +10,12 @@ from axioms K0-K6 to m_e = 0.510999 MeV at 0.025 ppm.
 
 ## Registry Cross-References
 
-- [V.D81] Gravitational Closing Identity -- `ClosingIdentityData`
-- [V.D82] Corrected Co-Rotor Coupling -- `CorrectedCoRotor`
-- [V.T51] sqrt(3) = |1 - omega| Spectral Distance -- `sqrt3_spectral_distance`
-- [V.T52] G Predicted to 3 ppm -- `g_predicted_3ppm`
-- [V.T53] R Formula Independent of kn -- `r_independent_of_kn`
-- [V.T54] 10-Link Chain from K0-K6 to m_e -- `ten_link_chain_complete`
+- [V.D81] Gravitational Closing Identity — `ClosingIdentityData`
+- [V.D82] Corrected Co-Rotor Coupling — `CorrectedCoRotor`
+- [V.T51] sqrt(3) = |1 - omega| Spectral Distance — `sqrt3_spectral_distance`
+- [V.T52] G Predicted to 3 ppm — `g_predicted_3ppm`
+- [V.T53] R Formula Independent of kn — `r_independent_of_kn`
+- [V.T54] 10-Link Chain from K0-K6 to m_e — `ten_link_chain_complete`
 - [V.R104] c1 Conjectural Status -- structural remark
 - [V.R105] G Least Precise Constant -- structural remark
 - [V.R106] alpha/alpha_G ~ 10^36 -- structural remark

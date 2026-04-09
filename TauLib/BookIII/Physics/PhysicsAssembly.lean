@@ -7,7 +7,7 @@ Physics Layer Assembly: NS + YM + Hodge = E₁ Complete.
 
 ## Registry Cross-References
 
-- [III.T29] Physics Assembly -- `physics_assembly_check`
+- [III.T29] Physics Assembly — `physics_assembly_check`
 
 ## Mathematical Content
 

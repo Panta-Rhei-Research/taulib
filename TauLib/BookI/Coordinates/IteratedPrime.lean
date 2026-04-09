@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.PrimeEnumeration
 
 /-!
-# TauLib.Coordinates.IteratedPrime
+# TauLib.BookI.Coordinates.IteratedPrime
 
 The iterated prime tower: k-fold composition of the prime enumeration
 function nthPrime. Each generator's orbit carries a natural scalar

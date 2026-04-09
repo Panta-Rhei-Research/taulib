@@ -9,16 +9,16 @@ horizon from the GravityField module.
 
 ## Registry Cross-References
 
-- [V.D124] Compact Object Classification -- `CompactObjectType`
-- [V.T86] White Dwarf Mass Limit -- `wd_mass_limit`
+- [V.D124] Compact Object Classification — `CompactObjectType`
+- [V.T86] White Dwarf Mass Limit — `wd_mass_limit`
 - [V.R177] Chandrasekhar from Electron Degeneracy -- structural remark
-- [V.P71] Neutron Star EOS from Defect Bundle -- `ns_eos_from_defect`
-- [V.T87] TOV Maximum Mass -- `tov_maximum_mass`
+- [V.P71] Neutron Star EOS from Defect Bundle — `ns_eos_from_defect`
+- [V.T87] TOV Maximum Mass — `tov_maximum_mass`
 - [V.R178] Maximum Mass Observational Constraint -- structural remark
-- [V.D125] Pulsar Data -- `PulsarData`
+- [V.D125] Pulsar Data — `PulsarData`
 - [V.R179] Pulsar Timing as Precision Test -- structural remark
-- [V.T88] Mass Gap Prediction -- `mass_gap_prediction`
-- [V.P72] Magnetar from Defect Vortex -- `magnetar_from_vortex`
+- [V.T88] Mass Gap Prediction — `mass_gap_prediction`
+- [V.P72] Magnetar from Defect Vortex — `magnetar_from_vortex`
 - [V.R180] No Naked Singularities -- structural remark
 
 ## Mathematical Content

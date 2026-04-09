@@ -8,10 +8,10 @@ and No Barrier Theorem.
 
 ## Registry Cross-References
 
-- [III.D56] Computational Bi-Square -- `comp_bisquare_check`
-- [III.T32] Product-Meet Collapse -- `product_meet_collapse_check`
-- [III.T33] τ-Admissibility Collapse -- `tau_admissibility_collapse_check`
-- [III.T34] No Barrier Theorem -- `no_barrier_check`
+- [III.D56] Computational Bi-Square — `comp_bisquare_check`
+- [III.T32] Product-Meet Collapse — `product_meet_collapse_check`
+- [III.T33] τ-Admissibility Collapse — `tau_admissibility_collapse_check`
+- [III.T34] No Barrier Theorem — `no_barrier_check`
 
 ## Mathematical Content
 

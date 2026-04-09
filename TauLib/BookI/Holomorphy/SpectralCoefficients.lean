@@ -2,7 +2,7 @@ import TauLib.BookI.Holomorphy.IdentityTheorem
 import TauLib.BookI.Boundary.Fourier
 
 /-!
-# TauLib.Holomorphy.SpectralCoefficients
+# TauLib.BookI.Holomorphy.SpectralCoefficients
 
 Spectral coefficients and the restriction map for τ-holomorphic functions.
 

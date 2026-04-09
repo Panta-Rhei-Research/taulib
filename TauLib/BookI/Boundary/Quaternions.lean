@@ -2,7 +2,7 @@ import TauLib.BookI.Boundary.ConstructiveReals
 import Mathlib.Tactic.Ring
 
 /-!
-# TauLib.Boundary.Quaternions
+# TauLib.BookI.Boundary.Quaternions
 
 The elliptic quaternions: TauQuaternion = R_tau-algebra {1,i,j,k}.
 

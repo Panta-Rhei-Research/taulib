@@ -7,9 +7,9 @@ Pi earned from three perspectives: Leibniz series, spectral, topological.
 
 ## Registry Cross-References
 
-- [II.D28] Geometric Pi -- `pi_scaled`
-- [II.D29] Archimedes Polygon Sequence -- `leibniz_pi_scaled`
-- [II.T22] Three Perspectives on Pi -- `pi_convergence_check`
+- [II.D28] Geometric Pi — `pi_scaled`
+- [II.D29] Archimedes Polygon Sequence — `leibniz_pi_scaled`
+- [II.T22] Three Perspectives on Pi — `pi_convergence_check`
 
 ## Mathematical Content
 

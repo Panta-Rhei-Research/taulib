@@ -9,8 +9,8 @@ scale analysis.
 
 ## Registry Cross-References
 
-- [V.L4] Single Scale Degree of Freedom -- `SingleScaleDOF`
-- [V.L5] Minimal Mature Black Hole -- `MinimalMatureBH`
+- [V.L4] Single Scale Degree of Freedom — `SingleScaleDOF`
+- [V.L5] Minimal Mature Black Hole — `MinimalMatureBH`
 
 ## Mathematical Content
 

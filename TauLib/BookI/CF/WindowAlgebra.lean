@@ -1,7 +1,7 @@
 import TauLib.BookI.Kernel.Diagonal
 
 /-!
-# TauLib.CF.WindowAlgebra
+# TauLib.BookI.CF.WindowAlgebra
 
 Window algebra on the continued fraction head of ι_τ = 2/(π+e).
 

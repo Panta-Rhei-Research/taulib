@@ -9,22 +9,22 @@ entropy vs defect entropy. Gravity-driven defect absorption.
 
 ## Registry Cross-References
 
-- [V.T55] The Categorical Second Law -- `CategoricalSecondLaw`
-- [V.D83] Thermodynamic Equilibrium (categorical) -- `CategoricalEquilibrium`
-- [V.D84] Coherence Horizon -- `ThermalCoherenceHorizon`
-- [V.P24] Defect Absorption Rate -- `DefectAbsorptionRate`
-- [V.P25] Weak Redistribution Preserves Defect Count -- `WeakRedistribution`
-- [V.P26] The 180-degree Inversion -- `inversion_180`
-- [V.L02] Geometric Contraction of Defect Support -- `GeometricContraction`
-- [V.C05] Defect Support Exhaustion -- `defect_support_exhaustion`
+- [V.T55] The Categorical Second Law — `CategoricalSecondLaw`
+- [V.D83] Thermodynamic Equilibrium (categorical) — `CategoricalEquilibrium`
+- [V.D84] Coherence Horizon — `ThermalCoherenceHorizon`
+- [V.P24] Defect Absorption Rate — `DefectAbsorptionRate`
+- [V.P25] Weak Redistribution Preserves Defect Count — `WeakRedistribution`
+- [V.P26] The 180-degree Inversion — `inversion_180`
+- [V.L02] Geometric Contraction of Defect Support — `GeometricContraction`
+- [V.C05] Defect Support Exhaustion — `defect_support_exhaustion`
 - [V.R111] The Explanatory Gap -- structural remark
-- [V.R112] Pixel-Resolution Analogy -- `pixel_analogy`
+- [V.R112] Pixel-Resolution Analogy — `pixel_analogy`
 - [V.R113] Compatibility with Book IV -- structural remark
 - [V.R114] Not the Same as Thermal Equilibrium -- structural remark
 - [V.R115] Role of Gravity in Ordering -- structural remark
-- [V.R116] Contraction Rate is Gravitational Coupling -- `contraction_is_kappa_D`
+- [V.R116] Contraction Rate is Gravitational Coupling — `contraction_is_kappa_D`
 - [V.R117] Circulation Not Stasis -- structural remark
-- [V.R118] Orbit Steps vs Physical Time -- `OrbitStepsVsTime`
+- [V.R118] Orbit Steps vs Physical Time — `OrbitStepsVsTime`
 
 ## Mathematical Content
 

@@ -1,7 +1,7 @@
 import TauLib.BookI.Polarity.OmegaGerms
 
 /-!
-# TauLib.Polarity.OmegaRing
+# TauLib.BookI.Polarity.OmegaRing
 
 Stagewise ring operations on omega-tails with compatibility preservation.
 

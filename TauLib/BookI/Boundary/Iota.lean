@@ -2,7 +2,7 @@ import TauLib.BookI.Boundary.Ring
 import TauLib.BookI.Boundary.SplitComplex
 
 /-!
-# TauLib.Boundary.Iota
+# TauLib.BookI.Boundary.Iota
 
 The master constant iota_tau and the B/C ratio convergence framework.
 

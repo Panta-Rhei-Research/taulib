@@ -3,7 +3,7 @@ import Mathlib.Tactic.Ring
 import Mathlib.Tactic.LinearCombination
 
 /-!
-# TauLib.Boundary.SplitComplex
+# TauLib.BookI.Boundary.SplitComplex
 
 Full ring axioms for SplitComplex and SectorPair, plus to_sectors bijectivity
 and zero divisor characterization.

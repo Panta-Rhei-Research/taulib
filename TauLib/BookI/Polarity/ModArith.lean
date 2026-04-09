@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.Primes
 
 /-!
-# TauLib.Polarity.ModArith
+# TauLib.BookI.Polarity.ModArith
 
 Modular arithmetic infrastructure for the primorial ladder.
 

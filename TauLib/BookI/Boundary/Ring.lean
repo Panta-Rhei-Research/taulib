@@ -3,7 +3,7 @@ import TauLib.BookI.Polarity.CRTBasis
 import TauLib.BookI.Polarity.TeichmuellerLift
 
 /-!
-# TauLib.Boundary.Ring
+# TauLib.BookI.Boundary.Ring
 
 Boundary ring negation and the full ring axiom suite for omega-tails.
 

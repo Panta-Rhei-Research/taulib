@@ -1,7 +1,7 @@
 import TauLib.BookI.Polarity.ModArith
 
 /-!
-# TauLib.Polarity.OmegaGerms
+# TauLib.BookI.Polarity.OmegaGerms
 
 Omega-tails (compatible towers) and the divergence ultrametric.
 

@@ -1,7 +1,7 @@
 import TauLib.BookI.Denotation.Equality
 
 /-!
-# TauLib.Denotation.Order
+# TauLib.BookI.Denotation.Order
 
 Denotational ordering on Obj(τ): lexicographic on (seed.toNat, depth).
 

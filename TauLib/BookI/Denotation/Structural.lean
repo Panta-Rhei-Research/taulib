@@ -2,7 +2,7 @@ import TauLib.BookI.Polarity.OmegaGerms
 import TauLib.BookI.Orbit.Rigidity
 
 /-!
-# TauLib.Denotation.Structural
+# TauLib.BookI.Denotation.Structural
 
 Structural theorems surfacing the deep difference between τ-Idx and standard Nat.
 

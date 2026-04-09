@@ -7,8 +7,8 @@ Hinge Theorem and No-Knobs Theorem: the capstone results of Book III Part VIII.
 
 ## Registry Cross-References
 
-- [III.T41] Hinge Theorem -- `hinge_theorem_check`
-- [III.T42] No-Knobs Theorem -- `no_knobs_check`
+- [III.T41] Hinge Theorem — `hinge_theorem_check`
+- [III.T42] No-Knobs Theorem — `no_knobs_check`
 
 ## Mathematical Content
 

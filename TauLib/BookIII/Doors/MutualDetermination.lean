@@ -7,7 +7,7 @@ Mutual Determination Schema: B ↔ I ↔ S at spectral level.
 
 ## Registry Cross-References
 
-- [III.D25] Mutual Determination Schema -- `MDDescription`, `mutual_det_check`
+- [III.D25] Mutual Determination Schema — `MDDescription`, `mutual_det_check`
 
 ## Mathematical Content
 

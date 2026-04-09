@@ -2,7 +2,7 @@ import TauLib.BookI.Sets.Universe
 import TauLib.BookI.Coordinates.PrimeEnumeration
 
 /-!
-# TauLib.Sets.OrbitSets
+# TauLib.BookI.Sets.OrbitSets
 
 Orbit-Set Correspondence: each τ-object x determines a characteristic
 set Set(x) inside the α-orbit, defined by orbit-specific formulas.

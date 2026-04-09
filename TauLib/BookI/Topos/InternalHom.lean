@@ -1,7 +1,7 @@
 import TauLib.BookI.Topos.WedgeProduct
 
 /-!
-# TauLib.Topos.InternalHom
+# TauLib.BookI.Topos.InternalHom
 
 Internal hom (exponentials) and the cartesian closed structure of E_τ.
 

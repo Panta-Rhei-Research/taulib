@@ -9,18 +9,18 @@ coupling readout.
 
 ## Registry Cross-References
 
-- [V.D133] Binary System Classification -- `BinarySystemType`
-- [V.D134] GW Signal Data -- `GWSignalData`
+- [V.D133] Binary System Classification — `BinarySystemType`
+- [V.D134] GW Signal Data — `GWSignalData`
 - [V.R192] Gravitational Waves as D-Sector Ripples -- structural remark
-- [V.T93] Chirp Mass Formula -- `chirp_mass_formula`
-- [V.P80] Orbital Decay from GW Emission -- `orbital_decay_gw`
+- [V.T93] Chirp Mass Formula — `chirp_mass_formula`
+- [V.P80] Orbital Decay from GW Emission — `orbital_decay_gw`
 - [V.R193] Hulse-Taylor Confirmation -- structural remark
-- [V.D135] Merger Outcome Classification -- `MergerOutcome`
-- [V.T94] No-Hair after Merger -- `no_hair_after_merger`
+- [V.D135] Merger Outcome Classification — `MergerOutcome`
+- [V.T94] No-Hair after Merger — `no_hair_after_merger`
 - [V.R194] Ringdown as Torus Relaxation -- structural remark
-- [V.D136] Kilonova Data -- `KilonovaData`
+- [V.D136] Kilonova Data — `KilonovaData`
 - [V.R195] GW170817 Multimessenger -- structural remark
-- [V.P81] Merger Rate from Population -- `merger_rate_population`
+- [V.P81] Merger Rate from Population — `merger_rate_population`
 
 ## Mathematical Content
 

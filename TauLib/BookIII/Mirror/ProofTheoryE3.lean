@@ -8,10 +8,10 @@ and Paradox Resolution Theorem.
 
 ## Registry Cross-References
 
-- [III.D73] Proof Theory as E3 -- `proof_theory_e3_check`
-- [III.D74] Self-Model Functor -- `self_model_check`
-- [III.D75] Four Paradox Diagnostic -- `four_paradox_check`
-- [III.T48] Paradox Resolution -- `paradox_resolution_check`
+- [III.D73] Proof Theory as E3 — `proof_theory_e3_check`
+- [III.D74] Self-Model Functor — `self_model_check`
+- [III.D75] Four Paradox Diagnostic — `four_paradox_check`
+- [III.T48] Paradox Resolution — `paradox_resolution_check`
 
 ## Mathematical Content
 

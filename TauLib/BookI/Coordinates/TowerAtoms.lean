@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.Primes
 
 /-!
-# TauLib.Coordinates.TowerAtoms
+# TauLib.BookI.Coordinates.TowerAtoms
 
 Tower atoms T(a,b,c) = (a↑↑c)^b and computable peel-off tools.
 

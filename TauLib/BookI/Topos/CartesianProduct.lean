@@ -1,7 +1,7 @@
 import TauLib.BookI.Topos.EarnedTopos
 
 /-!
-# TauLib.Topos.CartesianProduct
+# TauLib.BookI.Topos.CartesianProduct
 
 Cartesian product as an earned bi-functor in E_τ.
 

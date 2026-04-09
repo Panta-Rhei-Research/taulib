@@ -7,8 +7,8 @@ Spectral Parameter Λ(s) and the Spectral Correspondence Theorem (O3 Axiom).
 
 ## Registry Cross-References
 
-- [III.D29] Spectral Parameter Λ(s) -- `spectral_parameter`, `spectral_param_check`
-- [III.T18] Spectral Correspondence Theorem -- `spectral_correspondence_O3` [AXIOM]
+- [III.D29] Spectral Parameter Λ(s) — `spectral_parameter`, `spectral_param_check`
+- [III.T18] Spectral Correspondence Theorem — `spectral_correspondence_O3` [AXIOM]
 
 ## Mathematical Content
 

@@ -2,7 +2,7 @@ import TauLib.BookI.Polarity.PrimeBridge
 import TauLib.BookI.Polarity.ModArith
 
 /-!
-# TauLib.Polarity.NthPrime
+# TauLib.BookI.Polarity.NthPrime
 
 Formal properties of `nth_prime`: primality, primorial divisibility,
 coprimality, and CRT hypothesis bundles.

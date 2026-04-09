@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.Primes
 
 /-!
-# TauLib.Sets.Membership
+# TauLib.BookI.Sets.Membership
 
 τ-Membership: divisibility as the internal membership relation on τ-Idx.
 

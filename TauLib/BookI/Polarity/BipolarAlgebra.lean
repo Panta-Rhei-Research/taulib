@@ -3,7 +3,7 @@ import Mathlib.Tactic.Ring
 import Mathlib.Tactic.LinearCombination
 
 /-!
-# TauLib.Polarity.BipolarAlgebra
+# TauLib.BookI.Polarity.BipolarAlgebra
 
 The bipolar spectral algebra H_τ with split-complex scalars.
 

@@ -7,10 +7,10 @@ import TauLib.BookIII.Doors.MasterSchema
 
 ## Registry Cross-References
 
-- [III.D36] τ-Admissible Fluid Data -- `FluidData`, `fluid_data_check`
-- [III.D37] Cylinder Assignment -- `cylinder_assignment`, `cylinder_assignment_check`
-- [III.D38] ABCD Extraction -- `abcd_extract`, `abcd_check`
-- [III.D39] Defect Functional -- `defect_functional`, `defect_monotone_check`
+- [III.D36] τ-Admissible Fluid Data — `FluidData`, `fluid_data_check`
+- [III.D37] Cylinder Assignment — `cylinder_assignment`, `cylinder_assignment_check`
+- [III.D38] ABCD Extraction — `abcd_extract`, `abcd_check`
+- [III.D39] Defect Functional — `defect_functional`, `defect_monotone_check`
 
 ## Mathematical Content
 

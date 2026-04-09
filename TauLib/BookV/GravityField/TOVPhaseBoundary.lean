@@ -8,15 +8,15 @@ horizon, topology crossing, and the defect-cost phase transition.
 
 ## Registry Cross-References
 
-- [V.D75] GR Tension Functional (phase boundary) -- `PhaseTension`
-- [V.D76] Coherence Horizon M_n* -- `CoherenceHorizon`
-- [V.D77] Topology Crossing Event -- `TopologyCrossing`
-- [V.C04] Coherence Horizon Well-Defined -- `coherence_horizon_axiom`
-- [V.L01] Surface Matter Character Boundary -- `surface_boundary_condition`
-- [V.T45] Tension Monotonicity -- `tension_monotone`
-- [V.T46] Threshold Existence -- `threshold_exists`
-- [V.T47] Torus Topology above Threshold -- `torus_above_threshold`
-- [V.T48] Defect Cost Equality -- `defect_cost_equality`
+- [V.D75] GR Tension Functional (phase boundary) — `PhaseTension`
+- [V.D76] Coherence Horizon M_n* — `CoherenceHorizon`
+- [V.D77] Topology Crossing Event — `TopologyCrossing`
+- [V.C04] Coherence Horizon Well-Defined — `coherence_horizon_axiom`
+- [V.L01] Surface Matter Character Boundary — `surface_boundary_condition`
+- [V.T45] Tension Monotonicity — `tension_monotone`
+- [V.T46] Threshold Existence — `threshold_exists`
+- [V.T47] Torus Topology above Threshold — `torus_above_threshold`
+- [V.T48] Defect Cost Equality — `defect_cost_equality`
 - [V.R94] No Tension Upper Bound -- structural remark
 - [V.R95] Chandrasekhar as Special Case -- structural remark
 - [V.R96] No Singularity at Crossing -- structural remark

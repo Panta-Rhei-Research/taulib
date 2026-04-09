@@ -1,7 +1,7 @@
 import TauLib.BookI.Boundary.Spectral
 
 /-!
-# TauLib.Boundary.Fourier
+# TauLib.BookI.Boundary.Fourier
 
 The crossing point, sector ideals, and bipolar Fourier analysis on the lemniscate.
 

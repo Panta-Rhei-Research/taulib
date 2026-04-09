@@ -8,13 +8,13 @@ and refuted. Experimental signatures. Honest scope assessment.
 
 ## Registry Cross-References
 
-- [V.T136] No Singularities in tau -- `no_singularities_tau`
-- [V.T137] No UV Divergences in tau -- `no_uv_divergences_tau`
-- [V.T138] No Dark Sectors -- `no_dark_sectors`
-- [V.T139] Vacuum Energy is Exactly Zero -- `vacuum_energy_zero`
-- [V.T140] E-layer 1 is Structurally Full -- `elayer1_full`
-- [V.R291] Renormalization is Correct but Unnecessary -- `renorm_correct_unnecessary`
-- [V.R292] The 10^120 -- `the_10_120`
+- [V.T136] No Singularities in tau — `no_singularities_tau`
+- [V.T137] No UV Divergences in tau — `no_uv_divergences_tau`
+- [V.T138] No Dark Sectors — `no_dark_sectors`
+- [V.T139] Vacuum Energy is Exactly Zero — `vacuum_energy_zero`
+- [V.T140] E-layer 1 is Structurally Full — `elayer1_full`
+- [V.R291] Renormalization is Correct but Unnecessary — `renorm_correct_unnecessary`
+- [V.R292] The 10^120 — `the_10_120`
 - [V.R293] Why "dissolve" and not "solve" -- comment-only
 - [V.R294] Honest vs. Premature -- comment-only (not_applicable)
 

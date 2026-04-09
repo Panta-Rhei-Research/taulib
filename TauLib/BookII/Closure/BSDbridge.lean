@@ -7,7 +7,7 @@ Proto-rationality: the finite-stage-determined points of the primorial tower.
 
 ## Registry Cross-References
 
-- [II.D65] Proto-Rationality -- `is_proto_rational`, `proto_rational_check`,
+- [II.D65] Proto-Rationality — `is_proto_rational`, `proto_rational_check`,
   `proto_rational_examples_check`
 
 ## Mathematical Content

@@ -9,11 +9,11 @@ Upgrades V.R324 (conjectural) to V.T172 (τ-effective).
 
 ## Registry Cross-References
 
-- [V.T170] Exponent 15 = dim(τ³) × |generators| -- `exponent_15_structure`, `tau_generator_count`
-- [V.T171] (5/6) threshold factor shared with Y_p -- `yp_baryogenesis_shared_factor`
-- [V.T172] Primary baryogenesis formula η_B = α·ι_τ¹⁵·(5/6) -- `eta_B_formula_string`, `eta_B_algebraic_identity`
-- [V.P126] Sakharov CP source -- `sakharov_cp_source`
-- [V.R375] Leptogenesis pathway via Majorana ν -- `leptogenesis_pathway`
+- [V.T170] Exponent 15 = dim(τ³) × |generators| — `exponent_15_structure`, `tau_generator_count`
+- [V.T171] (5/6) threshold factor shared with Y_p — `yp_baryogenesis_shared_factor`
+- [V.T172] Primary baryogenesis formula η_B = α·ι_τ¹⁵·(5/6) — `eta_B_formula_string`, `eta_B_algebraic_identity`
+- [V.P126] Sakharov CP source — `sakharov_cp_source`
+- [V.R375] Leptogenesis pathway via Majorana ν — `leptogenesis_pathway`
 
 ## Mathematical Content
 

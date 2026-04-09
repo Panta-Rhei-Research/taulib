@@ -9,21 +9,21 @@ Structural advantages of the boundary-holonomy approach.
 
 ## Registry Cross-References
 
-- [V.T131] No Knobs in tau -- `no_knobs_in_tau`
-- [V.T132] Gravity as Readout (No Renormalization) -- `gravity_no_renormalization`
-- [V.T133] Completeness of the Boundary Algebra -- `boundary_algebra_complete`
-- [V.P105] Twistor Embedding -- `twistor_embedding`
-- [V.P106] NCG Spectral Triple from tau -- `ncg_spectral_triple`
+- [V.T131] No Knobs in tau — `no_knobs_in_tau`
+- [V.T132] Gravity as Readout (No Renormalization) — `gravity_no_renormalization`
+- [V.T133] Completeness of the Boundary Algebra — `boundary_algebra_complete`
+- [V.P105] Twistor Embedding — `twistor_embedding`
+- [V.P106] NCG Spectral Triple from tau — `ncg_spectral_triple`
 - [V.R278] LQG's Genuine Contribution -- comment-only
 - [V.R279] The Residual Manifold in LQG -- comment-only
 - [V.R280] Four Echoes, One Architecture -- comment-only
-- [V.R281] CDT as a Computational Echo -- `cdt_echo`
-- [V.R282] Sorkin's Lambda Prediction -- `sorkin_lambda`
+- [V.R281] CDT as a Computational Echo — `cdt_echo`
+- [V.R282] Sorkin's Lambda Prediction — `sorkin_lambda`
 - [V.R283] Respect and Replacement -- comment-only
 - [V.R284] Twistors as Shadow -- comment-only
 - [V.R285] The Two Relevant Directions -- comment-only
 - [V.R286] Verlinde's Rotation Curves -- comment-only
-- [V.R287] No Hierarchy Among Programmes -- `no_hierarchy`
+- [V.R287] No Hierarchy Among Programmes — `no_hierarchy`
 
 ## Mathematical Content
 

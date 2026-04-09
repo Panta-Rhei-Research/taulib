@@ -1,7 +1,7 @@
 import TauLib.BookI.MetaLogic.LinearDiscipline
 
 /-!
-# TauLib.MetaLogic.LinearityAudit
+# TauLib.BookI.MetaLogic.LinearityAudit
 
 The TauLib Linearity Audit: classifying all modules by their axiom usage.
 

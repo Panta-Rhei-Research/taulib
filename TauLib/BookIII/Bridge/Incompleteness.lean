@@ -8,7 +8,7 @@ E2->E3 boundary phenomena.
 
 ## Registry Cross-References
 
-- [III.T44] Incompleteness as VM Boundary -- `incompleteness_vm_check`
+- [III.T44] Incompleteness as VM Boundary — `incompleteness_vm_check`
 
 ## Mathematical Content
 

@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.NormalForm
 
 /-!
-# TauLib.Coordinates.ABCD
+# TauLib.BookI.Coordinates.ABCD
 
 ABCD coordinate chart, address DAG, and complexity metrics.
 

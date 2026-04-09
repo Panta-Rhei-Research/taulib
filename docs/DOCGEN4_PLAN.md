@@ -4,7 +4,7 @@
 
 Generate a self-contained, browsable, searchable HTML documentation site for TauLib using [doc-gen4](https://github.com/leanprover/doc-gen4), enhanced with Panta Rhei theming, a statistics dashboard, an interactive dependency graph, and filtered to show **only TauLib content** (no Lean/Mathlib/Batteries noise).
 
-All output is **hosting-agnostic**: every link is relative, the entire `docbuild/.lake/build/doc/` directory can be served from any static host — GitHub Pages, Netlify, Vercel, S3, a local HTTP server, or a subdirectory on `panta-rhei-books.org`. The deployment target is chosen at publish time, not at build time.
+All output is **hosting-agnostic**: every link is relative, the entire `docbuild/.lake/build/doc/` directory can be served from any static host — GitHub Pages, Netlify, Vercel, S3, a local HTTP server, or a subdirectory on `panta-rhei.site`. The deployment target is chosen at publish time, not at build time.
 
 ---
 
@@ -316,7 +316,7 @@ The build output at `docbuild/.lake/build/doc/` is a **self-contained static sit
 |--------|-----|
 | **Local preview** | `cd docbuild/.lake/build/doc && python3 -m http.server 8000` |
 | **GitHub Pages** | CI workflow with `deploy-pages@v4` (Sprint 10) |
-| **panta-rhei-books.org subdirectory** | Copy `doc/` to web server at any path |
+| **panta-rhei.site subdirectory** | Copy `doc/` to web server at any path |
 | **Netlify / Vercel** | Point to `docbuild/.lake/build/doc` as publish directory |
 | **S3 / CloudFront** | Upload `doc/` contents to bucket |
 | **CI artifact download** | `actions/upload-artifact` — available from any CI run |

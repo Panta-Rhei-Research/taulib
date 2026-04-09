@@ -12,18 +12,18 @@ Six canonical thresholds:
 
 ## Registry Cross-References
 
-- [V.D158] Threshold (Regime Boundary) -- `ThresholdRegimeBoundary`
-- [V.D159] Canonical Thresholds -- `CanonicalThresholds`
-- [V.T107] Ladder Monotonicity -- `ladder_monotonicity`
-- [V.D160] Neutron Threshold L_N -- `NeutronThreshold`
+- [V.D158] Threshold (Regime Boundary) — `ThresholdRegimeBoundary`
+- [V.D159] Canonical Thresholds — `CanonicalThresholds`
+- [V.T107] Ladder Monotonicity — `ladder_monotonicity`
+- [V.D160] Neutron Threshold L_N — `NeutronThreshold`
 - [V.R218] The mass hierarchy at L_N -- structural remark
 - [V.R219] Sphaleron Open Question -- structural remark
 - [V.R220] Sakharov Conditions -- structural remark
-- [V.D161] Nucleosynthetic Window -- `NucleosyntheticWindow`
-- [V.T108] Nucleosynthesis from τ -- `nucleosynthesis_from_tau`
+- [V.D161] Nucleosynthetic Window — `NucleosyntheticWindow`
+- [V.T108] Nucleosynthesis from τ — `nucleosynthesis_from_tau`
 - [V.R221] The lithium problem -- structural remark
-- [V.P92]  CMB Origin -- `cmb_origin`
-- [V.D162] Threshold Ladder -- `ThresholdLadderComplete`
+- [V.P92]  CMB Origin — `cmb_origin`
+- [V.D162] Threshold Ladder — `ThresholdLadderComplete`
 
 ## Mathematical Content
 

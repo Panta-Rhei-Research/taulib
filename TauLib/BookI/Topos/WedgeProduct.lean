@@ -1,7 +1,7 @@
 import TauLib.BookI.Topos.CartesianProduct
 
 /-!
-# TauLib.Topos.WedgeProduct
+# TauLib.BookI.Topos.WedgeProduct
 
 Wedge product (coproduct) and the bi-monoidal structure of E_τ.
 

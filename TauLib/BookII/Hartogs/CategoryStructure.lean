@@ -7,10 +7,10 @@ Category structure of holomorphic endomorphisms on the primorial tower.
 
 ## Registry Cross-References
 
-- [II.D39] Holomorphic Composition -- `hol_comp`, `hol_comp_sf`
-- [II.D40] Holomorphic Identity -- `hol_id`, `hol_id_sf`
-- [II.T29] Associativity -- `hol_assoc_check`, `hol_assoc_thm`
-- [II.D41] Endomorphism Category HolEnd_tau -- `HolEndCat`, `holend_axioms_check`
+- [II.D39] Holomorphic Composition — `hol_comp`, `hol_comp_sf`
+- [II.D40] Holomorphic Identity — `hol_id`, `hol_id_sf`
+- [II.T29] Associativity — `hol_assoc_check`, `hol_assoc_thm`
+- [II.D41] Endomorphism Category HolEnd_tau — `HolEndCat`, `holend_axioms_check`
 
 ## Mathematical Content
 

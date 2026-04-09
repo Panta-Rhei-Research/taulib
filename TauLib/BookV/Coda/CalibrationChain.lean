@@ -9,8 +9,8 @@ cascade requires zero additional free parameters.
 
 ## Registry Cross-References
 
-- [V.T156] Mass Derivations — Layer 2 -- `MassDerivationLayer2`
-- [V.T157] Calibration Sufficiency -- `CalibrationSufficiency`
+- [V.T156] Mass Derivations — Layer 2 — `MassDerivationLayer2`
+- [V.T157] Calibration Sufficiency — `CalibrationSufficiency`
 
 ## Mathematical Content
 

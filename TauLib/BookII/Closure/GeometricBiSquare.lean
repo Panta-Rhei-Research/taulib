@@ -12,10 +12,10 @@ filled with the geometric objects earned in Book II Parts I-IX.
 
 ## Registry Cross-References
 
-- [II.D77] Geometric Bi-Square -- `GeometricBiSquareData`, `compute_geometric_bisquare`
-- [II.T49] Geometric Bi-Square Theorem -- `geometric_bisquare_check`
-- [II.R33] Algebraic-to-Geometric Audit -- `algebraic_geometric_audit`
-- [II.R34] Scaling Chain Forward -- `ScalingLevel`, `scaling_chain_check`
+- [II.D77] Geometric Bi-Square — `GeometricBiSquareData`, `compute_geometric_bisquare`
+- [II.T49] Geometric Bi-Square Theorem — `geometric_bisquare_check`
+- [II.R33] Algebraic-to-Geometric Audit — `algebraic_geometric_audit`
+- [II.R34] Scaling Chain Forward — `ScalingLevel`, `scaling_chain_check`
 
 ## Mathematical Content
 

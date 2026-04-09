@@ -2,7 +2,7 @@ import TauLib.BookI.Coordinates.TowerAtoms
 import TauLib.BookI.Polarity.ModArith
 
 /-!
-# TauLib.Denotation.GrowthEscape
+# TauLib.BookI.Denotation.GrowthEscape
 
 Tetration escapes the primorial tower: an independent quantitative argument
 that tetration values eventually exceed any fixed primorial, making them
@@ -10,7 +10,7 @@ impossible to capture modularly.
 
 ## Registry Cross-References
 
-- [I.L02] Growth Escape — `growth_escape`
+- [I.L05] Growth Escape — `growth_escape`
 
 ## Mathematical Content
 

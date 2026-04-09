@@ -8,10 +8,10 @@ and Primorial RH Verification Protocol.
 
 ## Registry Cross-References
 
-- [III.T19] Critical Line Theorem -- `critical_line_check`
-- [III.P10] K5 Off-Diagonal Exclusion -- `k5_exclusion_check`
-- [III.D30] τ-Effective RH Statement -- `tau_effective_rh_check`
-- [III.P11] Primorial RH Verification Protocol -- `rh_protocol_check`
+- [III.T19] Critical Line Theorem — `critical_line_check`
+- [III.P10] K5 Off-Diagonal Exclusion — `k5_exclusion_check`
+- [III.D30] τ-Effective RH Statement — `tau_effective_rh_check`
+- [III.P11] Primorial RH Verification Protocol — `rh_protocol_check`
 
 ## Mathematical Content
 

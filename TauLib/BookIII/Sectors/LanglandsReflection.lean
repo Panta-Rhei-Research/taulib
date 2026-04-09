@@ -8,11 +8,11 @@ and Spectral Polarity.
 
 ## Registry Cross-References
 
-- [III.D15] Langlands₁ Reflection Bridge -- `langlands_reflection_check`
-- [III.T06] Template Invariance Under Reflection -- `template_invariance_check`
-- [III.D16] Universal Operator -- `universal_operator`
-- [III.D17] Spectral Polarity -- `spectral_polarity`
-- [III.P04] Balanced Sector Uniqueness -- `balanced_uniqueness_check`
+- [III.D15] Langlands₁ Reflection Bridge — `langlands_reflection_check`
+- [III.T06] Template Invariance Under Reflection — `template_invariance_check`
+- [III.D16] Universal Operator — `universal_operator`
+- [III.D17] Spectral Polarity — `spectral_polarity`
+- [III.P04] Balanced Sector Uniqueness — `balanced_uniqueness_check`
 
 ## Mathematical Content
 

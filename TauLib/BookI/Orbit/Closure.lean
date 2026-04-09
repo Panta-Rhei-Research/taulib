@@ -1,7 +1,7 @@
 import TauLib.BookI.Orbit.Countability
 
 /-!
-# TauLib.Orbit.Closure
+# TauLib.BookI.Orbit.Closure
 
 The Ontic Closure Theorem: Obj(τ) = O_α ∪ O_π ∪ O_γ ∪ O_η ∪ Ω.
 

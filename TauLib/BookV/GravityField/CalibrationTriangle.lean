@@ -9,13 +9,13 @@ and sector couplings alone.
 
 ## Registry Cross-References
 
-- [V.D78] Calibration Constant Xi_tau -- `CalibrationConstant`
-- [V.D79] Calibration Triangle -- `CalibrationTriangle`
-- [V.D80] Boundary Homomorphism -- `BoundaryHomomorphism`
-- [V.T49] Triangle Edge Ratios -- `edge_ratios_from_iota`
-- [V.T50] Complete Dimensional Bridge -- `dimensional_bridge_complete`
-- [V.P22] Xi_tau Refinement-Stable -- `xi_refinement_stable`
-- [V.P23] A-Sector Structure Preservation -- `a_sector_preserved`
+- [V.D78] Calibration Constant Xi_tau — `CalibrationConstant`
+- [V.D79] Calibration Triangle — `CalibrationTriangle`
+- [V.D80] Boundary Homomorphism — `BoundaryHomomorphism`
+- [V.T49] Triangle Edge Ratios — `edge_ratios_from_iota`
+- [V.T50] Complete Dimensional Bridge — `dimensional_bridge_complete`
+- [V.P22] Xi_tau Refinement-Stable — `xi_refinement_stable`
+- [V.P23] A-Sector Structure Preservation — `a_sector_preserved`
 - [V.R100] No Kilograms Needed -- structural remark
 - [V.R101] delta_A Threading -- structural remark
 - [V.R102] Orthodox Three-Input Requirement -- structural remark

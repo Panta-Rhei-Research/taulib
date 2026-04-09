@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.NormalForm
 
 /-!
-# TauLib.Coordinates.Descent
+# TauLib.BookI.Coordinates.Descent
 
 Remainder descent and prime stratum descent for greedy peel.
 

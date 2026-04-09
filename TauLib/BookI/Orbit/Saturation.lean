@@ -3,14 +3,14 @@ import TauLib.BookI.Orbit.TooFew
 import TauLib.BookI.Orbit.Ladder
 
 /-!
-# TauLib.Orbit.Saturation
+# TauLib.BookI.Orbit.Saturation
 
 Tetration algebraic degradation and the Minimal Alphabet Theorem.
 
 ## Registry Cross-References
 
-- [I.T09] Minimal Alphabet Theorem — `minimal_alphabet`
-- [I.T10a] Tetration Algebraic Degradation — `tetration_algebraic_degradation`
+- [I.T11] Minimal Alphabet Theorem — `minimal_alphabet`
+- [I.T11c] Tetration Algebraic Degradation — `tetration_algebraic_degradation`
 
 ## Mathematical Content
 

@@ -8,9 +8,9 @@ and Polynomial Refinement.
 
 ## Registry Cross-References
 
-- [III.D55] NP Witness as Canonical Address -- `WitnessAddress`, `witness_check`
-- [III.P22] CRT Witness Decomposition -- `crt_witness_check`
-- [III.P23] Polynomial Refinement -- `polynomial_refinement_check`
+- [III.D55] NP Witness as Canonical Address — `WitnessAddress`, `witness_check`
+- [III.P22] CRT Witness Decomposition — `crt_witness_check`
+- [III.P23] Polynomial Refinement — `polynomial_refinement_check`
 
 ## Mathematical Content
 

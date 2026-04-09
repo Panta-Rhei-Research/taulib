@@ -7,7 +7,7 @@ E1 Enrichment Layer: the self-describing layer of the primorial tower.
 
 ## Registry Cross-References
 
-- [II.D57] E1 Enrichment Layer -- `E1Layer`, `compute_e1_layer`, `e1_layer_check`
+- [II.D57] E1 Enrichment Layer — `E1Layer`, `compute_e1_layer`, `e1_layer_check`
 
 ## Mathematical Content
 

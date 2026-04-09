@@ -7,8 +7,8 @@ Primorial ladder as inverse system and primorial cofinality theorem.
 
 ## Registry Cross-References
 
-- [III.D19] Primorial Ladder -- `PrimorialStage`, `primorial_ladder_check`
-- [III.T09] Primorial Cofinality -- `cofinal_level`, `primorial_cofinal_check`
+- [III.D19] Primorial Ladder — `PrimorialStage`, `primorial_ladder_check`
+- [III.T09] Primorial Cofinality — `cofinal_level`, `primorial_cofinal_check`
 
 ## Mathematical Content
 

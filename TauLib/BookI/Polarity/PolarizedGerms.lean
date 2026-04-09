@@ -2,7 +2,7 @@ import TauLib.BookI.Polarity.OmegaGerms
 import TauLib.BookI.Polarity.Polarity
 
 /-!
-# TauLib.Polarity.PolarizedGerms
+# TauLib.BookI.Polarity.PolarizedGerms
 
 Polarized omega-germs: B-polarized, C-polarized, and the crossing-point germ.
 

@@ -8,10 +8,10 @@ and tau-exterior derivative.
 
 ## Registry Cross-References
 
-- [II.D62] tau-Manifold -- `TauManifoldData`, `tau_manifold_check`
-- [II.D63] tau-Analytic Atlas -- `atlas_chart_check`, `atlas_transition_check`
-- [II.D64] tau-Exterior Derivative -- `tau_exterior_derivative`, `d_squared_zero_check`
-- [II.P15] tau^3 Is a tau-Manifold -- `tau3_is_manifold_check`
+- [II.D62] tau-Manifold — `TauManifoldData`, `tau_manifold_check`
+- [II.D63] tau-Analytic Atlas — `atlas_chart_check`, `atlas_transition_check`
+- [II.D64] tau-Exterior Derivative — `tau_exterior_derivative`, `d_squared_zero_check`
+- [II.P15] tau^3 Is a tau-Manifold — `tau3_is_manifold_check`
 
 ## Mathematical Content
 

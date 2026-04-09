@@ -10,14 +10,14 @@ No manifold ⇒ no singularity; same τ-Einstein at all depths.
 ## Registry Cross-References
 
 - [V.R209] No manifold ⇒ no singularity -- structural remark
-- [V.D152] Temporal Opening -- `TemporalOpening`
+- [V.D152] Temporal Opening — `TemporalOpening`
 - [V.R210] Planck Epoch Reinterpretation -- structural remark
-- [V.D153] Pre-Hadronic Regime -- `PreHadronicRegime`
-- [V.D154] Regime Boundary Character -- `RegimeBoundaryCharacter`
-- [V.P90]  Same-Equation Proposition -- `same_equation`
-- [V.T103] No-Singularity Theorem -- `no_singularity_theorem`
+- [V.D153] Pre-Hadronic Regime — `PreHadronicRegime`
+- [V.D154] Regime Boundary Character — `RegimeBoundaryCharacter`
+- [V.P90]  Same-Equation Proposition — `same_equation`
+- [V.T103] No-Singularity Theorem — `no_singularity_theorem`
 - [V.R211] Penrose-Hawking theorems are not wrong -- structural remark
-- [V.T104] Big Bang = Opening Regime -- `big_bang_opening_regime`
+- [V.T104] Big Bang = Opening Regime — `big_bang_opening_regime`
 - [V.R212] No "hot" or "cold" -- structural remark
 - [V.R213] Falsifiability -- structural remark
 

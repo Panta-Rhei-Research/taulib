@@ -7,9 +7,9 @@ Sector Preservation Theorem, 4+1 Sector Decomposition, and ω-Coupling Sector.
 
 ## Registry Cross-References
 
-- [III.T05] Sector Preservation Theorem -- `sector_preservation_check`
-- [III.D13] 4+1 Sector Decomposition -- `Sector`, `sector_of`, `sector_decomposition_check`
-- [III.D14] ω-Coupling Sector -- `omega_coupling_check`
+- [III.T05] Sector Preservation Theorem — `sector_preservation_check`
+- [III.D13] 4+1 Sector Decomposition — `Sector`, `sector_of`, `sector_decomposition_check`
+- [III.D14] ω-Coupling Sector — `omega_coupling_check`
 
 ## Mathematical Content
 

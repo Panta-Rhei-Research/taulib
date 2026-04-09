@@ -8,8 +8,8 @@ extensions are omega-germ transformers.
 
 ## Registry Cross-References
 
-- [II.L13] Stagewise Naturality -- `stagewise_naturality_check`
-- [II.T38] Extensions Are Omega-Germ Transformers -- `omega_germ_transformer_check`, `extension_germ_roundtrip_check`
+- [II.L13] Stagewise Naturality — `stagewise_naturality_check`
+- [II.T38] Extensions Are Omega-Germ Transformers — `omega_germ_transformer_check`, `extension_germ_roundtrip_check`
 
 ## Mathematical Content
 

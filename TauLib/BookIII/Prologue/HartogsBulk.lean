@@ -7,8 +7,8 @@ Hartogs Bulk Projection and E₁ as Gluing Principle.
 
 ## Registry Cross-References
 
-- [III.D01] Hartogs Bulk Projection -- `HartogsBulk`, `hartogs_bulk_check`
-- [III.D03] E₁ as Gluing Principle -- `e1_gluing_check`
+- [III.D01] Hartogs Bulk Projection — `HartogsBulk`, `hartogs_bulk_check`
+- [III.D03] E₁ as Gluing Principle — `e1_gluing_check`
 
 ## Mathematical Content
 

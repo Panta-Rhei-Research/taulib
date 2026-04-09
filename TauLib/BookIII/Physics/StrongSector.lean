@@ -7,9 +7,9 @@ Strong Sector at E₁, Gauge Data, and NF Discreteness.
 
 ## Registry Cross-References
 
-- [III.D43] Strong Sector at E₁ -- `strong_sector_check`
-- [III.D44] Gauge Data -- `GaugeData`, `gauge_data_check`
-- [III.P16] NF Discreteness -- `nf_discreteness_check`
+- [III.D43] Strong Sector at E₁ — `strong_sector_check`
+- [III.D44] Gauge Data — `GaugeData`, `gauge_data_check`
+- [III.P16] NF Discreteness — `nf_discreteness_check`
 
 ## Mathematical Content
 

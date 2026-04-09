@@ -7,12 +7,12 @@ The Canonical Ladder Theorem: the organising result of Book III.
 
 ## Registry Cross-References
 
-- [III.T01] Non-Emptiness Theorem -- `non_emptiness_check`, `non_emptiness_theorem`
-- [III.P01] E₁ Strictness Witness -- `e1_strictness_witness`
-- [III.T02] Strictness Theorem -- `strictness_check`, `strictness_theorem`
-- [III.P02] Functor Category Collapse -- `functor_collapse_check`
-- [III.T03] Saturation at E₃ -- `saturation_e3_check`, `saturation_e3_theorem`
-- [III.T04] Canonical Ladder Theorem -- `canonical_ladder_check`, `canonical_ladder_theorem`
+- [III.T01] Non-Emptiness Theorem — `non_emptiness_check`, `non_emptiness_theorem`
+- [III.P01] E₁ Strictness Witness — `e1_strictness_witness`
+- [III.T02] Strictness Theorem — `strictness_check`, `strictness_theorem`
+- [III.P02] Functor Category Collapse — `functor_collapse_check`
+- [III.T03] Saturation at E₃ — `saturation_e3_check`, `saturation_e3_theorem`
+- [III.T04] Canonical Ladder Theorem — `canonical_ladder_check`, `canonical_ladder_theorem`
 
 ## Mathematical Content
 

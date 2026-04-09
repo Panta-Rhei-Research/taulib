@@ -10,13 +10,13 @@ distinction.
 
 ## Registry Cross-References
 
-- [V.T159] The Hermetic Identity -- `HermeticIdentity`
-- [V.T160] Physics as Self-Description -- `PhysicsSelfDescription`
-- [V.T161] The Hermetic Closure -- `HermeticClosureThm`
-- [V.T162] The Hermetic Truth (Complete) -- `HermeticTruthComplete`
-- [V.P119] Generator Universality -- `GeneratorUniversality`
-- [V.P120] Structural Rigidity -- `StructuralRigidity`
-- [V.P121] Permanent Sector Distinction -- `PermanentSectorDistinction`
+- [V.T159] The Hermetic Identity — `HermeticIdentity`
+- [V.T160] Physics as Self-Description — `PhysicsSelfDescription`
+- [V.T161] The Hermetic Closure — `HermeticClosureThm`
+- [V.T162] The Hermetic Truth (Complete) — `HermeticTruthComplete`
+- [V.P119] Generator Universality — `GeneratorUniversality`
+- [V.P120] Structural Rigidity — `StructuralRigidity`
+- [V.P121] Permanent Sector Distinction — `PermanentSectorDistinction`
 
 ## Mathematical Content
 

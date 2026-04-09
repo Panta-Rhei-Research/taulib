@@ -7,10 +7,10 @@ Laurent expansion, residue, and meromorphic functions in the tau-setting.
 
 ## Registry Cross-References
 
-- [II.D42] Laurent Expansion -- `laurent_coeff`, `laurent_expansion_check`
-- [II.D43] Residue -- `tau_residue`, `residue_determines_check`
-- [II.D44] Meromorphic Function -- `MeromorphicFun`, `meromorphic_check`
-- [II.T30] Residue Theorem -- `residue_reconstruction_check`, `crt_residue_thm`
+- [II.D42] Laurent Expansion — `laurent_coeff`, `laurent_expansion_check`
+- [II.D43] Residue — `tau_residue`, `residue_determines_check`
+- [II.D44] Meromorphic Function — `MeromorphicFun`, `meromorphic_check`
+- [II.T30] Residue Theorem — `residue_reconstruction_check`, `crt_residue_thm`
 
 ## Mathematical Content
 

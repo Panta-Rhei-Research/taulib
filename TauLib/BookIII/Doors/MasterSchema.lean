@@ -8,7 +8,7 @@ Mutual Determination at varying enrichment levels.
 
 ## Registry Cross-References
 
-- [III.T23] Master Schema Theorem -- `MasterSchemaEntry`, `master_schema_check`
+- [III.T23] Master Schema Theorem — `MasterSchemaEntry`, `master_schema_check`
 
 ## Mathematical Content
 

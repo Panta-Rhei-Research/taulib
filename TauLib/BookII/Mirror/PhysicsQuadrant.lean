@@ -10,10 +10,10 @@ quadrant.
 
 ## Registry Cross-References
 
-- [II.D73] Physics Quadrant Matrix -- `PDEAxis`, `MetricAxis`, `PhysicsQuadrant`
-- [II.D74] Unification Obstruction -- `same_archimedean_column`, `compatible_pde`,
+- [II.D73] Physics Quadrant Matrix — `PDEAxis`, `MetricAxis`, `PhysicsQuadrant`
+- [II.D74] Unification Obstruction — `same_archimedean_column`, `compatible_pde`,
   `unification_obstructed`
-- [II.T46] Fourth Quadrant Resolution -- `tau_is_non_archimedean`,
+- [II.T46] Fourth Quadrant Resolution — `tau_is_non_archimedean`,
   `tau_is_hyperbolic`, `tau_escapes_obstruction`
 
 ## Mathematical Content

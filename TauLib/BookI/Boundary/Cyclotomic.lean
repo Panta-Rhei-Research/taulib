@@ -4,7 +4,7 @@ import Mathlib.Tactic.Ring
 import Mathlib.Tactic.NormNum
 
 /-!
-# TauLib.Boundary.Cyclotomic
+# TauLib.BookI.Boundary.Cyclotomic
 
 Cyclotomic fields and roots of unity, connecting to the CRT decomposition.
 

@@ -7,8 +7,8 @@ Applied Saturation, Terminal Level Characterization, and Tower Closure.
 
 ## Registry Cross-References
 
-- [III.T49] Applied Saturation -- `applied_saturation_check`
-- [III.P31] Terminal Level Characterization -- `terminal_level_check`
+- [III.T49] Applied Saturation — `applied_saturation_check`
+- [III.P31] Terminal Level Characterization — `terminal_level_check`
 
 ## Mathematical Content
 

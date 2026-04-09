@@ -2,7 +2,7 @@ import TauLib.BookI.Holomorphy.DiagonalProtection
 import TauLib.BookI.Holomorphy.IdentityTheorem
 
 /-!
-# TauLib.Topos.EarnedArrows
+# TauLib.BookI.Topos.EarnedArrows
 
 The earned category Cat_τ: objects are τ-indices, morphisms are τ-arrows.
 

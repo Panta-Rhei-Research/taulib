@@ -7,8 +7,8 @@ Boundary character space on L = S¹ ∨ S¹ and the boundary-to-interior functor
 
 ## Registry Cross-References
 
-- [III.D11] Boundary Character Space -- `BoundaryCharacter`, `boundary_char_check`
-- [III.D12] Boundary-to-Interior Functor -- `boundary_to_interior`, `bti_functor_check`
+- [III.D11] Boundary Character Space — `BoundaryCharacter`, `boundary_char_check`
+- [III.D12] Boundary-to-Interior Functor — `boundary_to_interior`, `bti_functor_check`
 
 ## Mathematical Content
 

@@ -2,7 +2,7 @@ import TauLib.BookI.Orbit.Closure
 import TauLib.BookI.Kernel.Diagonal
 
 /-!
-# TauLib.Orbit.Ladder
+# TauLib.BookI.Orbit.Ladder
 
 The iterator ladder: 4 levels of meta-iteration, and saturation at tetration.
 

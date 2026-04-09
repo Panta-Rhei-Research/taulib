@@ -7,9 +7,9 @@ Complete Dependency Chain from K0 through E3+: the 14-link backbone.
 
 ## Registry Cross-References
 
-- [III.D66] Complete Dependency Chain -- `dependency_chain_check`
-- [III.P29] Chain Linearity -- `chain_linearity_check`
-- [III.P30] Terminal Completeness -- `terminal_completeness_check`
+- [III.D66] Complete Dependency Chain — `dependency_chain_check`
+- [III.P29] Chain Linearity — `chain_linearity_check`
+- [III.P30] Terminal Completeness — `terminal_completeness_check`
 
 ## Mathematical Content
 

@@ -2,14 +2,14 @@ import TauLib.BookI.Orbit.Rigidity
 import TauLib.BookI.Orbit.Ladder
 
 /-!
-# TauLib.Orbit.TooMany
+# TauLib.BookI.Orbit.TooMany
 
 Counter-model: a 6-generator tau-like system admits a non-trivial
 ρ-automorphism, breaking rigidity.
 
 ## Registry Cross-References
 
-- [I.T09a] Six-Generator Rigidity Failure — `six_gen_rigidity_fails`
+- [I.T11a] Six-Generator Rigidity Failure — `six_gen_rigidity_fails`
 
 ## Mathematical Content
 

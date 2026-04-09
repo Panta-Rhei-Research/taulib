@@ -7,8 +7,8 @@ The enrichment functor F_E and the ladder checker.
 
 ## Registry Cross-References
 
-- [III.D04] Enrichment Functor -- `enrichment_functor_check`, `enrichment_functor_faithful`
-- [III.D10] Ladder Checker -- `ladder_checker`
+- [III.D04] Enrichment Functor — `enrichment_functor_check`, `enrichment_functor_faithful`
+- [III.D10] Ladder Checker — `ladder_checker`
 
 ## Mathematical Content
 

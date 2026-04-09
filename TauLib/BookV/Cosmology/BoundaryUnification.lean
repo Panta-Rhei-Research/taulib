@@ -10,11 +10,11 @@ Cross-coupling as naturality. ι_τ mediates all ten couplings.
 ## Registry Cross-References
 
 - [V.R244] The lesson: do not add, recognize -- structural remark
-- [V.T120] Boundary Completeness -- `boundary_completeness`
+- [V.T120] Boundary Completeness — `boundary_completeness`
 - [V.R245] Comparison with orthodox unification -- structural remark
-- [V.P103] Cross-coupling as Naturality -- `cross_coupling_naturality`
+- [V.P103] Cross-coupling as Naturality — `cross_coupling_naturality`
 - [V.R246] Naturality replaces gauge invariance -- structural remark
-- [V.P104] ι_τ mediates all ten couplings -- `iota_mediates_all`
+- [V.P104] ι_τ mediates all ten couplings — `iota_mediates_all`
 - [V.R247] Scope note: implementation roadmap -- structural remark
 
 ## Mathematical Content

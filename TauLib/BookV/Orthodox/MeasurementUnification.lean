@@ -9,10 +9,10 @@ recovery. Decoherence as address-resolution shadow.
 
 ## Registry Cross-References
 
-- [V.D189] VM Representation of a Quantum State -- `VMQuantumState`
-- [V.T134] Measurement Problem Dissolution -- `measurement_dissolution`
-- [V.T135] Bell Inequality in tau -- `bell_inequality_tau`
-- [V.P107] Decoherence as Address-Resolution Shadow -- `decoherence_shadow`
+- [V.D189] VM Representation of a Quantum State — `VMQuantumState`
+- [V.T134] Measurement Problem Dissolution — `measurement_dissolution`
+- [V.T135] Bell Inequality in tau — `bell_inequality_tau`
+- [V.P107] Decoherence as Address-Resolution Shadow — `decoherence_shadow`
 - [V.R288] Superposition in the VM -- comment-only
 - [V.R289] Entanglement as Address Sharing -- comment-only
 - [V.R290] The Century of Confusion -- comment-only

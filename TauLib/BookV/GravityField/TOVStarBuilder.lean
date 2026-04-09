@@ -8,21 +8,21 @@ hydrostatic equilibrium, neutron nodes, Chandrasekhar threshold.
 
 ## Registry Cross-References
 
-- [V.D66] Spherical Carrier Predicate -- `SphericalCarrier`
-- [V.D67] Equilibrium Carrier -- `EquilibriumCarrier`
-- [V.D68] GR Tension Functional -- `GRTensionFunctional`
-- [V.D69] Tension Profile -- `TensionProfile`
-- [V.D70] Star Builder -- `StarBuilder`
-- [V.D71] Neutron Node -- `NeutronNode`
-- [V.D72] Node Density -- `NodeDensity`
-- [V.D73] EW Stability Condition -- `EWStability`
-- [V.D74] Chandrasekhar Threshold -- `ChandrasekharThreshold`
-- [V.T42] Star Builder Existence -- `star_builder_coherent`
-- [V.T43] EW Stability of Interior Nodes -- `interior_ew_stable`
-- [V.T44] Chandrasekhar Threshold Existence -- `chandrasekhar_positive`
-- [V.P19] Tension Bound -- `tension_bounded`
-- [V.P20] TOV Balance Equation -- `tov_balance`
-- [V.P21] Truncation Coherence -- `truncation_coherent`
+- [V.D66] Spherical Carrier Predicate — `SphericalCarrier`
+- [V.D67] Equilibrium Carrier — `EquilibriumCarrier`
+- [V.D68] GR Tension Functional — `GRTensionFunctional`
+- [V.D69] Tension Profile — `TensionProfile`
+- [V.D70] Star Builder — `StarBuilder`
+- [V.D71] Neutron Node — `NeutronNode`
+- [V.D72] Node Density — `NodeDensity`
+- [V.D73] EW Stability Condition — `EWStability`
+- [V.D74] Chandrasekhar Threshold — `ChandrasekharThreshold`
+- [V.T42] Star Builder Existence — `star_builder_coherent`
+- [V.T43] EW Stability of Interior Nodes — `interior_ew_stable`
+- [V.T44] Chandrasekhar Threshold Existence — `chandrasekhar_positive`
+- [V.P19] Tension Bound — `tension_bounded`
+- [V.P20] TOV Balance Equation — `tov_balance`
+- [V.P21] Truncation Coherence — `truncation_coherent`
 - [V.R89] Non-Staticity -- structural remark
 - [V.R90] Constructive Existence -- structural remark
 - [V.R91] Algebraic Identity -- structural remark

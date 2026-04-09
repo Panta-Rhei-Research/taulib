@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.PrimeEnumeration
 
 /-!
-# TauLib.Coordinates.ChebyshevBias
+# TauLib.BookI.Coordinates.ChebyshevBias
 
 Chebyshev bias (prime races) on the primorial tower: primes in
 arithmetic progressions, race tracking, and bias quantification.

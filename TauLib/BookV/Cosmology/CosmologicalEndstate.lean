@@ -9,13 +9,13 @@ circulate continuously on L. Late-stage conditions favor complexity.
 
 ## Registry Cross-References
 
-- [V.P102] Defect entropy converges to zero -- `defect_entropy_converges`
-- [V.D181] BH-Dominated Epoch -- `BHDominatedEpoch`
-- [V.D182] Coherence Horizon -- `CoherenceHorizonCosmo`
+- [V.P102] Defect entropy converges to zero — `defect_entropy_converges`
+- [V.D181] BH-Dominated Epoch — `BHDominatedEpoch`
+- [V.D182] Coherence Horizon — `CoherenceHorizonCosmo`
 - [V.R238] Not a Big Crunch -- structural remark
-- [V.D183] Generative and Refinement Phases -- `CosmicPhase`
+- [V.D183] Generative and Refinement Phases — `CosmicPhase`
 - [V.R239] Generative does not mean explosive -- structural remark
-- [V.T119] Eternal Circulation Theorem -- `eternal_circulation_theorem`
+- [V.T119] Eternal Circulation Theorem — `eternal_circulation_theorem`
 - [V.R240] Late-stage conditions favor complexity -- structural remark
 - [V.R241] Not the anthropic principle -- structural remark
 - [V.R242] The key difference: no infinity -- structural remark

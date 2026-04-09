@@ -9,25 +9,25 @@ Profinite ergodicity. Preparation for the E1 -> E2 enrichment.
 
 ## Registry Cross-References
 
-- [V.D190] Book V to Book VI Export Contract -- `ExportContractVI`
-- [V.D191] Book V to Book VII Export Contract -- `ExportContractVII`
-- [V.T143] The Hermetic Truth -- `hermetic_truth`
-- [V.T144] Profinite Ergodicity -- `profinite_ergodicity`
-- [V.P108] Rationality Requirement -- `rationality_requirement`
-- [V.P109] EW Bridge Necessity -- `ew_bridge_necessity`
+- [V.D190] Book V to Book VI Export Contract — `ExportContractVI`
+- [V.D191] Book V to Book VII Export Contract — `ExportContractVII`
+- [V.T143] The Hermetic Truth — `hermetic_truth`
+- [V.T144] Profinite Ergodicity — `profinite_ergodicity`
+- [V.P108] Rationality Requirement — `rationality_requirement`
+- [V.P109] EW Bridge Necessity — `ew_bridge_necessity`
 - [V.R309] The Asymmetry of the Two Contracts -- comment-only
 - [V.R310] Minimal Interface Principle -- comment-only
-- [V.R311] Why Three, Not More? -- `why_three`
-- [V.R312] Connection to P vs NP -- `connection_p_np`
-- [V.R313] The Life Window is Narrow -- `life_window_narrow`
+- [V.R311] Why Three, Not More? — `why_three`
+- [V.R312] Connection to P vs NP — `connection_p_np`
+- [V.R313] The Life Window is Narrow — `life_window_narrow`
 - [V.R314] The BH-Life Hypothesis -- comment-only
-- [V.R315] The Sector Exhaustion Theorem as Support -- `sector_exhaustion_support`
+- [V.R315] The Sector Exhaustion Theorem as Support — `sector_exhaustion_support`
 - [V.R316] Why iota_tau is Not a Free Parameter -- comment-only
 - [V.R317] The Asymmetry of the Ladder -- comment-only
 - [V.R318] What "as above, so below" does NOT mean -- comment-only
 - [V.R319] Ergodicity without Probability -- comment-only
 - [V.R320] Two Circles, One Crossing -- comment-only
-- [V.R321] The Pre-Socratics and Category tau -- `pre_socratics`
+- [V.R321] The Pre-Socratics and Category tau — `pre_socratics`
 
 ## Mathematical Content
 

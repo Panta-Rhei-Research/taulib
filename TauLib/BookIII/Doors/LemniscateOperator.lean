@@ -7,9 +7,9 @@ Lemniscate Operator H_L, Self-Adjointness, and Discrete Spectrum.
 
 ## Registry Cross-References
 
-- [III.D28] Lemniscate Operator H_L -- `lemniscate_eigenvalue`, `kirchhoff_check`
-- [III.T17] Self-Adjointness of H_L -- `self_adjoint_check`
-- [III.P09] Discrete Spectrum of H_L -- `discrete_spectrum_check`
+- [III.D28] Lemniscate Operator H_L — `lemniscate_eigenvalue`, `kirchhoff_check`
+- [III.T17] Self-Adjointness of H_L — `self_adjoint_check`
+- [III.P09] Discrete Spectrum of H_L — `discrete_spectrum_check`
 
 ## Mathematical Content
 

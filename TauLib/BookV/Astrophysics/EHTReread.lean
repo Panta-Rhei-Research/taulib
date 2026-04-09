@@ -9,14 +9,14 @@ event horizon. Shadow predictions and the distinction between the
 
 ## Registry Cross-References
 
-- [V.D137] Tau Horizon Definition -- `TauHorizonDef`
-- [V.T95] Shadow Size Prediction -- `shadow_size_prediction`
-- [V.P82] Photon Ring from Holonomy -- `photon_ring_holonomy`
-- [V.D138] EHT Observable Data -- `EHTObservableData`
-- [V.P83] Shadow Circularity from Torus Symmetry -- `shadow_circularity`
+- [V.D137] Tau Horizon Definition — `TauHorizonDef`
+- [V.T95] Shadow Size Prediction — `shadow_size_prediction`
+- [V.P82] Photon Ring from Holonomy — `photon_ring_holonomy`
+- [V.D138] EHT Observable Data — `EHTObservableData`
+- [V.P83] Shadow Circularity from Torus Symmetry — `shadow_circularity`
 - [V.R196] M87* Shadow Consistent -- structural remark
-- [V.D139] Tau vs GR Horizon Comparison -- `HorizonComparison`
-- [V.T96] No Information Loss at Tau Horizon -- `no_information_loss`
+- [V.D139] Tau vs GR Horizon Comparison — `HorizonComparison`
+- [V.T96] No Information Loss at Tau Horizon — `no_information_loss`
 - [V.R197] Firewall Paradox Dissolved -- structural remark
 - [V.R198] Sgr A* as Milky Way Test -- structural remark
 - [V.R199] Future EHT Precision Tests -- structural remark

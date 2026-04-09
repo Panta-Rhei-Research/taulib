@@ -4,7 +4,7 @@ import Mathlib.Tactic.LinearCombination
 import Mathlib.Tactic.NormNum
 
 /-!
-# TauLib.Boundary.NumberTower
+# TauLib.BookI.Boundary.NumberTower
 
 The τ number tower: TauInt (formal differences) and TauRat (formal fractions).
 

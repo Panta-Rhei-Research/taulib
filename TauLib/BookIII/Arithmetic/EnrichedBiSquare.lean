@@ -8,9 +8,9 @@ and Enriched Bi-Square Comparison.
 
 ## Registry Cross-References
 
-- [III.D65] Enriched Bi-Square at E₁⁺ -- `enriched_bisquare_check`
-- [III.T38] Finite Factorization Pasting -- `finite_factorization_check`
-- [III.T39] Enriched Bi-Square Comparison -- `bisquare_comparison_check`
+- [III.D65] Enriched Bi-Square at E₁⁺ — `enriched_bisquare_check`
+- [III.T38] Finite Factorization Pasting — `finite_factorization_check`
+- [III.T39] Enriched Bi-Square Comparison — `bisquare_comparison_check`
 
 ## Mathematical Content
 

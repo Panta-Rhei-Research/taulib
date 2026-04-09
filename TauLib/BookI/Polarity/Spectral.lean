@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.Hyperfact
 
 /-!
-# TauLib.Polarity.Spectral
+# TauLib.BookI.Polarity.Spectral
 
 Spectral signatures and growth-rate separation.
 

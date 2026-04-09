@@ -10,17 +10,17 @@ are readouts of τ-boundary data.
 
 ## Registry Cross-References
 
-- [V.D120] Galactic Defect Bundle -- `GalacticDefectBundle`
+- [V.D120] Galactic Defect Bundle — `GalacticDefectBundle`
 - [V.R169] No Dark Matter Particle -- structural remark
-- [V.P63] Galaxy Morphology from Boundary Topology -- `morphology_from_topology`
-- [V.P64] Spiral Arms from Defect Density Waves -- `spiral_arms_density_waves`
+- [V.P63] Galaxy Morphology from Boundary Topology — `morphology_from_topology`
+- [V.P64] Spiral Arms from Defect Density Waves — `spiral_arms_density_waves`
 - [V.R170] Ellipticals as Relaxed Bundles -- structural remark
-- [V.D121] Galactic Rotation Profile -- `GalacticRotationProfile`
-- [V.P65] Tully-Fisher from D-Sector Scaling -- `tully_fisher_scaling`
+- [V.D121] Galactic Rotation Profile — `GalacticRotationProfile`
+- [V.P65] Tully-Fisher from D-Sector Scaling — `tully_fisher_scaling`
 - [V.R171] Baryonic Tully-Fisher Preferred -- structural remark
-- [V.D122] Galaxy Cluster Data -- `GalaxyClusterData`
+- [V.D122] Galaxy Cluster Data — `GalaxyClusterData`
 - [V.R172] Cluster as Multi-Bundle System -- structural remark
-- [V.P66] Virial Discrepancy from Boundary Corrections -- `virial_discrepancy`
+- [V.P66] Virial Discrepancy from Boundary Corrections — `virial_discrepancy`
 - [V.R173] Dark Matter as Missing Readout Correction -- structural remark
 
 ## Mathematical Content

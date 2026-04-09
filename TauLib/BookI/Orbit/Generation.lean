@@ -1,7 +1,7 @@
 import TauLib.BookI.Kernel.Axioms
 
 /-!
-# TauLib.Orbit.Generation
+# TauLib.BookI.Orbit.Generation
 
 Orbit rays, iterated ρ, and the generative act.
 

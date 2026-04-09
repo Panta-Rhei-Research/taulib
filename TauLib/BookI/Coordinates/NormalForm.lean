@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.TowerAtoms
 
 /-!
-# TauLib.Coordinates.NormalForm
+# TauLib.BookI.Coordinates.NormalForm
 
 Normal form encoding and spine decomposition on τ-Idx.
 

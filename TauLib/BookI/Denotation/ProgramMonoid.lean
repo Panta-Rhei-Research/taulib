@@ -1,7 +1,7 @@
 import TauLib.BookI.Denotation.Arithmetic
 
 /-!
-# TauLib.Denotation.ProgramMonoid
+# TauLib.BookI.Denotation.ProgramMonoid
 
 The program monoid: instruction sequences, normal forms, and composition.
 

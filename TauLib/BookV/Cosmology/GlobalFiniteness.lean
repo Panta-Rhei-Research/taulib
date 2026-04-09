@@ -9,16 +9,16 @@ No actual infinity, no fractal cosmology, no turtles all the way down.
 
 ## Registry Cross-References
 
-- [V.D178] Topological Motif -- `TopologicalMotif`
-- [V.T116] Finite Motif Theorem -- `finite_motif_theorem`
+- [V.D178] Topological Motif — `TopologicalMotif`
+- [V.T116] Finite Motif Theorem — `finite_motif_theorem`
 - [V.R234] Contrast with fractal cosmologies -- structural remark
-- [V.D179] Saturation Radius -- `SaturationRadius`
-- [V.T117] Saturation Radius Theorem -- `saturation_radius_theorem`
+- [V.D179] Saturation Radius — `SaturationRadius`
+- [V.T117] Saturation Radius Theorem — `saturation_radius_theorem`
 - [V.R235] Saturation radius vs. observable universe -- structural remark
-- [V.D180] Absorbing Pattern -- `AbsorbingPattern`
-- [V.T118] Absorbing Pattern Theorem -- `absorbing_pattern_theorem`
+- [V.D180] Absorbing Pattern — `AbsorbingPattern`
+- [V.T118] Absorbing Pattern Theorem — `absorbing_pattern_theorem`
 - [V.R236] No infinite hierarchy -- structural remark
-- [V.C20]  Global Finiteness -- `global_finiteness`
+- [V.C20]  Global Finiteness — `global_finiteness`
 - [V.R237] What the chain does NOT prove -- structural remark
 
 ## Mathematical Content

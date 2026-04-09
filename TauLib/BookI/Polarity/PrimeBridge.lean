@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.Primes
 
 /-!
-# TauLib.Polarity.PrimeBridge
+# TauLib.BookI.Polarity.PrimeBridge
 
 Reflection lemma: `is_prime_bool p = true ↔ idx_prime p`.
 

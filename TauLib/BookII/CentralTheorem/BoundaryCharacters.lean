@@ -7,8 +7,8 @@ Idempotent-supported boundary characters and the character algebra ring structur
 
 ## Registry Cross-References
 
-- [II.D59] Idempotent-Supported Character -- `IdempotentCharacter`, `idemp_character_check`
-- [II.P14] Character Algebra Ring Structure -- `character_add_check`, `character_mul_check`
+- [II.D59] Idempotent-Supported Character — `IdempotentCharacter`, `idemp_character_check`
+- [II.P14] Character Algebra Ring Structure — `character_add_check`, `character_mul_check`
 
 ## Mathematical Content
 

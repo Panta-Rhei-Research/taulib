@@ -9,9 +9,9 @@ from the τ-framework with zero free parameters.
 
 ## Registry Cross-References
 
-- [V.D334] 21cm Brightness Temperature -- `BrightnessTemp21cm`
-- [V.D335] Spin Temperature Coupling Regimes -- `SpinTempCoupling`
-- [V.T271] 21cm Absorption Trough from τ-Native Inputs -- `absorption_trough_21cm`
+- [V.D334] 21cm Brightness Temperature — `BrightnessTemp21cm`
+- [V.D335] Spin Temperature Coupling Regimes — `SpinTempCoupling`
+- [V.T271] 21cm Absorption Trough from τ-Native Inputs — `absorption_trough_21cm`
 - [V.P189] EDGES/HERA/SKA Predictions -- structural
 - [V.R470] V.OP9 Status: PARTIAL-IMPROVED -- structural remark
 

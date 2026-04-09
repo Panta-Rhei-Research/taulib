@@ -10,24 +10,24 @@ via T² fiber suppression, and complete BBN abundance table.
 
 ## Registry Cross-References
 
-- [V.D301] Deuterium Bottleneck Temperature -- `DeuteriumBottleneck`
-- [V.D302] BBN Network Light Elements -- `BBNNetwork`
-- [V.D303] BBN Reaction Chain -- `BBNReaction`, `bbn_reactions`
-- [V.D304] Sector Assignment -- `BBNSector`, `reaction_sector`
-- [V.D305] T² Fiber Holonomy Correction -- `FiberHolonomyCorrection`
-- [V.D306] ⁷Be Suppression Factor -- `Be7SuppressionFactor`
-- [V.D307] Complete BBN Table -- `CompleteBBNTable`
-- [V.T241] D/H from τ-native η_B -- `DeuteriumPrediction`
-- [V.T242] Sector Distribution {1,4,7} -- `sector_distribution_sum`
-- [V.T243] Suppression = 1/3 -- `suppression_is_one_third`
-- [V.T244] Li-7 Resolution -- `LithiumResolution`
-- [V.T245] Y_p Preservation -- `yp_preserved`
-- [V.T246] D/H Preservation -- `dh_preserved`
-- [V.T247] He-3/H from τ-native η_B -- `He3Prediction`
-- [V.P166] D/H Observational Consistency -- `dh_in_range`
-- [V.P167] Spite Plateau Consistency -- `spite_plateau_consistent`
-- [V.P168] Selectivity: Only A ≥ 7 -- `selectivity_threshold`
-- [V.P169] BBN Table Consistency -- `bbn_table_all_within_range`
+- [V.D301] Deuterium Bottleneck Temperature — `DeuteriumBottleneck`
+- [V.D302] BBN Network Light Elements — `BBNNetwork`
+- [V.D303] BBN Reaction Chain — `BBNReaction`, `bbn_reactions`
+- [V.D304] Sector Assignment — `BBNSector`, `reaction_sector`
+- [V.D305] T² Fiber Holonomy Correction — `FiberHolonomyCorrection`
+- [V.D306] ⁷Be Suppression Factor — `Be7SuppressionFactor`
+- [V.D307] Complete BBN Table — `CompleteBBNTable`
+- [V.T241] D/H from τ-native η_B — `DeuteriumPrediction`
+- [V.T242] Sector Distribution {1,4,7} — `sector_distribution_sum`
+- [V.T243] Suppression = 1/3 — `suppression_is_one_third`
+- [V.T244] Li-7 Resolution — `LithiumResolution`
+- [V.T245] Y_p Preservation — `yp_preserved`
+- [V.T246] D/H Preservation — `dh_preserved`
+- [V.T247] He-3/H from τ-native η_B — `He3Prediction`
+- [V.P166] D/H Observational Consistency — `dh_in_range`
+- [V.P167] Spite Plateau Consistency — `spite_plateau_consistent`
+- [V.P168] Selectivity: Only A ≥ 7 — `selectivity_threshold`
+- [V.P169] BBN Table Consistency — `bbn_table_all_within_range`
 - [V.R427] D/H Anti-correlation -- comment
 - [V.R428] N3 Status Upgrade -- comment
 - [V.R429] ⁷Be Production as B-Sector -- comment

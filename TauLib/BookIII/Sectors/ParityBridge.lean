@@ -7,9 +7,9 @@ Parity Bridge Theorem, No Knobs Principle, and Coupling Ledger.
 
 ## Registry Cross-References
 
-- [III.T07] Parity Bridge Theorem -- `parity_bridge_check`
-- [III.T08] No Knobs Principle -- `no_knobs_check`
-- [III.D18] Coupling Ledger -- `CouplingEntry`, `coupling_ledger_check`
+- [III.T07] Parity Bridge Theorem — `parity_bridge_check`
+- [III.T08] No Knobs Principle — `no_knobs_check`
+- [III.D18] Coupling Ledger — `CouplingEntry`, `coupling_ledger_check`
 
 ## Mathematical Content
 

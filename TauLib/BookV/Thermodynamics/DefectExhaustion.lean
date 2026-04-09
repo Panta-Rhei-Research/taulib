@@ -8,22 +8,22 @@ budget finiteness. The arrow of time has an endpoint.
 
 ## Registry Cross-References
 
-- [V.P30] Finite Initial Defect Count -- `FiniteInitialDefectCount`
-- [V.D88] Global Defect Budget -- `GlobalDefectBudget`
-- [V.D89] Coherence Horizon (refined) -- `RefinedCoherenceHorizon`
-- [V.D90] Defect Half-Life -- `DefectHalfLife`
-- [V.T60] Finite Defect Budget -- `finite_defect_budget`
-- [V.T61] Global Defect Exhaustion -- `GlobalDefectExhaustionThm`
-- [V.T62] Master Exhaustion Inequality -- `master_exhaustion`
-- [V.L03] Integer Threshold Lemma -- `IntegerThreshold`
-- [V.C07] Finite Irreversibility -- `finite_irreversibility`
-- [V.P31] Vacuum Circulation is Periodic -- `VacuumCirculation`
-- [V.P32] No Poincare Recurrence Conflict -- `no_poincare_conflict`
-- [V.P33] The Arrow Has an Endpoint -- `arrow_has_endpoint`
-- [V.R123] Contrast with QFT -- `contrast_with_qft`
-- [V.R124] Orbit Steps are Not Years -- `OrbitStepsNotYears`
+- [V.P30] Finite Initial Defect Count — `FiniteInitialDefectCount`
+- [V.D88] Global Defect Budget — `GlobalDefectBudget`
+- [V.D89] Coherence Horizon (refined) — `RefinedCoherenceHorizon`
+- [V.D90] Defect Half-Life — `DefectHalfLife`
+- [V.T60] Finite Defect Budget — `finite_defect_budget`
+- [V.T61] Global Defect Exhaustion — `GlobalDefectExhaustionThm`
+- [V.T62] Master Exhaustion Inequality — `master_exhaustion`
+- [V.L03] Integer Threshold Lemma — `IntegerThreshold`
+- [V.C07] Finite Irreversibility — `finite_irreversibility`
+- [V.P31] Vacuum Circulation is Periodic — `VacuumCirculation`
+- [V.P32] No Poincare Recurrence Conflict — `no_poincare_conflict`
+- [V.P33] The Arrow Has an Endpoint — `arrow_has_endpoint`
+- [V.R123] Contrast with QFT — `contrast_with_qft`
+- [V.R124] Orbit Steps are Not Years — `OrbitStepsNotYears`
 - [V.R125] Contrast with Heat Death -- structural remark
-- [V.R126] Universal Half-Life -- `universal_half_life`
+- [V.R126] Universal Half-Life — `universal_half_life`
 - [V.R127] Time Continues; the Arrow Does Not -- structural remark
 
 ## Mathematical Content

@@ -3,7 +3,7 @@ import TauLib.BookI.Boundary.SplitComplex
 import Mathlib.Tactic.Ring
 
 /-!
-# TauLib.Holomorphy.DHolomorphic
+# TauLib.BookI.Holomorphy.DHolomorphic
 
 D-holomorphy on the split-complex algebra H_τ = Z[j], j² = +1.
 

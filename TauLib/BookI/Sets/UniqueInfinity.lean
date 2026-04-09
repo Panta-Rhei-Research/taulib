@@ -2,16 +2,16 @@ import TauLib.BookI.Sets.CantorRefutation
 import TauLib.BookI.Polarity.OmegaGerms
 
 /-!
-# TauLib.Sets.UniqueInfinity
+# TauLib.BookI.Sets.UniqueInfinity
 
 The Unique Infinity Object theorem: omega is the sole infinity, and
 omega-germs with their ultrametric structure replace the cardinality hierarchy.
 
 ## Registry Cross-References
 
-- [I.D76] Omega-Germ Approach -- `OmegaGermApproach`
-- [I.T36] Unique Infinity Object -- `unique_infinity`
-- [I.P37] Ultrametric Replaces Cardinality -- `ultrametric_replaces_card`
+- [I.D76] Omega-Germ Approach — `OmegaGermApproach`
+- [I.T36] Unique Infinity Object — `unique_infinity`
+- [I.P37] Ultrametric Replaces Cardinality — `ultrametric_replaces_card`
 
 ## Ground Truth Sources
 - Part IX "The Cantor Mirage": With the diagonal argument blocked,

@@ -1,7 +1,7 @@
 import TauLib.BookI.Denotation.ProgramMonoid
 
 /-!
-# TauLib.Denotation.Equality
+# TauLib.BookI.Denotation.Equality
 
 The three levels of equality in Category τ.
 

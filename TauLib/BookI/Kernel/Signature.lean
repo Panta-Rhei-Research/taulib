@@ -1,5 +1,5 @@
 /-!
-# TauLib.Kernel.Signature
+# TauLib.BookI.Kernel.Signature
 
 The foundational signature of Category τ: five generators in strict total order,
 and the sole primitive iterator ρ.

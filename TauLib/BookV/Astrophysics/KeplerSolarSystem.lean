@@ -9,20 +9,20 @@ resonances emerge from the D-sector coupling at refinement depth 1.
 
 ## Registry Cross-References
 
-- [V.D118] Kepler Orbit Data -- `KeplerOrbitData`
-- [V.T81] Kepler First Law Recovery -- `kepler_first_law`
-- [V.T82] Kepler Second Law Recovery -- `kepler_second_law`
-- [V.T83] Kepler Third Law Recovery -- `kepler_third_law`
+- [V.D118] Kepler Orbit Data — `KeplerOrbitData`
+- [V.T81] Kepler First Law Recovery — `kepler_first_law`
+- [V.T82] Kepler Second Law Recovery — `kepler_second_law`
+- [V.T83] Kepler Third Law Recovery — `kepler_third_law`
 - [V.R165] Perihelion Precession as Post-Newtonian -- structural remark
-- [V.T84] Tidal Force from Gradient Readout -- `tidal_force_gradient`
+- [V.T84] Tidal Force from Gradient Readout — `tidal_force_gradient`
 - [V.R166] Roche Limit as Defect Threshold -- structural remark
-- [V.P59] Orbital Stability from Defect Minimum -- `orbital_stability`
-- [V.P60] Resonance from Rational Readout -- `resonance_rational`
-- [V.P61] Solar System as Single Readout -- `solar_system_single_readout`
+- [V.P59] Orbital Stability from Defect Minimum — `orbital_stability`
+- [V.P60] Resonance from Rational Readout — `resonance_rational`
+- [V.P61] Solar System as Single Readout — `solar_system_single_readout`
 - [V.R167] Bode's Law as Approximate Readout -- structural remark
-- [V.D119] Tidal Force Structure -- `TidalForceStructure`
+- [V.D119] Tidal Force Structure — `TidalForceStructure`
 - [V.R168] Tidal Locking as Defect Equilibrium -- structural remark
-- [V.P62] Planetary Classification from Defect Budget -- `planetary_classification`
+- [V.P62] Planetary Classification from Defect Budget — `planetary_classification`
 
 ## Mathematical Content
 

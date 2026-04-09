@@ -1,7 +1,7 @@
 import TauLib.BookI.MetaLogic.StructuralExclusion
 
 /-!
-# TauLib.MetaLogic.DiagonalResonance
+# TauLib.BookI.MetaLogic.DiagonalResonance
 
 Diagonal resonance, identity slippage, and shadow identities.
 

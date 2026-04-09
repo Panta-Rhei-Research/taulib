@@ -1,7 +1,7 @@
 import TauLib.BookI.Kernel.Diagonal
 
 /-!
-# TauLib.MetaLogic.Substrate
+# TauLib.BookI.MetaLogic.Substrate
 
 The meta-logical substrate: CIC structural rules and their status in τ.
 

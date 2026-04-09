@@ -7,7 +7,7 @@ Enrichment Tower Assembly: E₀ ⊊ E₁ ⊊ E₂ assembled.
 
 ## Registry Cross-References
 
-- [III.T40] Enrichment Tower Assembly -- `tower_assembly_check`
+- [III.T40] Enrichment Tower Assembly — `tower_assembly_check`
 
 ## Mathematical Content
 

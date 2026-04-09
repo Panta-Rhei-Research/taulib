@@ -3,7 +3,7 @@ import TauLib.BookI.Kernel.Diagonal
 import Mathlib.Tactic.Ring
 
 /-!
-# TauLib.Holomorphy.DiagonalProtection
+# TauLib.BookI.Holomorphy.DiagonalProtection
 
 The Diagonal-Free Protection Theorem: zero-divisor pathologies cannot arise
 in τ-holomorphic functions.

@@ -1,7 +1,7 @@
 import TauLib.BookI.Coordinates.TowerAtoms
 
 /-!
-# TauLib.Coordinates.NoTie
+# TauLib.BookI.Coordinates.NoTie
 
 No-Tie Lemma: uniqueness of canonical (B,C) decomposition of a valuation.
 

@@ -1,14 +1,14 @@
 import TauLib.BookI.Orbit.Ladder
 
 /-!
-# TauLib.Orbit.TooFew
+# TauLib.BookI.Orbit.TooFew
 
 Counter-model: a 4-generator tau-like system cannot assign canonical
 channels to all 3 rewiring levels of the iterator ladder.
 
 ## Registry Cross-References
 
-- [I.T09b] Four-Generator Ladder Incompleteness — `four_gen_ladder_incomplete`
+- [I.T11b] Four-Generator Ladder Incompleteness — `four_gen_ladder_incomplete`
 
 ## Mathematical Content
 

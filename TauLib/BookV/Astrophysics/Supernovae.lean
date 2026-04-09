@@ -9,17 +9,17 @@ as distance indicators — all as τ-readouts.
 
 ## Registry Cross-References
 
-- [V.D126] Supernova Classification -- `SupernovaType`
-- [V.T89] Core Collapse as Topology Transition -- `core_collapse_topology`
+- [V.D126] Supernova Classification — `SupernovaType`
+- [V.T89] Core Collapse as Topology Transition — `core_collapse_topology`
 - [V.R181] Iron Core Threshold -- structural remark
-- [V.D127] Core Collapse Mechanism -- `CoreCollapseMechanism`
-- [V.P73] Neutrino Burst from Defect Release -- `neutrino_from_defect`
+- [V.D127] Core Collapse Mechanism — `CoreCollapseMechanism`
+- [V.P73] Neutrino Burst from Defect Release — `neutrino_from_defect`
 - [V.R182] SN 1987A Neutrinos Consistent -- structural remark
-- [V.P74] Type Ia as Chandrasekhar Crossing -- `type_ia_chandrasekhar`
-- [V.D128] Nucleosynthesis Products -- `NucleosynthesisProducts`
+- [V.P74] Type Ia as Chandrasekhar Crossing — `type_ia_chandrasekhar`
+- [V.D128] Nucleosynthesis Products — `NucleosynthesisProducts`
 - [V.R183] r-Process from Neutron Star Mergers -- structural remark
-- [V.P75] Standardizable Candle from Fixed Physics -- `standardizable_candle`
-- [V.P76] SN Rate from Star Formation History -- `sn_rate_sfh`
+- [V.P75] Standardizable Candle from Fixed Physics — `standardizable_candle`
+- [V.P76] SN Rate from Star Formation History — `sn_rate_sfh`
 - [V.R184] Supernova Remnants as Boundary Imprints -- structural remark
 
 ## Mathematical Content

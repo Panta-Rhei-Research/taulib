@@ -2,7 +2,7 @@ import TauLib.BookI.Holomorphy.BoundaryInterior
 import TauLib.BookI.Holomorphy.SpectralCoefficients
 
 /-!
-# TauLib.Holomorphy.PresheafEssence
+# TauLib.BookI.Holomorphy.PresheafEssence
 
 The presheaf essence of τ-holomorphy: the bi-square characterization.
 **The Book I crown jewel.**

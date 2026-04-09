@@ -1,17 +1,17 @@
 /-!
 # TauLib — Mechanized Formalization of Category τ
 
-A 125,000-line Lean 4 library formalizing Category τ — a categorical framework
+A 126,000-line Lean 4 library formalizing Category τ — a categorical framework
 built from 7 axioms (K0–K6) on 5 generators (α, π, γ, η, ω) with a single
 primitive iterator ρ. All mathematical structures are built from scratch;
 Mathlib is used for proof tactics only.
 
-Companion to the 7-book Panta Rhei series (https://panta-rhei-books.org)
+Companion to the 7-book Panta Rhei series (https://panta-rhei.site)
 by Thorsten Fuchs and Anna-Sophie Fuchs (2nd Edition, 2026).
 
 ## Book-Level Organization
 
-445 modules organized under seven book namespaces:
+450 modules organized under seven book namespaces:
 
 - **Book I** (Categorical Foundations): 94 files — Kernel, Orbit, Denotation,
   Coordinates, Polarity, Boundary, Sets, Logic, Holomorphy, Topos, MetaLogic, CF
@@ -24,7 +24,7 @@ by Thorsten Fuchs and Anna-Sophie Fuchs (2nd Edition, 2026).
 
 ## Key Metrics
 
-4,420 theorems · 3,570 definitions · 3,700 `#eval` computations
+4,332 theorems · 3,542 definitions · 3,721 `#eval` computations
 4 axioms (3 conjectural, 1 structural) · 3 sorry (Book VII only) · 0 sorry in Books I–VI
 -/
 

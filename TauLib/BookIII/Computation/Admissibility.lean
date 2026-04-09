@@ -8,10 +8,10 @@ and Earned Admissibility.
 
 ## Registry Cross-References
 
-- [III.D53] Interface Width -- `interface_width`, `interface_width_check`
-- [III.D54] τ-Admissibility (E₂) -- `tau_admissible_check`
-- [III.T31] Interface Width Principle -- `width_principle_check`
-- [III.P21] Earned Admissibility -- `earned_admissibility_check`
+- [III.D53] Interface Width — `interface_width`, `interface_width_check`
+- [III.D54] τ-Admissibility (E₂) — `tau_admissible_check`
+- [III.T31] Interface Width Principle — `width_principle_check`
+- [III.P21] Earned Admissibility — `earned_admissibility_check`
 
 ## Mathematical Content
 

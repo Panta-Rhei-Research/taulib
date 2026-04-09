@@ -1,7 +1,7 @@
 import TauLib.BookI.Kernel.Axioms
 
 /-!
-# TauLib.Kernel.ActionQuantum
+# TauLib.BookI.Kernel.ActionQuantum
 
 The action quantum ℏ_τ = 1/4 from generator counting, and the
 Euler sieve identity connecting 8/15 to (11/15)².

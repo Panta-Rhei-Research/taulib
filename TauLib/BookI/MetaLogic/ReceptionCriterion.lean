@@ -1,7 +1,7 @@
 import TauLib.BookI.MetaLogic.OnticInvariance
 
 /-!
-# TauLib.MetaLogic.ReceptionCriterion
+# TauLib.BookI.MetaLogic.ReceptionCriterion
 
 The Identity-Faithful Reception Criterion and Structural Instability Theorem.
 

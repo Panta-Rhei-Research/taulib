@@ -2,7 +2,7 @@ import TauLib.BookI.Denotation.RankTransfer
 import TauLib.BookI.Orbit.Rigidity
 
 /-!
-# TauLib.Denotation.SolenoidPitch
+# TauLib.BookI.Denotation.SolenoidPitch
 
 The solenoid pitch theorem: c_τ = dπ/dα = 1.
 

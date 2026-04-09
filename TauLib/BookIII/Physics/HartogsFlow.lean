@@ -7,9 +7,9 @@ Hartogs Flow Operator, Flow Theorem, and Polarity Swap.
 
 ## Registry Cross-References
 
-- [III.D40] Hartogs Flow Operator -- `hartogs_flow_step`, `flow_check`
-- [III.T24] Flow Theorem -- `flow_stabilization_check`
-- [III.D41] Polarity Swap -- `polarity_swap`, `polarity_swap_check`
+- [III.D40] Hartogs Flow Operator — `hartogs_flow_step`, `flow_check`
+- [III.T24] Flow Theorem — `flow_stabilization_check`
+- [III.D41] Polarity Swap — `polarity_swap`, `polarity_swap_check`
 
 ## Mathematical Content
 

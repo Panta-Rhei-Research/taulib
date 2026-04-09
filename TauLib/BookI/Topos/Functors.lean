@@ -2,7 +2,7 @@ import TauLib.BookI.Topos.EarnedArrows
 import TauLib.BookI.Polarity.ModArith
 
 /-!
-# TauLib.Topos.Functors
+# TauLib.BookI.Topos.Functors
 
 τ-functors, natural transformations, and the Yoneda embedding for Cat_τ.
 

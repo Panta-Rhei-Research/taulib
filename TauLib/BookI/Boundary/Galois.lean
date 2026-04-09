@@ -2,7 +2,7 @@ import TauLib.BookI.Boundary.Cyclotomic
 import TauLib.BookI.Polarity.ChineseRemainder
 
 /-!
-# TauLib.Boundary.Galois
+# TauLib.BookI.Boundary.Galois
 
 Internal Galois theory on the primorial tower.
 

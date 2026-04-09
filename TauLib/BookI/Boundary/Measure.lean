@@ -3,7 +3,7 @@ import TauLib.BookI.Polarity.Polarity
 import TauLib.BookI.Polarity.ModArith
 
 /-!
-# TauLib.Boundary.Measure
+# TauLib.BookI.Boundary.Measure
 
 Constructive measure theory on the primorial tower.
 

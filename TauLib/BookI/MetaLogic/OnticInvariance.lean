@@ -1,7 +1,7 @@
 import TauLib.BookI.MetaLogic.DiagonalResonance
 
 /-!
-# TauLib.MetaLogic.OnticInvariance
+# TauLib.BookI.MetaLogic.OnticInvariance
 
 Ontic Identity Invariance theorem, No Identity Decoherence corollary,
 and the Slippage Breaks Unique Omega theorem.

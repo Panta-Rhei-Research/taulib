@@ -1,7 +1,7 @@
 import TauLib.BookI.Polarity.BipolarAlgebra
 
 /-!
-# TauLib.Polarity.Lemniscate
+# TauLib.BookI.Polarity.Lemniscate
 
 The algebraic lemniscate: the pre-geometric boundary of Category τ.
 

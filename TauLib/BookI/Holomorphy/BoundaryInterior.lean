@@ -2,7 +2,7 @@ import TauLib.BookI.Holomorphy.GlobalHartogs
 import TauLib.BookI.Topos.InternalHom
 
 /-!
-# TauLib.Holomorphy.BoundaryInterior
+# TauLib.BookI.Holomorphy.BoundaryInterior
 
 The boundary-interior passage: boundary determines interior.
 

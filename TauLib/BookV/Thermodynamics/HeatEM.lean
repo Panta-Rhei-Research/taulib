@@ -9,17 +9,17 @@ of the boundary holonomy algebra. Geometric and topological relaxation.
 
 ## Registry Cross-References
 
-- [V.D91] EM Energy Transport -- `EMEnergyTransport`
-- [V.D92] Geometric Relaxation -- `GeometricRelaxation`
-- [V.D93] Topological Relaxation -- `TopologicalRelaxation`
-- [V.P34] Radiation is B-Sector Transport -- `radiation_is_b_sector`
-- [V.P35] Conduction is Near-Field B-Sector Transport -- `conduction_is_b_sector`
-- [V.P36] Convective Transport is B-Sector Displacement -- `convection_is_b_sector`
-- [V.P37] Hierarchy of Relaxation Times -- `relaxation_hierarchy`
-- [V.T63] Alpha Governs Macroscopic Energy Transport -- `alpha_governs_transport`
-- [V.T64] Heat is Electromagnetism -- `HeatIsEM`
-- [V.R128] The Artificial Trichotomy -- `artificial_trichotomy`
-- [V.R129] Why Alpha and Not iota_tau^2 -- `why_alpha_not_iota_sq`
+- [V.D91] EM Energy Transport — `EMEnergyTransport`
+- [V.D92] Geometric Relaxation — `GeometricRelaxation`
+- [V.D93] Topological Relaxation — `TopologicalRelaxation`
+- [V.P34] Radiation is B-Sector Transport — `radiation_is_b_sector`
+- [V.P35] Conduction is Near-Field B-Sector Transport — `conduction_is_b_sector`
+- [V.P36] Convective Transport is B-Sector Displacement — `convection_is_b_sector`
+- [V.P37] Hierarchy of Relaxation Times — `relaxation_hierarchy`
+- [V.T63] Alpha Governs Macroscopic Energy Transport — `alpha_governs_transport`
+- [V.T64] Heat is Electromagnetism — `HeatIsEM`
+- [V.R128] The Artificial Trichotomy — `artificial_trichotomy`
+- [V.R129] Why Alpha and Not iota_tau^2 — `why_alpha_not_iota_sq`
 
 ## Mathematical Content
 

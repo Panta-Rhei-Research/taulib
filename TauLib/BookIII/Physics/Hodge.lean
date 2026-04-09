@@ -8,12 +8,12 @@ Hodge Filtration, and Spectral-Hodge Compatibility.
 
 ## Registry Cross-References
 
-- [III.D47] σ-Fixed Characters -- `sigma_fixed_check`
-- [III.D48] Sector Addressability -- `sector_addressability_check`
-- [III.P18] Character-Sector Correspondence -- `char_sector_check`
-- [III.T28] NF-Addressability Theorem -- `nf_addressability_check`
-- [III.P19] Hodge Filtration -- `hodge_filtration_check`
-- [III.P20] Spectral-Hodge Compatibility -- `spectral_hodge_check`
+- [III.D47] σ-Fixed Characters — `sigma_fixed_check`
+- [III.D48] Sector Addressability — `sector_addressability_check`
+- [III.P18] Character-Sector Correspondence — `char_sector_check`
+- [III.T28] NF-Addressability Theorem — `nf_addressability_check`
+- [III.P19] Hodge Filtration — `hodge_filtration_check`
+- [III.P20] Spectral-Hodge Compatibility — `spectral_hodge_check`
 
 ## Mathematical Content
 

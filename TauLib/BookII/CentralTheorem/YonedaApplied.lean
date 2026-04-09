@@ -8,8 +8,8 @@ holomorphic functions, via the pre-Yoneda embedding and Code/Decode.
 
 ## Registry Cross-References
 
-- [II.L14] Yoneda Application -- `yoneda_application_check`, `yoneda_hom_identification_check`
-- [II.T39] Omega-Germs iff Holomorphic Functions -- `omega_germs_holomorphic_check`,
+- [II.L14] Yoneda Application — `yoneda_application_check`, `yoneda_hom_identification_check`
+- [II.T39] Omega-Germs iff Holomorphic Functions — `omega_germs_holomorphic_check`,
   `holomorphic_classification_check`, `full_yoneda_applied_check`
 
 ## Mathematical Content

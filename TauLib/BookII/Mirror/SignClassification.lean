@@ -8,9 +8,9 @@ infinity trade-off between orthodox and tau approaches.
 
 ## Registry Cross-References
 
-- [II.D68] Structural Sign Classification -- `SignLevel`, `orthodox_property`, `tau_property`
-- [II.D69] The Infinity Trade-Off -- `InfinityTradeOff`, `orthodox_path`, `tau_path`
-- [II.T43] Structural Incompatibility -- `orthodox_path_no_unique_omega`,
+- [II.D68] Structural Sign Classification — `SignLevel`, `orthodox_property`, `tau_property`
+- [II.D69] The Infinity Trade-Off — `InfinityTradeOff`, `orthodox_path`, `tau_path`
+- [II.T43] Structural Incompatibility — `orthodox_path_no_unique_omega`,
   `tau_path_no_archimedean`, `structural_incompatibility`
 
 ## Mathematical Content
