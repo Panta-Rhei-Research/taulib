@@ -44,11 +44,8 @@
   &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 4px; }
 
   @media (max-width: $bp-collapse) {
-    position: static;
-    order: 0; // above content — collapsed by default via <details>
-    max-height: none;
-    margin-top: 0;
-    padding: 0; // padding is inside the details/body
+    // Hidden on mobile/tablet — content moved to mega-menu drawer
+    display: none;
   }
 }
 
