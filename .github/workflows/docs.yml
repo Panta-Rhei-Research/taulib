@@ -97,10 +97,13 @@ jobs:
       - name: Filter to TauLib-only
         run: python3 scripts/filter_docs.py --doc-dir _site
 
-      - name: Apply theme and landing page
+      - name: Apply theme and shell
         run: |
           # CSS theme (always fresh since _site is a copy)
           cat scripts/taulib_theme.css >> _site/style.css
+
+          # Shell CSS (Panta Rhei chrome)
+          cp scripts/shell.css _site/shell.css
 
           # Self-hosted fonts (Manrope)
           if [ -d "scripts/fonts" ]; then
@@ -108,17 +111,11 @@ jobs:
             cp scripts/fonts/*.woff2 _site/fonts/
           fi
 
-          # Landing page
-          python3 -c "
-          import re
-          with open('_site/index.html') as f: html = f.read()
-          with open('scripts/landing_page.html') as f: content = f.read()
-          html = re.sub(r'(<main>).*?(</main>)',
-                        lambda m: m.group(1) + '\n' + content + '\n' + m.group(2),
-                        html, flags=re.DOTALL)
-          with open('_site/index.html', 'w') as f: f.write(html)
-          print('Landing page replaced')
-          "
+          # Apply Panta Rhei shell to all pages
+          python3 scripts/apply_shell.py \
+            --doc-dir _site \
+            --template scripts/shell_template.html \
+            --landing scripts/landing_page.html
 
       # ── Stats dashboard + dependency graph ──────────────────
       - name: Generate statistics dashboard

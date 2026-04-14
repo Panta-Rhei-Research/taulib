@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{TITLE}} — TauLib</title>
+  <meta name="description" content="TauLib — Lean 4 formalization layer of the Panta Rhei Research Program.">
+  <meta property="og:title" content="{{TITLE}} — TauLib">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TauLib — Panta Rhei Research Program">
+  <link rel="icon" type="image/svg+xml" href="{{ROOT}}assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@380;400;500;520;580;600;650;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ROOT}}style.css">
+  <link rel="stylesheet" href="{{ROOT}}shell.css">
+  {{HEAD_EXTRA}}
+</head>
+<body>
+
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="site-header">
+    <a href="{{ROOT}}" class="header-brand">
+      <span style="display:flex;flex-direction:column;gap:0;line-height:1.15;">
+        <span class="brand-title">TauLib</span>
+        <span class="brand-sub">Lean 4 formalization &middot; Panta Rhei Research</span>
+      </span>
+    </a>
+
+    <button class="header-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav" type="button">
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+    </button>
+
+    <nav class="header-nav" id="mobile-nav" aria-label="Main">
+      <a href="https://panta-rhei.site" class="header-nav-link">Panta Rhei</a>
+      <a href="https://github.com/Panta-Rhei-Framework/taulib" class="header-nav-link">GitHub</a>
+      <a href="https://panta-rhei.site/verify/taulib/" class="header-nav-link">Verify</a>
+    </nav>
+  </header>
+
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+  <div class="page-grid">
+    <aside class="left-rail" aria-label="Module navigation">
+      {{NAV_CONTENT}}
+    </aside>
+
+    <main class="main-content" id="main-content">
+      {{MAIN_CONTENT}}
+    </main>
+
+    <aside class="right-rail" aria-label="Page information">
+      <div class="rail-section-title">Page metadata</div>
+      <div class="meta-list">
+        <div class="meta-item"><span>Type</span><span class="meta-value">API Documentation</span></div>
+        <div class="meta-item"><span>Status</span><span class="meta-value">Canonical</span></div>
+        <div class="meta-item"><span>Updated</span><span class="meta-value">April 2026</span></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="site-footer-wrap">
+    <footer class="site-footer">
+      <div>
+        <div class="footer-title">TauLib &middot; Panta Rhei Research Program</div>
+        <div class="footer-desc">Lean 4 formalization layer &middot; verification surface &middot; open source</div>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="https://panta-rhei.site">Research Program</a>
+        <a href="https://panta-rhei.site/verify/taulib/">Documentation</a>
+        <a href="https://github.com/Panta-Rhei-Framework/taulib" target="_blank" rel="noopener">Repository</a>
+        <a href="{{ROOT}}stats.html">Statistics</a>
+        <a href="{{ROOT}}depgraph.html">Dependencies</a>
+        <a href="https://lean-lang.org">Lean</a>
+      </nav>
+    </footer>
+  </div>
+
+  <!-- Mobile hamburger menu -->
+  <script>
+    (function() {
+      var hamburger = document.querySelector('.header-hamburger');
+      var nav = document.getElementById('mobile-nav');
+      var backdrop = document.getElementById('drawer-backdrop');
+      if (!hamburger || !nav) return;
+
+      function toggle(open) {
+        var isOpen = typeof open === 'boolean' ? open : !nav.classList.contains('is-open');
+        nav.classList.toggle('is-open', isOpen);
+        backdrop.classList.toggle('is-active', isOpen);
+        hamburger.setAttribute('aria-expanded', String(isOpen));
+        hamburger.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+        document.body.classList.toggle('nav-open', isOpen);
+      }
+
+      hamburger.addEventListener('click', function() { toggle(); });
+      backdrop.addEventListener('click', function() { toggle(false); });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && nav.classList.contains('is-open')) toggle(false);
+      });
+
+      var mq = window.matchMedia('(min-width: 761px)');
+      mq.addEventListener('change', function(e) { if (e.matches) toggle(false); });
+    })();
+  </script>
+
+</body>
+</html>
