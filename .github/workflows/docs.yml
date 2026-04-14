@@ -97,7 +97,7 @@ jobs:
       - name: Filter to TauLib-only
         run: python3 scripts/filter_docs.py --doc-dir _site
 
-      - name: Apply theme and shell
+      - name: Apply theme and assets
         run: |
           # CSS theme (always fresh since _site is a copy)
           cat scripts/taulib_theme.css >> _site/style.css
@@ -110,12 +110,6 @@ jobs:
             mkdir -p _site/fonts
             cp scripts/fonts/*.woff2 _site/fonts/
           fi
-
-          # Apply Panta Rhei shell to all pages
-          python3 scripts/apply_shell.py \
-            --doc-dir _site \
-            --template scripts/shell_template.html \
-            --landing scripts/landing_page.html
 
       # ── Stats dashboard + dependency graph ──────────────────
       - name: Generate statistics dashboard
@@ -130,6 +124,14 @@ jobs:
           python3 scripts/generate_depgraph.py \
             --output _site/depgraph.html \
             --registry-dir registry
+
+      # ── Apply Panta Rhei shell (after all HTML is generated) ──
+      - name: Apply Panta Rhei shell
+        run: |
+          python3 scripts/apply_shell.py \
+            --doc-dir _site \
+            --template scripts/shell_template.html \
+            --landing scripts/landing_page.html
 
       # ── Report ──────────────────────────────────────────────
       - name: Build summary
