@@ -20,7 +20,7 @@ right_rail:
   <p>Browse the 450 Lean 4 modules organized by book and subject area.</p>
 </div>
 
-<div class="content-card">
+<div class="content-card" markdown="1">
 
 {% if site.data.nav_modules %}
 {% for book in site.data.nav_modules.books %}

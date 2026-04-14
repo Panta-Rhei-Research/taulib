@@ -25,7 +25,7 @@ right_rail:
   <p>Lean 4 formalization layer of the <a href="https://panta-rhei.site">Panta Rhei Research Program</a>.</p>
 </div>
 
-<div class="content-card">
+<div class="content-card" markdown="1">
 
 ## About TauLib
 
