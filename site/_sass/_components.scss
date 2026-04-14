@@ -1,0 +1,438 @@
+// ================================================================
+// Buttons
+// ================================================================
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 14px;
+  font-family: $font-ui;
+  font-size: 0.84rem;
+  font-weight: 580;
+  border-radius: $radius-pill;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all $transition;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.btn-primary {
+  @extend .btn;
+  background: $accent;
+  color: white;
+  box-shadow: 0 2px 8px rgba(41, 75, 102, 0.25);
+
+  &:hover {
+    background: darken($accent, 6%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(41, 75, 102, 0.3);
+  }
+}
+
+.btn-secondary {
+  @extend .btn;
+  background: rgba(255, 255, 255, 0.52);
+  color: $accent;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.72);
+  }
+}
+
+.btn-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+// ================================================================
+// Breadcrumbs
+// ================================================================
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 10px 20px;
+  margin-bottom: 0;
+  font-family: $font-ui;
+  font-size: 0.82rem;
+  color: $text-muted;
+
+  a {
+    color: $accent;
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+
+  .breadcrumb-sep {
+    color: rgba($text-muted, 0.5);
+    margin: 0 2px;
+  }
+
+  .breadcrumb-current {
+    color: $text;
+    font-weight: 500;
+  }
+}
+
+// ================================================================
+// Chapter Navigation (prev/next)
+// ================================================================
+
+.chapter-nav {
+  margin-top: 0;
+
+  .chapter-nav-inner {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+  }
+
+  .chapter-nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: $radius-sm;
+    transition: background $transition;
+    max-width: 48%;
+
+    &:hover {
+      background: $accent-soft;
+    }
+  }
+
+  .chapter-nav-prev { align-items: flex-start; }
+  .chapter-nav-next { align-items: flex-end; text-align: right; margin-left: auto; }
+
+  .chapter-nav-label {
+    font-family: $font-ui;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $text-muted;
+  }
+
+  .chapter-nav-title {
+    font-family: $font-ui;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: $accent;
+    line-height: 1.35;
+  }
+}
+
+// ================================================================
+// Hero meta (small inline metadata)
+// ================================================================
+
+.hero-meta {
+  font-size: 0.84rem;
+  color: $text-muted;
+  margin-top: 4px;
+}
+
+// ================================================================
+// Book Cover Hero (two-column layout)
+// ================================================================
+
+.book-hero-inner {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+
+  @media (max-width: $bp-stack) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.book-hero-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.book-hero-cover {
+  flex-shrink: 0;
+  width: 240px;
+
+  @media (max-width: $bp-collapse) {
+    width: 200px;
+  }
+
+  @media (max-width: $bp-stack) {
+    width: min(72vw, 260px);
+    order: -1; // cover above text on mobile
+  }
+}
+
+.book-cover-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+  box-shadow:
+    0 4px 16px rgba(22, 29, 37, 0.10),
+    0 1px 4px rgba(22, 29, 37, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+// Book list thumbnails
+.book-list-thumb {
+  width: 88px;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(22, 29, 37, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+}
+
+.book-list-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid $divider;
+
+  &:last-child { border-bottom: none; }
+
+  .book-list-info {
+    flex: 1;
+    min-width: 0;
+
+    h3 {
+      font-family: $font-display;
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0 0 4px;
+
+      a {
+        color: $text;
+        text-decoration: none;
+        &:hover { color: $accent; }
+      }
+    }
+
+    p {
+      font-size: 0.86rem;
+      color: $text-muted;
+      margin: 0;
+      line-height: 1.45;
+    }
+  }
+}
+
+// ================================================================
+// Format Cards (Amazon book formats)
+// ================================================================
+
+.format-section-title {
+  font-family: $font-display;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: $text;
+  margin: 0;
+  padding: 20px 20px 12px;
+}
+
+.format-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  padding: 0 20px 20px;
+
+  @media (max-width: $bp-stack) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.format-card {
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid $panel-border;
+  border-radius: $radius-md;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .format-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .format-label {
+    font-family: $font-ui;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: $text;
+  }
+
+  .format-price {
+    font-family: $font-ui;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $accent;
+  }
+
+  .format-asin {
+    font-family: $font-mono;
+    font-size: 0.75rem;
+    color: $text-muted;
+  }
+
+  .format-links {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .format-btn {
+    font-size: 0.78rem;
+    height: 32px;
+    padding: 0 12px;
+  }
+}
+
+// ================================================================
+// Status Badges
+// ================================================================
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: $font-ui;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: $radius-pill;
+  white-space: nowrap;
+}
+
+.status-live {
+  background: rgba(52, 168, 83, 0.14);
+  color: #1e7e34;
+}
+
+.status-publishing {
+  background: rgba(251, 188, 4, 0.16);
+  color: #a66d00;
+}
+
+.status-archived {
+  background: rgba(0, 0, 0, 0.07);
+  color: $text-muted;
+}
+
+// ================================================================
+// DOI / Citation Card
+// ================================================================
+
+.doi-block {
+  padding: 0 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.doi-primary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.doi-label {
+  font-family: $font-ui;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $text-muted;
+}
+
+.doi-link {
+  font-family: $font-mono;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: $accent;
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+
+.doi-citation {
+  font-family: $font-ui;
+  font-size: 0.86rem;
+  color: $text;
+  line-height: 1.55;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid $panel-border;
+  border-radius: $radius-sm;
+
+  a {
+    color: $accent;
+    text-decoration: none;
+    word-break: break-all;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.doi-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.doi-note {
+  font-size: 0.78rem;
+  color: $text-muted;
+  margin: 0;
+  line-height: 1.45;
+}
+
+// ================================================================
+// Mobile Touch Targets — WCAG 2.1 AA (44px minimum)
+// ================================================================
+
+@media (max-width: $bp-stack) {
+  .btn,
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+    padding: 0 16px;
+  }
+
+  .btn-ghost {
+    min-height: 44px;
+    padding: 0 16px;
+  }
+
+  .format-btn {
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: 0.82rem;
+  }
+
+  .chapter-nav-link {
+    padding: 14px;
+  }
+}

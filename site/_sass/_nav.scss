@@ -1,0 +1,169 @@
+// ================================================================
+// Left Rail Navigation
+// ================================================================
+
+.rail-title {
+  font-family: $font-ui;
+  font-size: 0.76rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-muted;
+  margin-bottom: 12px;
+}
+
+.nav-section {
+  margin-bottom: 16px;
+}
+
+.nav-section-title {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: $text;
+  margin-bottom: 4px;
+  padding: 4px 0;
+}
+
+.nav-link {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 440;
+  color: $text-muted;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: all $transition;
+  text-decoration: none;
+
+  &:hover {
+    color: $accent;
+    background: $accent-soft;
+    border-color: rgba(41, 75, 102, 0.08);
+  }
+
+  &.active {
+    color: $accent;
+    font-weight: 600;
+    background: $accent-soft;
+    border-color: rgba(41, 75, 102, 0.12);
+  }
+}
+
+.subnav {
+  margin-left: 12px;
+  padding-left: 8px;
+  border-left: 1px solid $divider;
+
+  .nav-link {
+    font-size: 0.84rem;
+    padding: 6px 10px;
+  }
+}
+
+// Strand labels in framework nav
+.nav-strand-label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $text-muted;
+  opacity: 0.7;
+  padding: 8px 10px 2px;
+  margin-top: 6px;
+}
+
+.subnav-group {
+  margin-bottom: 4px;
+}
+
+// Status metadata in left rail
+.rail-status {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid $divider;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  padding: 4px 0;
+  color: $text-muted;
+
+  .status-value {
+    font-weight: 600;
+    color: $text;
+  }
+}
+
+// ── Mobile touch targets ────────────────────────────────────────
+
+@media (max-width: $bp-stack) {
+  .nav-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+  }
+
+  .subnav .nav-link {
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+}
+
+// ── Collapsible left-rail for mobile ────────────────────────────
+
+// Desktop: <details open> with display:contents makes the wrapper
+// transparent. The summary is hidden. Content is always visible.
+// On mobile, JS removes the open attribute so it collapses.
+.rail-collapse {
+  display: contents;
+}
+
+.rail-collapse-toggle {
+  display: none;
+}
+
+@media (max-width: $bp-collapse) {
+  .rail-collapse {
+    display: block;
+  }
+
+  .rail-collapse-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 12px 16px;
+    font-family: $font-ui;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: $text;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+
+    &::-webkit-details-marker { display: none; }
+  }
+
+  .rail-collapse-chevron {
+    transition: transform 200ms ease;
+    flex-shrink: 0;
+  }
+
+  .rail-collapse[open] .rail-collapse-chevron {
+    transform: rotate(180deg);
+  }
+
+  .rail-collapse-body {
+    padding: 0 16px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-collapse-chevron {
+    transition: none !important;
+  }
+}

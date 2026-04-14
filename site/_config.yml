@@ -1,0 +1,48 @@
+title: "TauLib"
+description: "Lean 4 formalization layer of the Panta Rhei Research Program — 450 modules, 125,771 lines, 4,332 machine-checked theorems."
+url: "https://taulib.site"
+baseurl: ""
+
+# Social / SEO metadata
+image: /assets/og-image.png
+author:
+  name: "Thorsten Fuchs & Anna-Sophie Fuchs"
+social:
+  name: "TauLib — Panta Rhei Research Program"
+  links:
+    - "https://github.com/Panta-Rhei-Framework/taulib"
+
+permalink: pretty
+
+collections:
+  taulib_docs:
+    output: true
+    permalink: /docs/:name/
+
+collections_dir: .
+
+sass:
+  sass_dir: _sass
+  style: compressed
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - README.md
+  - .DS_Store
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+  - scope:
+      type: "taulib_docs"
+    values:
+      layout: "taulib-doc"

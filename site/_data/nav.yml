@@ -1,0 +1,13 @@
+header:
+  - title: "Panta Rhei"
+    url: "https://panta-rhei.site"
+    match: "__never__"
+    external: true
+  - title: "GitHub"
+    url: "https://github.com/Panta-Rhei-Framework/taulib"
+    match: "__never__"
+    external: true
+  - title: "Verify"
+    url: "https://panta-rhei.site/verify/taulib/"
+    match: "__never__"
+    external: true

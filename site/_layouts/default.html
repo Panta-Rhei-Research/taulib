@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% include head.html %}
+</head>
+<body>
+
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  {% include header.html %}
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+  <div class="page-grid">
+    {% include left-rail.html %}
+
+    <main class="main-content" id="main-content" data-pagefind-body>
+      {{ content }}
+    </main>
+
+    {% include right-rail.html %}
+  </div>
+
+  {% include footer.html %}
+
+  <!-- Search overlay -->
+  <div id="search-overlay" class="search-overlay" hidden>
+    <div class="search-overlay-backdrop" onclick="closeSearch()"></div>
+    <div class="search-overlay-panel glass">
+      <div class="search-overlay-header">
+        <span class="search-overlay-title">Search the Atlas</span>
+        <button class="search-overlay-close" onclick="closeSearch()" aria-label="Close search">&times;</button>
+      </div>
+      <div id="search-container"></div>
+    </div>
+  </div>
+
+  <script>
+    // Pagefind search initialization (uses globally loaded PagefindUI from head.html)
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof PagefindUI !== 'undefined') {
+        new PagefindUI({
+          element: "#search-container",
+          showSubResults: true,
+          showImages: false,
+        });
+      } else {
+        document.getElementById('search-container').innerHTML =
+          '<p style="padding:16px;color:#5b6772;font-size:0.88rem;">Search will be available once the site is deployed.</p>';
+      }
+    });
+
+    var _searchPreviousFocus = null;
+    function openSearch() {
+      _searchPreviousFocus = document.activeElement;
+      document.getElementById('search-overlay').hidden = false;
+      document.body.style.overflow = 'hidden';
+      setTimeout(function() {
+        var input = document.querySelector('#search-container input');
+        if (input) input.focus();
+      }, 100);
+    }
+    function closeSearch() {
+      document.getElementById('search-overlay').hidden = true;
+      document.body.style.overflow = '';
+      if (_searchPreviousFocus && _searchPreviousFocus.focus) {
+        _searchPreviousFocus.focus();
+        _searchPreviousFocus = null;
+      }
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeSearch();
+      if ((e.key === '/' || (e.key === 'k' && (e.metaKey || e.ctrlKey))) && !e.target.matches('input, textarea')) {
+        e.preventDefault();
+        openSearch();
+      }
+    });
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Assign ids to H2 elements (matching Liquid slugify for TOC anchor targets)
+      var headings = document.querySelectorAll('.main-content h2');
+      headings.forEach(function(h) {
+        if (!h.id) h.id = h.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      });
+
+      // IntersectionObserver for active TOC link highlighting (TOC is pre-rendered by Liquid)
+      var toc = document.getElementById('toc');
+      if (!toc) return;
+      var tocLinks = [];
+      var tocAnchors = toc.querySelectorAll('.toc-link');
+      tocAnchors.forEach(function(a) {
+        var targetId = a.getAttribute('href').replace('#', '');
+        var el = document.getElementById(targetId);
+        if (el) tocLinks.push({ el: el, link: a });
+      });
+
+      if (tocLinks.length > 0) {
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              tocLinks.forEach(function(t) { t.link.classList.remove('active'); });
+              var match = tocLinks.find(function(t) { return t.el === entry.target; });
+              if (match) match.link.classList.add('active');
+            }
+          });
+        }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+
+        tocLinks.forEach(function(t) { observer.observe(t.el); });
+      }
+
+      // Mobile TOC: clone pre-rendered TOC above main content on small screens
+      if (!window.matchMedia('(min-width: 1081px)').matches && tocAnchors.length > 0) {
+        var details = document.createElement('details');
+        details.className = 'mobile-toc';
+        var summary = document.createElement('summary');
+        summary.className = 'mobile-toc-toggle';
+        summary.innerHTML = '<span>On this page</span><svg class="mobile-toc-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4 6 8 10 12 6"/></svg>';
+        details.appendChild(summary);
+
+        var body = document.createElement('div');
+        body.className = 'mobile-toc-body';
+        tocAnchors.forEach(function(a) {
+          var clone = a.cloneNode(true);
+          clone.className = 'mobile-toc-link';
+          clone.addEventListener('click', function() { details.open = false; });
+          body.appendChild(clone);
+        });
+        details.appendChild(body);
+
+        var main = document.querySelector('.main-content');
+        if (main && main.parentNode) {
+          main.parentNode.insertBefore(details, main);
+        }
+      }
+
+      // Close rail-collapse on mobile (opened by default for desktop)
+      if (!window.matchMedia('(min-width: 1081px)').matches) {
+        var railCollapse = document.querySelector('.rail-collapse');
+        if (railCollapse) railCollapse.removeAttribute('open');
+      }
+    });
+  </script>
+
+  <script>
+    // Mobile hamburger menu toggle
+    (function() {
+      var hamburger = document.querySelector('.header-hamburger');
+      var nav = document.getElementById('mobile-nav');
+      var backdrop = document.getElementById('drawer-backdrop');
+      if (!hamburger || !nav) return;
+
+      function toggle(open) {
+        var isOpen = typeof open === 'boolean' ? open : !nav.classList.contains('is-open');
+        nav.classList.toggle('is-open', isOpen);
+        backdrop.classList.toggle('is-active', isOpen);
+        hamburger.setAttribute('aria-expanded', String(isOpen));
+        hamburger.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+        document.body.classList.toggle('nav-open', isOpen);
+      }
+
+      hamburger.addEventListener('click', function() { toggle(); });
+      backdrop.addEventListener('click', function() { toggle(false); });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && nav.classList.contains('is-open')) toggle(false);
+      });
+
+      // Auto-close on resize above mobile breakpoint
+      var mq = window.matchMedia('(min-width: 761px)');
+      mq.addEventListener('change', function(e) { if (e.matches) toggle(false); });
+    })();
+  </script>
+
+</body>
+</html>

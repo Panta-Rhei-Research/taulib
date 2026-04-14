@@ -1,0 +1,74 @@
+// ================================================================
+// Footer — Minimal, glass, non-marketing
+// ================================================================
+
+.site-footer-wrap {
+  padding: 0 $page-px 28px;
+  margin-top: 48px;
+}
+
+.site-footer {
+  @include glass;
+  max-width: calc(#{$rail-left-w} + #{$content-max} + #{$rail-right-w} + #{$shell-gap} * 2);
+  margin: 0 auto;
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  @media (max-width: $bp-stack) {
+    flex-direction: column;
+    text-align: center;
+    padding: 18px 16px;
+  }
+}
+
+@media (max-width: $bp-stack) {
+  .site-footer-wrap {
+    padding: 0 10px 20px;
+    margin-top: 32px;
+  }
+}
+
+.footer-brand {
+  .footer-title {
+    font-family: $font-ui;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: $text;
+    margin-bottom: 2px;
+  }
+
+  .footer-desc {
+    font-size: 0.76rem;
+    color: $text-muted;
+  }
+}
+
+.footer-links {
+  display: flex;
+  gap: 16px;
+
+  a {
+    font-size: 0.79rem;
+    color: $text-muted;
+    transition: color $transition;
+
+    &:hover { color: $accent; }
+  }
+
+  @media (max-width: $bp-stack) {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+
+    a {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+    }
+  }
+}

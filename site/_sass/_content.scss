@@ -1,0 +1,576 @@
+// ================================================================
+// Main Content Area — Cards, hero, sections
+// ================================================================
+
+.content-card {
+  @include glass;
+  padding: 24px;
+  margin-bottom: $shell-gap;
+}
+
+.hero-card {
+  @include glass;
+  padding: 32px 30px;
+  margin-bottom: $shell-gap;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-family: $font-ui;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-muted;
+  background: $chip-bg;
+  border: 1px solid $chip-border;
+  border-radius: $radius-pill;
+  padding: 4px 12px;
+  margin-bottom: 16px;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: $shell-gap;
+}
+
+.summary-card {
+  @include glass-subtle;
+  padding: 18px 16px;
+
+  .summary-card-title {
+    font-family: $font-ui;
+    font-size: 0.84rem;
+    font-weight: 650;
+    color: $text;
+    margin-bottom: 6px;
+  }
+
+  .summary-card-body {
+    font-size: 0.88rem;
+    color: $text-muted;
+    line-height: 1.55;
+  }
+}
+
+// Chips
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  font-family: $font-ui;
+  font-size: 0.79rem;
+  font-weight: 500;
+  color: $text-muted;
+  background: $chip-bg;
+  border: 1px solid $chip-border;
+  border-radius: $radius-pill;
+  margin-right: 6px;
+  margin-bottom: 8px;
+}
+
+// Result status chips (v2)
+.chip-status {
+  font-weight: 600;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.chip-status-r { background: rgba(52, 168, 83, 0.14); color: #1e7e34; border-color: rgba(52, 168, 83, 0.22); }
+.chip-status-p { background: rgba(66, 133, 244, 0.12); color: #1a5bc4; border-color: rgba(66, 133, 244, 0.22); }
+.chip-status-q { background: rgba(251, 188, 4, 0.14); color: #a66d00; border-color: rgba(251, 188, 4, 0.22); }
+.chip-status-c { background: rgba(234, 67, 53, 0.12); color: #c5221f; border-color: rgba(234, 67, 53, 0.22); }
+.chip-status-n { background: rgba(0, 0, 0, 0.06); color: $text-muted; }
+
+.chip-kind {
+  font-weight: 600;
+  color: $accent;
+}
+
+.chip-importance {
+  font-size: 0.74rem;
+}
+
+// Lane grid (2-col)
+.lane-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 16px;
+
+  @media (max-width: $bp-collapse) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lane-card {
+  @include glass-subtle;
+  padding: 20px;
+
+  h3 {
+    font-family: $font-display;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: $text;
+    text-transform: none;
+    letter-spacing: 0;
+    margin-top: 0;
+    margin-bottom: 6px;
+  }
+
+  p {
+    font-size: 0.88rem;
+    margin-bottom: 0;
+  }
+}
+
+// Module-specific components
+.module-eyebrow-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.module-id-badge {
+  font-family: $font-mono;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.dep-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.dep-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: $radius-sm;
+  border: 1px solid $divider;
+  text-decoration: none;
+  transition: all $transition;
+
+  &:hover {
+    background: $accent-soft;
+    border-color: rgba(41, 75, 102, 0.12);
+  }
+
+  .dep-id {
+    font-family: $font-mono;
+    font-size: 0.76rem;
+    color: $accent;
+    font-weight: 600;
+    min-width: 60px;
+  }
+
+  .dep-title {
+    font-size: 0.88rem;
+    color: $text;
+  }
+}
+
+.dep-missing {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.registry-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  .chip {
+    font-family: $font-mono;
+    font-size: 0.74rem;
+  }
+}
+
+// Homepage sections
+.homepage-hero {
+  h1 { font-size: 1.6rem; }
+  .hero-subtitle {
+    font-family: $font-display;
+    font-size: 1.1rem;
+    color: $accent;
+    margin-bottom: 8px;
+  }
+}
+
+.homepage-section {
+  position: relative;
+
+  h2 {
+    font-family: $font-display;
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+
+  p, li {
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+
+  ul {
+    padding-left: 20px;
+    margin: 10px 0;
+  }
+
+  .section-ctas {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid $divider;
+  }
+}
+
+// Icon positioned at top-right corner of card
+.section-icon-corner {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 28px;
+  height: 28px;
+  color: $accent;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+// Ghost button — very subtle secondary CTA
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  font-family: $font-ui;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: $text-muted;
+  text-decoration: none;
+  border-radius: $radius-pill;
+  border: 1px solid transparent;
+  transition: all $transition;
+
+  &:hover {
+    color: $accent;
+    border-color: rgba($accent, 0.18);
+    background: rgba($accent, 0.04);
+  }
+}
+
+// TauLib doc-gen4 content
+.taulib-doc-content {
+  .decl { margin-bottom: 16px; }
+  .def, .theorem, .structure { margin-bottom: 20px; }
+
+  .doc-string {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: $text;
+    margin: 8px 0;
+  }
+
+  pre, code {
+    font-family: $font-mono;
+    font-size: 0.82rem;
+  }
+
+  pre {
+    background: rgba(0, 0, 0, 0.03);
+    padding: 12px 14px;
+    border-radius: $radius-sm;
+    overflow-x: auto;
+  }
+
+  .decl_header {
+    font-family: $font-mono;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: $accent;
+    padding: 8px 12px;
+    background: rgba(41, 75, 102, 0.06);
+    border-radius: $radius-sm;
+    margin-bottom: 8px;
+    overflow-x: auto;
+  }
+
+  .attributes { color: $text-muted; font-size: 0.78rem; }
+
+  h1 { font-size: 1.3rem; margin-top: 1.5em; }
+  h2 { font-size: 1.1rem; margin-top: 1.2em; }
+  h3 { font-size: 0.95rem; margin-top: 1em; }
+}
+
+.taulib-module-title {
+  font-family: $font-mono;
+  font-size: 1.1rem;
+  word-break: break-all;
+}
+
+// Prose content
+.prose {
+  h2:first-child { margin-top: 0; }
+
+  p + h2 { margin-top: 2.2em; }
+
+  blockquote {
+    border-left: 3px solid $accent;
+    padding-left: 16px;
+    margin: 1.5em 0;
+    color: $text;
+    font-style: italic;
+  }
+}
+
+// ================================================================
+// Research Notes list items
+// ================================================================
+
+.note-list-date {
+  font-family: $font-ui;
+  font-size: 0.78rem;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.note-list-title {
+  font-family: $font-display;
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 6px;
+
+  a {
+    color: $text;
+    text-decoration: none;
+    &:hover { color: $accent; }
+  }
+}
+
+.note-list-summary {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: $text-muted;
+  margin: 0;
+}
+
+.note-subscribe-card {
+  border-top: 2px solid rgba($accent, 0.12);
+}
+
+// ================================================================
+// Changelog list items
+// ================================================================
+
+.changelog-date {
+  font-family: $font-ui;
+  font-size: 0.78rem;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.changelog-title {
+  font-family: $font-display;
+  font-size: 1rem;
+  margin-top: 0;
+  margin-bottom: 6px;
+
+  a {
+    color: $text;
+    text-decoration: none;
+    &:hover { color: $accent; }
+  }
+}
+
+.changelog-summary {
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: $text-muted;
+  margin: 0;
+}
+
+// ================================================================
+// Buttondown Subscribe Form
+// ================================================================
+
+.bd-subscribe {
+  border-top: 2px solid rgba($accent, 0.12);
+  padding-top: 4px;
+}
+
+.bd-heading {
+  font-family: $font-display;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.bd-body {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: $text-muted;
+  margin-bottom: 14px;
+}
+
+.bd-form {
+  margin-bottom: 10px;
+}
+
+.bd-field-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.bd-input {
+  flex: 1;
+  min-width: 200px;
+  height: 38px;
+  padding: 0 14px;
+  font-family: $font-ui;
+  font-size: 0.88rem;
+  color: $text;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(24, 32, 39, 0.14);
+  border-radius: $radius-sm;
+  outline: none;
+  transition: border-color $transition;
+
+  &:focus {
+    border-color: $accent;
+  }
+
+  &::placeholder {
+    color: rgba($text-muted, 0.6);
+  }
+}
+
+.bd-button {
+  white-space: nowrap;
+  height: 38px;
+}
+
+.bd-privacy {
+  font-family: $font-ui;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: $text-muted;
+
+  a {
+    color: $accent;
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+// Compact inline variant
+.bd-subscribe-compact {
+  border-top: none;
+  padding-top: 0;
+
+  .bd-heading {
+    font-size: 0.92rem;
+    margin-bottom: 6px;
+  }
+
+  .bd-form-inline {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+
+  .bd-input {
+    min-width: 180px;
+    height: 34px;
+    font-size: 0.84rem;
+  }
+
+  .bd-button {
+    height: 34px;
+    font-size: 0.82rem;
+  }
+
+  .bd-privacy {
+    font-size: 0.72rem;
+  }
+}
+
+// ── Mobile touch targets for subscribe form ─────────────────────
+
+@media (max-width: $bp-stack) {
+  .bd-input {
+    min-height: 44px;
+    min-width: 0; // remove 200px min-width to prevent overflow on small screens
+    height: 44px;
+  }
+
+  .bd-button {
+    min-height: 44px;
+    height: 44px;
+  }
+
+  .bd-subscribe-compact {
+    .bd-input {
+      min-width: 0;
+      height: 44px;
+    }
+
+    .bd-button {
+      height: 44px;
+    }
+  }
+}
+
+// ── Mobile card padding reductions ──────────────────────────────
+
+@media (max-width: $bp-stack) {
+  .content-card {
+    padding: 16px 14px;
+  }
+
+  .hero-card {
+    padding: 20px 16px;
+  }
+
+  .summary-card {
+    padding: 14px 12px;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr; // stack summary cards on mobile
+    gap: 10px;
+  }
+
+  .lane-card {
+    padding: 16px 14px;
+  }
+
+  .homepage-hero h1 {
+    font-size: 1.3rem;
+  }
+
+  .format-section-title {
+    font-size: 0.92rem;
+  }
+}

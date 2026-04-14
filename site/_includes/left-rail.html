@@ -1,0 +1,45 @@
+<aside class="left-rail" aria-label="Module navigation">
+<details class="rail-collapse" open>
+  <summary class="rail-collapse-toggle">
+    <span class="rail-collapse-label">Module Navigation</span>
+    <svg class="rail-collapse-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><polyline points="4 6 8 10 12 6"/></svg>
+  </summary>
+  <div class="rail-collapse-body">
+
+  <div class="nav-section">
+    <a href="{{ '/' | relative_url }}" class="nav-link{% if page.url == '/' %} active{% endif %}">Home</a>
+    <a href="{{ '/docs/' | relative_url }}" class="nav-link{% if page.url == '/docs/' %} active{% endif %}">All Modules</a>
+  </div>
+
+  {% if site.data.nav_modules %}
+  {% for book in site.data.nav_modules.books %}
+  <div class="nav-section-title">Book {{ book.roman }}</div>
+  {% for section in book.sections %}
+  <details class="subnav-group"{% if page.module_name contains section.name %} open{% endif %}>
+    <summary class="subnav-title">{{ section.name }}</summary>
+    <div class="subnav-links">
+      {% for mod in section.modules %}
+      <a href="{{ mod.url | relative_url }}" class="nav-link{% if page.url == mod.url %} active{% endif %}">{{ mod.name }}</a>
+      {% endfor %}
+    </div>
+  </details>
+  {% endfor %}
+  {% endfor %}
+
+  {% if site.data.nav_modules.tour %}
+  <div class="nav-section-title">Guided Tours</div>
+  {% for tour in site.data.nav_modules.tour %}
+  <a href="{{ tour.url | relative_url }}" class="nav-link{% if page.url == tour.url %} active{% endif %}">{{ tour.name }}</a>
+  {% endfor %}
+  {% endif %}
+  {% endif %}
+
+  <div class="rail-status">
+    <div class="rail-status-item"><span class="rail-status-label">Modules</span><span class="rail-status-value">450</span></div>
+    <div class="rail-status-item"><span class="rail-status-label">Status</span><span class="rail-status-value">Canonical</span></div>
+    <div class="rail-status-item"><span class="rail-status-label">Updated</span><span class="rail-status-value">April 2026</span></div>
+  </div>
+
+  </div>
+</details>
+</aside>

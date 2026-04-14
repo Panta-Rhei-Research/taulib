@@ -1,0 +1,56 @@
+<aside class="right-rail" aria-label="Page navigation">
+  {% if page.right_rail.toc != false %}
+  {% assign toc_parts = content | split: '<h2' %}
+  {% if toc_parts.size > 1 %}
+  <div class="toc-title">On this page</div>
+  <nav class="toc" id="toc" aria-label="On this page">
+    {% for part in toc_parts offset:1 %}
+    {% assign heading_raw = part | split: '</h2>' | first %}
+    {% assign heading_text = heading_raw | split: '>' | last | strip_html | strip %}
+    {% assign heading_id = heading_text | slugify %}
+    {% if heading_text != "" %}
+    <a href="#{{ heading_id }}" class="toc-link">{{ heading_text }}</a>
+    {% endif %}
+    {% endfor %}
+  </nav>
+  {% endif %}
+  {% endif %}
+
+  {% if page.right_rail.related %}
+  <div class="rail-section">
+    <div class="rail-section-title">Related pages</div>
+    {% for link in page.right_rail.related %}
+    <a href="{{ link.url | relative_url }}" class="artifact-link">{{ link.title }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if page.right_rail.artifacts %}
+  <div class="rail-section">
+    <div class="rail-section-title">Artifacts</div>
+    {% for link in page.right_rail.artifacts %}
+    <a href="{{ link.url }}" class="artifact-link" {% if link.external %}target="_blank" rel="noopener"{% endif %}>{{ link.title }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if page.right_rail.meta %}
+  <div class="rail-section">
+    <div class="rail-section-title">Page metadata</div>
+    <div class="meta-list">
+      {% if page.right_rail.meta.type %}
+      <div class="meta-item"><span>Type</span><span class="meta-value">{{ page.right_rail.meta.type }}</span></div>
+      {% endif %}
+      {% if page.right_rail.meta.scope %}
+      <div class="meta-item"><span>Scope</span><span class="meta-value">{{ page.right_rail.meta.scope }}</span></div>
+      {% endif %}
+      {% if page.right_rail.meta.status %}
+      <div class="meta-item"><span>Status</span><span class="meta-value">{{ page.right_rail.meta.status }}</span></div>
+      {% endif %}
+      {% if page.right_rail.meta.updated %}
+      <div class="meta-item"><span>Updated</span><span class="meta-value">{{ page.right_rail.meta.updated }}</span></div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</aside>

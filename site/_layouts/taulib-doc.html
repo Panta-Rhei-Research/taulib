@@ -1,0 +1,25 @@
+---
+layout: default
+---
+
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <a href="{{ '/' | relative_url }}">Home</a>
+  <span class="breadcrumb-sep">/</span>
+  <a href="{{ '/docs/' | relative_url }}">Docs</a>
+  {% if page.book %}
+  <span class="breadcrumb-sep">/</span>
+  <span class="breadcrumb-current">Book {{ page.book }}</span>
+  {% endif %}
+</nav>
+
+<div class="hero-card">
+  <div class="module-eyebrow-row">
+    <span class="eyebrow">TauLib &middot; API</span>
+    {% if page.book %}<span class="chip">Book {{ page.book }}</span>{% endif %}
+  </div>
+  <h1 class="taulib-module-title">{{ page.title }}</h1>
+</div>
+
+<div class="content-card taulib-doc-content">
+  {{ content }}
+</div>

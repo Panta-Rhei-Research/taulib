@@ -1,0 +1,46 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if page.title and page.title != site.title %}{{ page.title }} — {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+<meta name="description" content="{{ page.summary_short | default: site.description | strip_html | truncate: 160 }}">
+
+<!-- Open Graph -->
+<meta property="og:title" content="{{ page.title | default: site.title }}">
+<meta property="og:description" content="{{ page.summary_short | default: site.description | strip_html | truncate: 200 }}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ page.url | absolute_url }}">
+<meta property="og:site_name" content="{{ site.title }}">
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="{{ '/assets/favicon.svg' | relative_url }}">
+
+<!-- Preconnect for fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- Fonts: Inter (UI) -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@380;400;500;520;580;600;650;700;800&display=swap" rel="stylesheet">
+
+<!-- Styles -->
+<link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+
+<!-- Skip to content (a11y) -->
+<style>.skip-link{position:absolute;top:-100%;left:0;padding:8px 16px;background:#294b66;color:#fff;z-index:100;font-size:0.85rem;border-radius:0 0 8px 0;}.skip-link:focus{top:0;}</style>
+
+<!-- Structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "TauLib",
+  "description": "Lean 4 formalization layer of the Panta Rhei Research Program",
+  "url": "{{ site.url }}",
+  "codeRepository": "https://github.com/Panta-Rhei-Framework/taulib",
+  "programmingLanguage": "Lean 4",
+  "author": [
+    { "@type": "Person", "name": "Thorsten Fuchs" },
+    { "@type": "Person", "name": "Anna-Sophie Fuchs" }
+  ]
+}
+</script>
+
+{% seo %}

@@ -5,17 +5,18 @@
 # Pipeline:
 #   1. Build TauLib library (lean-action: elan, cache, lake build)
 #   2. Generate doc-gen4 HTML (all modules, into docbuild/.lake)
-#   3. Copy doc output to _site/ (preserves cache integrity)
-#   4. Filter _site/ to TauLib-only (strip Lean/Mathlib/Std/etc.)
-#   5. Apply Panta Rhei CSS theme + custom landing page
-#   6. Generate statistics dashboard + dependency graph
-#   7. Deploy _site/ to GitHub Pages (artifact-based)
+#   3. Copy doc output to _docgen_output/ (preserves cache integrity)
+#   4. Filter to TauLib-only (strip Lean/Mathlib/Std/etc.)
+#   5. Extract doc-gen4 content → Jekyll collection + nav data
+#   6. Copy doc-gen4 static assets (CSS, declarations, fonts)
+#   7. Build Jekyll site (site/ directory)
+#   8. Deploy site/_site/ to GitHub Pages
 #
-# Key architecture decision:
-#   Post-processing (filter, theme, stats) operates on _site/,
-#   NOT on docbuild/.lake/build/doc/. This keeps the docbuild
-#   cache pristine — doc-gen4's index step can find all files
-#   on subsequent cached runs.
+# Architecture:
+#   The Jekyll site in site/ provides the Panta Rhei shell (header,
+#   footer, glassmorphism, 3-column layout). Doc-gen4 module content
+#   is extracted into _taulib_docs/ collection files. The nav tree
+#   is extracted into _data/nav_modules.yml for Liquid templating.
 #
 # Triggers:
 #   - Push to main (when source files change)
@@ -35,6 +36,7 @@ on:
       - 'docbuild/**'
       - 'scripts/**'
       - 'registry/**'
+      - 'site/**'
       - 'lakefile.lean'
       - 'lean-toolchain'
       - 'lake-manifest.json'
@@ -72,7 +74,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: docbuild/.lake
-          # Cache key v2: busts old corrupted cache from filtered builds
           key: docbuild-v2-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'docbuild/lakefile.toml') }}
 
       - name: Initialize doc-gen4
@@ -85,76 +86,64 @@ jobs:
           cd docbuild
           lake build TauLib:docs
 
-      # ── Copy to deploy directory (cache stays pristine) ─────
-      - name: Prepare deploy directory
+      # ── Copy and filter doc-gen4 output ─────────────────────
+      - name: Prepare doc-gen4 output
         run: |
-          echo "Copying doc output to _site/ ..."
-          cp -r docbuild/.lake/build/doc _site
-          echo "  Size: $(du -sh _site | cut -f1)"
-          echo "  HTML files: $(find _site -name '*.html' | wc -l | tr -d ' ')"
+          echo "Copying doc output..."
+          cp -r docbuild/.lake/build/doc _docgen_output
+          echo "  Size: $(du -sh _docgen_output | cut -f1)"
+          echo "  HTML files: $(find _docgen_output -name '*.html' | wc -l | tr -d ' ')"
 
-      # ── Post-process: filter + theme + landing page ─────────
       - name: Filter to TauLib-only
-        run: python3 scripts/filter_docs.py --doc-dir _site
+        run: python3 scripts/filter_docs.py --doc-dir _docgen_output
 
-      - name: Apply theme and assets
+      # ── Extract content for Jekyll ──────────────────────────
+      - name: Extract module docs → Jekyll collection
+        run: python3 scripts/extract_docs.py --input _docgen_output --output site/_taulib_docs
+
+      - name: Extract navigation → YAML data
+        run: python3 scripts/extract_nav.py --input _docgen_output/navbar.html --output site/_data/nav_modules.yml
+
+      - name: Copy doc-gen4 static assets
         run: |
-          # CSS theme (always fresh since _site is a copy)
-          cat scripts/taulib_theme.css >> _site/style.css
+          # Doc-gen4 CSS (for declaration styling referenced by extracted content)
+          mkdir -p site/assets/css
+          cp _docgen_output/style.css site/assets/css/docgen.css
 
-          # Shell CSS (Panta Rhei chrome)
-          cp scripts/shell.css _site/shell.css
-
-          # Self-hosted fonts (Manrope)
-          if [ -d "scripts/fonts" ]; then
-            mkdir -p _site/fonts
-            cp scripts/fonts/*.woff2 _site/fonts/
+          # Search declarations index
+          if [ -d "_docgen_output/declarations" ]; then
+            mkdir -p site/assets/declarations
+            cp _docgen_output/declarations/* site/assets/declarations/
           fi
 
-      # ── Stats dashboard + dependency graph ──────────────────
-      - name: Generate statistics dashboard
-        run: |
-          python3 scripts/generate_stats.py \
-            --output _site/stats.html \
-            --registry-dir registry \
-            --lean-src TauLib
+      # ── Build Jekyll site ───────────────────────────────────
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: site
 
-      - name: Generate dependency graph
+      - name: Build Jekyll
         run: |
-          python3 scripts/generate_depgraph.py \
-            --output _site/depgraph.html \
-            --registry-dir registry
-
-      # ── Apply Panta Rhei shell (after all HTML is generated) ──
-      - name: Apply Panta Rhei shell
-        run: |
-          python3 scripts/apply_shell.py \
-            --doc-dir _site \
-            --template scripts/shell_template.html \
-            --landing scripts/landing_page.html
+          cd site
+          bundle exec jekyll build
+        env:
+          JEKYLL_ENV: production
 
       # ── Report ──────────────────────────────────────────────
       - name: Build summary
         run: |
-          MODULE_COUNT=$(find _site/TauLib -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
-          TOTAL_SIZE=$(du -sh _site | cut -f1)
-          DECL_COUNT=$(python3 -c "
-          import json
-          with open('_site/declarations/declaration-data.bmp') as f:
-              d = json.load(f)
-          print(len(d.get('declarations', {})))
-          " 2>/dev/null || echo "?")
-          STATS_OK=$([ -f _site/stats.html ] && echo "✅" || echo "❌")
-          GRAPH_OK=$([ -f _site/depgraph.html ] && echo "✅" || echo "❌")
+          MODULE_COUNT=$(find site/_taulib_docs -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
+          PAGE_COUNT=$(find site/_site -name "*.html" 2>/dev/null | wc -l | tr -d ' ')
+          TOTAL_SIZE=$(du -sh site/_site | cut -f1)
 
           echo "## 📖 Documentation Build" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| TauLib module pages | $MODULE_COUNT |" >> $GITHUB_STEP_SUMMARY
-          echo "| Searchable declarations | $DECL_COUNT |" >> $GITHUB_STEP_SUMMARY
-          echo "| Statistics dashboard | $STATS_OK |" >> $GITHUB_STEP_SUMMARY
-          echo "| Dependency graph | $GRAPH_OK |" >> $GITHUB_STEP_SUMMARY
+          echo "| TauLib module docs | $MODULE_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Total HTML pages | $PAGE_COUNT |" >> $GITHUB_STEP_SUMMARY
           echo "| Output size | $TOTAL_SIZE |" >> $GITHUB_STEP_SUMMARY
 
       # ── Upload for Pages deployment ─────────────────────────
@@ -164,7 +153,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: _site
+          path: site/_site
 
   # ── Job 2: Deploy to GitHub Pages ─────────────────────────
   deploy:
