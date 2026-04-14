@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="https://lean-lang.org"><img src="https://img.shields.io/badge/Lean_4-v4.28.0--rc1-blue?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSJub25lIi8+PHRleHQgeD0iMyIgeT0iMTIiIGZpbGw9IndoaXRlIiBmb250LXNpemU9IjEyIj5MPC90ZXh0Pjwvc3ZnPg==" alt="Lean 4"></a>
-  <a href="https://github.com/panta-rhei-framework/taulib/actions"><img src="https://github.com/panta-rhei-framework/taulib/actions/workflows/lean-build.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/Panta-Rhei-Research/taulib/actions"><img src="https://github.com/Panta-Rhei-Research/taulib/actions/workflows/lean-build.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-green.svg" alt="License"></a>
   <a href="https://panta-rhei.site"><img src="https://img.shields.io/badge/Panta_Rhei-Books-8B4513" alt="Panta Rhei"></a>
 </p>
@@ -58,7 +58,7 @@ Companion to the 7-book [**Panta Rhei**](https://panta-rhei.site) series by Thor
 ### Clone and Build
 
 ```bash
-git clone https://github.com/panta-rhei-framework/taulib.git
+git clone https://github.com/Panta-Rhei-Research/taulib.git
 cd TauLib
 lake build
 ```
@@ -71,7 +71,7 @@ Add to your `lakefile.lean`:
 
 ```lean
 require TauLib from git
-  "https://github.com/panta-rhei-framework/taulib.git" @ "main"
+  "https://github.com/Panta-Rhei-Research/taulib.git" @ "main"
 ```
 
 Or in `lakefile.toml`:
@@ -79,7 +79,7 @@ Or in `lakefile.toml`:
 ```toml
 [[require]]
 name = "TauLib"
-git = "https://github.com/panta-rhei-framework/taulib.git"
+git = "https://github.com/Panta-Rhei-Research/taulib.git"
 rev = "main"
 ```
 
@@ -303,10 +303,10 @@ If you use TauLib in academic work, please cite:
 ```bibtex
 @software{taulib2026,
   author    = {Fuchs, Thorsten and Fuchs, Anna-Sophie},
-  title     = {{TauLib}: Mechanized Formalization of Category $\tau$},
+  title     = {{TauLib}: Mechanized Formalization of Category $	au$},
   year      = {2026},
   version   = {2.0.0},
-  url       = {https://github.com/panta-rhei-framework/taulib},
+  url       = {https://github.com/Panta-Rhei-Research/taulib},
   note      = {450 modules, 125{,}771 lines of Lean 4, 4{,}332 theorems},
   license   = {Apache-2.0}
 }
