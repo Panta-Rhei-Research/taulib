@@ -336,10 +336,40 @@ body.nav-open { overflow: hidden; }
   .main-content { order: 1; }
 }
 
-/* Reset doc-gen4's own header/nav since we provide our own */
-body > header { display: none !important; }
+/* ── Doc-gen4 conflict overrides ───────────────────────────────
+   Doc-gen4's style.css styles bare elements (header, .nav, .navframe)
+   which conflict with our shell. These overrides ensure the PR shell
+   wins while preserving doc-gen4 content styling within <main>.
+   ─────────────────────────────────────────────────────────────── */
+
+/* Reset doc-gen4's header element styles on our shell header */
+.site-header {
+  float: none !important;
+  position: sticky !important;
+  width: auto !important;
+  height: var(--sh-header-h) !important;
+  overflow: visible !important;
+}
+
+/* Force left-rail nav to be visible (doc-gen4 hides .nav via checkbox toggle) */
+.left-rail .nav {
+  display: block !important;
+}
+.left-rail .navframe {
+  position: static !important;
+  width: auto !important;
+  float: none !important;
+  display: block !important;
+}
+
+/* Hide doc-gen4's own header/navframe if they somehow appear outside our shell */
+body > header:not(.site-header) { display: none !important; }
 body > .navframe { display: none !important; }
-body > header + * { /* spectral bar from taulib_theme.css */ }
+
+/* Prevent doc-gen4's header::after spectral bar from appearing on our header */
+.site-header::after {
+  bottom: auto !important;
+}
 
 /* ================================================================
    Footer
