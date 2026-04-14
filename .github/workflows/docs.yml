@@ -106,9 +106,9 @@ jobs:
 
       - name: Copy doc-gen4 static assets
         run: |
-          # Doc-gen4 CSS (for declaration styling referenced by extracted content)
-          mkdir -p site/assets/css
-          cp _docgen_output/style.css site/assets/css/docgen.css
+          # NOTE: We do NOT copy doc-gen4's style.css — it contains global
+          # rules (header, .nav, a, *) that conflict with the Jekyll shell.
+          # Declaration styling is handled by our _sass/_docgen.scss instead.
 
           # Search declarations index
           if [ -d "_docgen_output/declarations" ]; then
