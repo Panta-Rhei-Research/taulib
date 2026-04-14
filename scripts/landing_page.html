@@ -1,181 +1,232 @@
 <a id="top"></a>
 <style>
-  .pr-landing { max-width: 800px; margin: 0 auto; padding: 2em 1em; }
-  .pr-landing .subtitle { color: var(--implicit-arg-text-color, #32415b); margin-top: 0; font-size: 1.1em; }
-  .pr-landing hr { border: none; border-top: 1px solid var(--hamburger-border-color, #dce5f2); margin: 1.5em 0; }
-  .pr-landing table { border-collapse: collapse; width: 100%; }
-  .pr-landing td, .pr-landing th { padding: 6px 12px; }
-  .pr-landing .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .pr-landing .book-table th { text-align: left; border-bottom: 2px solid var(--hamburger-border-color, #dce5f2); font-weight: 600; }
-  .pr-landing .book-table th.num { text-align: right; }
-  .pr-landing .book-table tr { border-bottom: 1px solid var(--hamburger-border-color, #dce5f2); transition: background 200ms cubic-bezier(.22,1,.36,1); }
-  .pr-landing .book-table tr:hover { background: var(--pr-accent-soft, rgba(178,143,255,0.06)); }
-  .pr-landing .book-table tr:last-child { border-bottom: none; }
-  .pr-landing .glance td { padding: 4px 12px; }
-  .pr-landing ul { line-height: 1.8; }
-  .pr-landing .footer-note { color: var(--implicit-arg-text-color, #32415b); font-size: 0.85em; text-align: center; }
-  .pr-landing .footer-note a { color: var(--implicit-arg-text-color, #32415b); }
-  /* Book spectral colors */
-  .pr-landing .book-i { color: #8fb6ff; }
-  .pr-landing .book-ii { color: #b08cff; }
-  .pr-landing .book-iii { color: #86efff; }
-  .pr-landing .book-iv { color: #95f3a1; }
-  .pr-landing .book-v { color: #ffb24d; }
-  .pr-landing .book-vi { color: #ff6156; }
-  .pr-landing .book-vii { color: #c8d4e8; }
+  /* ── Gateway layout ──────────────────────────────────────── */
+  .gw { max-width: 680px; margin: 0 auto; padding: 3em 1.5em 2em; }
+
+  .gw-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0 0 0.25em;
+    color: var(--text-color, #121a2a);
+  }
+
+  .gw-subtitle {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--implicit-arg-text-color, #32415b);
+    margin: 0 0 1.8em;
+    line-height: 1.5;
+  }
+
+  .gw-body {
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: var(--text-color, #121a2a);
+    margin-bottom: 2.5em;
+  }
+
+  .gw-body p { margin: 0 0 0.8em; }
+
+  .gw-body a {
+    color: var(--link-color, #7b5fbf);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .gw-body a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+  /* ── Divider ─────────────────────────────────────────────── */
+  .gw-divider {
+    border: none;
+    height: 1px;
+    background: var(--hamburger-border-color, #dce5f2);
+    margin: 2em 0;
+  }
+
+  /* ── Link cards ──────────────────────────────────────────── */
+  .gw-links { display: flex; flex-direction: column; gap: 10px; margin-bottom: 2em; }
+
+  .gw-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border: 1px solid var(--hamburger-border-color, #dce5f2);
+    border-radius: var(--pr-radius-lg, 12px);
+    background: var(--code-bg, #f0ede6);
+    color: var(--text-color, #121a2a);
+    text-decoration: none;
+    transition: box-shadow var(--pr-transition, 200ms ease),
+                border-color var(--pr-transition, 200ms ease),
+                transform var(--pr-transition, 200ms ease);
+  }
+
+  .gw-card:hover {
+    box-shadow: var(--pr-shadow-card, 0 4px 16px rgba(18,26,42,0.08));
+    border-color: var(--pr-accent, #b28fff);
+    transform: translateY(-1px);
+    text-decoration: none;
+  }
+
+  .gw-card-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    color: var(--implicit-arg-text-color, #32415b);
+  }
+
+  .gw-card-label {
+    font-weight: 650;
+    font-size: 0.92rem;
+    letter-spacing: -0.01em;
+  }
+
+  .gw-card-desc {
+    font-size: 0.82rem;
+    color: var(--implicit-arg-text-color, #32415b);
+    margin-top: 2px;
+  }
+
+  .gw-card-arrow {
+    margin-left: auto;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: var(--implicit-arg-text-color, #32415b);
+    opacity: 0.5;
+    transition: opacity var(--pr-transition, 200ms ease),
+                transform var(--pr-transition, 200ms ease);
+  }
+
+  .gw-card:hover .gw-card-arrow {
+    opacity: 1;
+    transform: translateX(2px);
+  }
+
+  /* ── Section label ───────────────────────────────────────── */
+  .gw-section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--implicit-arg-text-color, #32415b);
+    margin: 0 0 10px;
+  }
+
+  /* ── Footer note ─────────────────────────────────────────── */
+  .gw-footer {
+    font-size: 0.82rem;
+    color: var(--implicit-arg-text-color, #32415b);
+    line-height: 1.6;
+    text-align: center;
+    margin-top: 2em;
+  }
+
+  .gw-footer a {
+    color: var(--implicit-arg-text-color, #32415b);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* ── Responsive ──────────────────────────────────────────── */
+  @media (max-width: 520px) {
+    .gw { padding: 2em 1em 1.5em; }
+    .gw-title { font-size: 1.8rem; }
+    .gw-card { padding: 14px 16px; }
+  }
 </style>
 
-<div class="pr-landing">
+<div class="gw">
 
-<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-  <h1 style="margin-bottom: 0.3em;">TauLib &mdash; API Documentation</h1>
-  <a href="https://github.com/Panta-Rhei-Framework/taulib" target="_top"
-     style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
-            border: 1px solid var(--hamburger-border-color, #dce5f2); border-radius: 999px;
-            color: var(--body-text-color, #32415b); text-decoration: none; font-size: 0.85em;
-            font-weight: 600; transition: all 200ms cubic-bezier(.22,1,.36,1);"
-     onmouseover="this.style.background='var(--pr-accent-soft, rgba(178,143,255,0.1))'"
-     onmouseout="this.style.background='transparent'"
-     title="View source on GitHub">
-    <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-    View on GitHub
-  </a>
-</div>
-<p class="subtitle">
-  Mechanized Formalization of Category &tau;
-</p>
+  <h1 class="gw-title">TauLib</h1>
+  <p class="gw-subtitle">Lean 4 formalization layer of the Panta Rhei Research Program</p>
 
-<p>
-  <strong>TauLib</strong> is a 125,000-line Lean 4 formalization of
-  <strong>Category &tau;</strong> &mdash; a categorical framework built from
-  7 axioms (K0&ndash;K6) on 5 generators (&alpha;, &pi;, &gamma;, &eta;, &omega;)
-  with a single primitive iterator &rho;. All mathematical structures are built
-  from scratch; Mathlib is used for proof tactics only.
-</p>
-<p>
-  Companion to the 7-book
-  <a href="https://panta-rhei.site">Panta Rhei</a> series
-  by Thorsten Fuchs and Anna-Sophie Fuchs (2nd Edition, 2026).
-</p>
+  <div class="gw-body">
+    <p>TauLib is the Lean 4 formalization layer of the <a href="https://panta-rhei.site">Panta Rhei Research Program</a>. It contains the formal kernel and proof-oriented implementation work that supports the program's public verification surface.</p>
+    <p>The full public documentation for TauLib now lives inside the <a href="https://panta-rhei.site/verify/taulib/">main research-program site</a>. The GitHub repository remains the live source and community-facing development home.</p>
+  </div>
 
-<hr>
+  <hr class="gw-divider">
 
-<h2>Library at a Glance</h2>
+  <div class="gw-section-label">Primary Resources</div>
+  <div class="gw-links">
 
-<table class="glance">
-  <tr><td><strong>Source files</strong></td>
-      <td class="num">450</td></tr>
-  <tr><td><strong>Lines of Lean 4</strong></td>
-      <td class="num">125,771</td></tr>
-  <tr><td><strong>Theorems &amp; lemmas</strong></td>
-      <td class="num">4,332</td></tr>
-  <tr><td><strong>Definitions</strong></td>
-      <td class="num">3,542</td></tr>
-  <tr><td><strong>Computations (<code>#eval</code>)</strong></td>
-      <td class="num">3,721</td></tr>
-  <tr><td><strong>Axioms</strong></td>
-      <td class="num">4 (3 conjectural, 1 structural)</td></tr>
-  <tr><td><strong>Sorry</strong></td>
-      <td class="num">3 (Book VII only)</td></tr>
-  <tr><td><strong>Mathlib usage</strong></td>
-      <td class="num">Tactics only &mdash; all math from scratch</td></tr>
-</table>
+    <a href="https://panta-rhei.site" class="gw-card" target="_top">
+      <svg class="gw-card-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="10" cy="10" r="8"/>
+        <path d="M10 2a13 13 0 000 16m0-16a13 13 0 010 16M2 10h16"/>
+      </svg>
+      <div>
+        <div class="gw-card-label">Panta Rhei Research Program</div>
+        <div class="gw-card-desc">Canonical site for the full research program, publications, and results</div>
+      </div>
+      <svg class="gw-card-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4l4 4-4 4"/></svg>
+    </a>
 
-<hr>
+    <a href="https://github.com/Panta-Rhei-Framework/taulib" class="gw-card" target="_top">
+      <svg class="gw-card-icon" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M10 0C4.48 0 0 4.48 0 10c0 4.42 2.87 8.17 6.84 9.49.5.09.68-.22.68-.48 0-.24-.01-1.02-.01-1.86-2.51.46-3.16-.61-3.36-1.17-.11-.3-.6-1.17-1.02-1.41-.35-.19-.85-.66-.01-.67.79-.01 1.35.72 1.54 1.02.9 1.51 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.99 1.02-2.69-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.03A9.56 9.56 0 0110 4.84c.85.004 1.7.115 2.5.337 1.91-1.3 2.75-1.03 2.75-1.03.55 1.38.2 2.4.1 2.65.64.7 1.02 1.59 1.02 2.69 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85 0 1.34-.01 2.42-.01 2.75 0 .27.18.58.69.48A10.01 10.01 0 0020 10c0-5.52-4.48-10-10-10z"/>
+      </svg>
+      <div>
+        <div class="gw-card-label">TauLib GitHub Repository</div>
+        <div class="gw-card-desc">Live source, development, and community contributions</div>
+      </div>
+      <svg class="gw-card-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4l4 4-4 4"/></svg>
+    </a>
 
-<h2>Browse by Book</h2>
+  </div>
 
-<table class="book-table">
-  <tr>
-    <th>Book</th>
-    <th class="num">Modules</th>
-    <th>Start Here</th>
-  </tr>
-  <tr>
-    <td><a href="TauLib/BookI.html"><span class="book-i">I</span> &mdash; Categorical Foundations</a></td>
-    <td class="num">94</td>
-    <td><a href="TauLib/BookI/Kernel/Signature.html">Kernel.Signature</a></td>
-  </tr>
-  <tr>
-    <td><a href="TauLib/BookII.html"><span class="book-ii">II</span> &mdash; Categorical Holomorphy</a></td>
-    <td class="num">65</td>
-    <td><a href="TauLib/BookII/Interior/Tau3Fibration.html">Interior.Tau3Fibration</a></td>
-  </tr>
-  <tr>
-    <td><a href="TauLib/BookIII.html"><span class="book-iii">III</span> &mdash; Categorical Spectrum</a></td>
-    <td class="num">70</td>
-    <td><a href="TauLib/BookIII/Enrichment/CanonicalLadder.html">Enrichment.CanonicalLadder</a></td>
-  </tr>
-  <tr>
-    <td><a href="TauLib/BookIV.html"><span class="book-iv">IV</span> &mdash; Categorical Microcosm</a></td>
-    <td class="num">89</td>
-    <td><a href="TauLib/BookIV/Sectors/SectorParameters.html">Sectors.SectorParameters</a></td>
-  </tr>
-  <tr>
-    <td><a href="TauLib/BookV.html"><span class="book-v">V</span> &mdash; Categorical Macrocosm</a></td>
-    <td class="num">80</td>
-    <td><a href="TauLib/BookV/Gravity/GravitationalConstant.html">Gravity.GravitationalConstant</a></td>
-  </tr>
-  <tr>
-    <td><a href="TauLib/BookVI.html"><span class="book-vi">VI</span> &mdash; Categorical Life</a></td>
-    <td class="num">30</td>
-    <td><a href="TauLib/BookVI/LifeCore/Distinction.html">LifeCore.Distinction</a></td>
-  </tr>
-  <tr>
-    <td><a href="TauLib/BookVII.html"><span class="book-vii">VII</span> &mdash; Categorical Metaphysics</a></td>
-    <td class="num">7</td>
-    <td><a href="TauLib/BookVII/Meta/Saturation.html">Meta.Saturation</a></td>
-  </tr>
-</table>
+  <div class="gw-section-label">Lean Ecosystem</div>
+  <div class="gw-links">
 
-<hr>
+    <a href="https://lean-lang.org" class="gw-card" target="_top">
+      <svg class="gw-card-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 17l6-14 6 14"/><path d="M6.5 11h7"/>
+      </svg>
+      <div>
+        <div class="gw-card-label">Lean Language</div>
+        <div class="gw-card-desc">Functional programming language and interactive theorem prover</div>
+      </div>
+      <svg class="gw-card-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4l4 4-4 4"/></svg>
+    </a>
 
-<h2>Reading Paths</h2>
+    <a href="https://leanprover-community.github.io/" class="gw-card" target="_top">
+      <svg class="gw-card-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 18v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1"/><circle cx="10" cy="7" r="4"/>
+      </svg>
+      <div>
+        <div class="gw-card-label">Lean Community</div>
+        <div class="gw-card-desc">Mathlib, documentation, and community resources</div>
+      </div>
+      <svg class="gw-card-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4l4 4-4 4"/></svg>
+    </a>
 
-<ul>
-  <li><strong>Mathematicians:</strong>
-    <a href="TauLib/BookI/Kernel/Signature.html">Signature</a> &rarr;
-    <a href="TauLib/BookI/Kernel/Axioms.html">Axioms</a> &rarr;
-    <a href="TauLib/BookI/Orbit/Rigidity.html">Rigidity</a> &rarr;
-    <a href="TauLib/BookI/Boundary/Iota.html">Iota</a> &rarr;
-    <a href="TauLib/BookII/CentralTheorem/CentralTheorem.html">Central Theorem</a>
-  </li>
-  <li><strong>Physicists:</strong>
-    <a href="TauLib/Tour/Physics.html">Tour.Physics</a> &rarr;
-    <a href="TauLib/BookIV/Electroweak/EWSynthesis.html">EWSynthesis</a> &rarr;
-    <a href="TauLib/BookV/Cosmology/CMBSpectrum.html">CMBSpectrum</a> &rarr;
-    <a href="TauLib/BookV/Astrophysics/RotationCurves.html">RotationCurves</a>
-  </li>
-  <li><strong>Lean users:</strong>
-    <a href="TauLib/Tour/Foundations.html">Tour.Foundations</a> &rarr;
-    <a href="TauLib/Tour/CentralTheorem.html">Tour.CentralTheorem</a> &rarr;
-    <a href="TauLib/Tour/Physics.html">Tour.Physics</a>
-  </li>
-  <li><strong>Philosophers:</strong>
-    <a href="TauLib/BookVII/Meta/Saturation.html">Saturation</a> &rarr;
-    <a href="TauLib/BookVII/Ethics/CIProof.html">CIProof</a> &rarr;
-    <a href="TauLib/BookVII/Final/Boundary.html">Boundary</a>
-  </li>
-</ul>
+  </div>
 
-<hr>
+  <hr class="gw-divider">
 
-<h2>Additional Resources</h2>
+  <div class="gw-section-label">Documentation</div>
+  <div class="gw-links">
 
-<ul>
-  <li><a href="stats.html">Statistics Dashboard</a> &mdash;
-      Per-book formalization coverage, scope breakdown, and registry metrics</li>
-  <li><a href="depgraph.html">Dependency Graph</a> &mdash;
-      Interactive visualization of the 4,500+ entry mathematical registry</li>
-  <li><a href="TauLib/BookI.html">Book I &mdash; Start of the Foundation</a> &mdash;
-      Where everything begins: 5 generators, 7 axioms, &rho; operator</li>
-</ul>
+    <a href="https://panta-rhei.site/verify/taulib/" class="gw-card" target="_top">
+      <svg class="gw-card-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M2 8h16"/><path d="M8 4v4"/>
+      </svg>
+      <div>
+        <div class="gw-card-label">Integrated TauLib Documentation</div>
+        <div class="gw-card-desc">Full documentation within the Panta Rhei research-program site</div>
+      </div>
+      <svg class="gw-card-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4l4 4-4 4"/></svg>
+    </a>
 
-<hr>
+  </div>
 
-<p class="footer-note">
-  Generated by <a href="https://github.com/leanprover/doc-gen4">doc-gen4</a>
-  with Panta Rhei theme
-</p>
+  <hr class="gw-divider">
+
+  <p class="gw-footer">
+    TauLib.site is maintained as a gateway page for the formalization layer and related resources.<br>
+    Generated documentation for individual modules remains accessible via the
+    <a href="TauLib.html">API reference</a>.
+  </p>
 
 </div>
