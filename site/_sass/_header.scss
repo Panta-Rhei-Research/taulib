@@ -291,8 +291,11 @@
     align-items: stretch;
     gap: 0;
     padding: calc(#{$header-h} + 30px) 20px 20px;
-    background: $bg;
-    border-left: 1px solid $divider;
+    background: rgba(246, 247, 243, 0.92);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border-left: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: $radius-lg 0 0 $radius-lg;
     box-shadow: -8px 0 32px rgba(22, 29, 37, 0.12);
     z-index: $z-drawer;
     visibility: hidden;
