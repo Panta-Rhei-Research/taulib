@@ -74,6 +74,32 @@
 
 .subnav-group {
   margin-bottom: 4px;
+
+  summary.subnav-title {
+    font-family: $font-ui;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: $text;
+    padding: 6px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    list-style: none;
+    transition: all $transition;
+
+    &::-webkit-details-marker { display: none; }
+    &:hover { color: $accent; background: $accent-soft; }
+  }
+
+  .subnav-links {
+    margin-left: 12px;
+    padding-left: 8px;
+    border-left: 1px solid $divider;
+
+    .nav-link {
+      font-size: 0.82rem;
+      padding: 5px 10px;
+    }
+  }
 }
 
 // Status metadata in left rail
@@ -83,7 +109,7 @@
   border-top: 1px solid $divider;
 }
 
-.status-item {
+.status-item, .rail-status-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -91,7 +117,7 @@
   padding: 4px 0;
   color: $text-muted;
 
-  .status-value {
+  .status-value, .rail-status-value {
     font-weight: 600;
     color: $text;
   }
