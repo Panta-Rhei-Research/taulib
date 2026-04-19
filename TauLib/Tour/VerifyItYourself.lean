@@ -137,13 +137,22 @@ the axiom asserts the infinite extension.
 #check spectral_corr_finite_5
   -- : spectral_correspondence_finite 5 = true   (by native_decide)
 
--- Axiom 4: Central Theorem Physical Form (Book IV, structural)
--- This one is structural: the mathematical proof lives in Book II (II.T15).
--- It marks the passage from pure mathematics to physics.
-#check central_theorem_physical
+-- NOTE (peer-review-fixes-v1, 2026-04-19):
+-- Previously this section listed a fourth axiom,
+--   `axiom central_theorem_physical : True`
+-- in BookIV.Arena.BoundaryHolonomy. That declaration has been
+-- retired: an axiom of type `True` is a no-op (True is inhabited
+-- by `trivial`) and a pre-publication simulated peer review
+-- identified it as a null commitment that inflated the axiom
+-- inventory without adding anything to the theory. The Central
+-- Theorem (physical form) is now a registry pointer from Book IV
+-- to Book II's `central_theorem_check` / `central_theorem_3_15`,
+-- not a separate axiom at E₁. The tour therefore audits THREE
+-- axioms, all conjectural, all in Book III.
 
--- No hidden axioms. No `axiom` declarations beyond these four.
+-- No hidden axioms. No `axiom` declarations beyond these three.
 -- Verify: $ grep "^axiom " lean4/TauLib/TauLib/**/*.lean
+-- Expected output: 3 matches, all in TauLib/BookIII/
 
 
 -- ============================================================

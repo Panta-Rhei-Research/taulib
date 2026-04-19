@@ -9,7 +9,10 @@ and the Central Theorem in its physical form.
 ## Registry Cross-References
 
 - [IV.D258] Yoneda self-image — `YonedaSelfImage`
-- [IV.T96]  Central Theorem — physical form — `central_theorem_physical`
+- [IV.T96]  Central Theorem — physical form — documentation pointer only;
+            the mathematical content is `TauLib.BookII.CentralTheorem.central_theorem_check`
+            (see Book II). The previously shipping `axiom central_theorem_physical : True`
+            was retired in `peer-review-fixes-v1` as a null declaration.
 - [IV.D259] Boundary character — `BoundaryCharacter`
 - [IV.D260] Bipolar decomposition — `BipolarDecomposition`
 - [IV.P152] Master constant is σ-fixed — `sigma_fixed`
@@ -59,11 +62,23 @@ def yoneda_self : YonedaSelfImage where
 /-- [IV.T96] Central Theorem (physical form): O(τ³) ≅ A_spec(L).
     The ring of holomorphic functions on τ³ equals the spectral
     algebra of the lemniscate boundary.
-    This is an axiom at E₁: the mathematical proof is in Book II (II.T15). -/
-axiom central_theorem_physical :
-  -- At the structural level: boundary completely determines interior
-  -- Formalized as: dim(boundary data) = dim(arena functions)
-  True  -- Structural axiom: boundary determines interior
+
+    RETIRED AS AN AXIOM (2026-04-19, peer-review-fixes-v1).
+    Pre-publication simulated peer review identified the previously
+    shipping declaration
+      `axiom central_theorem_physical : True`
+    as a null commitment: an axiom of type `True` is a no-op
+    (True is inhabited by `trivial`), so the declaration added
+    nothing to the theory while inflating the axiom count.
+
+    The architectural intent — pointing the reader of
+    BookIV.Arena at the mathematical Central Theorem proved in
+    Book II — is now carried by this documentation comment and by
+    the registry cross-reference `[IV.T96] → II.T40`. The finite
+    verification lives in `TauLib.BookII.CentralTheorem` via
+    `central_theorem_check` and `central_theorem_3_15`
+    (closed by `native_decide`). No formal declaration is made
+    here; the Book II content is not re-proved in Book IV. -/
 
 -- ============================================================
 -- BOUNDARY CHARACTER [IV.D259]

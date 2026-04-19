@@ -51,22 +51,19 @@ Interactive step-through tours for mathematicians, physicists, biologists, philo
 
 ## Known Limitations
 
-### Axioms (4 total)
+### Axioms (3 total, all conjectural)
 
 | Axiom | Location | Type | Finite check |
 |-------|----------|------|:------------:|
 | `bridge_functor_exists` | BookIII/Bridge | Conjectural | `bridge_functor_check` |
 | `grand_grh_adelic` | BookIII/Doors | Conjectural | `grand_grh_finite_check` |
 | `spectral_correspondence_O3` | BookIII/Doors | Conjectural | `spectral_correspondence_finite` |
-| `central_theorem_physical` | BookIV/Arena | Structural | Proof in Book II |
 
-### Sorry (3 total, Book VII only)
+Retired in `peer-review-fixes-v1` (2026-04-19): a fourth axiom `central_theorem_physical : True` in `BookIV/Arena/BoundaryHolonomy`. An axiom of type `True` is a no-op (True is inhabited by `trivial`); pre-publication simulated peer review identified it as a null commitment inflating the axiom count. The architectural intent survives as a documentation pointer from Book IV to Book II's `central_theorem_check`.
 
-| Sorry | Location | Classification |
-|-------|----------|----------------|
-| `no_forced_stance` | BookVII/Final | Methodological: self-referential boundary |
-| `omega_point_theorem` | BookVII/Logos | Methodological: non-diagrammatic content |
-| `science_faith_boundary` | BookVII/Logos | Methodological: commitment register content |
+### Sorry (0 total)
+
+All seven books of TauLib are now sorry-free. Books I–VI have been sorry-free since Wave 12; the three previously shipping Book VII `theorem X : True := sorry` declarations (`omega_point_theorem`, `science_faith_boundary`, `no_forced_stance`) were retired in `peer-review-fixes-v1` (2026-04-19) and replaced with `def` values of a `Commitment` structure in `BookVII/Meta/Commitment.lean`. Each `def` carries the commitment's `statement`, `warrant`, and `registry_id` as inspectable String data — readable via `#eval` — rather than as an unprovable `sorry` on a trivially-provable `True` goal.
 
 ### Lean version
 
