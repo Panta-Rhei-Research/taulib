@@ -50,120 +50,30 @@ jobs:
           echo "✓ Tactics-only Mathlib policy: no forbidden direct imports detected."
 
       - name: Enforce axiom and sorry count invariants
-        run: |
-          # NOTE: we deliberately do NOT use `set -euo pipefail` here.
-          # `grep` exits with code 1 when it finds no matches — which is the
-          # DESIRED state for the sorry count (we want zero sorry-closed
-          # declarations). Under `pipefail`, grep's exit-1 would propagate
-          # through `| wc -l` and kill this step before the `test` check
-          # could run, i.e. the CI assertion would self-destruct exactly
-          # when the library is in the correct state. The `|| true` after
-          # each grep absorbs that exit code safely.
-          EXPECTED_AXIOMS=3
-          EXPECTED_SORRY=0
-
-          # Count actual `axiom` declarations (line starts with `axiom ` at
-          # column 0). Docstring/comment prose mentioning "axiom" does not
-          # match this anchor.
-          AXIOMS=$(grep -r '^axiom ' TauLib/ --include='*.lean' 2>/dev/null | wc -l | tr -d ' ' || true)
-          AXIOMS=${AXIOMS:-0}
-
-          # Count actual sorry-closed declarations (robust multi-pass grep).
-          #
-          # STRATEGY: two-level grep approach to handle all known edge cases:
-          #   Pass 1 – permissive: match any line containing `sorry` as a
-          #            whole word (\bsorry\b) so we catch all of:
-          #              `:= sorry`           standard
-          #              `:= by sorry`        tactic block
-          #              trailing `sorry`     with or without whitespace
-          #              multiline bodies     where `:= sorry` lands on a
-          #                                   continuation line
-          #              prefixed keywords    protected/private/noncomputable
-          #              attributed decls     @[simp] theorem ... := sorry
-          #   Pass 2 – exclusion: drop lines whose sorry is not real code:
-          #            a) single-line comments: the `--` comment marker
-          #               appears BEFORE `sorry` on the same line
-          #               (pattern: chars before sorry contain `--`)
-          #            b) string literals: `sorry` enclosed in double-quotes
-          #            c) block-comment openers `/-` at the start of the
-          #               non-whitespace content on the line (catches /--
-          #               docstring lines; full block-comment body tracking
-          #               is not done in grep — see KNOWN LIMITATION below)
-          #
-          # KNOWN LIMITATION: multi-line block comments (`/- ... -/` spanning
-          # several lines) where an interior line contains `sorry` and does
-          # NOT also contain `/-` will still be counted. This is an
-          # acceptable false-positive: (a) TauLib does not use such comments
-          # in practice, and (b) the preferred long-term fix is to run
-          #   lake env lean --run scripts/check_no_sorry.lean
-          # which queries the kernel Environment and is exact. That script
-          # is planned for a future CI wave (tracked in peer-review-fixes).
-          SORRY_CANDIDATES=$( { grep -rnE '\bsorry\b' TauLib/ --include='*.lean' 2>/dev/null || true; } )
-          # Filter out non-code sorry occurrences using awk so that colons
-          # inside the content field (e.g. "comment: := sorry") don't confuse
-          # the field-splitting that a pure grep -v [^:]* approach would require.
-          # awk splits on ':' and reconstructs the content from field 3 onward,
-          # then applies three exclusions on the content only:
-          #   a) drop if '--' appears before 'sorry' (single-line comment)
-          #   b) drop if content matches "...sorry..." inside double-quotes
-          #   c) drop if non-whitespace content starts with /- (block comment)
-          SORRY_FILTER='{ content=""; for(i=3;i<=NF;i++) content=content (i==3?"":":") $i;
-            dp=index(content,"--"); sp=index(content,"sorry");
-            if(dp>0 && dp<sp) next;
-            if(content ~ /"[^"]*sorry[^"]*"/) next;
-            stripped=content; gsub(/^[ \t]*/,"",stripped);
-            if(stripped ~ /^\/\-/) next;
-            print $0 }'
-          SORRY=$(echo "$SORRY_CANDIDATES" | awk -F: "$SORRY_FILTER" | wc -l | tr -d ' ')
-          SORRY=${SORRY:-0}
-
-          echo "Expected: axioms=$EXPECTED_AXIOMS, sorry=$EXPECTED_SORRY"
-          echo "Actual:   axioms=$AXIOMS, sorry=$SORRY"
-
-          FAIL=0
-          if [ "$AXIOMS" != "$EXPECTED_AXIOMS" ]; then
-            echo "::error::Axiom count drift: expected $EXPECTED_AXIOMS, got $AXIOMS."
-            echo "::error::If this is an intentional change, update EXPECTED_AXIOMS in"
-            echo "::error::.github/workflows/lean-build.yml AND the corresponding claim in"
-            echo "::error::papers/taulib/main.tex (§7 + Appendix C) AND README.md."
-            echo "::error::Current axioms:"
-            grep -rn '^axiom ' TauLib/ --include='*.lean' 2>/dev/null || true
-            FAIL=1
-          fi
-          if [ "$SORRY" != "$EXPECTED_SORRY" ]; then
-            echo "::error::Sorry count drift: expected $EXPECTED_SORRY, got $SORRY."
-            echo "::error::TauLib is sorry-free in all seven books since peer-review-fixes-v1."
-            echo "::error::If a new sorry-closed declaration is intentional (e.g., a new"
-            echo "::error::Book VII Commitment is being introduced), first discuss via issue,"
-            echo "::error::then update EXPECTED_SORRY in this workflow and the paper's §8."
-            echo "::error::Current sorry candidates (after comment exclusion):"
-            echo "$SORRY_CANDIDATES" | awk -F: "$SORRY_FILTER" || true
-            FAIL=1
-          fi
-          if [ "$FAIL" = "1" ]; then
-            exit 1
-          fi
-          echo "✓ Axiom count: $AXIOMS (expected $EXPECTED_AXIOMS)"
-          echo "✓ Sorry count: $SORRY (expected $EXPECTED_SORRY)"
+        # Delegated to scripts/check_no_sorry.py, which correctly handles
+        # multi-line block comments, docstrings (/--, /-!), nested /- /- -/ -/,
+        # and string literals — the edge cases where a pure grep pipeline
+        # produces false positives because documentation prose quotes Lean
+        # code like `theorem X : True := sorry` inside a /-! -/ block.
+        # The Python checker strips all comments and string literals (with
+        # line numbers preserved) before counting `^\s*axiom\s+` and
+        # `\bsorry\b` matches, so prose never collides with code.
+        run: python3 scripts/check_no_sorry.py --root TauLib --expected-axioms 3 --expected-sorry 0
 
       - name: Report statistics
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          # Sorry count uses the same grep+awk strategy as the assertion step
-          # above so the summary table is always in sync with the merge-blocker.
-          # See the "Enforce axiom and sorry count invariants" step for full
-          # edge-case rationale and the known limitation on multi-line block
-          # comments.
-          SORRY_CANDIDATES=$( { grep -rnE '\bsorry\b' TauLib/ --include='*.lean' 2>/dev/null || true; } )
-          SORRY_FILTER='{ content=""; for(i=3;i<=NF;i++) content=content (i==3?"":":") $i;
-            dp=index(content,"--"); sp=index(content,"sorry");
-            if(dp>0 && dp<sp) next;
-            if(content ~ /"[^"]*sorry[^"]*"/) next;
-            stripped=content; gsub(/^[ \t]*/,"",stripped);
-            if(stripped ~ /^\/\-/) next;
-            print $0 }'
-          SORRY_COUNT=$(echo "$SORRY_CANDIDATES" | awk -F: "$SORRY_FILTER" | wc -l | tr -d ' ')
-          SORRY_COUNT=${SORRY_COUNT:-0}
+          # Use the same Python-based checker as the assertion step above,
+          # in --report-only mode so we get the exact counts (after comment
+          # and string stripping) for the summary table without re-triggering
+          # the merge-blocker logic. This keeps the summary and the assertion
+          # always in sync on the same source of truth.
+          COUNTS=$(python3 scripts/check_no_sorry.py --root TauLib \
+            --expected-axioms 3 --expected-sorry 0 --report-only | \
+            grep '^Actual:' | sed 's/Actual: *//')
+          # COUNTS is now of the form "axioms=N, sorry=M"
+          AXIOMS=$(echo "$COUNTS" | sed -n 's/.*axioms=\([0-9]*\).*/\1/p')
+          SORRY_COUNT=$(echo "$COUNTS" | sed -n 's/.*sorry=\([0-9]*\).*/\1/p')
 
           echo "## Build Statistics" >> $GITHUB_STEP_SUMMARY
           echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
@@ -171,4 +81,4 @@ jobs:
           echo "| Files | $(find TauLib -name '*.lean' | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
           echo "| Lines | $(find TauLib -name '*.lean' -exec cat {} + | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
           echo "| Sorry | $SORRY_COUNT |" >> $GITHUB_STEP_SUMMARY
-          echo "| Axioms | $(grep -r '^axiom ' TauLib/ --include='*.lean' | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Axioms | $AXIOMS |" >> $GITHUB_STEP_SUMMARY
