@@ -8,11 +8,11 @@ authors:
     orcid: ""
   - family-names: Fuchs
     given-names: Anna-Sophie
-repository-code: "https://github.com/panta-rhei-research/taulib"
-url: "https://panta-rhei.site"
+repository-code: "https://github.com/Panta-Rhei-Research/taulib"
+url: "https://taulib.site"
 license: Apache-2.0
 version: "2.0.0"
-date-released: "2026-04-12"
+date-released: "2026-04-19"
 keywords:
   - lean4
   - formalization
@@ -28,5 +28,8 @@ abstract: >-
   4,332 theorems and 3,721 live computations across foundations, complex
   analysis, spectral theory, quantum mechanics, gravity, cosmology, biology,
   and philosophy. All mathematical structures are built from scratch — Mathlib
-  is used for proof tactics only. Books I-VI contain zero sorry. Companion to
+  is used for proof tactics only. All seven books are sorry-free as of v2.0.0
+  (peer-review-fixes-v1, 2026-04-19); the three Book VII structural
+  commitments are encoded as `def` values of a `Commitment` structure rather
+  than as performative `theorem X : True := sorry` declarations. Companion to
   the 7-book Panta Rhei series (2nd Edition, 2026).

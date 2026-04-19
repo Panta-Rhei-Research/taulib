@@ -58,7 +58,7 @@ Companion to the 7-book [**Panta Rhei**](https://panta-rhei.site) series by Thor
 
 ```bash
 git clone https://github.com/Panta-Rhei-Research/taulib.git
-cd TauLib
+cd taulib
 lake build
 ```
 
@@ -307,7 +307,7 @@ If you use TauLib in academic work, please cite:
 ```bibtex
 @software{taulib2026,
   author    = {Fuchs, Thorsten and Fuchs, Anna-Sophie},
-  title     = {{TauLib}: Mechanized Formalization of Category $	au$},
+  title     = {{TauLib}: Mechanized Formalization of Category $\tau$},
   year      = {2026},
   version   = {2.0.0},
   url       = {https://github.com/Panta-Rhei-Research/taulib},

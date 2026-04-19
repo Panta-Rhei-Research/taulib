@@ -20,12 +20,15 @@ by Thorsten Fuchs and Anna-Sophie Fuchs (2nd Edition, 2026).
 - **Book IV** (Categorical Microcosm): 89 files — QM, particle spectrum, electroweak
 - **Book V** (Categorical Macrocosm): 80 files — Gravity, cosmology, dark sector
 - **Book VI** (Categorical Life): 30 files — Biology, consciousness
-- **Book VII** (Categorical Metaphysics): 7 files — Philosophy, ethics (3 sorry, methodological)
+- **Book VII** (Categorical Metaphysics): 7 files — Philosophy, ethics
+  (three structural commitments encoded as `def : Commitment`, not `sorry`;
+  see `TauLib/BookVII/Meta/Commitment.lean`)
 
 ## Key Metrics
 
 4,332 theorems · 3,542 definitions · 3,721 `#eval` computations
-4 axioms (3 conjectural, 1 structural) · 3 sorry (Book VII only) · 0 sorry in Books I–VI
+3 axioms (all conjectural, all Book III) · 0 sorry across all seven books
+(as of v2.0.0, peer-review-fixes-v1 merged 2026-04-19)
 -/
 
 -- ================================================================
