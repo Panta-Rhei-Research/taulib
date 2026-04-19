@@ -42,23 +42,35 @@ if [ -n "$GEMFILES" ]; then
 fi
 
 # ── 2. Forbidden-strings scan in staged DIFF (+ lines only) ──
-# Only scans added or modified lines, not removed ones.
+# Only scans added or modified lines, not removed ones. Uses awk
+# (instead of `grep '^+'` which some BSD greps reject) for the
+# +-line filter, then grep -F (fixed-string) for the needle match.
+#
+# Paths that LEGITIMATELY reference the forbidden strings (check
+# scripts, this hook itself) are excluded from the scan.
 echo "── Forbidden-strings scan in staged content ──"
-ADDED_LINES=$(git diff --cached --diff-filter=ACM -U0 | grep -E '^\+' | grep -v '^\+\+\+' || true)
-FORBIDDEN=(
-  "Panta-Rhei-Framework"
-  "/Users/thorfuchs/"
-)
-ANY_FORBIDDEN=0
-for needle in "${FORBIDDEN[@]}"; do
-  if printf '%s' "$ADDED_LINES" | grep -qF -- "$needle"; then
-    fail "forbidden string '$needle' appears in staged changes"
-    # Show which files
-    git diff --cached --diff-filter=ACM -U0 | grep -HF -- "$needle" | head -5 || true
-    ANY_FORBIDDEN=1
-  fi
-done
-[ "$ANY_FORBIDDEN" = "0" ] && pass "no forbidden strings in staged content"
+EXCLUDE_PATHS='^(\.githooks/|\.github/scripts/|atlas/)'
+
+# Get the list of staged files, excluding check scripts
+SCANNABLE=$(echo "$STAGED" | grep -vE "$EXCLUDE_PATHS" || true)
+if [ -z "$SCANNABLE" ]; then
+  pass "no scannable files (all staged paths are exception-listed)"
+else
+  ADDED_LINES=$(git diff --cached --diff-filter=ACM -U0 -- $SCANNABLE | awk '/^\+\+\+/ { next } /^\+/')
+  FORBIDDEN=(
+    "Panta-Rhei-Framework"
+    "/Users/thorfuchs/"
+  )
+  ANY_FORBIDDEN=0
+  for needle in "${FORBIDDEN[@]}"; do
+    if printf '%s\n' "$ADDED_LINES" | grep -qF -- "$needle" 2>/dev/null; then
+      fail "forbidden string '$needle' appears in staged changes"
+      printf '%s\n' "$ADDED_LINES" | grep -nF -- "$needle" | head -5 || true
+      ANY_FORBIDDEN=1
+    fi
+  done
+  [ "$ANY_FORBIDDEN" = "0" ] && pass "no forbidden strings in staged content"
+fi
 
 # ── 3. JSON / YAML syntax validation ────────────────────────
 JSON_FILES=$(echo "$STAGED" | grep -E '\.json$' || true)

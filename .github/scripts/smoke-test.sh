@@ -1,26 +1,36 @@
 #!/usr/bin/env bash
 # ============================================================
-# Post-deploy smoke test for https://taulib.site
+# Build-artifact smoke test for taulib.site
 # ============================================================
-# Fails loudly if any critical URL regresses or any expected
-# body content goes missing after a Pages deployment.
+# Runs AFTER `bundle exec jekyll build` + Pagefind + doc-gen4
+# extraction, BEFORE `upload-pages-artifact`. Validates the
+# built `_site/` tree directly — no CDN, no network, no
+# Cloudflare bot-protection false-positives.
 #
-# Invoked from .github/workflows/docs.yml after `Deploy to
-# GitHub Pages` completes. Runs in <60s total.
+# Catches:
+#   · missing assets referenced from head.html
+#   · missing doc-gen4 module pages (pipeline stall)
+#   · duplicate <title> / meta regressions (plugin collisions)
+#   · accent-color drift, deprecated-org refs, local-path leaks
+#   · empty / stubbed sitemap
+#
+# Usage:
+#   ./smoke-test.sh path/to/_site
 #
 # Exit codes:
 #   0 — all checks passed
 #   1 — one or more checks failed
 #   2 — usage error
-#
-# Local run:
-#   ./smoke-test.sh https://taulib.site
 # ============================================================
 
 set -u
 
-BASE="${1:-https://taulib.site}"
-CURL_OPTS=(--silent --show-error --max-time 10 --retry 5 --retry-delay 10 --retry-all-errors)
+SITE="${1:-site/_site}"
+if [ ! -d "$SITE" ]; then
+  echo "ERROR: $SITE is not a directory"
+  echo "Usage: $0 <path-to-_site>"
+  exit 2
+fi
 
 FAILED=0
 CHECK_COUNT=0
@@ -28,67 +38,82 @@ CHECK_COUNT=0
 pass() { echo "  ✓ $*"; CHECK_COUNT=$((CHECK_COUNT+1)); }
 fail() { echo "  ✗ $*"; CHECK_COUNT=$((CHECK_COUNT+1)); FAILED=$((FAILED+1)); }
 
-check_200() {
-  local path="$1"
-  local code
-  code=$(curl "${CURL_OPTS[@]}" -o /dev/null -w '%{http_code}' "${BASE}${path}" 2>/dev/null || echo "curl-error")
-  if [ "$code" = "200" ]; then
-    pass "HTTP 200  ${path}"
+check_file() {
+  local rel="$1"
+  if [ -f "$SITE$rel" ]; then
+    pass "exists  $rel"
   else
-    fail "HTTP ${code}  ${path}"
+    fail "MISSING $rel"
   fi
 }
 
-# body_check_contains <body-var-content> <needle> <label>
-body_check_contains() {
-  local body="$1"
-  local needle="$2"
-  local label="$3"
-  if printf '%s' "$body" | grep -qF -- "$needle"; then
-    pass "${label}"
-  else
-    fail "${label}"
-  fi
-}
-
-# body_check_count <body-var-content> <needle> <expected-count> <label>
-body_check_count() {
-  local body="$1"
-  local needle="$2"
-  local expected="$3"
-  local label="$4"
+check_dir_nonempty() {
+  local rel="$1" minfiles="$2"
   local count
-  count=$(printf '%s' "$body" | grep -cF -- "$needle")
+  if [ -d "$SITE$rel" ]; then
+    count=$(find "$SITE$rel" -type f | wc -l | tr -d ' ')
+    if [ "$count" -ge "$minfiles" ]; then
+      pass "populated  $rel  (${count} files, ≥${minfiles})"
+    else
+      fail "UNDERPOPULATED  $rel  (${count} files, expected ≥${minfiles})"
+    fi
+  else
+    fail "MISSING DIR  $rel"
+  fi
+}
+
+file_contains() {
+  local rel="$1" needle="$2" label="$3"
+  if [ ! -f "$SITE$rel" ]; then
+    fail "$label  (target file $rel missing)"
+    return
+  fi
+  if grep -qF -- "$needle" "$SITE$rel"; then
+    pass "$label"
+  else
+    fail "$label  ($rel missing '$needle')"
+  fi
+}
+
+file_count() {
+  local rel="$1" needle="$2" expected="$3" label="$4"
+  if [ ! -f "$SITE$rel" ]; then
+    fail "$label  (target file $rel missing)"
+    return
+  fi
+  local count
+  count=$(grep -cF -- "$needle" "$SITE$rel")
   if [ "$count" = "$expected" ]; then
-    pass "${label}  (count=${expected})"
+    pass "$label  (count=${expected})"
   else
-    fail "${label}  (expected ${expected}, got ${count})"
+    fail "$label  (expected ${expected}, got ${count})"
   fi
 }
 
-# body_check_absent <body-var-content> <needle> <label>
-body_check_absent() {
-  local body="$1"
-  local needle="$2"
-  local label="$3"
+file_absent() {
+  local rel="$1" needle="$2" label="$3"
+  if [ ! -f "$SITE$rel" ]; then
+    fail "$label  (target file $rel missing)"
+    return
+  fi
   local count
-  count=$(printf '%s' "$body" | grep -cF -- "$needle")
+  count=$(grep -cF -- "$needle" "$SITE$rel")
   if [ "$count" = "0" ]; then
-    pass "${label}"
+    pass "$label"
   else
-    fail "${label}  (found ${count} occurrence(s) — regression)"
+    fail "$label  (found ${count} occurrence(s) — regression)"
   fi
 }
 
 echo "═══════════════════════════════════════════════════════════"
-echo " Post-deploy smoke test against ${BASE}"
+echo " Build-artifact smoke test against ${SITE}/"
 echo "═══════════════════════════════════════════════════════════"
 echo ""
 
-echo "── HTTP 200 on every must-reach URL ───────────────────────"
-for path in \
-  "/" \
-  "/docs/" \
+echo "── Every expected file exists in _site/ ──────────────────"
+for f in \
+  "/index.html" \
+  "/docs/index.html" \
   "/robots.txt" \
   "/sitemap.xml" \
   "/assets/og-image.png" \
@@ -102,44 +127,35 @@ for path in \
   "/pagefind/pagefind-ui.js" \
   "/pagefind/pagefind-ui.css"
 do
-  check_200 "$path"
+  check_file "$f"
 done
 
 echo ""
-echo "── Fetching homepage body once for integrity checks ──────"
-HOME_BODY=$(curl "${CURL_OPTS[@]}" "${BASE}/" 2>/dev/null || echo "")
-if [ -z "$HOME_BODY" ]; then
-  fail "homepage fetch failed — aborting body checks"
-  echo "═══════════════════════════════════════════════════════════"
-  echo " ✗ ${FAILED} of ${CHECK_COUNT} checks FAILED"
-  exit 1
-fi
-echo "  (fetched ${#HOME_BODY} bytes)"
+echo "── Doc-gen4 pipeline output ──────────────────────────────"
+check_dir_nonempty "/docs" "400"
 
 echo ""
-echo "── Homepage body integrity ────────────────────────────────"
-body_check_count    "$HOME_BODY" "<title>"                              "1"  "single <title> (no jekyll-seo-tag duplicate)"
-body_check_contains "$HOME_BODY" 'name="theme-color"'                        "theme-color meta present"
-body_check_contains "$HOME_BODY" "#163e64"                                   "canonical navy #163e64 in head"
-body_check_contains "$HOME_BODY" "orcid.org/0009-0007-0718-1042"             "Thorsten ORCID in JSON-LD"
-body_check_contains "$HOME_BODY" "orcid.org/0009-0007-3495-7416"             "Anna-Sophie ORCID in JSON-LD"
-body_check_contains "$HOME_BODY" "https://taulib.site/assets/og-image.png"   "og:image absolute URL"
-body_check_contains "$HOME_BODY" "Panta-Rhei-Research/taulib"                "canonical GitHub org in links"
+echo "── Homepage integrity ────────────────────────────────────"
+file_count    "/index.html" "<title>"                                 "1"  "single <title> tag (no jekyll-seo-tag duplicate)"
+file_contains "/index.html" 'name="theme-color"'                           "theme-color meta present"
+file_contains "/index.html" "#163e64"                                      "canonical navy #163e64 in head"
+file_contains "/index.html" "orcid.org/0009-0007-0718-1042"                "Thorsten ORCID in JSON-LD"
+file_contains "/index.html" "orcid.org/0009-0007-3495-7416"                "Anna-Sophie ORCID in JSON-LD"
+file_contains "/index.html" "https://taulib.site/assets/og-image.png"      "og:image absolute URL"
+file_contains "/index.html" "Panta-Rhei-Research/taulib"                   "canonical GitHub org in links"
 
 echo ""
-echo "── Anti-regression checks (zero-occurrence) ──────────────"
-body_check_absent "$HOME_BODY" "Panta-Rhei-Framework"                   "no deprecated org references"
-body_check_absent "$HOME_BODY" "/Users/thorfuchs"                       "no local filesystem paths leaked"
-body_check_absent "$HOME_BODY" "#294b66"                                "no pre-migration accent color"
+echo "── Anti-regression (zero-occurrence) ─────────────────────"
+file_absent "/index.html" "Panta-Rhei-Framework"                     "no deprecated org references"
+file_absent "/index.html" "/Users/thorfuchs"                         "no local filesystem paths leaked"
+file_absent "/index.html" "#294b66"                                  "no pre-migration accent color"
 
 echo ""
 echo "── robots.txt + sitemap.xml integrity ────────────────────"
-ROBOTS=$(curl "${CURL_OPTS[@]}" "${BASE}/robots.txt" 2>/dev/null || echo "")
-body_check_contains "$ROBOTS" "Content-Signal"                "Content-Signal directive present"
-body_check_contains "$ROBOTS" "Sitemap: https://taulib.site"  "sitemap reference present"
+file_contains "/robots.txt" "Content-Signal"                "Content-Signal directive present"
+file_contains "/robots.txt" "Sitemap: https://taulib.site"  "sitemap reference present"
 
-SITEMAP=$(curl "${CURL_OPTS[@]}" "${BASE}/sitemap.xml" 2>/dev/null || echo "")
-loc_count=$(printf '%s' "$SITEMAP" | grep -c '<loc>' || true)
+loc_count=$(grep -c '<loc>' "$SITE/sitemap.xml" 2>/dev/null || echo "0")
 if [ "$loc_count" -ge 400 ]; then
   pass "sitemap has ${loc_count} URLs (expected ≥400 after doc-gen4 build)"
 else
