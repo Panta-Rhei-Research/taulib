@@ -60,6 +60,35 @@ jobs:
         # `\bsorry\b` matches, so prose never collides with code.
         run: python3 scripts/check_no_sorry.py --root TauLib --expected-axioms 3 --expected-sorry 0
 
+      # ===================================================================
+      # peer-review-fixes-v2 (2026-04-19): MACHINE-ATTESTED TCB PARTITION
+      # ===================================================================
+      # Round 2 of the pre-publication peer review noted that the site's
+      # /verify/tcb.md per-theorem TCB partition was author-attested, not
+      # machine-attested: the page named which theorems carry the
+      # `native_decide` extension, but nothing in CI was emitting a
+      # structured `#print axioms` artifact from Lean's own elaborator.
+      #
+      # This step closes the gap. It invokes the driver module
+      # `TauLib.Meta.PrintAxioms` (which has a `#print axioms` call on
+      # each of the eight headline theorems plus the three project
+      # axioms), parses the elaboration output, and emits:
+      #   - .github/workflows/output/print_axioms.json (machine-readable)
+      #   - docs/print_axioms_report.md (human-readable partition)
+      # The artifacts are uploaded by the subsequent step so they are
+      # downloadable from every CI run without committing back to main.
+      - name: Harvest per-theorem `#print axioms` report
+        run: python3 scripts/print_axioms_report.py
+
+      - name: Upload TCB classification artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: print-axioms-report
+          path: |
+            .github/workflows/output/print_axioms.json
+            docs/print_axioms_report.md
+          if-no-files-found: error
+
       - name: Report statistics
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
