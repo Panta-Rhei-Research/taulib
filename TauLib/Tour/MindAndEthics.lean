@@ -4,6 +4,8 @@ import TauLib.BookVII.Logos.Sector
 import TauLib.BookVII.Final.Boundary
 import TauLib.BookVII.Social.Ontology
 
+open Tau.BookVII.Meta.Registers
+
 /-!
 # Tour: Mind and Ethics
 
@@ -36,20 +38,20 @@ These are not metaphors. They are formally defined structures
 with proved orthogonality and completeness.
 -/
 
-#check @Tau.BookVII.Meta.Registers.EmpiricalRegister
-#check @Tau.BookVII.Meta.Registers.PracticalRegister
-#check @Tau.BookVII.Meta.Registers.DiagrammaticRegister
-#check @Tau.BookVII.Meta.Registers.CommitmentRegister
+#check @EmpiricalRegister
+#check @PracticalRegister
+#check @DiagrammaticRegister
+#check @CommitmentRegister
 
 -- Orthogonality: registers do not interfere
-#check @Tau.BookVII.Meta.Registers.register_orthogonality
+#check @register_orthogonality
 
 -- Completeness: four registers cover all of E₃
-#check @Tau.BookVII.Meta.Registers.register_completeness
+#check @register_completeness
 
 -- The 4+1 sector decomposition: 4 pure sectors + 1 Logos sector (D∩C)
-#check @Tau.BookVII.Meta.Registers.SectorDecomposition
-#check @Tau.BookVII.Meta.Registers.sector_decomposition
+#check @SectorDecomposition
+#check @sector_decomposition
 
 
 -- ============================================================
@@ -80,6 +82,7 @@ structure of τ.
 -- The crown theorem: CI is the unique minimal j-closed fixed point
 #check @Tau.BookVII.Ethics.CIProof.ci_j_closed_fixed_point
   -- VII.T35: Universality derived from geometry, not decree
+  -- Scope: VII.T35 is `τ-effective`; the universality claim is categorical, not moral-realist
 
 -- No moral conflicts at the CI level
 #check @Tau.BookVII.Ethics.CIProof.no_conflict
@@ -171,35 +174,50 @@ layers (E₀–E₃), and the Logos is the terminal sector of E₃.
 
 
 -- ============================================================
--- 6. THE THREE SORRY BOUNDARIES
+-- 6. THE THREE METHODOLOGICAL COMMITMENT-BOUNDARIES
 -- ============================================================
 
 /-
-TauLib has exactly 3 sorry statements, all in Book VII.
-Each marks a precise structural boundary where formal verification
-intentionally stops — not because it failed, but because crossing
-that boundary is the CONTENT of the theorem.
+TauLib has zero sorry across all seven books.
 
-The framework does not prove commitment. It proves that commitment
-is unprovable — and this is the deepest result.
+In Book VII, three `Commitment` values record structural commitments
+the framework explicitly declines to close via proof. Each carries
+`.statement`, `.warrant`, and `.registry_id` as inspectable string data.
+The framework does not prove commitment — it proves that commitment is
+unprovable, and encodes that structural fact in a form a reader can
+inspect, judge, and disagree with.
+
+**Historical note:** TauLib v2 encoded these boundaries as
+`theorem X : True := sorry`. Pre-publication peer review identified
+this as performative (True is provable by `trivial`; the sorry added
+drama but not content). `peer-review-fixes-v1` (2026-04-19, commit
+a2d3384) retired that encoding and replaced it with `def X : Commitment`
+values. The commit history preserves the transition; the philosophical
+content — that the boundary is real — is unchanged.
 -/
 
--- Boundary 1: No Forced Stance (VII.T47)
+-- Commitment 1: No Forced Stance (VII.T47)
 -- "No valid τ-derivation forces a Reg_C commitment."
--- To prove this would require a forced stance — contradicting itself.
+-- : Commitment   (.statement = "No forced stance"; .warrant = methodological; .registry_id = "VII.T47")
 #check @Tau.BookVII.Final.Boundary.no_forced_stance
+  -- Inspect the commitment live:
+  --   #eval no_forced_stance.statement    -- the claim in full
+  --   #eval no_forced_stance.warrant      -- the methodological warrant
+  --   #print axioms no_forced_stance      -- reports no axioms
 
--- Boundary 2: Omega-Point Theorem (VII.T46)
--- ω-content is non-diagrammatic by VII.T47. Formalization stops.
+-- Commitment 2: Omega-Point (VII.T46)
+-- ω-content is non-diagrammatic by design; Reg_D cannot reach it.
+-- : Commitment   (.registry_id = "VII.T46")
 #check @Tau.BookVII.Logos.Sector.omega_point_theorem
 
--- Boundary 3: Science-Faith Boundary (VII.P29)
--- Full four-register convergence requires Reg_C stance-stability.
+-- Commitment 3: Science-Faith Boundary (VII.P29)
+-- Full four-register convergence at the Logos sector requires Reg_C stance-stability.
+-- : Commitment   (.registry_id = "VII.P29")
 #check @Tau.BookVII.Logos.Sector.science_faith_boundary
 
--- These sorry statements are not gaps. They are the DESTINATION.
--- The boundary between proof and commitment is the series' final
--- structural result. The sorry ENACTS what the theorem STATES.
+-- The boundary between proof and commitment is now a STRUCTURAL RECORD,
+-- not a performative gap. A reader can inspect, judge, and disagree
+-- with the commitments. They cannot mistake them for formal proofs.
 
 
 -- ============================================================
@@ -225,7 +243,7 @@ force the reader's hand. Your freedom is a theorem.
 WHAT COMES NEXT
 
 • BookVII/Meta/Registers.lean      — Full 4-register formalization
-�� BookVII/Ethics/CIProof.lean      — Complete CI proof (22 theorems)
+• BookVII/Ethics/CIProof.lean      — Complete CI proof (22 theorems)
 • BookVII/Logos/Sector.lean        — Consciousness, free will, Logos
 • BookVII/Social/Ontology.lean     — Social ontology as sheaf theory
 • BookVII/Final/Boundary.lean      — The methodological boundary

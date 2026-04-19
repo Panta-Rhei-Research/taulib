@@ -73,44 +73,58 @@ that the framework earns from its own geometry (Book I, Part X).
 
 
 -- ============================================================
--- CLAIM 2: ZERO SORRY IN BOOKS I–VI
+-- CLAIM 2: ZERO SORRY ACROSS ALL SEVEN BOOKS
 -- ============================================================
 
 /-
 A `sorry` in Lean marks an unproven assertion — a gap in the proof.
-TauLib claims zero sorry across Books I through VI (435 modules,
-120,000+ lines). Book VII has exactly 3, all at the metaphysical
-boundary where formalization intentionally stops.
+TauLib claims zero sorry across all seven books (435 modules,
+120,000+ lines). This includes Book VII: the three statements that
+once occupied the metaphysical boundary are no longer encoded as
+`theorem X : True := sorry`. They are now `def` values of type
+`Commitment` — an inspectable structure carrying `statement`,
+`warrant`, and `registry_id` as string data.
+
+In TauLib v2 (pre-2026-04-19), these were encoded as
+`theorem X : True := sorry`; pre-publication simulated peer review
+identified this as performative (True is provable by `trivial`),
+and `peer-review-fixes-v1` replaced the encoding with `Commitment`
+`def` values carrying statement/warrant/registry_id as inspectable
+string data.
+
+The three structural commitments in Book VII (encoded as
+`def : Commitment`; see `TauLib.BookVII.Meta.Commitment` for the
+structure; the three commitment defs are in
+`TauLib.BookVII.Logos.Sector` and `TauLib.BookVII.Final.Boundary`):
 
 You can verify this yourself by running grep in your terminal.
-
-The three Book VII sorry are right here — inspect them:
+The three Book VII commitment defs are right here — inspect them:
 -/
 
--- Sorry 1: The No-Forced-Stance theorem (Book VII, Boundary.lean)
+-- Commitment 1: The No-Forced-Stance def (Book VII, Boundary.lean)
 -- The boundary between proof and commitment cannot itself be proved.
 #check no_forced_stance
-  -- : True   (sorry — methodological boundary)
+  -- : Commitment   (see peer-review-fixes-v1 retirement of the performative :=True:=sorry encoding)
 
--- Sorry 2: The Omega-Point theorem (Book VII, Sector.lean)
+-- Commitment 2: The Omega-Point def (Book VII, Sector.lean)
 -- ω-content transcends the Diagrammatic Register by design.
 #check omega_point_theorem
-  -- : True   (sorry — non-diagrammatic content)
+  -- : Commitment   (see peer-review-fixes-v1 retirement of the performative :=True:=sorry encoding)
 
--- Sorry 3: The Science-Faith Boundary (Book VII, Sector.lean)
+-- Commitment 3: The Science-Faith Boundary def (Book VII, Sector.lean)
 -- Four-register convergence at the Logos sector requires Reg_C.
 #check science_faith_boundary
-  -- : True   (sorry — commitment register content)
+  -- : Commitment   (see peer-review-fixes-v1 retirement of the performative :=True:=sorry encoding)
 
--- That is the complete list. 3 out of 450 modules. All methodological.
+-- That is the complete list. All seven books are sorry-free.
 
 
 -- ============================================================
--- CLAIM 3: FOUR AXIOMS, ALL TRANSPARENT
+-- CLAIM 3: THREE AXIOMS, ALL TRANSPARENT
 -- ============================================================
 
 /-
-TauLib uses exactly 4 axioms beyond Lean's kernel. Each is:
+TauLib uses exactly 3 axioms beyond Lean's kernel. Each is:
   (a) Explicitly documented
   (b) Preceded by a finite computational check that passes
   (c) Classified as conjectural or structural

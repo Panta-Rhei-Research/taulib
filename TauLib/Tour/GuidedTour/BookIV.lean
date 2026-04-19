@@ -18,6 +18,24 @@ open Tau.BookIV.Sectors Tau.BookIV.Electroweak
 This Lean module walks through the 7 structural hinges of Book IV —
 the volume where Category τ crosses into physics. Every prediction
 is derived from ι_τ = 2/(π + e) with zero free parameters.
+
+**What Lean proves in this tour:** arithmetic inequalities, data-type
+definitions, and data-consistency checks against the Physics-Ledger data
+file. The `#check` and `#eval` outputs verify that named constants and
+structures inhabit their declared types and that computed values match the
+stated numerics.
+
+**What Lean does NOT prove:** that the `τ-effective` formulas match
+physical reality, that three winding classes ARE three fermion generations,
+or that the α/m_e/G predictions hold to the stated ppm precision in
+experiment. The agreement with CODATA and PDG values is presented as an
+honest forward falsifier; the physical identification is defended in the
+Book IV monograph (relevant chapters). Readers following `#check` outputs
+will see theorems about `ℝ`/`Nat` arithmetic and typed data records; the
+physical interpretation is monograph content, not Lean-certified.
+
+**Scope key:** `τ-effective` = formula is self-consistent and computes the
+stated value. `monograph-level` = physical identification defended in text.
 -/
 
 -- ================================================================
@@ -98,8 +116,13 @@ Agreement: 7.7 ppm (leading), 0.025 ppm (with holonomy).
 -- ================================================================
 
 /-
-π₁(τ³) ≅ ℤ³ — three independent winding classes.
-Three generations are topological necessity, not postulate.
+The Lean formalization of `exactly_three_generations` proves
+`π₁(τ³) ≅ ℤ³`, which implies a 3-winding-class decomposition.
+The identification of these three winding classes with the three
+fermion generations (electron/muon/tau families) is monograph-level:
+it is defended in Book IV (IV.T10–T11) but is not itself a Lean theorem.
+The `τ-effective` content here is the topological count of three; the
+physical labeling is separate.
 -/
 
 #check exactly_three_generations
@@ -134,5 +157,8 @@ All 7 hinges of Book IV are machine-checked:
   H6: exactly_three_generations (count = 3)             ✓ (Topology)
   H7: ew_prediction_table (9 predictions, 0 params)    ✓ (Completion)
 
-Zero sorry. Zero free parameters. The physics compiles.
+Zero sorry. Zero free parameters. The arithmetic and structural identities
+compile. Physical identification with SM predictions is monograph-level
+and is defended in Book IV; the Lean content is the arithmetic and
+data-consistency layer.
 -/

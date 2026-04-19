@@ -97,6 +97,12 @@ open Tau.BookV.Astrophysics
 --   4. Zero-U(1)-holonomy modes are σ-eigenstates → Majorana
 
 #check c_tau_equals_sigma           -- True (definitional identification)
+-- NOTE: c_tau_equals_sigma is currently a `theorem X : True := trivial`
+-- structural marker (analogous to the retired Book VII pattern noted in Part 8).
+-- The full derivation lives in Book IV ch. X (MajoranaStructure). A future PR
+-- (peer-review-fixes-v2 or later) will re-encode this as either a full proof
+-- or a `Commitment`-style inspectable def. Acknowledged pending technical debt;
+-- the physical claim (σ = C_τ) is load-bearing at monograph level.
 #check sigma_is_charge_conjugation  -- ∀ z, chi_plus(σz) = chi_minus(z) ∧ ...
 
 -- All three neutrinos have zero U(1)-holonomy charge:
@@ -120,6 +126,12 @@ open Tau.BookV.Astrophysics
 -- Therefore Q_top = 0 and θ_QCD = 0 exactly.
 
 #check theta_qcd_zero_from_sa_i    -- True (structural θ_QCD = 0)
+-- NOTE: theta_qcd_zero_from_sa_i is currently a `theorem X : True := trivial`
+-- structural marker (analogous to the retired Book VII pattern noted in Part 8).
+-- The full derivation lives in Book IV ch. X (StrongCP). A future PR
+-- (peer-review-fixes-v2 or later) will re-encode this as either a full proof
+-- or a `Commitment`-style inspectable def. Acknowledged pending technical debt;
+-- the physical claim (θ_QCD = 0 from SA-i) is load-bearing at monograph level.
 #check sa_i_forbids_instantons     -- 1 % 3 ≠ 0 ∧ (-1) % 3 ≠ 0
 
 -- No axion needed. No Peccei-Quinn symmetry. No new fields.
@@ -200,16 +212,26 @@ open Tau.BookV.Astrophysics
 -- K5: Beacon non-successor: ω is never reached by iterating ρ
 -- K6: Object closure: everything is a generator or ρ-generated
 
--- sorry count across the entire library:
---   Books I-VI: 0 sorry
---   Book VII:   3 sorry (all methodological, in philosophy):
---     1. omega_point_theorem   — ω-content is non-diagrammatic by design
---     2. science_faith_boundary — full convergence involves ω
---     3. no_forced_stance       — self-referential undecidability
+-- AXIOMS (3 total, all conjectural, all Book III):
+--   1. bridge_functor_exists         — existence of the τ-bridge functor
+--   2. spectral_correspondence_O3    — spectral/algebraic correspondence on O(τ³)
+--   3. grand_grh_adelic              — adelic generalised Riemann hypothesis
+-- These are declared `axiom` in Lean and carry the `conjectural` scope label
+-- in the registry. All other results are proved from K0-K6 alone.
+
+-- SORRY COUNT: 0 across all seven books (as of peer-review-fixes-v1).
 --
--- These are flagged as *methodological boundaries*, not gaps.
--- They encode the philosophical position that certain ω-statements
--- are formally undecidable within the τ-framework itself.
+-- Historical note: In TauLib v2, the Book VII philosophical boundary
+-- conditions were encoded as performative `theorem X : True := sorry`
+-- declarations:
+--   • omega_point_theorem      • science_faith_boundary      • no_forced_stance
+-- Pre-publication peer review identified these as performative (`True` is
+-- provable by `trivial`), and peer-review-fixes-v1 retired the encoding.
+-- They are now `def X : Commitment` values in `TauLib.BookVII.Meta.Commitment`,
+-- with definitions in BookVII/Logos/Sector.lean and BookVII/Final/Boundary.lean.
+-- A reader #check-ing `no_forced_stance` at commit a2d3384 sees `: Commitment`,
+-- not `: True`. These defs remain load-bearing philosophical markers; they are
+-- just encoded honestly as inspectable data rather than discharged proof goals.
 
 -- ================================================================
 -- PART 9: DEEP DIVES

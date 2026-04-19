@@ -162,5 +162,5 @@ open Tau.Kernel Generator Tau.Orbit Tau.Denotation Tau.Boundary
 --
 -- Book VII: Ethics as categorical theorem (the Categorical Imperative)
 --
--- The entire 124,000-line library, 4,332 theorems, 0 sorry in Books I–VI,
+-- The entire 127,000-line library, 0 sorry across all seven books,
 -- traces back to these five generators and six axioms.

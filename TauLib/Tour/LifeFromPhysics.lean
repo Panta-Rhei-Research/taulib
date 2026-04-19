@@ -16,9 +16,11 @@ open Tau.BookVI.CrossLimit Tau.BookVI.SelfDesc Tau.BookVI.Distinction
 **Prerequisites**: Tour/Foundations.lean (for generators and enrichment)
 
 Book VI is the E₂ enrichment layer: life emerges from physics
-as a genuine structural extension, not a metaphor or analogy.
-The same 4+1 sector template that governs the four fundamental
-forces at E₁ governs the four kingdoms of life at E₂.
+as a structural extension (`τ-effective` in the registry).
+The same 4+1 sector template that organizes the four fundamental
+forces at E₁ provides the structural template for the four kingdoms
+of life at E₂ — the Lean-verifiable content is the sector structure;
+the taxonomic identification is monograph-level interpretation.
 
 This tour shows how τ bridges the gap between quantum mechanics
 and the genetic code — categorically, not reductively.
@@ -77,8 +79,11 @@ At E₂ (life), the SAME template decomposes into
   π''-fiber→ Closure      (Fungi: decomposition + nutrient cycling)
   mixed    → Consumer     (Animals: all of the above + predation)
 
-This is not analogy. It is the SAME mathematical template
-instantiated at a different enrichment level.
+This mapping is `τ-effective` in the registry (VI.D15–D20: life-sector
+definitions). It is a structural bridge at the E₂ enrichment level —
+the Lean-verifiable content is the sector structure itself; the
+identification with specific taxonomic kingdoms is monograph-level
+interpretation, not a categorical theorem of the framework.
 -/
 
 #check LifeSector

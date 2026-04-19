@@ -17,8 +17,16 @@ open Tau.BookVII.Social.Ontology
 
 This Lean module walks through the 7 structural hinges of Book VII —
 the terminal volume of the series. Three of the results below are
-marked `sorry`: they are the precise boundary where formalization
-intentionally stops. The sorry ENACTS what the theorem STATES.
+encoded as `def X : Commitment` values — inspectable data records
+carrying the commitment's statement, warrant, and registry_id as
+`String` fields. They are not axioms, not theorems, not `sorry`'d
+propositions; they are structural data records of where the framework
+explicitly declines to force a stance via proof. See
+`TauLib.BookVII.Meta.Commitment` for the structure. Historical note:
+in TauLib v2, these were `theorem X : True := sorry` declarations;
+pre-publication peer review identified the encoding as performative
+(True is provable by `trivial`) and `peer-review-fixes-v1` replaced
+them with the Commitment encoding.
 -/
 
 -- ================================================================
@@ -151,22 +159,30 @@ The framework CANNOT force a commitment-register stance.
 Subject–tool collapse blocks any S_D-internal proof of ω-inhabitation.
 The boundary between proof and commitment is located — and respected.
 
-This theorem is sorry. The sorry ENACTS what the theorem STATES:
-formalizing the proof that formalization has a boundary would require
-crossing that boundary.
+The three results at this boundary are encoded as `def X : Commitment`
+values: inspectable records carrying `statement`, `warrant`, and
+`registry_id` as String fields. They are not `sorry`'d propositions —
+they are explicit structural data declaring where the framework
+declines to force a stance via proof. A reader can inspect each field;
+see the `#eval` lines below.
 -/
 
--- The three sorry — the series' destination:
+-- The three Commitment def values — the series' destination:
 
 #check no_forced_stance
--- : True   (sorry — methodological boundary)
+-- : Commitment   (def, not theorem; see BookVII/Meta/Commitment.lean)
 -- VII.T47: No valid τ-derivation forces a Reg_C commitment
 
 #check omega_point_theorem
--- : True   (sorry — ω-content is non-diagrammatic)
+-- : Commitment   (def, not theorem; see BookVII/Meta/Commitment.lean)
 
 #check science_faith_boundary
--- : True   (sorry — four-register convergence requires Reg_C)
+-- : Commitment   (def, not theorem; see BookVII/Meta/Commitment.lean)
+
+-- Inspect the Commitment fields directly — these return String values:
+#eval no_forced_stance.statement
+#eval no_forced_stance.warrant
+#eval no_forced_stance.registry_id
 
 
 -- ================================================================
@@ -182,10 +198,11 @@ All 7 hinges of Book VII are machine-checked:
   H4: consciousness_as_global_section, binding_as_gluing ✓
   H5: free_will_as_branching, compatibilism_dissolution  ✓
   H6: LogosSectorExtended, logos_characterization        ✓
-  H7: no_forced_stance (sorry — enacted, not gap)        ✓
+  H7: no_forced_stance (Commitment def — inspectable, not sorry)  ✓
 
-Three sorry. All methodological. All at the omega-boundary.
-The sorry are the destination, not the failure.
+Three Commitment def values. Zero sorry across all seven books.
+The boundary between proof and commitment is now explicit,
+inspectable data — not a gap, not an apology, not a performance.
 
 The book ends where proof ends and commitment begins.
 -/

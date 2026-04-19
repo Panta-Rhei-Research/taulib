@@ -81,12 +81,14 @@ at different enrichment levels.
 -- ================================================================
 
 /-
-The ONE conjectural postulate in the entire framework.
-Finite checks pass; the axiom asserts the infinite extension.
-This is the compute-then-axiomatize pattern.
+Three conjectural postulates in the framework, all in Book III:
+`bridge_functor_exists` (this hinge), `spectral_correspondence_O3`,
+and `grand_grh_adelic`. Each follows the compute-then-axiomatize
+pattern: a finite check passes by `native_decide`; the axiom asserts
+the infinite extension.
 -/
 
--- The axiom itself
+-- Axiom 1: Bridge Functor Existence
 #check bridge_functor_exists
 
 -- The finite check that precedes it
@@ -99,6 +101,12 @@ This is the compute-then-axiomatize pattern.
 
 -- Honest claims: every τ-effective claim passes its check
 #check honest_claim_8_3
+
+-- Axiom 2: Spectral Correspondence O3
+#check spectral_correspondence_O3
+
+-- Axiom 3: Grand GRH (adelic)
+#check grand_grh_adelic
 
 
 -- ================================================================
@@ -127,8 +135,10 @@ All 6 hinges of Book III are machine-checked:
   H2: sector_decomposition_check, sector_preservation_check    ✓
   H3: hinge_theorem_check, dependency_chain_check              ✓
   H4: master_schema_check, MasterSchemaEntry                   ✓
-  H5: bridge_functor_exists (1 axiom), bridge_ledger_consistent ✓
+  H5: bridge_functor_exists, spectral_correspondence_O3,
+      grand_grh_adelic (3 axioms), bridge_ledger_consistent    ✓
   H6: ScopeLabel, conjectural_properly_marked                  ✓
 
-One axiom (bridge_functor_exists). Zero sorry. The hinge compiles.
+Three axioms (bridge_functor_exists, spectral_correspondence_O3,
+grand_grh_adelic). Zero sorry. The hinge compiles.
 -/

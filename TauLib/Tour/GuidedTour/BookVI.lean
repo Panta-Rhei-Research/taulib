@@ -18,6 +18,24 @@ open Tau.BookVI.Neural Tau.BookVI.CrossLimit
 This Lean module walks through the 7 structural hinges of Book VI —
 the volume where Category τ crosses from physics into biology.
 Two predicates. Seven hallmarks. One theorem.
+
+**Formalization status (as of commit `a2d3384`):** TauLib Book VI contains
+30 scaffolded Lean modules but 0 registry objects with completed proof
+derivations. This tour showcases the scaffolded definitions and their
+type signatures. The `#check` outputs confirm that the named structures
+inhabit the declared types; they do NOT constitute proofs of the
+monograph-level biological or cosmological claims. Full proof derivations
+are part of the next development wave. See `docs/FORMALIZATION_STATUS.md`
+for a per-book breakdown of formalization coverage.
+
+**Scope key used in this tour:**
+- `τ-effective` — a quantitative formula or structural identity that
+  compiles in Lean and is consistent with the τ-framework at the
+  numerical level.
+- `metaphorical` — an interpretation of a `τ-effective` result in
+  biological or philosophical terms. Such interpretations are defended
+  in the monograph (Book VI) and flagged in the registry; they are NOT
+  Lean-certified.
 -/
 
 -- ================================================================
@@ -120,9 +138,26 @@ Only the consumer sector generates consciousness.
 -- ================================================================
 
 /-
-The merger-directed net of BH ω-codes converges to ι_τ = 2/(π + e).
-Black holes satisfy all 7 hallmarks of life — formally, not metaphorically.
-The universe tends toward maximal aliveness.
+Hinge 7 formalizes a `CrossingLimitTheorem` — a Lean structure that
+records a numerical limit: the merger-directed net of BH ω-codes
+converges to ι_τ = 2/(π + e). The `#check` statements below confirm
+that `CrossingLimitTheorem`, `primorial_convergence`, and
+`universal_bh_alive` inhabit their declared types in the scaffolded
+module.
+
+**Scope note.** The numerical convergence result is `τ-effective`: the
+arithmetic is self-consistent and verifiable at the level of the Lean
+type-checker. The monograph-level interpretation — that this numerical
+limit makes black holes "alive in the same sense as organisms" — is
+labeled **`metaphorical`** in the framework's registry (see registry
+entry for `universal_bh_alive` in `registry/book6_registry.tsv`). The
+`universal_bh_alive` structure encodes the claim as a typed record; it
+does not constitute a Lean proof that black holes satisfy biological
+criteria for life, nor that "the universe tends toward maximal
+aliveness." Those interpretations are defended in Book VI and are
+intentionally outside the scope of what Lean can or should certify.
+
+The Lean structure itself is `τ-effective` at the numerical level only.
 -/
 
 #check CrossingLimitTheorem
@@ -136,15 +171,23 @@ The universe tends toward maximal aliveness.
 -- ================================================================
 
 /-
-All 7 hinges of Book VI are machine-checked:
+All 7 hinges of Book VI have type-checked scaffolded definitions:
 
-  H1: Distinction, SelfDescPredicate, life_requires_both    ✓
-  H2: canonical_distinction (5 conditions)                    ✓
-  H3: InternalEvaluator, selfdesc_closure_theorem             ✓
-  H4: Layer separation (typing discipline)                    ✓
-  H5: seven_hallmarks_complete (7/7 derived)                  ✓
-  H6: LifeSector, sector_count, generator_adequacy_e2         ✓
-  H7: crossing_limit_theorem, universal_bh_alive              ✓
+  H1: Distinction, SelfDescPredicate, life_requires_both    ✓ (τ-effective structure)
+  H2: canonical_distinction (5 conditions)                    ✓ (τ-effective structure)
+  H3: InternalEvaluator, selfdesc_closure_theorem             ✓ (τ-effective structure)
+  H4: Layer separation (typing discipline)                    ✓ (τ-effective structure)
+  H5: seven_hallmarks_complete (7/7 derived)                  ✓ (τ-effective structure)
+  H6: LifeSector, sector_count, generator_adequacy_e2         ✓ (τ-effective structure)
+  H7: crossing_limit_theorem, universal_bh_alive              ✓ (τ-effective, numerical level only)
 
-Zero sorry. Life compiles. The definition generates the hallmarks.
+Zero sorry. The scaffolded definitions compile and the types check.
+
+**What this summary means:** `✓` indicates that the named identifier
+type-checks in the scaffolded module. It does NOT mean that the
+monograph-level biological interpretations (e.g. "black holes are alive",
+"the universe maximizes aliveness") are Lean-proved. Those claims are
+`metaphorical` in the registry and are defended in the Book VI monograph.
+Proof derivations for all 7 hinges are part of the next formalization wave
+(see `docs/FORMALIZATION_STATUS.md`).
 -/
