@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <!--
+    TauLib social preview card — 1280×640
+    Mirrors the X/Twitter banner aesthetic:
+      - deep navy ground
+      - subtle constellation/network pattern
+      - large τ glyph anchored right
+      - clean Inter/system-stack typography
+  -->
+
+  <defs>
+    <!-- Background: vertical gradient from very dark navy at top to slightly
+         lighter at bottom, for subtle depth. -->
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#061221"/>
+      <stop offset="1" stop-color="#0b1f3a"/>
+    </linearGradient>
+
+    <!-- Radial glow behind the τ glyph -->
+    <radialGradient id="tauGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#5ba3d0" stop-opacity="0.35"/>
+      <stop offset="0.5" stop-color="#2c5a8c" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#0b1f3a" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Faint gradient along the bottom metrics strip -->
+    <linearGradient id="stripFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5ba3d0" stop-opacity="0.0"/>
+      <stop offset="0.15" stop-color="#5ba3d0" stop-opacity="0.45"/>
+      <stop offset="0.85" stop-color="#5ba3d0" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#5ba3d0" stop-opacity="0.0"/>
+    </linearGradient>
+
+    <!-- Subtle outer glow for the title text -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- ─── Background ─────────────────────────────────────── -->
+  <rect width="1280" height="640" fill="url(#bg)"/>
+
+  <!-- ─── Constellation / network pattern ───────────────────
+       Sparse dots + thin connecting lines, biased to the right
+       half so it feels like the τ is emerging from a network. -->
+  <g stroke="#2c4a6f" stroke-width="0.8" fill="none" opacity="0.55">
+    <line x1="820" y1="90"  x2="930" y2="150"/>
+    <line x1="930" y1="150" x2="1040" y2="120"/>
+    <line x1="1040" y1="120" x2="1180" y2="200"/>
+    <line x1="820" y1="90"  x2="780" y2="220"/>
+    <line x1="780" y1="220" x2="900" y2="300"/>
+    <line x1="900" y1="300" x2="1020" y2="260"/>
+    <line x1="1020" y1="260" x2="1140" y2="340"/>
+    <line x1="1140" y1="340" x2="1200" y2="450"/>
+    <line x1="1020" y1="260" x2="960" y2="400"/>
+    <line x1="960" y1="400" x2="1080" y2="480"/>
+    <line x1="1080" y1="480" x2="1200" y2="540"/>
+    <line x1="900" y1="300" x2="850" y2="460"/>
+    <line x1="850" y1="460" x2="960" y2="400"/>
+    <line x1="850" y1="460" x2="760" y2="540"/>
+    <line x1="760" y1="540" x2="880" y2="580"/>
+    <line x1="880" y1="580" x2="1080" y2="480"/>
+    <line x1="780" y1="220" x2="680" y2="160"/>
+    <line x1="680" y1="160" x2="560" y2="90"/>
+    <line x1="900" y1="300" x2="760" y2="540"/>
+  </g>
+  <g fill="#6c9dd0" opacity="0.85">
+    <circle cx="820" cy="90"   r="2.2"/>
+    <circle cx="930" cy="150"  r="1.8"/>
+    <circle cx="1040" cy="120" r="2.4"/>
+    <circle cx="1180" cy="200" r="1.6"/>
+    <circle cx="780" cy="220"  r="2.0"/>
+    <circle cx="900" cy="300"  r="2.6"/>
+    <circle cx="1020" cy="260" r="1.9"/>
+    <circle cx="1140" cy="340" r="2.1"/>
+    <circle cx="1200" cy="450" r="1.7"/>
+    <circle cx="960" cy="400"  r="2.3"/>
+    <circle cx="1080" cy="480" r="1.8"/>
+    <circle cx="1200" cy="540" r="2.0"/>
+    <circle cx="850" cy="460"  r="2.2"/>
+    <circle cx="760" cy="540"  r="1.9"/>
+    <circle cx="880" cy="580"  r="1.7"/>
+    <circle cx="680" cy="160"  r="1.6"/>
+    <circle cx="560" cy="90"   r="1.4" opacity="0.6"/>
+  </g>
+
+  <!-- ─── τ glyph (right side, anchor visual) ─────────────── -->
+  <!-- Glow -->
+  <ellipse cx="1000" cy="340" rx="340" ry="280" fill="url(#tauGlow)"/>
+  <!-- Glyph: serif τ in a white fill, monumental scale -->
+  <text x="1000" y="460"
+        font-family="'Playfair Display', 'Libre Caslon', Georgia, 'Times New Roman', serif"
+        font-weight="400"
+        font-size="460"
+        fill="#ffffff"
+        text-anchor="middle"
+        opacity="0.97">τ</text>
+
+  <!-- ─── Left content stack ─────────────────────────────── -->
+
+  <!-- Top eyebrow label -->
+  <text x="80" y="130"
+        font-family="'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-weight="600"
+        font-size="18"
+        fill="#5ba3d0"
+        letter-spacing="3">PANTA RHEI RESEARCH PROGRAM · LEAN 4</text>
+
+  <!-- Title: TauLib -->
+  <text x="80" y="240"
+        font-family="'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-weight="800"
+        font-size="108"
+        fill="#ffffff"
+        letter-spacing="-3"
+        filter="url(#softGlow)">TauLib</text>
+
+  <!-- Subtitle -->
+  <text x="82" y="298"
+        font-family="'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-weight="400"
+        font-style="italic"
+        font-size="30"
+        fill="#c9d9ec"
+        letter-spacing="0.5">Mechanized Formalization of Category τ</text>
+
+  <!-- Thin separator rule -->
+  <rect x="80" y="360" width="640" height="1.5" fill="url(#stripFade)"/>
+
+  <!-- Metrics row (stacked: label above, number below) -->
+  <g font-family="'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif">
+    <!-- 125,771 lines -->
+    <text x="80"  y="420" font-size="14" font-weight="600" fill="#7ea9cf" letter-spacing="2">LINES</text>
+    <text x="80"  y="462" font-size="36" font-weight="700" fill="#ffffff" letter-spacing="-0.5">125,771</text>
+
+    <!-- 4,332 theorems -->
+    <text x="240" y="420" font-size="14" font-weight="600" fill="#7ea9cf" letter-spacing="2">THEOREMS</text>
+    <text x="240" y="462" font-size="36" font-weight="700" fill="#ffffff" letter-spacing="-0.5">4,332</text>
+
+    <!-- 450 modules -->
+    <text x="380" y="420" font-size="14" font-weight="600" fill="#7ea9cf" letter-spacing="2">MODULES</text>
+    <text x="380" y="462" font-size="36" font-weight="700" fill="#ffffff" letter-spacing="-0.5">450</text>
+
+    <!-- 3 axioms -->
+    <text x="500" y="420" font-size="14" font-weight="600" fill="#7ea9cf" letter-spacing="2">AXIOMS</text>
+    <text x="500" y="462" font-size="36" font-weight="700" fill="#ffffff" letter-spacing="-0.5">3</text>
+
+    <!-- 0 sorry — uniform white to let the metrics row speak in one voice -->
+    <text x="580" y="420" font-size="14" font-weight="600" fill="#7ea9cf" letter-spacing="2">SORRY</text>
+    <text x="580" y="462" font-size="36" font-weight="700" fill="#ffffff" letter-spacing="-0.5">0</text>
+  </g>
+
+  <!-- Lower separator rule — echoes the one above the metrics,
+       frames the metrics row symmetrically and fills the dead zone
+       before the footer URLs. -->
+  <rect x="80" y="530" width="640" height="1.5" fill="url(#stripFade)"/>
+
+  <!-- Footer: URLs -->
+  <text x="80" y="585"
+        font-family="'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace"
+        font-weight="500"
+        font-size="18"
+        fill="#ffffff">taulib.site</text>
+  <text x="243" y="585"
+        font-family="'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace"
+        font-weight="400"
+        font-size="18"
+        fill="#6c9dd0">·</text>
+  <text x="263" y="585"
+        font-family="'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace"
+        font-weight="400"
+        font-size="18"
+        fill="#9bb6d3">github.com/Panta-Rhei-Research/taulib</text>
+
+</svg>
