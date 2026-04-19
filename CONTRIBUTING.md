@@ -1,41 +1,119 @@
 # Contributing to TauLib
 
-TauLib is the official formalization of Category &tau;, maintained by the authors of the [Panta Rhei](https://panta-rhei.site) book series. This document covers issue reporting, code style conventions, and citation guidelines.
+TauLib is the Lean 4 formalization of the [Panta Rhei Research Program](https://panta-rhei.site) — Category τ built from 7 axioms, 5 generators, and 1 operator, applied across mathematics, physics, biology, and metaphysics. As of April 2026, the project is solo-authored by Thorsten Fuchs, and this is the first time we are opening the door to community engagement.
+
+**External contributions are welcome.** If you have spotted a typo, a missed `simp` simplification, a broken link, or an outright error in a registry entry, please open a PR or issue. Larger changes start with a conversation — see below.
 
 ---
 
-## Reporting Issues
+## Types of Contributions
 
-If you find an error, have a question, or want to suggest an improvement:
+### Small PRs — merged liberally
 
-1. Open an issue at the [GitHub Issues](https://github.com/panta-rhei-research/taulib/issues) page
-2. Include the **module path** (e.g., `TauLib.BookIV.Electroweak.EWSynthesis`)
-3. Quote the specific **theorem or definition name** (e.g., `nine_ew_quantities`)
-4. Describe what you expected vs. what you found
-5. Include your Lean version (`lean --version`) and platform
+Open a PR directly. No issue required. Expect a review turnaround measured in days, not weeks.
 
-### Good issue examples
+- Typo fixes in docstrings, comments, and Markdown.
+- Docstring corrections and clarifications.
+- Tactic simplifications using `simp`, `omega`, `decide`, `ring`, `norm_num`, etc. — provided the kernel axiom count and `sorry` count do not change.
+- Registry bookkeeping: wrong registry ID cross-reference, missing `[Book.TypeIndex]` tag, mismatched scope label.
+- Broken links in docs and README.
+- CI hygiene: workflow fixes, `lake-manifest.json` updates, `lean-toolchain` bumps that keep the build green.
 
-- "Theorem `X` in module `Y` has a weaker conclusion than the corresponding Book IV result [IV.T140]"
-- "`#eval` at line 42 of `Z.lean` produces value V, but the book claims W"
-- "The dependency from `BookIII.Bridge` to `BookII.CentralTheorem` seems unnecessary"
+### Medium PRs — open an issue first
+
+Describe what you want to do in a short issue, get a nod, then open the PR. This keeps us from colliding on the same work.
+
+- New lemmas that support existing theorems.
+- Alternative proofs of existing theorems. Must not add axioms. Must keep the theorem statement intact.
+- doc-gen4 improvements: better navigation, cross-linking, tagging.
+- New `#eval` checks, especially where they tighten a compute-then-axiomatize pattern.
+
+### Large changes — open a discussion
+
+These are architectural. Use a GitHub issue labelled `discussion`, or raise it on Zulip once the thread is announced (see below).
+
+- Adding new axioms (the current count is 3, and any increase needs a registry entry and explicit sign-off).
+- Changing scope labels (`established`, `τ-effective`, `conjectural`, `metaphorical`).
+- Refactors inside `BookI/Kernel` — the K0–K6 axioms are load-bearing.
+- Proposals to merge `Mathlib` *content* modules (the project is tactics-only-Mathlib; see below).
 
 ---
 
-## Pull Requests
+## Out of Scope for PRs
 
-This repository is the **official release** of TauLib. We do not accept external pull requests on this repo.
+Maintainers will not accept these changes. They will fail CI, or get closed with a pointer here.
 
-If you want to:
-- **Experiment** &mdash; fork the repo and work freely under the Apache 2.0 license
-- **Contribute** &mdash; open a pull request or issue on the [TauLib repository](https://github.com/panta-rhei-research/taulib)
-- **Report fixes** &mdash; open an issue; we will credit you in the changelog
+- **Adding `sorry`.** CI enforces `sorry = 0` across Books I–VI and the current methodological count in Book VII. If you genuinely need a hole, declare a clearly-labelled `axiom` with (a) a docstring explaining why it is conjectural, (b) a compute-then-axiomatize finite check via `#eval` or `decide`, and (c) a registry entry marking it `conjectural`.
+- **Importing Mathlib content modules.** Anything under `Mathlib.Algebra.*`, `Mathlib.CategoryTheory.*`, `Mathlib.Order.*`, `Mathlib.Topology.*`, etc. is out. TauLib builds its mathematics from scratch on the K0–K6 kernel. Only `import Mathlib.Tactic` (and its sub-imports for specific tactics) is permitted. A CI grep-guard enforces this.
+- **Changing the K0–K6 kernel axioms** without prior discussion.
+- **Increasing the axiom count from 3** without a registry entry and a discussion thread.
 
 ---
 
-## Code Style
+## PR Conventions
 
-These conventions apply to all TauLib code and are recommended for forks.
+- **Branch from `main`.** Small PRs can be opened directly; medium and large changes should reference their issue.
+- **Commit messages:** imperative mood, short title (< 72 chars), body explaining the *why*. No emojis.
+- **DCO sign-off required.** End each commit with `Signed-off-by: Your Name <email>`. `git commit -s` does this automatically. There is no separate CLA.
+- **CI must be green:**
+  - `lake build` passes with zero errors and zero warnings you introduced.
+  - `scripts/check_no_sorry.py` reports `axioms=3, sorry=0`.
+  - The tactics-only Mathlib grep-guard passes.
+- **Registry updates:** if your PR touches a registry-tracked object (any declaration tagged `[Book.TypeIndex]`), update the matching row in `registry/bookN_registry.tsv` in the same PR.
+
+Small, focused PRs are easier to review and get merged faster. If a change grows beyond a few files, consider splitting it.
+
+---
+
+## Issues
+
+Use the [issue tracker](https://github.com/panta-rhei-research/taulib/issues) for:
+
+- Typos too large for a drive-by PR, or scattered across many files.
+- Factual errors in registry entries.
+- Proof-style feedback.
+- Questions about Panta Rhei's conventions (naming, scope tiers, kernel structure).
+- Feature requests.
+
+**Issue template:**
+
+- Module path (e.g. `TauLib.BookIV.Electroweak.EWSynthesis`).
+- Theorem or definition name (e.g. `nine_ew_quantities`).
+- Expected vs. actual behaviour, or the nature of the error.
+- Your `lean --version` output.
+- A minimal repro if the issue is a build or elaboration failure.
+
+---
+
+## Zulip and Longer Discussion
+
+Longer discussions, design questions, and help requests are best routed to the [leanprover-community Zulip](https://leanprover.zulipchat.com/). The project will open an announcement thread in `#new members` — **URL to be announced** once it lands. Until then, the GitHub issue tracker is the primary async channel.
+
+---
+
+## Licensing
+
+TauLib is licensed under Apache-2.0. See [LICENSE](LICENSE). There is no Contributor License Agreement — a DCO sign-off on each commit is sufficient.
+
+---
+
+## Code of Conduct
+
+We follow the Lean Community standards: https://leanprover-community.github.io/meta.html
+
+---
+
+## Maintainer Responsiveness
+
+- **Issues:** triaged within 7 calendar days.
+- **Small PRs:** reviewed within 14 days.
+- **Medium and large PRs, and substantive issues:** addressed publicly in the issue or PR thread, with a visible trace of the decision-making. If something is going to take longer than the standard window, the maintainer will say so in-thread.
+
+---
+
+## Code Style (Reference)
+
+The conventions below apply to all TauLib code. A contribution that respects them will move faster through review.
 
 ### Namespaces
 
@@ -43,13 +121,13 @@ These conventions apply to all TauLib code and are recommended for forks.
 Tau.{Family}.{Module}
 ```
 
-Examples: `Tau.Kernel.Axioms`, `Tau.Boundary.SplitComplex`, `Tau.Electroweak.EWSynthesis`
+Examples: `Tau.Kernel.Axioms`, `Tau.Boundary.SplitComplex`, `Tau.Electroweak.EWSynthesis`.
 
-### Naming Conventions
+### Naming
 
 | Element | Convention | Example |
 |---------|-----------|---------|
-| Theorems | `lowercase_with_underscores` | `rigidity_non_omega` |
+| Theorems / lemmas | `lowercase_with_underscores` | `rigidity_non_omega` |
 | Definitions | `lowercase_with_underscores` | `iota_tau_float` |
 | Structures | `PascalCase` | `TauObj`, `SplitComplex` |
 | Inductive types | `PascalCase` | `Generator`, `OrbitRay` |
@@ -58,23 +136,22 @@ Examples: `Tau.Kernel.Axioms`, `Tau.Boundary.SplitComplex`, `Tau.Electroweak.EWS
 
 ### Module Docstrings
 
-Every `.lean` file **must** start with a `/-! -/` block containing:
+Every `.lean` file starts with a `/-! -/` block:
 
 ```lean
 /-!
 # TauLib.BookN.Family.Module
 
-Brief description of this module's mathematical content.
+Brief description of the module's mathematical content.
 
 ## Registry Cross-References
 
 - [N.DX] DefinitionName -- `lean_identifier`
-- [N.TX] TheoremName -- `lean_identifier`
+- [N.TX] TheoremName    -- `lean_identifier`
 
 ## Mathematical Content
 
-Detailed explanation of the module's purpose, key definitions,
-and how it fits into the overall structure.
+Why this module exists and how it fits into the larger structure.
 
 ## Ground Truth Sources
 
@@ -82,15 +159,9 @@ and how it fits into the overall structure.
 -/
 ```
 
-**Requirements:**
-- Title matches the Lean namespace
-- Registry cross-references use `[Book.TypeIndex]` format
-- Mathematical content explains the "why," not just the "what"
-- Ground truth sources link to the LaTeX book chapters
-
 ### Declaration Docstrings
 
-Every `def`, `theorem`, `lemma`, `structure`, `class`, and `inductive` should have a `/-- -/` docstring:
+Every `def`, `theorem`, `lemma`, `structure`, `class`, and `inductive` has a `/-- -/` docstring that mentions its registry ID where one exists:
 
 ```lean
 /-- The master constant ι_τ = 2/(π + e) ≈ 0.341304.
@@ -99,14 +170,12 @@ Every `def`, `theorem`, `lemma`, `structure`, `class`, and `inductive` should ha
 def iota_tau_float : Float := 2.0 / (Float.pi + Float.exp 1.0)
 ```
 
-### Registry ID Format
-
-Cross-references to the Panta Rhei books use `[Book.TypeIndex]`:
+### Registry IDs
 
 | Prefix | Meaning | Example |
 |--------|---------|---------|
-| `I.` &ndash; `VII.` | Book number | `IV.T140` = Book IV, Theorem 140 |
-| `K` | Axiom | `I.K1` = Axiom K1 |
+| `I.` – `VII.` | Book number | `IV.T140` |
+| `K` | Kernel axiom | `I.K1` |
 | `D` | Definition | `V.D317` |
 | `T` | Theorem | `IV.T66` |
 | `P` | Proposition | `V.P176` |
@@ -115,53 +184,30 @@ Cross-references to the Panta Rhei books use `[Book.TypeIndex]`:
 
 ### Scope Labels
 
-Every module and registry entry has a scope tier:
-
 | Tier | Meaning |
 |------|---------|
-| **established** | Classical mathematics, independently verified |
-| **&tau;-effective** | Quantitative prediction derived within the &tau; framework |
-| **conjectural** | Structural claim, computationally verified but not derived from axioms |
-| **metaphorical** | Philosophical/analogical extension |
+| **established** | Classical mathematics, independently verified. |
+| **τ-effective** | Quantitative prediction derived within the τ framework. |
+| **conjectural** | Structural claim, computationally verified but not derived from axioms. |
+| **metaphorical** | Philosophical or analogical extension. |
 
 See [docs/SCOPE_LABELS.md](docs/SCOPE_LABELS.md) for full details.
-
-### Dependency Policy
-
-| Rule | Rationale |
-|------|-----------|
-| Mathlib for tactics **only** | TauLib builds all math from scratch |
-| No `import Mathlib.Order.*`, `Mathlib.Algebra.*`, etc. | These would import external mathematical content |
-| `import Mathlib.Tactic` is the correct import | Brings in `simp`, `omega`, `ring`, `decide`, etc. |
-
-### Sorry Policy
-
-- **Books I&ndash;VI:** Zero sorry, zero exceptions
-- **Book VII:** Sorry permitted only for methodological boundary markers, typed `True := sorry`
-- Every sorry must have a docstring explaining why it exists
 
 ---
 
 ## Building
 
 ```bash
-# Full build
-lake build
-
-# Specific book
-lake build TauLib.BookI
-
-# Check Lean toolchain
-cat lean-toolchain
+lake build                    # full build
+lake build TauLib.BookI       # a single book
+cat lean-toolchain            # pinned Lean version
 ```
 
-Requires Lean 4 (see `lean-toolchain` for the pinned version). The first build fetches Mathlib and takes several minutes; subsequent builds are cached.
+The first build fetches Mathlib and takes several minutes; subsequent builds are cached.
 
 ---
 
 ## Citing TauLib
-
-If you use TauLib in academic work, please cite:
 
 ```bibtex
 @software{taulib2026,
@@ -170,15 +216,8 @@ If you use TauLib in academic work, please cite:
   year      = {2026},
   version   = {2.0.0},
   url       = {https://github.com/panta-rhei-research/taulib},
-  note      = {450 modules, 125{,}771 lines of Lean 4, 4{,}332 theorems},
   license   = {Apache-2.0}
 }
 ```
 
-Or use the [CITATION.cff](CITATION.cff) file (GitHub's "Cite this repository" feature).
-
----
-
-## License
-
-Apache 2.0. See [LICENSE](LICENSE).
+Or use the [CITATION.cff](CITATION.cff) file via GitHub's "Cite this repository" feature.
