@@ -149,6 +149,15 @@ jobs:
           chmod +x .github/scripts/smoke-test.sh
           .github/scripts/smoke-test.sh site/_site
 
+      # ── Dead-link audit (html-proofer, internal-only) ──────
+      # Checks every internal <a href>, <img src>, <script src>
+      # in the built _site/ tree (Jekyll shell + 460 doc-gen4
+      # module pages). Fails on any new broken internal link.
+      - name: Dead-link audit
+        run: |
+          chmod +x .github/scripts/link-check.sh
+          .github/scripts/link-check.sh site/_site
+
       # ── Report ──────────────────────────────────────────────
       - name: Build summary
         run: |
