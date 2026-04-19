@@ -15,8 +15,8 @@ This document provides a detailed inventory of TauLib's formalization coverage, 
 | Structures & types | 1,685 |
 | Computations (`#eval`) | 3,721 |
 | Examples | 350 |
-| Axioms | 4 |
-| Sorry | 3 |
+| Axioms | 3 |
+| Sorry | 0 |
 
 ---
 
@@ -27,10 +27,10 @@ This document provides a detailed inventory of TauLib's formalization coverage, 
 | I &mdash; Foundations | 94 | 20,554 | ~900 | ~700 | 0 | **0** |
 | II &mdash; Holomorphy | 65 | 18,069 | ~700 | ~500 | 0 | **0** |
 | III &mdash; Spectrum | 70 | 16,807 | ~600 | ~450 | 3 | **0** |
-| IV &mdash; Microcosm | 89 | 29,730 | ~1,000 | ~900 | 1 | **0** |
+| IV &mdash; Microcosm | 89 | 29,730 | ~1,000 | ~900 | 0 | **0** |
 | V &mdash; Macrocosm | 80 | 28,394 | ~900 | ~850 | 0 | **0** |
 | VI &mdash; Life | 30 | 5,221 | ~200 | ~200 | 0 | **0** |
-| VII &mdash; Metaphysics | 7 | 4,278 | ~120 | ~100 | 0 | 3 |
+| VII &mdash; Metaphysics | 7 | 4,278 | ~120 | ~100 | 0 | **0** |
 | Tour | 8 | ~1,850 | &mdash; | &mdash; | 0 | **0** |
 | **Total** | **450** | **125,771** | **~4,332** | **~3,721** | **3** | **0** |
 
@@ -117,11 +117,12 @@ Lean 4 kernel (trusted)
             ├── 7 axioms K0–K6 (K0 implicit in Lean's type system)
             │       └── 6 structural axioms → all of Book I
             │
-            ├── 4 explicit axioms (3 conjectural, 1 structural)
-            │       └── Isolated in Book III/IV; not needed for Books I–II
+            ├── 3 explicit axioms (all conjectural, all Book III)
+            │       └── Isolated in Book III; not needed for Books I–II
+            │       └── (4th axiom `central_theorem_physical` retired 2026-04-19 — was a no-op `axiom : True`)
             │
-            ├── 3 sorry (methodological, Book VII only)
-            │       └── All typed True := sorry; no mathematical dependency
+            ├── 0 sorry (all seven books sorry-free since peer-review-fixes-v1, 2026-04-19)
+            │       └── 3 Book VII structural commitments encoded as `def : Commitment`, not sorry
             │
             └── 4,332 theorems + 3,721 #eval computations
                     └── Verified by Lean's kernel
@@ -129,13 +130,13 @@ Lean 4 kernel (trusted)
 
 ---
 
-## What "Zero Sorry in Books I&ndash;VI" Means
+## What "Zero Sorry Across All Seven Books" Means
 
 This is the strongest claim a Lean formalization can make short of being fully axiom-free:
 
-1. **Every theorem** in Books I&ndash;VI has a complete proof term verified by Lean's kernel
+1. **Every theorem** in all seven books has a complete proof term verified by Lean's kernel
 2. **Every `#eval`** produces a concrete value at compile time
-3. **No `sorry`** appears anywhere in the proof terms of Books I&ndash;VI
-4. The 4 `axiom` declarations are explicit, auditable, and isolated
+3. **No `sorry`** appears anywhere in the proof terms of any book (`rg ':= sorry' TauLib/` returns zero matches)
+4. The 3 `axiom` declarations are explicit, auditable, and isolated (all Book III; the 4th axiom `central_theorem_physical` was retired in `peer-review-fixes-v1` on 2026-04-19 as a no-op)
 
-The 3 sorry in Book VII are philosophical design choices, not gaps in mathematical reasoning.
+The three Book VII structural commitments (`omega_point_theorem`, `science_faith_boundary`, `no_forced_stance`) are encoded as `def` values of a `Commitment` structure, not as unproven propositions — they are data, not sorry.

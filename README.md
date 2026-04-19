@@ -12,7 +12,7 @@
 
 ---
 
-TauLib is a **125,000-line Lean 4 formalization** of **Category &tau;** &mdash; a categorical framework built from 7 axioms (K0&ndash;K6) on 5 generators (&alpha;, &pi;, &gamma;, &eta;, &omega;) with a single primitive iterator &rho;. Starting from these axioms alone, TauLib derives arithmetic, analysis, geometry, physics, biology, and philosophy as earned consequences &mdash; all compiled and verified by Lean's kernel with **zero sorry in Books I&ndash;VI**.
+TauLib is a **125,000-line Lean 4 formalization** of **Category &tau;** &mdash; a categorical framework built from 7 axioms (K0&ndash;K6) on 5 generators (&alpha;, &pi;, &gamma;, &eta;, &omega;) with a single primitive iterator &rho;. Starting from these axioms alone, TauLib derives arithmetic, analysis, geometry, physics, biology, and philosophy as earned consequences &mdash; all compiled and verified by Lean's kernel with **zero sorry across all seven books**.
 
 Companion to the 7-book [**Panta Rhei**](https://panta-rhei.site) series by Thorsten Fuchs and Anna-Sophie Fuchs (2nd Edition, 2026).
 
@@ -30,9 +30,8 @@ Companion to the 7-book [**Panta Rhei**](https://panta-rhei.site) series by Thor
 | Instances | 28 |
 | Examples | 350 |
 | Computations (`#eval`) | 3,721 |
-| Axioms | 4 (3 conjectural, 1 structural) |
-| Sorry | 3 (methodological, Book VII only) |
-| Books I&ndash;VI sorry | **0** |
+| Axioms | 3 (all conjectural) |
+| Sorry | **0** |
 | Mathlib usage | Tactics only &mdash; all mathematics from scratch |
 
 ---
@@ -45,7 +44,7 @@ Companion to the 7-book [**Panta Rhei**](https://panta-rhei.site) series by Thor
 
 - **Physics predictions at ppm accuracy.** The library formalizes predictions for 9 electroweak quantities, CMB first peak position (+69 ppm), 20 galaxy rotation curves, baryon asymmetry, and more &mdash; all derived from a single constant with zero free parameters.
 
-- **Transparent foundations.** The 4 axioms and 3 sorry are explicitly documented, with precise classification (conjectural, structural, methodological). The conjectural axioms follow a "compute-then-axiomatize" pattern: finite checks pass computationally; the axiom asserts the infinite extension.
+- **Transparent foundations.** The 3 axioms (all conjectural, all Book III) and 0 sorry are explicitly documented, with precise classification. The conjectural axioms follow a "compute-then-axiomatize" pattern: finite checks pass computationally; the axiom asserts the infinite extension.
 
 ---
 
@@ -118,7 +117,7 @@ Open these files in VS Code with the Lean 4 extension and step through line by l
 | [`Tour/OneConstant.lean`](TauLib/Tour/OneConstant.lean) | 10 min | Full constants ledger: &alpha;, h, &ell;&#8321;, &omega;<sub>b</sub>, r &mdash; all from &iota;<sub>&tau;</sub> |
 | [`Tour/MillenniumProblems.lean`](TauLib/Tour/MillenniumProblems.lean) | 15 min | GRH, BSD, Poincar&eacute;, Hodge, Navier-Stokes through the &tau;-lens |
 | [`Tour/LifeFromPhysics.lean`](TauLib/Tour/LifeFromPhysics.lean) | 10 min | 4+1 life sectors, genetic code, neural architecture, crossing limit |
-| [`Tour/MindAndEthics.lean`](TauLib/Tour/MindAndEthics.lean) | 15 min | Categorical Imperative, consciousness, free will, Logos, the 3 sorry |
+| [`Tour/MindAndEthics.lean`](TauLib/Tour/MindAndEthics.lean) | 15 min | Categorical Imperative, consciousness, free will, Logos, the three structural commitments (Commitment defs replacing the v2 sorry encoding) |
 
 ### Pick Your Path
 

@@ -23,9 +23,8 @@ Companion to the 7-book **Panta Rhei** series by Thorsten Fuchs and Anna-Sophie 
 | Theorems | 4,332 |
 | Definitions | 3,542 |
 | Live computations | 3,721 |
-| Axioms | 4 |
-| Sorry (Book VII) | 3 |
-| Sorry (Books I-VI) | **0** |
+| Axioms | 3 |
+| Sorry | **0** |
 
 ---
 
@@ -41,7 +40,7 @@ The master constant iota_tau = 2/(pi + e) generates predictions for the fine-str
 
 ### Transparent foundations
 
-The 4 axioms and 3 sorry are explicitly documented with precise classification. The 3 conjectural axioms follow a compute-then-axiomatize pattern: finite checks pass computationally; the axiom asserts the infinite extension. The 3 sorry mark the precise boundary between formal proof and existential commitment.
+The 3 axioms (all conjectural, all Book III) and 0 sorry are explicitly documented with precise classification. The 3 conjectural axioms follow a compute-then-axiomatize pattern: finite checks pass computationally; the axiom asserts the infinite extension. The three Book VII structural commitments are encoded as `def` values of a `Commitment` structure (see `BookVII/Meta/Commitment.lean`), not as sorry — all seven books are sorry-free. **Note:** v2 shipped with 4 axioms and 3 sorry until `peer-review-fixes-v1` merged on 2026-04-19 (commit `a2d3384`).
 
 ### 8 guided tours
 
