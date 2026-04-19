@@ -254,7 +254,7 @@ Push to main
 - **`workflow_dispatch`** — can be triggered manually from the Actions tab
 - **One-time setup** — requires: Settings → Pages → Source → "GitHub Actions"
 
-**Pages URL:** `https://panta-rhei-framework.github.io/taulib/` (once enabled)
+**Pages URL:** `https://panta-rhei-research.github.io/taulib/` (once enabled)
 
 ### Sprint 11: README Integration
 

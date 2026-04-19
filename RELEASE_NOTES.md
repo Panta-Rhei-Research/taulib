@@ -81,7 +81,7 @@ This release targets Lean 4.28.0-rc1 (release candidate). Build compatibility wi
 curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh
 
 # Clone and build
-git clone https://github.com/panta-rhei-framework/taulib.git
+git clone https://github.com/panta-rhei-research/taulib.git
 cd TauLib
 lake build
 ```
@@ -98,7 +98,7 @@ First build downloads Mathlib (for tactics) and compiles ~1,256 lake jobs.
   title     = {{TauLib}: Mechanized Formalization of Category $\tau$},
   year      = {2026},
   version   = {1.0.0},
-  url       = {https://github.com/panta-rhei-framework/taulib},
+  url       = {https://github.com/panta-rhei-research/taulib},
   note      = {450 modules, 125,771 lines of Lean 4, 4,332 theorems},
   license   = {Apache-2.0}
 }

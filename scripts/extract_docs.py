@@ -109,7 +109,7 @@ permalink: /docs/{info['slug']}/
 right_rail:
   artifacts:
     - title: Source on GitHub
-      url: https://github.com/Panta-Rhei-Framework/taulib
+      url: https://github.com/Panta-Rhei-Research/taulib
       external: true
   meta:
     type: "API Documentation"

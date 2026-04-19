@@ -8,7 +8,7 @@ TauLib is the official formalization of Category &tau;, maintained by the author
 
 If you find an error, have a question, or want to suggest an improvement:
 
-1. Open an issue at the [GitHub Issues](https://github.com/panta-rhei-framework/taulib/issues) page
+1. Open an issue at the [GitHub Issues](https://github.com/panta-rhei-research/taulib/issues) page
 2. Include the **module path** (e.g., `TauLib.BookIV.Electroweak.EWSynthesis`)
 3. Quote the specific **theorem or definition name** (e.g., `nine_ew_quantities`)
 4. Describe what you expected vs. what you found
@@ -28,7 +28,7 @@ This repository is the **official release** of TauLib. We do not accept external
 
 If you want to:
 - **Experiment** &mdash; fork the repo and work freely under the Apache 2.0 license
-- **Contribute** &mdash; open a pull request or issue on the [TauLib repository](https://github.com/panta-rhei-framework/taulib)
+- **Contribute** &mdash; open a pull request or issue on the [TauLib repository](https://github.com/panta-rhei-research/taulib)
 - **Report fixes** &mdash; open an issue; we will credit you in the changelog
 
 ---
@@ -169,7 +169,7 @@ If you use TauLib in academic work, please cite:
   title     = {{TauLib}: Mechanized Formalization of Category $\tau$},
   year      = {2026},
   version   = {2.0.0},
-  url       = {https://github.com/panta-rhei-framework/taulib},
+  url       = {https://github.com/panta-rhei-research/taulib},
   note      = {450 modules, 125{,}771 lines of Lean 4, 4{,}332 theorems},
   license   = {Apache-2.0}
 }

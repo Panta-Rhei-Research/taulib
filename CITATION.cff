@@ -8,7 +8,7 @@ authors:
     orcid: ""
   - family-names: Fuchs
     given-names: Anna-Sophie
-repository-code: "https://github.com/panta-rhei-framework/taulib"
+repository-code: "https://github.com/panta-rhei-research/taulib"
 url: "https://panta-rhei.site"
 license: Apache-2.0
 version: "2.0.0"
