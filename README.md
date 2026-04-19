@@ -208,26 +208,31 @@ Formalized results with their Lean entry points:
 
 TauLib is maximally transparent about its foundations.
 
-### 4 Axioms
+### 3 Axioms (all conjectural, all Book III)
 
 | Axiom | Module | Classification | Pattern |
 |-------|--------|---------------|---------|
 | `bridge_functor_exists` | `BookIII/Bridge/BridgeAxiom` | Conjectural | Finite checks pass; axiom asserts &forall; n |
 | `spectral_correspondence_O3` | `BookIII/Doors/SpectralCorrespondence` | Conjectural | Finite checks pass; axiom asserts &forall; n |
 | `grand_grh_adelic` | `BookIII/Doors/GrandGRH` | Conjectural | Finite checks pass; axiom asserts &forall; n |
-| `central_theorem_physical` | `BookIV/Arena/BoundaryHolonomy` | Structural | References Central Theorem (Book II) |
 
-The 3 conjectural axioms follow a **"compute-then-axiomatize"** pattern: a decidable finite check is verified computationally via `native_decide`, then an axiom asserts the property holds universally. This makes the conjectural boundary maximally sharp and auditable.
+All three follow a **"compute-then-axiomatize"** pattern: a decidable finite check is verified computationally via `native_decide`, then an axiom asserts the property holds universally. This makes the conjectural boundary maximally sharp and auditable. Every theorem whose proof transitively invokes one of these axioms is a **conditional result**, conditional on the universal extension of the named finite-checked predicate. CI on every push to `main` asserts the count is exactly 3 via `test $(grep -r '^axiom ' TauLib/ --include='*.lean' | wc -l | tr -d ' ') = 3`.
 
-### 3 Sorry (Book VII only)
+**Retired in `peer-review-fixes-v1` (2026-04-19):** a fourth axiom, `central_theorem_physical : True` in `BookIV/Arena/BoundaryHolonomy`, was deleted. An `axiom` of type `True` is a no-op — `True` is inhabited by `trivial`, so the declaration added nothing to the theory while inflating the axiom count. The architectural intent (pointing the Book IV reader at the Book II Central Theorem) is now carried by documentation comments and the registry cross-reference `[IV.T96]`.
 
-| Theorem | Module | Assertion |
-|---------|--------|-----------|
-| `omega_point_theorem` | `BookVII/Logos/Sector` | `True := sorry` |
-| `science_faith_boundary` | `BookVII/Logos/Sector` | `True := sorry` |
-| `no_forced_stance` | `BookVII/Final/Boundary` | `True := sorry` |
+### 0 Sorry (target state, post `peer-review-fixes-v1`)
 
-All three are typed `True := sorry` &mdash; the goal is trivially `True`; the sorry marks a **philosophical boundary** where formalization itself is the content under discussion. They involve the &omega;-generator, which is non-diagrammatic by design. **Books I&ndash;VI contain zero sorry.**
+The v2 state of the library shipped with three `theorem X : True := sorry` declarations in Book VII — one each for `omega_point_theorem`, `science_faith_boundary`, and `no_forced_stance`. Pre-publication simulated peer review identified this encoding as performative: `True` is inhabited by `trivial`, so a `sorry` on a `True` goal is a marker with no formal content, and `no_forced_stance : True := sorry` was being justified by citation of registry `VII.T47` — which was itself `no_forced_stance`. Self-referential.
+
+The `peer-review-fixes-v1` PR retires all three by replacing them with `def` values of a `Commitment` structure (in `TauLib/BookVII/Meta/Commitment.lean`) carrying the commitment's `statement`, `warrant`, and `registry_id` as inspectable data:
+
+| Declaration | Module | Kind | Encodes |
+|---|---|---|---|
+| `omega_point_theorem` | `BookVII/Logos/Sector` | `def : Commitment` | [VII.T46] ω-Point commitment; warrant cites VII.T47 |
+| `science_faith_boundary` | `BookVII/Logos/Sector` | `def : Commitment` | [VII.P29] science-faith boundary; Reg_C stance-stability |
+| `no_forced_stance` | `BookVII/Final/Boundary` | `def : Commitment` | [VII.T47] No-Forced-Stance; constitutive of the framework |
+
+`#print axioms omega_point_theorem` reports no axioms (these are `def`s, not axioms or theorems). `rg ':= sorry' TauLib/` returns zero matches. CI on every push to `main` asserts the `sorry` count is exactly 0. **Books I&ndash;VI have been sorry-free since Wave 12; the v2 Book VII sorries were retired in `peer-review-fixes-v1`.**
 
 ---
 

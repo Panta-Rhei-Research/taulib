@@ -1,11 +1,16 @@
 import TauLib.BookVII.Meta.Registers
 import TauLib.BookVII.Meta.Saturation
+import TauLib.BookVII.Meta.Commitment
 
 /-!
 # TauLib.BookVII.Logos.Sector
 
 Mind & Consciousness (Part 9), Genesis (Part 11), and Logos sector S_L (Part 10).
-**R8-D enriched**: +17 entries (Part 9 + Part 11). 2 sorry remain (methodological boundary).
+**R8-D enriched**: +17 entries (Part 9 + Part 11).
+**peer-review-fixes-v1 (2026-04-19)**: the two previously shipping
+`theorem X : True := sorry` declarations for VII.T46 and VII.P29 are
+retired in favor of `def` values of type `Commitment` (see
+`TauLib.BookVII.Meta.Commitment`). Book VII is now sorry-free.
 
 ## Registry Cross-References
 
@@ -35,9 +40,9 @@ Mind & Consciousness (Part 9), Genesis (Part 11), and Logos sector S_L (Part 10)
 - [VII.Dxx] ω-Representative — `OmegaRepresentative`
 - [VII.Dxx] Mediator Fixed-Point Basin — `MediatorFixedPointBasin`
 - [VII.T45] Logos Sector Characterization — `logos_characterization`
-- [VII.T46] ω-Point Theorem — `omega_point_theorem` (sorry — methodological boundary)
+- [VII.T46] ω-Point Theorem — `omega_point_theorem` (Commitment def; see Meta.Commitment)
 - [VII.L16] Logos Rigidity — `logos_rigidity`
-- [VII.P29] Science-Faith Boundary — `science_faith_boundary` (sorry — methodological boundary)
+- [VII.P29] Science-Faith Boundary — `science_faith_boundary` (Commitment def; see Meta.Commitment)
 
 ## Cross-Book Authority
 
@@ -50,15 +55,22 @@ Mind & Consciousness (Part 9), Genesis (Part 11), and Logos sector S_L (Part 10)
 ## Methodological Boundary
 
 VII.T46 (ω-Point) and VII.P29 (Science-Faith Boundary) involve ω which is
-non-diagrammatic by VII.T47 (No Forced Stance). These are kept as sorry
-because their content transcends formal verification by framework principle:
-the Reg_D register cannot decide claims about ω.
+non-diagrammatic by VII.T47 (No Forced Stance). Their content transcends
+formal verification by framework principle: the Reg_D register cannot
+decide claims about ω. In the v2 encoding these were `theorem X : True
+:= sorry` declarations, which pre-publication peer review identified as
+performative (True is provable by `trivial`). They are now `def` values
+of type `Commitment` recording the commitment's statement, warrant, and
+registry identifier as inspectable data. See
+`TauLib.BookVII.Meta.Commitment` for the structure definition and the
+rationale.
 -/
 
 namespace Tau.BookVII.Logos.Sector
 
 open Tau.BookVII.Meta.Registers
 open Tau.BookVII.Meta.Saturation
+open Tau.BookVII.Meta.Commitment
 
 -- ============================================================
 -- PART 9: MIND & CONSCIOUSNESS (Ch 106–117)
@@ -423,15 +435,32 @@ theorem logos_characterization :
 -- ω-POINT THEOREM [VII.T46] — METHODOLOGICAL BOUNDARY
 -- ============================================================
 
-/-- [VII.T46] ω-Point Theorem (ch120): bridge functor B_{D→C} restricted
-    to S_L is an equivalence of categories (faithful + full + essentially
-    surjective). Outside S_L, the bridge fails.
+/-- [VII.T46] ω-Point commitment.
 
-    **sorry**: methodological boundary — involves ω which is non-diagrammatic
-    by VII.T47 (No Forced Stance). Full proof requires Reg_C content
-    that transcends formal Lean verification.
-    Structural parts enriched in Final.Boundary (bridge_equivalence_structural). -/
-theorem omega_point_theorem : True := sorry
+    Monograph-level claim (Book VII ch. 120): the bridge functor
+    B_{D→C} restricted to S_L is an equivalence of categories
+    (faithful + full + essentially surjective), and outside S_L
+    the bridge fails.
+
+    Retired from `theorem omega_point_theorem : True := sorry` in
+    peer-review-fixes-v1 (2026-04-19). Pre-publication peer review
+    identified the `True := sorry` encoding as performative: True
+    is provable by `trivial`, so the sorry was not proof debt but a
+    commitment marker with no formal content.
+
+    The structural parts of the commitment are formalized elsewhere
+    in `TauLib.BookVII.Final.Boundary` as
+    `bridge_equivalence_structural`. The commitment content — the
+    monograph-level claim that Book VII declines to close this via
+    proof because it involves ω which is non-diagrammatic by
+    VII.T47 — is recorded here as a `Commitment` data value. -/
+def omega_point_theorem : Commitment :=
+  { statement := "The bridge functor B_{D→C} restricted to S_L is " ++
+                 "an equivalence of categories; outside S_L, the bridge fails"
+    warrant := "Non-diagrammatic by VII.T47 (No Forced Stance); " ++
+               "full proof would require Reg_C content that transcends " ++
+               "formal Lean verification by framework principle"
+    registry_id := "VII.T46" }
 
 -- ============================================================
 -- LOGOS RIGIDITY [VII.L16]
@@ -461,14 +490,29 @@ theorem logos_rigidity :
 -- SCIENCE-FAITH BOUNDARY [VII.P29] — METHODOLOGICAL BOUNDARY
 -- ============================================================
 
-/-- [VII.P29] Four-Register Convergence at S_L (ch121). For φ ∈ S_L,
-    all four readout functors agree: Reg_E(φ) ~ Reg_P(φ) ~ Reg_D(φ) ~ Reg_C(φ).
+/-- [VII.P29] Science-Faith-Boundary commitment.
 
-    **sorry**: methodological boundary — full convergence claim involves
-    ω-content and Reg_C stance-stability that transcends formal verification.
-    The D-C coincidence is verified; E and P convergence requires the
-    full register convergence theorem which involves non-diagrammatic content.
-    Structural parts enriched in Final.Boundary (four_register_convergence_structural). -/
-theorem science_faith_boundary : True := sorry
+    Monograph-level claim (Book VII ch. 121): for φ ∈ S_L, all
+    four readout functors agree —
+    Reg_E(φ) ~ Reg_P(φ) ~ Reg_D(φ) ~ Reg_C(φ).
+
+    Retired from `theorem science_faith_boundary : True := sorry`
+    in peer-review-fixes-v1 (2026-04-19) for the same reason as
+    `omega_point_theorem` above: `True := sorry` is a performative
+    no-op encoding.
+
+    The D-C coincidence is verified elsewhere in Book VII's
+    structural proofs; the E and P convergence requires
+    Reg_C stance-stability that transcends formal verification
+    by framework principle. Structural parts are in
+    `TauLib.BookVII.Final.Boundary` as
+    `four_register_convergence_structural`; the commitment
+    content is recorded here as a `Commitment` data value. -/
+def science_faith_boundary : Commitment :=
+  { statement := "For φ ∈ S_L, all four readout functors agree: " ++
+                 "Reg_E(φ) ~ Reg_P(φ) ~ Reg_D(φ) ~ Reg_C(φ)"
+    warrant := "Reg_C stance-stability transcends the structural " ++
+               "predicate layer; warrant per VII.T47 (No Forced Stance)"
+    registry_id := "VII.P29" }
 
 end Tau.BookVII.Logos.Sector

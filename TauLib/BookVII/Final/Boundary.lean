@@ -1,4 +1,5 @@
 import TauLib.BookVII.Logos.Sector
+import TauLib.BookVII.Meta.Commitment
 
 /-!
 # TauLib.BookVII.Final.Boundary
@@ -26,16 +27,24 @@ Subject-Tool Collapse, and Lemniscate Closure.
 
 ## Methodological Boundary
 
-VII.T46 (Bridge Equivalence) and VII.P29 (Four-Register Convergence) involve
-ω which is non-diagrammatic by VII.T47 (No Forced Stance). The structural
-parts are verified; the ω-content sorry stubs are methodological.
-VII.T47 (No Forced Stance) is itself a methodological boundary theorem.
+VII.T46 (Bridge Equivalence), VII.P29 (Four-Register Convergence), and
+VII.T47 (No Forced Stance) are methodological-commitment points of Book VII.
+Pre-publication simulated peer review (peer-review-fixes-v1, 2026-04-19)
+retired the previously shipping `theorem X : True := sorry` encoding
+for these three points — an axiom of type `True` is provable by
+`trivial`, so the `sorry` added no formal content — and replaced it
+with `def` values of type `Commitment` (see
+`TauLib.BookVII.Meta.Commitment`). The structural parts of each
+commitment point are still verified as `structure` + `theorem`
+declarations below; only the performative `sorry`-closed theorems
+were removed.
 -/
 
 namespace Tau.BookVII.Final.Boundary
 
 open Tau.BookVII.Meta.Registers
 open Tau.BookVII.Meta.Saturation
+open Tau.BookVII.Meta.Commitment
 
 -- ============================================================
 -- D→C BRIDGE FUNCTOR [VII.D87]
@@ -163,11 +172,16 @@ theorem subject_tool_check :
     Three claims:
     (1) ω is not NF-addressable in the standard sense (closure point)
     (2) Subject-Tool Collapse at S_L prevents external standpoint
-    (3) BWF excludes unbounded witness for ω-claims
+    (3) BWF excludes unbounded ω-witness
 
-    **sorry**: methodological boundary — the theorem itself establishes
+    **Methodological-commitment point**: the theorem establishes
     the boundary of formal verification. It cannot be formally proved
-    because proving it would require the very standpoint it denies. -/
+    because proving it would require the very standpoint it denies.
+    The structural content is formalized below as
+    `no_forced_stance_structure` and `no_forced_stance_structural`;
+    the commitment content (the claim that the framework does not
+    force a stance here) is recorded as a `Commitment` data value
+    `no_forced_stance`, NOT as a `theorem : True := sorry`. -/
 structure NoForcedStanceStructure where
   /-- ω not standardly NF-addressable. -/
   omega_non_standard : Bool := true
@@ -185,7 +199,24 @@ theorem no_forced_stance_structural :
     no_forced_stance_structure.bwf_excludes = true :=
   ⟨rfl, rfl, rfl⟩
 
--- The sorry captures the self-referential undecidability
-theorem no_forced_stance : True := sorry
+/-- [VII.T47] No-Forced-Stance commitment.
+
+    Retired from `theorem no_forced_stance : True := sorry`
+    in peer-review-fixes-v1 (2026-04-19). Pre-publication peer
+    review identified the `True := sorry` encoding as performative
+    (True is provable by `trivial`) and self-referential (the
+    surrounding docstring cited VII.T47 to justify leaving VII.T47
+    as a sorry — which IS this declaration).
+
+    The commitment is now data, not an unproven proposition.
+    A reader can `#eval no_forced_stance.statement` to inspect
+    what is being committed to and `#eval no_forced_stance.warrant`
+    to inspect why. `#print axioms no_forced_stance` reports no
+    axioms (it is a `def`). -/
+def no_forced_stance : Commitment :=
+  { statement := "The structural framework does not force a stance here"
+    warrant := "Constitutive of the framework; see Book VII ch. 123 — " ++
+               "proving this would require the very standpoint it denies"
+    registry_id := "VII.T47" }
 
 end Tau.BookVII.Final.Boundary
