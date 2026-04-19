@@ -59,26 +59,36 @@ def yoneda_self : YonedaSelfImage where
 -- CENTRAL THEOREM — PHYSICAL FORM [IV.T96]
 -- ============================================================
 
-/-- [IV.T96] Central Theorem (physical form): O(τ³) ≅ A_spec(L).
-    The ring of holomorphic functions on τ³ equals the spectral
-    algebra of the lemniscate boundary.
+/- [IV.T96] Central Theorem (physical form): O(τ³) ≅ A_spec(L).
 
-    RETIRED AS AN AXIOM (2026-04-19, peer-review-fixes-v1).
-    Pre-publication simulated peer review identified the previously
-    shipping declaration
-      `axiom central_theorem_physical : True`
-    as a null commitment: an axiom of type `True` is a no-op
-    (True is inhabited by `trivial`), so the declaration added
-    nothing to the theory while inflating the axiom count.
+   The ring of holomorphic functions on τ³ equals the spectral
+   algebra of the lemniscate boundary.
 
-    The architectural intent — pointing the reader of
-    BookIV.Arena at the mathematical Central Theorem proved in
-    Book II — is now carried by this documentation comment and by
-    the registry cross-reference `[IV.T96] → II.T40`. The finite
-    verification lives in `TauLib.BookII.CentralTheorem` via
-    `central_theorem_check` and `central_theorem_3_15`
-    (closed by `native_decide`). No formal declaration is made
-    here; the Book II content is not re-proved in Book IV. -/
+   RETIRED AS AN AXIOM (2026-04-19, peer-review-fixes-v1).
+   Pre-publication simulated peer review identified the previously
+   shipping declaration
+
+     axiom central_theorem_physical : True
+
+   as a null commitment: an axiom of type True is a no-op
+   (True is inhabited by `trivial`), so the declaration added
+   nothing to the theory while inflating the axiom count.
+
+   The architectural intent — pointing the reader of
+   BookIV.Arena at the mathematical Central Theorem proved in
+   Book II — is now carried by this regular block comment and by
+   the registry cross-reference [IV.T96] → II.T40. The finite
+   verification lives in TauLib.BookII.CentralTheorem via
+   `central_theorem_check` and `central_theorem_3_15` (closed by
+   `native_decide`). No formal declaration is made here; the
+   Book II content is not re-proved in Book IV.
+
+   Note on Lean 4 comment syntax: this is a /- ... -/ block comment
+   (no attachment to any declaration), not a /-- ... -/ docstring
+   (which would need a following declaration to attach to). The
+   earlier peer-review-fixes-v1 commit cc9c20c accidentally used a
+   docstring here, which was fixed in a follow-up commit after CI
+   flagged the orphaned-docstring parse error. -/
 
 -- ============================================================
 -- BOUNDARY CHARACTER [IV.D259]
