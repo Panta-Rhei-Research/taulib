@@ -68,13 +68,53 @@ jobs:
           AXIOMS=$(grep -r '^axiom ' TauLib/ --include='*.lean' 2>/dev/null | wc -l | tr -d ' ' || true)
           AXIOMS=${AXIOMS:-0}
 
-          # Count actual sorry-closed declarations only. Pattern: line
-          # begins with a declaration keyword followed by `:= sorry` at
-          # line end. This avoids false-positives on docstring prose that
-          # mentions the retired `:= sorry` encoding as part of historical
-          # explanation.
-          SORRY=$( { grep -rE '^(theorem|lemma|def|example|instance)[[:space:]].*:=[[:space:]]*sorry[[:space:]]*$' \
-                          TauLib/ --include='*.lean' 2>/dev/null || true; } | wc -l | tr -d ' ' )
+          # Count actual sorry-closed declarations (robust multi-pass grep).
+          #
+          # STRATEGY: two-level grep approach to handle all known edge cases:
+          #   Pass 1 – permissive: match any line containing `sorry` as a
+          #            whole word (\bsorry\b) so we catch all of:
+          #              `:= sorry`           standard
+          #              `:= by sorry`        tactic block
+          #              trailing `sorry`     with or without whitespace
+          #              multiline bodies     where `:= sorry` lands on a
+          #                                   continuation line
+          #              prefixed keywords    protected/private/noncomputable
+          #              attributed decls     @[simp] theorem ... := sorry
+          #   Pass 2 – exclusion: drop lines whose sorry is not real code:
+          #            a) single-line comments: the `--` comment marker
+          #               appears BEFORE `sorry` on the same line
+          #               (pattern: chars before sorry contain `--`)
+          #            b) string literals: `sorry` enclosed in double-quotes
+          #            c) block-comment openers `/-` at the start of the
+          #               non-whitespace content on the line (catches /--
+          #               docstring lines; full block-comment body tracking
+          #               is not done in grep — see KNOWN LIMITATION below)
+          #
+          # KNOWN LIMITATION: multi-line block comments (`/- ... -/` spanning
+          # several lines) where an interior line contains `sorry` and does
+          # NOT also contain `/-` will still be counted. This is an
+          # acceptable false-positive: (a) TauLib does not use such comments
+          # in practice, and (b) the preferred long-term fix is to run
+          #   lake env lean --run scripts/check_no_sorry.lean
+          # which queries the kernel Environment and is exact. That script
+          # is planned for a future CI wave (tracked in peer-review-fixes).
+          SORRY_CANDIDATES=$( { grep -rnE '\bsorry\b' TauLib/ --include='*.lean' 2>/dev/null || true; } )
+          # Filter out non-code sorry occurrences using awk so that colons
+          # inside the content field (e.g. "comment: := sorry") don't confuse
+          # the field-splitting that a pure grep -v [^:]* approach would require.
+          # awk splits on ':' and reconstructs the content from field 3 onward,
+          # then applies three exclusions on the content only:
+          #   a) drop if '--' appears before 'sorry' (single-line comment)
+          #   b) drop if content matches "...sorry..." inside double-quotes
+          #   c) drop if non-whitespace content starts with /- (block comment)
+          SORRY_FILTER='{ content=""; for(i=3;i<=NF;i++) content=content (i==3?"":":") $i;
+            dp=index(content,"--"); sp=index(content,"sorry");
+            if(dp>0 && dp<sp) next;
+            if(content ~ /"[^"]*sorry[^"]*"/) next;
+            stripped=content; gsub(/^[ \t]*/,"",stripped);
+            if(stripped ~ /^\/\-/) next;
+            print $0 }'
+          SORRY=$(echo "$SORRY_CANDIDATES" | awk -F: "$SORRY_FILTER" | wc -l | tr -d ' ')
           SORRY=${SORRY:-0}
 
           echo "Expected: axioms=$EXPECTED_AXIOMS, sorry=$EXPECTED_SORRY"
@@ -96,9 +136,8 @@ jobs:
             echo "::error::If a new sorry-closed declaration is intentional (e.g., a new"
             echo "::error::Book VII Commitment is being introduced), first discuss via issue,"
             echo "::error::then update EXPECTED_SORRY in this workflow and the paper's §8."
-            echo "::error::Current sorry-closed declarations:"
-            grep -rnE '^(theorem|lemma|def|example|instance)[[:space:]].*:=[[:space:]]*sorry[[:space:]]*$' \
-                 TauLib/ --include='*.lean' 2>/dev/null || true
+            echo "::error::Current sorry candidates (after comment exclusion):"
+            echo "$SORRY_CANDIDATES" | awk -F: "$SORRY_FILTER" || true
             FAIL=1
           fi
           if [ "$FAIL" = "1" ]; then
@@ -110,10 +149,26 @@ jobs:
       - name: Report statistics
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
+          # Sorry count uses the same grep+awk strategy as the assertion step
+          # above so the summary table is always in sync with the merge-blocker.
+          # See the "Enforce axiom and sorry count invariants" step for full
+          # edge-case rationale and the known limitation on multi-line block
+          # comments.
+          SORRY_CANDIDATES=$( { grep -rnE '\bsorry\b' TauLib/ --include='*.lean' 2>/dev/null || true; } )
+          SORRY_FILTER='{ content=""; for(i=3;i<=NF;i++) content=content (i==3?"":":") $i;
+            dp=index(content,"--"); sp=index(content,"sorry");
+            if(dp>0 && dp<sp) next;
+            if(content ~ /"[^"]*sorry[^"]*"/) next;
+            stripped=content; gsub(/^[ \t]*/,"",stripped);
+            if(stripped ~ /^\/\-/) next;
+            print $0 }'
+          SORRY_COUNT=$(echo "$SORRY_CANDIDATES" | awk -F: "$SORRY_FILTER" | wc -l | tr -d ' ')
+          SORRY_COUNT=${SORRY_COUNT:-0}
+
           echo "## Build Statistics" >> $GITHUB_STEP_SUMMARY
           echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Files | $(find TauLib -name '*.lean' | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
           echo "| Lines | $(find TauLib -name '*.lean' -exec cat {} + | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
-          echo "| Sorry | $(grep -rE '^(theorem\|lemma\|def\|example\|instance)[[:space:]].*:=[[:space:]]*sorry[[:space:]]*\$' TauLib/ --include='*.lean' | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Sorry | $SORRY_COUNT |" >> $GITHUB_STEP_SUMMARY
           echo "| Axioms | $(grep -r '^axiom ' TauLib/ --include='*.lean' | wc -l | tr -d ' ') |" >> $GITHUB_STEP_SUMMARY
