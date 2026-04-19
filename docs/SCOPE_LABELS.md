@@ -36,8 +36,8 @@ In the LaTeX books, scope labels appear as colored side-bars around theorem envi
 2. **Registry cross-references** — entries like `[IV.T140]` carry scope in the registry TSV files
 3. **Axiom declarations** — the 3 conjectural axioms are explicitly labeled in their docstrings
 
-## The 4 Axioms and 3 Sorry
+## The 3 Axioms and 0 Sorry
 
-TauLib contains exactly 4 axioms (3 conjectural, 1 structural) and 3 sorry (all methodological, Book VII only). See the [README](../README.md) for the full list.
+TauLib contains exactly 3 axioms (all conjectural, all Book III) and 0 sorry (all seven books are sorry-free as of v2.0.0, 2026-04-19). The three Book VII structural commitments are encoded as `def` values of a `Commitment` structure (see `TauLib/BookVII/Meta/Commitment.lean`), not as `sorry`. See the [README](../README.md) for the full axiom list and [CHANGELOG.md](../CHANGELOG.md) for the v1.0.0 → v2.0.0 retirement history.
 
 The conjectural axioms follow a "compute-then-axiomatize" pattern: a decidable finite check function is verified computationally via `native_decide`, then an axiom asserts the property holds universally. This makes the conjectural boundary maximally transparent.

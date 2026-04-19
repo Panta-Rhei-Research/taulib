@@ -1,6 +1,7 @@
-# TauLib v1.0.0 Release Notes
+# TauLib v2.0.0 Release Notes
 
-**Release date**: April 12, 2026
+**Release date**: April 19, 2026 (peer-review-fixes-v1 merged; ci-python-sorry-checker merged)
+**Previous release**: v1.0.0 (April 12, 2026; see [CHANGELOG.md](CHANGELOG.md))
 **Lean version**: 4.28.0-rc1
 **License**: Apache 2.0
 
@@ -77,8 +78,8 @@ This release targets Lean 4.28.0-rc1 (release candidate). Build compatibility wi
 curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh
 
 # Clone and build
-git clone https://github.com/panta-rhei-research/taulib.git
-cd TauLib
+git clone https://github.com/Panta-Rhei-Research/taulib.git
+cd taulib
 lake build
 ```
 

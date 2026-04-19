@@ -28,7 +28,7 @@ right_rail:
     <a href="{{ '/docs/' | relative_url }}" class="btn-secondary">Browse All Modules</a>
     <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-ghost" target="_blank" rel="noopener">View on GitHub</a>
   </div>
-  <p class="hero-supporting-line">450 Lean 4 modules · 125,771 lines · 4,332 machine-checked theorems · 0 sorry in Books I–VI · no Mathlib dependency.</p>
+  <p class="hero-supporting-line">450 Lean 4 modules · 125,771 lines · 4,332 machine-checked theorems · 0 sorry across all seven books · 3 custom axioms (all conjectural, all Book III) · Mathlib restricted to proof tactics.</p>
 </div>
 
 <div class="content-card" markdown="1">
@@ -47,9 +47,11 @@ The full public documentation for TauLib also lives inside the [main research-pr
 | **Lines of Lean 4** | 125,771 |
 | **Theorems & lemmas** | 4,332 |
 | **Definitions** | 3,542 |
-| **Axioms** | 4 (3 conjectural, 1 structural) |
-| **Sorry** | 3 (Book VII only) |
+| **Axioms** | 3 (all conjectural, all Book III) |
+| **Sorry** | 0 (all seven books sorry-free) |
 | **Mathlib usage** | Tactics only — all math from scratch |
+
+*As of v2.0.0 (2026-04-19, commit `b743f4c`). The 4th axiom `central_theorem_physical : True` was retired in `peer-review-fixes-v1` as a no-op. The three Book VII structural commitments are encoded as `def` values of a [`Commitment`](https://github.com/Panta-Rhei-Research/taulib/blob/main/TauLib/BookVII/Meta/Commitment.lean) structure (inspectable data), not as `theorem X : True := sorry`. See [CHANGELOG.md](https://github.com/Panta-Rhei-Research/taulib/blob/main/CHANGELOG.md) for the full history.*
 
 ## Browse the Documentation
 
