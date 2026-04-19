@@ -51,27 +51,44 @@ jobs:
 
       - name: Enforce axiom and sorry count invariants
         run: |
-          set -euo pipefail
+          # NOTE: we deliberately do NOT use `set -euo pipefail` here.
+          # `grep` exits with code 1 when it finds no matches — which is the
+          # DESIRED state for the sorry count (we want zero sorry-closed
+          # declarations). Under `pipefail`, grep's exit-1 would propagate
+          # through `| wc -l` and kill this step before the `test` check
+          # could run, i.e. the CI assertion would self-destruct exactly
+          # when the library is in the correct state. The `|| true` after
+          # each grep absorbs that exit code safely.
           EXPECTED_AXIOMS=3
           EXPECTED_SORRY=0
-          # Count only actual declarations, not docstring/comment prose.
-          # Pattern: line starts with `axiom ` at column 0 (not inside /- ... -/).
-          AXIOMS=$(grep -r '^axiom ' TauLib/ --include='*.lean' | wc -l | tr -d ' ')
-          # Pattern for sorry: line matches a declaration keyword followed by
-          # `:= sorry` at line end. Avoids false-positives on docstring prose
-          # that mentions `:= sorry` as part of retirement-explanation text.
-          SORRY=$(grep -rE '^(theorem|lemma|def|example|instance)[[:space:]].*:=[[:space:]]*sorry[[:space:]]*$' \
-                       TauLib/ --include='*.lean' | wc -l | tr -d ' ')
+
+          # Count actual `axiom` declarations (line starts with `axiom ` at
+          # column 0). Docstring/comment prose mentioning "axiom" does not
+          # match this anchor.
+          AXIOMS=$(grep -r '^axiom ' TauLib/ --include='*.lean' 2>/dev/null | wc -l | tr -d ' ' || true)
+          AXIOMS=${AXIOMS:-0}
+
+          # Count actual sorry-closed declarations only. Pattern: line
+          # begins with a declaration keyword followed by `:= sorry` at
+          # line end. This avoids false-positives on docstring prose that
+          # mentions the retired `:= sorry` encoding as part of historical
+          # explanation.
+          SORRY=$( { grep -rE '^(theorem|lemma|def|example|instance)[[:space:]].*:=[[:space:]]*sorry[[:space:]]*$' \
+                          TauLib/ --include='*.lean' 2>/dev/null || true; } | wc -l | tr -d ' ' )
+          SORRY=${SORRY:-0}
+
           echo "Expected: axioms=$EXPECTED_AXIOMS, sorry=$EXPECTED_SORRY"
           echo "Actual:   axioms=$AXIOMS, sorry=$SORRY"
+
+          FAIL=0
           if [ "$AXIOMS" != "$EXPECTED_AXIOMS" ]; then
             echo "::error::Axiom count drift: expected $EXPECTED_AXIOMS, got $AXIOMS."
             echo "::error::If this is an intentional change, update EXPECTED_AXIOMS in"
             echo "::error::.github/workflows/lean-build.yml AND the corresponding claim in"
             echo "::error::papers/taulib/main.tex (§7 + Appendix C) AND README.md."
             echo "::error::Current axioms:"
-            grep -rn '^axiom ' TauLib/ --include='*.lean' || true
-            exit 1
+            grep -rn '^axiom ' TauLib/ --include='*.lean' 2>/dev/null || true
+            FAIL=1
           fi
           if [ "$SORRY" != "$EXPECTED_SORRY" ]; then
             echo "::error::Sorry count drift: expected $EXPECTED_SORRY, got $SORRY."
@@ -81,7 +98,10 @@ jobs:
             echo "::error::then update EXPECTED_SORRY in this workflow and the paper's §8."
             echo "::error::Current sorry-closed declarations:"
             grep -rnE '^(theorem|lemma|def|example|instance)[[:space:]].*:=[[:space:]]*sorry[[:space:]]*$' \
-                 TauLib/ --include='*.lean' || true
+                 TauLib/ --include='*.lean' 2>/dev/null || true
+            FAIL=1
+          fi
+          if [ "$FAIL" = "1" ]; then
             exit 1
           fi
           echo "✓ Axiom count: $AXIOMS (expected $EXPECTED_AXIOMS)"
