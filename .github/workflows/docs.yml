@@ -131,6 +131,13 @@ jobs:
         env:
           JEKYLL_ENV: production
 
+      # ── Build Pagefind search index ─────────────────────────
+      # Indexes site/_site/ after Jekyll build, writes /pagefind/pagefind.js
+      # and associated index/fragment files consumed by pagefind-ui.js in
+      # the site header's search button. Runs in under 10s for ~460 pages.
+      - name: Build Pagefind search index
+        run: npx -y pagefind --site site/_site
+
       # ── Report ──────────────────────────────────────────────
       - name: Build summary
         run: |
