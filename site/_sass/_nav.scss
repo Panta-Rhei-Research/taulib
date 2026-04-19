@@ -38,14 +38,14 @@
   &:hover {
     color: $accent;
     background: $accent-soft;
-    border-color: rgba(41, 75, 102, 0.08);
+    border-color: rgba(22, 62, 100, 0.08);
   }
 
   &.active {
     color: $accent;
     font-weight: 600;
     background: $accent-soft;
-    border-color: rgba(41, 75, 102, 0.12);
+    border-color: rgba(22, 62, 100, 0.12);
   }
 }
 

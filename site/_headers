@@ -1,0 +1,48 @@
+# Cloudflare-read response headers for taulib.site
+# (Pages ignores this file; activated by Cloudflare proxy on the free plan.)
+#
+# Strategy matches the sibling panta-rhei.site: 1-year immutable cache for
+# hashed assets (cache-bust via ?v={site.time}), short revalidation cache
+# for HTML, hardened security headers site-wide, and RFC 8288 Link response
+# headers advertising agent-discovery surfaces.
+
+# Immutable hashed assets (fonts, images, favicons, webmanifest)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Build-output CSS/JS with cache-bust query strings
+/assets/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/pagefind/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML pages: short cache + revalidate (content changes on deploy)
+/*.html
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# Sitemap and feeds: moderate cache
+/sitemap.xml
+  Cache-Control: public, max-age=86400
+
+/robots.txt
+  Cache-Control: public, max-age=86400
+
+# Webmanifest
+/assets/site.webmanifest
+  Cache-Control: public, max-age=604800
+
+# Security headers + Link response headers for agent discovery (RFC 8288).
+# IANA-registered rel types used:
+#   - sitemap       → /sitemap.xml
+#   - license       → Apache-2.0 (TauLib code license)
+#   - author        → panta-rhei.site/research-program/founders/ (authors hub)
+#   - describedby   → panta-rhei.site/verify/taulib/ (canonical integrated docs)
+#   - up            → panta-rhei.site (parent research program)
+#   - related       → github.com/Panta-Rhei-Research/taulib (source repo)
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Link: </sitemap.xml>; rel="sitemap"; type="application/xml", <https://www.apache.org/licenses/LICENSE-2.0>; rel="license"; title="Apache-2.0", <https://panta-rhei.site/research-program/founders/>; rel="author"; type="text/html"; title="Founders", <https://panta-rhei.site/verify/taulib/>; rel="describedby"; type="text/html"; title="Integrated TauLib documentation", <https://panta-rhei.site/>; rel="up"; type="text/html"; title="Panta Rhei Research Program", <https://github.com/Panta-Rhei-Research/taulib>; rel="related"; title="TauLib source repository"

@@ -10,7 +10,7 @@ author:
 social:
   name: "TauLib — Panta Rhei Research Program"
   links:
-    - "https://github.com/Panta-Rhei-Framework/taulib"
+    - "https://github.com/Panta-Rhei-Research/taulib"
 
 permalink: pretty
 
@@ -26,8 +26,10 @@ sass:
   style: compressed
 
 plugins:
-  - jekyll-seo-tag
   - jekyll-sitemap
+
+include:
+  - _headers
 
 exclude:
   - Gemfile

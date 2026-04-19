@@ -1,17 +1,66 @@
+{%- comment -%}
+  head.html — Hand-crafted SEO for TauLib. No jekyll-seo-tag plugin
+  (removed to eliminate duplicate <title>/og:* tag emission).
+
+  Emits exactly one of each meta tag per page:
+    - <title>
+    - <meta description>
+    - canonical link
+    - Open Graph (og:*)
+    - Twitter Card (summary_large_image)
+    - theme-color, favicon set, viewport, charset
+    - Google Fonts (Inter) — preconnected
+    - Main CSS + Pagefind search
+    - Skip-link inline style
+    - JSON-LD (SoftwareSourceCode, embeds ORCID authors)
+{%- endcomment -%}
+
+{%- assign raw_page_title = page.title | default: site.title -%}
+{%- if page.url == '/' -%}
+  {%- assign computed_title = site.title -%}
+{%- elsif raw_page_title and raw_page_title != site.title -%}
+  {%- assign computed_title = raw_page_title | append: ' — ' | append: site.title -%}
+{%- else -%}
+  {%- assign computed_title = site.title -%}
+{%- endif -%}
+{%- assign seo_description = page.summary_short | default: site.description | strip_html | truncate: 160 -%}
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% if page.title and page.title != site.title %}{{ page.title }} — {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
-<meta name="description" content="{{ page.summary_short | default: site.description | strip_html | truncate: 160 }}">
+<title>{{ computed_title }}</title>
+<meta name="description" content="{{ seo_description }}">
+<link rel="canonical" href="{{ page.url | absolute_url }}">
+<meta name="generator" content="Jekyll">
+<meta name="author" content="Thorsten Fuchs & Anna-Sophie Fuchs">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+<!-- Theme color (mobile browser UI tinting) -->
+<meta name="theme-color" content="#163e64">
 
 <!-- Open Graph -->
-<meta property="og:title" content="{{ page.title | default: site.title }}">
-<meta property="og:description" content="{{ page.summary_short | default: site.description | strip_html | truncate: 200 }}">
+<meta property="og:title" content="{{ raw_page_title }}">
+<meta property="og:description" content="{{ seo_description }}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ page.url | absolute_url }}">
 <meta property="og:site_name" content="{{ site.title }}">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="{{ '/assets/og-image.png' | absolute_url }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{ site.title }}">
 
-<!-- Favicon -->
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ raw_page_title }}">
+<meta name="twitter:description" content="{{ seo_description }}">
+<meta name="twitter:image" content="{{ '/assets/og-image.png' | absolute_url }}">
+
+<!-- Favicon set -->
 <link rel="icon" type="image/svg+xml" href="{{ '/assets/favicon.svg' | relative_url }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ '/assets/favicon-32x32.png' | relative_url }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ '/assets/favicon-16x16.png' | relative_url }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ '/assets/apple-touch-icon.png' | relative_url }}">
+<link rel="manifest" href="{{ '/assets/site.webmanifest' | relative_url }}">
 
 <!-- Preconnect for fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,7 +73,7 @@
 <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
 
 <!-- Skip to content (a11y) -->
-<style>.skip-link{position:absolute;top:-100%;left:0;padding:8px 16px;background:#294b66;color:#fff;z-index:100;font-size:0.85rem;border-radius:0 0 8px 0;}.skip-link:focus{top:0;}</style>
+<style>.skip-link{position:absolute;top:-100%;left:0;padding:8px 16px;background:#163e64;color:#fff;z-index:100;font-size:0.85rem;border-radius:0 0 8px 0;}.skip-link:focus{top:0;}</style>
 
 <!-- Structured data -->
 <script type="application/ld+json">
@@ -34,13 +83,17 @@
   "name": "TauLib",
   "description": "Lean 4 formalization layer of the Panta Rhei Research Program",
   "url": "{{ site.url }}",
-  "codeRepository": "https://github.com/Panta-Rhei-Framework/taulib",
+  "codeRepository": "https://github.com/Panta-Rhei-Research/taulib",
   "programmingLanguage": "Lean 4",
+  "license": "https://www.apache.org/licenses/LICENSE-2.0",
   "author": [
-    { "@type": "Person", "name": "Thorsten Fuchs" },
-    { "@type": "Person", "name": "Anna-Sophie Fuchs" }
-  ]
+    { "@type": "Person", "name": "Thorsten Fuchs", "sameAs": "https://orcid.org/0009-0007-0718-1042" },
+    { "@type": "Person", "name": "Anna-Sophie Fuchs", "sameAs": "https://orcid.org/0009-0007-3495-7416" }
+  ],
+  "isPartOf": {
+    "@type": "ResearchProject",
+    "name": "Panta Rhei Research Program",
+    "url": "https://panta-rhei.site"
+  }
 }
 </script>
-
-{% seo %}

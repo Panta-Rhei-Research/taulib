@@ -1,4 +1,13 @@
 User-agent: *
 Allow: /
+# Content Signals (draft-romm-aipref-contentsignals) — AI content-usage preferences.
+# search=yes      Crawling for search applications that link users back to this site
+# ai-input=yes    Using content in RAG / grounding / generative AI search answers
+#                 (cited with attribution — the core of technical discoverability
+#                 for a Lean 4 formalization library)
+# ai-train=no     Training or fine-tuning AI models on this content is not permitted;
+#                 the Apache-2.0 license on TauLib code and CC BY 4.0 on docs cover
+#                 redistribution with attribution but do not grant model-training rights.
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 
 Sitemap: https://taulib.site/sitemap.xml

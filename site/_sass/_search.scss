@@ -91,7 +91,7 @@
     font-family: $font-ui;
     font-size: 1rem;
     padding: 10px 14px;
-    border: 1px solid rgba(41, 75, 102, 0.15);
+    border: 1px solid rgba(22, 62, 100, 0.15);
     border-radius: $radius-sm;
     background: rgba(255, 255, 255, 0.6);
     color: $text;
@@ -101,7 +101,7 @@
 
     &:focus {
       border-color: $accent;
-      box-shadow: 0 0 0 3px rgba(41, 75, 102, 0.08);
+      box-shadow: 0 0 0 3px rgba(22, 62, 100, 0.08);
     }
   }
 

@@ -4,7 +4,7 @@ header:
     match: "__never__"
     external: true
   - title: "GitHub"
-    url: "https://github.com/Panta-Rhei-Framework/taulib"
+    url: "https://github.com/Panta-Rhei-Research/taulib"
     match: "__never__"
     external: true
   - title: "Verify"
