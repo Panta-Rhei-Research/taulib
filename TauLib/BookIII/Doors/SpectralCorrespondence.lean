@@ -94,14 +94,35 @@ where
       mode <= k && eigenval == mode * mode && go (s + 1) (fuel - 1)
   termination_by fuel
 
-/-- [III.T18] **O3 AXIOM**: The spectral correspondence holds at all levels.
-    This is the one honest conjectural gap in the τ-approach to RH.
-    All finite approximations are verified computationally; the axiom
-    asserts the infinite-limit correspondence persists.
+/-- [III.T18] **CONJECTURE-AXIOM — CONDITIONAL RESULTS DOWNSTREAM**
 
-    Mathematically: ζ_τ(s) = 0 ⟺ Λ(s) ∈ Spec(H_L).
-    The determinant representation ζ_τ(s) = det(I − Λ(s)·H_L⁻¹) is
-    the content of this axiom. -/
+    The O(3) spectral correspondence holds at all levels. This is one
+    of exactly three conjecture-axioms in TauLib; see also
+    `bridge_functor_exists` (`BookIII.Bridge.BridgeAxiom`) and
+    `grand_grh_adelic` (`BookIII.Doors.GrandGRH`).
+
+    **Conjectural scope.** At each finite level `k`,
+    `spectral_correspondence_finite k` is decidable and verified
+    computationally via `native_decide`. The axiom asserts that the
+    finite correspondence extends to the universal statement
+    `∀ k : Nat`. That extension is the conjectural content.
+
+    **Mathematical content.**  The spectral correspondence claims
+    `ζ_τ(s) = 0 ⟺ Λ(s) ∈ Spec(H_L)`, with the determinant
+    representation `ζ_τ(s) = det(I − Λ(s)·H_L⁻¹)`. This is the
+    framework's honest conjectural gap in the τ-approach to RH.
+
+    **Downstream theorems are CONDITIONAL RESULTS.** Any theorem
+    whose transitive proof chain invokes
+    `spectral_correspondence_O3` is conditional on the universal
+    extension. Running `#print axioms <theorem-name>` on a
+    downstream theorem will list `spectral_correspondence_O3`;
+    readers should treat that theorem as a conditional result.
+
+    **Preferred encoding (future work).** As with
+    `bridge_functor_exists`, the Mathlib-community idiom would
+    refactor downstream theorems to take this conjecture as an
+    explicit hypothesis. Planned for a future wave. -/
 axiom spectral_correspondence_O3 :
   ∀ k : Nat, spectral_correspondence_finite k = true
 

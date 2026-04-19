@@ -61,9 +61,34 @@ where
       coprime && complete && balance && go (k + 1) (fuel - 1)
   termination_by fuel
 
-/-- [III.D31] **Grand GRH Axiom**: the adelic extension of GRH beyond
-    finite primorial cutoff. CONJECTURAL SCOPE.
-    All finite checks pass; the axiom asserts the infinite/adelic limit. -/
+/-- [III.D31] **CONJECTURE-AXIOM — CONDITIONAL RESULTS DOWNSTREAM**
+
+    The Grand-GRH adelic extension: the Generalized Riemann
+    Hypothesis in a finite-product-wrapper form, asserting that
+    `grand_grh_finite_check` holds for all natural-number levels.
+    This is the deepest of TauLib's three conjecture-axioms; see
+    also `bridge_functor_exists` and `spectral_correspondence_O3`.
+
+    **Conjectural scope — deepest.** This is the framework's
+    honest acknowledgment of a debt to open mathematics: the
+    adelic extension of GRH. All finite checks pass
+    computationally (verified per-level via `native_decide`). The
+    axiom asserts the infinite/adelic limit persists, which is the
+    standard GRH conjectural territory the research literature
+    treats under the Langlands program.
+
+    **Downstream theorems are CONDITIONAL RESULTS.** Any theorem
+    whose transitive proof chain invokes `grand_grh_adelic` is
+    effectively a theorem conditional on GRH-in-finite-product
+    form. `#print axioms <theorem-name>` on a downstream theorem
+    will list `grand_grh_adelic` — readers should treat that
+    theorem as a conditional result, exactly as they would treat
+    any theorem-modulo-GRH in the classical literature.
+
+    **Preferred encoding (future work).** As with the other two
+    conjecture-axioms, the Mathlib-community idiom is to thread
+    the conjecture as an explicit hypothesis on downstream
+    theorems rather than postulate it globally. Planned. -/
 axiom grand_grh_adelic :
   ∀ k : Nat, grand_grh_finite_check k = true
 

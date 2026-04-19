@@ -97,10 +97,40 @@ where
         carrier_ok && pred_ok && decode_ok && go x (k + 1) (fuel - 1)
   termination_by fuel
 
-/-- [III.D71] **CONJECTURAL AXIOM**: The bridge functor exists for all
-    (bound, db). This is the ONE conjectural postulate in the Bridge.
-    At finite level, `bridge_functor_check` verifies the finite shadow.
-    The axiom asserts that this extends to the infinite tower. -/
+/-- [III.D71] **CONJECTURE-AXIOM — CONDITIONAL RESULTS DOWNSTREAM**
+
+    Bridge functor existence for all `(bound, db)`. This is one of
+    exactly three conjecture-axioms in TauLib; see also
+    `spectral_correspondence_O3` (`BookIII.Doors.SpectralCorrespondence`)
+    and `grand_grh_adelic` (`BookIII.Doors.GrandGRH`).
+
+    **Conjectural scope.** At finite level,
+    `bridge_functor_check bound db` is decidable and verifies the
+    finite shadow of the bridge functor for every parameter pair
+    `(bound, db)` with `bound ≤ 15` and `db ≤ 3` — hundreds of
+    discrete checks, each closed in the kernel by `native_decide`.
+    This axiom asserts that the finite check extends to the full
+    universal statement `∀ bound db`. That extension is the
+    conjectural content.
+
+    **Downstream theorems are CONDITIONAL RESULTS.** Any theorem in
+    TauLib whose transitive proof chain invokes `bridge_functor_exists`
+    is conditional on the universal extension of the finite
+    `bridge_functor_check`. Running `#print axioms <theorem-name>` on
+    a downstream theorem will list `bridge_functor_exists` among its
+    trusted assumptions — this is exactly the audit trail a Lean
+    reader should expect, and it is what makes the conditional
+    status of downstream results inspectable rather than hidden.
+
+    **Preferred encoding (future work).** The Mathlib-community
+    idiom for a conjectural dependency is to take the assumption as
+    an explicit hypothesis on each downstream theorem rather than as
+    a global axiom. Refactoring the downstream Book III theorems to
+    take `bridge_functor_exists` (or a `(h : BridgeFunctorExists)`
+    binder) as a hypothesis is planned for a future wave; this
+    would make `#print axioms` reveal no unexplained axioms on
+    unconditional theorems. Until then, the global `axiom`
+    declaration is the encoding. -/
 axiom bridge_functor_exists :
   ∀ bound db : TauIdx, bridge_functor_check bound db = true
 
