@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# ============================================================
+# Pre-commit hook — fast regression gate (<5s typical)
+# ============================================================
+# Installed via .githooks/install.sh (sets core.hooksPath).
+# Runs on every `git commit`. Blocks the commit if it fails.
+#
+# Catches:
+#   1. Gemfile ↔ Gemfile.lock drift (the Apr 19 CI regression)
+#   2. Forbidden strings leaking into tracked content:
+#      - deprecated org `Panta-Rhei-Framework`
+#      - local filesystem paths `/Users/thorfuchs/`
+#   3. Broken JSON / YAML syntax
+# ============================================================
+
+set -u
+FAILED=0
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$STAGED" ] && exit 0
+
+pass() { echo "  ✓ $*"; }
+fail() { echo "  ✗ $*"; FAILED=1; }
+
+# ── 1. Gemfile ↔ Gemfile.lock consistency ───────────────────
+# Runs only if any Gemfile or Gemfile.lock is in the staged set.
+# Uses `bundle check` which is fast (<1s) — no actual install.
+GEMFILES=$(echo "$STAGED" | grep -E '(^|/)Gemfile(\.lock)?$' || true)
+if [ -n "$GEMFILES" ]; then
+  echo "── Gemfile ↔ Gemfile.lock consistency ──"
+  # Find unique Gemfile-containing dirs
+  DIRS=$(echo "$GEMFILES" | sed 's|/Gemfile.*$||; s|^Gemfile.*$|.|' | sort -u)
+  for dir in $DIRS; do
+    if [ -f "$dir/Gemfile" ] && [ -f "$dir/Gemfile.lock" ]; then
+      if (cd "$dir" && bundle check >/dev/null 2>&1); then
+        pass "$dir: Gemfile ↔ Gemfile.lock in sync"
+      else
+        fail "$dir: Gemfile and Gemfile.lock are inconsistent — run 'cd $dir && bundle install' then re-stage the lockfile"
+      fi
+    fi
+  done
+fi
+
+# ── 2. Forbidden-strings scan in staged DIFF (+ lines only) ──
+# Only scans added or modified lines, not removed ones.
+echo "── Forbidden-strings scan in staged content ──"
+ADDED_LINES=$(git diff --cached --diff-filter=ACM -U0 | grep -E '^\+' | grep -v '^\+\+\+' || true)
+FORBIDDEN=(
+  "Panta-Rhei-Framework"
+  "/Users/thorfuchs/"
+)
+ANY_FORBIDDEN=0
+for needle in "${FORBIDDEN[@]}"; do
+  if printf '%s' "$ADDED_LINES" | grep -qF -- "$needle"; then
+    fail "forbidden string '$needle' appears in staged changes"
+    # Show which files
+    git diff --cached --diff-filter=ACM -U0 | grep -HF -- "$needle" | head -5 || true
+    ANY_FORBIDDEN=1
+  fi
+done
+[ "$ANY_FORBIDDEN" = "0" ] && pass "no forbidden strings in staged content"
+
+# ── 3. JSON / YAML syntax validation ────────────────────────
+JSON_FILES=$(echo "$STAGED" | grep -E '\.json$' || true)
+if [ -n "$JSON_FILES" ]; then
+  echo "── JSON syntax ──"
+  for f in $JSON_FILES; do
+    [ -f "$f" ] || continue
+    if python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f" 2>/dev/null; then
+      pass "$f"
+    else
+      fail "$f has JSON syntax errors"
+    fi
+  done
+fi
+
+YAML_FILES=$(echo "$STAGED" | grep -E '\.ya?ml$' || true)
+if [ -n "$YAML_FILES" ]; then
+  echo "── YAML syntax ──"
+  for f in $YAML_FILES; do
+    [ -f "$f" ] || continue
+    if python3 -c "import yaml,sys; yaml.safe_load(open(sys.argv[1]))" "$f" 2>/dev/null; then
+      pass "$f"
+    else
+      # Don't fail on YAML — some tools (Jekyll, GH Actions) accept YAML variants
+      # that strict parsers reject. Just warn.
+      echo "  ⚠ $f may have YAML issues (warning only, not blocking)"
+    fi
+  done
+fi
+
+# ── Result ──────────────────────────────────────────────────
+if [ "$FAILED" = "0" ]; then
+  exit 0
+else
+  echo ""
+  echo "Pre-commit hook BLOCKED the commit. Fix the issues above, re-stage, try again."
+  echo "To bypass (not recommended): git commit --no-verify"
+  exit 1
+fi

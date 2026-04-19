@@ -174,3 +174,24 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # ── Job 3: Post-deploy smoke test ─────────────────────────
+  # Fails the workflow run visibly if the live site is missing
+  # any critical URL, asset, or body-content marker. Caught
+  # the silent `_headers`-propagation-broken class of regression
+  # retroactively. See .github/scripts/smoke-test.sh.
+  smoke-test:
+    name: Post-deploy smoke test
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Wait for CDN propagation
+        run: sleep 30
+
+      - name: Run smoke test against live site
+        run: |
+          chmod +x .github/scripts/smoke-test.sh
+          .github/scripts/smoke-test.sh https://taulib.site
