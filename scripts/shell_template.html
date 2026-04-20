@@ -9,9 +9,9 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TauLib — Panta Rhei Research Program">
   <link rel="icon" type="image/svg+xml" href="{{ROOT}}assets/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@380;400;500;520;580;600;650;700;800&display=swap" rel="stylesheet">
+  <!-- Fonts: Inter variable (self-hosted — zero external requests, DSGVO-clean) -->
+  <link rel="preload" href="{{ROOT}}fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+  <style>@font-face{font-family:"Inter";src:url("{{ROOT}}fonts/InterVariable.woff2") format("woff2-variations");font-weight:100 900;font-style:normal;font-display:swap}</style>
   <link rel="stylesheet" href="{{ROOT}}style.css">
   <link rel="stylesheet" href="{{ROOT}}shell.css">
   {{HEAD_EXTRA}}

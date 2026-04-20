@@ -112,11 +112,11 @@ if [ -f "$SCRIPT_DIR/taulib_theme.css" ]; then
   else
     echo "  CSS theme already present in style.css (skipped)"
   fi
-  # Copy self-hosted Manrope font files
+  # Copy self-hosted font files (Inter variable for shell UI, Manrope for docgen body)
   if [ -d "$SCRIPT_DIR/fonts" ]; then
     mkdir -p "$DOC_OUTPUT/fonts"
     cp "$SCRIPT_DIR/fonts/"*.woff2 "$DOC_OUTPUT/fonts/" 2>/dev/null
-    echo "  Manrope font files copied to doc output"
+    echo "  Self-hosted font files copied to doc output (Inter + Manrope)"
   fi
 else
   echo "  WARNING: scripts/taulib_theme.css not found, skipping theme"
