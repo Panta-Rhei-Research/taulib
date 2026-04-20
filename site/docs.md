@@ -17,7 +17,7 @@ right_rail:
 <div class="hero-card">
   <span class="eyebrow">TauLib &middot; API Reference</span>
   <h1>Module Documentation</h1>
-  <p>Browse the 450 Lean 4 modules organized by book and subject area.</p>
+  <p>Browse the 445 Lean 4 modules organized by book and subject area.</p>
 </div>
 
 <div class="content-card" markdown="1">

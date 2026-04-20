@@ -28,7 +28,7 @@ right_rail:
     <a href="{{ '/docs/' | relative_url }}" class="btn-secondary">Browse All Modules</a>
     <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-ghost" target="_blank" rel="noopener">View on GitHub</a>
   </div>
-  <p class="hero-supporting-line">450 Lean 4 modules · 125,771 lines · 4,332 machine-checked theorems · 0 sorry across all seven books · 3 custom axioms (all conjectural, all Book III) · Mathlib restricted to proof tactics.</p>
+  <p class="hero-supporting-line">445 Lean 4 modules · 127,440 lines · 4,332 machine-checked theorems · 0 sorry across all seven books · 3 custom axioms (all conjectural, all Book III) · Mathlib restricted to proof tactics.</p>
 </div>
 
 <div class="content-card" markdown="1">
@@ -43,8 +43,8 @@ The full public documentation for TauLib also lives inside the [main research-pr
 
 | Metric | Value |
 |--------|------:|
-| **Source files** | 450 |
-| **Lines of Lean 4** | 125,771 |
+| **Source files** | 445 |
+| **Lines of Lean 4** | 127,440 |
 | **Theorems & lemmas** | 4,332 |
 | **Definitions** | 3,542 |
 | **Axioms** | 3 (all conjectural, all Book III) |
