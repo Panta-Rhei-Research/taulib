@@ -14,13 +14,13 @@ TauRat a constructive ordered field (up to equiv).
 - [I.D35] Number Tower — TauRat is the field-of-fractions layer defined in
   `TauLib.Boundary.NumberTower`; this module extends it with the missing
   `equiv_trans` and a semantic bridge to Lean's built-in `Rat`
+- [I.D107] TauRat Semantic Bridge — `TauRat.toRat` (this module's main
+  new definition; parallels `TauInt.toInt`)
+- [I.P48] TauRat Ordered Field Structure — collective proposition that
+  TauRat satisfies ordered-field axioms up to equiv (proved across
+  Wave 1a/1b/1c/1d)
 - [I.D84] Constructive Reals — the eventual consumer of these helpers
   (Wave 2 will rebuild `TauReal` on top of true Cauchy semantics)
-
-New declarations in this module are not yet registered (pending the
-medium-PR registry-bookkeeping pass): `TauRat.equiv_trans`, `TauRat.toRat`,
-`equiv_iff_toRat_eq`, the `toRat_*` homomorphism lemmas, and
-`TauRat.is_nonzero`.
 
 ## Mathematical Content
 
