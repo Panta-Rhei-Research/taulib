@@ -13,11 +13,11 @@ properties (transitivity, trichotomy, equiv-preservation).
 
 - [I.D35] Number Tower — TauRat is the field-of-fractions layer defined in
   `TauLib.Boundary.NumberTower`
+- [I.D107] TauRat Semantic Bridge — `TauRat.toRat`, routed through here
+- [I.D108] TauRat Ordering — `lt`, `le`, wired into Lean core's
+  `LT` / `LE` hierarchy via instances
+- [I.P48] TauRat Ordered Field Structure — ordering + trichotomy piece
 - [I.D84] Constructive Reals — Wave 2 will lift this ordering to `TauReal`
-
-New declarations in this module are not yet registered (pending the
-medium-PR registry-bookkeeping pass): `TauRat.lt`, `TauRat.le`, and the
-ordering / trichotomy / equiv-preservation lemmas built on them.
 
 ## Mathematical Content
 
@@ -183,7 +183,33 @@ theorem TauRat.add_lt_add_left (c : TauRat) {a b : TauRat} (h : TauRat.lt a b) :
   exact _root_.add_lt_add_right h c.toRat
 
 -- ============================================================
--- PART 7: SMOKE TESTS
+-- PART 7: LEAN CORE LT / LE HIERARCHY ALIGNMENT
+-- ============================================================
+
+/-!
+Wire `TauRat.lt` and `TauRat.le` into Lean core's `LT` / `LE` type-class
+hierarchy so that the usual `a < b` and `a ≤ b` notation works on
+`TauRat` values.  Lean's `LT` / `LE` classes are in `Init.Core` (not
+Mathlib), so these instances pull in no content modules and respect
+the tactics-only Mathlib policy.
+
+The instances make `a < b` and `TauRat.lt a b` definitionally equal,
+so existing proofs that quote `TauRat.lt ...` continue to work and
+consumers can use either spelling freely.
+-/
+
+instance : LT TauRat := ⟨TauRat.lt⟩
+
+instance : LE TauRat := ⟨TauRat.le⟩
+
+/-- `a < b` on `TauRat` unfolds to `TauRat.lt a b` by definition. -/
+@[simp] theorem TauRat.lt_iff (a b : TauRat) : a < b ↔ TauRat.lt a b := Iff.rfl
+
+/-- `a ≤ b` on `TauRat` unfolds to `TauRat.le a b` by definition. -/
+@[simp] theorem TauRat.le_iff (a b : TauRat) : a ≤ b ↔ TauRat.le a b := Iff.rfl
+
+-- ============================================================
+-- PART 8: SMOKE TESTS
 -- ============================================================
 
 -- 1/3 < 1/2
@@ -210,5 +236,15 @@ example :
   · unfold TauRat.lt
     simp [TauRat.toRat, TauInt.toInt]
     norm_num
+
+-- LT / LE instance sanity: `<` and `≤` notation resolves on TauRat
+example : (⟨⟨1, 0⟩, 3, by norm_num⟩ : TauRat) < ⟨⟨1, 0⟩, 2, by norm_num⟩ := by
+  show TauRat.lt _ _
+  unfold TauRat.lt
+  simp [TauRat.toRat, TauInt.toInt]
+  norm_num
+
+example : (⟨⟨1, 0⟩, 2, by norm_num⟩ : TauRat) ≤ ⟨⟨1, 0⟩, 2, by norm_num⟩ :=
+  TauRat.le_refl _
 
 end Tau.Boundary
