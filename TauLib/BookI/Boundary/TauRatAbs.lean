@@ -160,7 +160,72 @@ theorem TauRat.abs_of_equiv {a b : TauRat} (h : TauRat.equiv a b) :
     rw [toRat_abs_of_neg ha, toRat_abs_of_neg hb, h]
 
 -- ============================================================
--- PART 7: SMOKE TESTS
+-- PART 7: TRIANGLE INEQUALITY
+-- ============================================================
+
+/-- `a.abs.toRat = |a.toRat|`: the structural TauRat abs agrees with
+    Lean's `|·|` notation on `Rat` at the `toRat` level. -/
+theorem TauRat.toRat_abs (a : TauRat) : a.abs.toRat = |a.toRat| := by
+  by_cases h : 0 ≤ a.toRat
+  · rw [toRat_abs_of_nonneg h, abs_of_nonneg h]
+  · push_neg at h
+    rw [toRat_abs_of_neg h, abs_of_neg h]
+
+/-- Triangle inequality for `TauRat.abs` at the `toRat` level:
+    `(a + b).abs.toRat ≤ a.abs.toRat + b.abs.toRat`.
+
+    Proved by lifting all three abs values through `toRat_abs` to Lean's
+    `|·|` on `Rat`, then applying mathlib's `abs_add`. -/
+theorem TauRat.abs_triangle (a b : TauRat) :
+    (a.add b).abs.toRat ≤ a.abs.toRat + b.abs.toRat := by
+  rw [TauRat.toRat_abs, TauRat.toRat_abs, TauRat.toRat_abs, toRat_add]
+  exact abs_add_le _ _
+
+/-- Negation-invariance of `abs` at the toRat level: `a.negate.abs.toRat = a.abs.toRat`. -/
+theorem TauRat.abs_negate (a : TauRat) :
+    a.negate.abs.toRat = a.abs.toRat := by
+  by_cases ha : 0 ≤ a.toRat
+  · rw [toRat_abs_of_nonneg ha]
+    by_cases hneg : 0 ≤ a.negate.toRat
+    · rw [toRat_abs_of_nonneg hneg, toRat_negate]
+      rw [toRat_negate] at hneg; linarith
+    · push_neg at hneg
+      rw [toRat_abs_of_neg hneg, toRat_negate]; ring
+  · push_neg at ha
+    rw [toRat_abs_of_neg ha]
+    have hneg : 0 ≤ a.negate.toRat := by rw [toRat_negate]; linarith
+    rw [toRat_abs_of_nonneg hneg, toRat_negate]
+
+-- ============================================================
+-- PART 8: OfNatRecip HELPER (1 / (k + 1)) — USED BY CAUCHY PREDICATES
+-- ============================================================
+
+/-- The positive rational `1 / (k + 1)`, as a `TauRat` value.  Used as
+    the canonical tolerance sequence for `IsCauchy` / Cauchy equivalence
+    definitions on `TauReal`: `1/(k+1)` avoids the division-by-zero
+    edge case at `k = 0` while giving a clean constructive witness. -/
+def TauRat.ofNatRecip (k : Nat) : TauRat :=
+  ⟨⟨1, 0⟩, k + 1, Nat.succ_pos k⟩
+
+/-- `ofNatRecip k` is positive. -/
+theorem TauRat.ofNatRecip_pos (k : Nat) : 0 < (TauRat.ofNatRecip k).toRat := by
+  unfold TauRat.ofNatRecip TauRat.toRat TauInt.toInt
+  push_cast
+  have h1 : (0 : Rat) < 1 := by norm_num
+  have h2 : (0 : Rat) < (k : Rat) + 1 := by
+    have := Nat.succ_pos k
+    have hk : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  exact div_pos h1 h2
+
+/-- `ofNatRecip k` in `Rat` is exactly `1 / (k + 1)`. -/
+theorem TauRat.ofNatRecip_toRat (k : Nat) :
+    (TauRat.ofNatRecip k).toRat = 1 / ((k : Rat) + 1) := by
+  unfold TauRat.ofNatRecip TauRat.toRat TauInt.toInt
+  push_cast; ring
+
+-- ============================================================
+-- PART 9: SMOKE TESTS
 -- ============================================================
 
 -- abs of a positive TauRat is the identity
