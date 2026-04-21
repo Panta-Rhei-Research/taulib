@@ -18,10 +18,10 @@ Multiplicative inverse and division on `TauReal`.
 - [I.D110] TauRat Inverse and Division — `TauRat.inv` (Wave 1d),
   lifted pointwise
 - [I.D112] TauReal.equiv — the Cauchy equivalence relation
-
-New declarations (pending Wave 2 registry commit):
-`TauReal.BoundedAwayFromZero`, `TauReal.inv`, `TauReal.div`,
-`TauReal.mul_inv_cancel`, `TauReal.inv_mul_cancel`, `TauReal.div_self`.
+- [I.D114] TauReal Absolute Value, Inverse, Division — bundled abs /
+  inv / div layer; this module supplies the inv / div half
+- [I.P49] TauReal Ordered Field Structure — collective proposition for
+  the full Wave 2 ordered-field layer
 
 ## Mathematical Content
 
