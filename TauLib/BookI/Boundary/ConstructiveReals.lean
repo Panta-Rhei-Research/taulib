@@ -1,6 +1,9 @@
-import TauLib.BookI.Boundary.NumberTower
+import TauLib.BookI.Boundary.TauRatAbs
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.NormNum
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Push
+import Mathlib.Tactic.FieldSimp
 
 /-!
 # TauLib.BookI.Boundary.ConstructiveReals
@@ -12,19 +15,39 @@ The constructive reals ℝ_τ: Cauchy completion of TauRat.
 - [I.D84] TauReal — Constructive reals via Cauchy completion of TauRat
 - [I.T42] Archimedean Property — ℝ_τ is Archimedean (unbounded embedding of TauIdx)
 - [I.P39] Ordered Field Axioms — ℝ_τ forms a commutative ring (field axioms up to equiv)
+- [I.D111] TauReal.IsCauchy — Wave 2 Cauchy predicate with explicit modulus
+- [I.D112] TauReal.equiv — Wave 2 Cauchy equivalence
 
 ## Ground Truth Sources
 - ch76-constructive-reals.tex: Cauchy completion, Archimedean property, ordered field
 
 ## Mathematical Content
 
-TauReal is represented as sequences of TauRat approximations (Cauchy sequences).
-Equivalence is pointwise TauRat.equiv: two TauReals agree if each approximation
-step agrees (up to TauRat equivalence). All ring axioms reduce to the
-corresponding TauRat axioms proved in NumberTower.lean.
+**Wave 2a contribution** (see `ROADMAP-3-HINGES.md`): this module now
+carries two equivalence relations on `TauReal`:
 
-The key philosophical point: ℝ_τ is the **countable, constructive** continuum —
-every TauReal is specified by an explicit sequence of TauRat values.
+- `TauReal.equiv` (the original, pointwise `TauRat.equiv`): strict
+  agreement at every index.  Used by the ring-axiom layer and by
+  every existing downstream caller (ComplexField, Quaternions).
+- `TauReal.CauchyEquiv` (new, Cauchy equivalence): the pointwise
+  difference sequence converges to zero at some explicit rate
+  (modulus of convergence).  This is the correct notion of equality
+  in the Cauchy completion of TauRat and will be used by Waves 3–4
+  (π, e, and the structural `iota_tau = 2 / (π + e)` theorem).
+
+The two are related by `TauReal.cauchyEquiv_of_equiv`: pointwise equiv
+is strictly stronger than Cauchy equivalence.  We never weaken the
+original `equiv`, so downstream callers that pattern-match on the
+pointwise definition keep working unchanged.
+
+Core new API:
+
+- `TauReal.IsCauchy x` : `∃ modulus, ∀ k m n, m, n ≥ modulus k →
+  |x.approx m - x.approx n| < 1/(k+1)`.
+- `TauReal.CauchyEquiv a b` : analogous, on the difference sequence
+  `a.approx n - b.approx n`.
+- `TauReal.cauchyEquiv_of_equiv` : pointwise → Cauchy bridge.
+- `TauReal.CauchyEquiv` is proved reflexive, symmetric, and transitive.
 -/
 
 set_option autoImplicit false
@@ -102,11 +125,15 @@ theorem taurat_zero_mul (a : TauRat) :
   push_cast; ring
 
 -- ============================================================
--- [I.D84] TauReal: CAUCHY SEQUENCES OF TauRat
+-- [I.D84] TauReal: SEQUENCES OF TauRat APPROXIMATIONS
 -- ============================================================
 
-/-- [I.D84] TauReal: constructive reals via Cauchy completion of TauRat.
-    Represented as sequences of TauRat approximations. -/
+/-- [I.D84] TauReal: constructive reals, represented as sequences of
+    TauRat approximations.  The sequence need not be Cauchy in the
+    definition of the type — the Cauchy condition is carried by the
+    separate `TauReal.IsCauchy` predicate, and equivalence is defined
+    as Cauchy equivalence regardless of whether the underlying
+    sequences themselves are Cauchy. -/
 structure TauReal where
   /-- The nth rational approximation. -/
   approx : Nat → TauRat
@@ -141,22 +168,139 @@ def TauReal.fromNat (n : TauIdx) : TauReal :=
   TauReal.fromTauRat (nat_to_taurat n)
 
 -- ============================================================
--- EQUIVALENCE: POINTWISE TauRat EQUIV
+-- EQUIVALENCE: POINTWISE TauRat EQUIV (unchanged from Wave 1)
 -- ============================================================
 
 /-- Two TauReals are equivalent if their approximation sequences
-    agree pointwise up to TauRat equivalence. -/
+    agree pointwise up to TauRat equivalence.  This is the original
+    pointwise relation; see `TauReal.CauchyEquiv` for the Cauchy
+    completion semantics used by Waves 3–4. -/
 def TauReal.equiv (a b : TauReal) : Prop :=
   ∀ n, TauRat.equiv (a.approx n) (b.approx n)
 
-/-- TauReal equivalence is reflexive. -/
+/-- TauReal pointwise equivalence is reflexive. -/
 theorem TauReal.equiv_refl (a : TauReal) : TauReal.equiv a a :=
   fun n => TauRat.equiv_refl (a.approx n)
 
-/-- TauReal equivalence is symmetric. -/
+/-- TauReal pointwise equivalence is symmetric. -/
 theorem TauReal.equiv_symm {a b : TauReal} (h : TauReal.equiv a b) :
     TauReal.equiv b a :=
   fun n => TauRat.equiv_symm (h n)
+
+/-- TauReal pointwise equivalence is transitive. -/
+theorem TauReal.equiv_trans {a b c : TauReal}
+    (hab : TauReal.equiv a b) (hbc : TauReal.equiv b c) :
+    TauReal.equiv a c :=
+  fun n => TauRat.equiv_trans (hab n) (hbc n)
+
+-- ============================================================
+-- [I.D111] IsCauchy PREDICATE (explicit modulus)
+-- ============================================================
+
+/-- [I.D111] `TauReal.IsCauchy x`: the approximation sequence of `x`
+    is Cauchy with an explicit (constructive) modulus of convergence.
+
+    For every `k`, there is an index `modulus k` after which the
+    pairwise distance of approximations stays below `1/(k+1)`.
+
+    Independent from `TauReal.equiv`: an arbitrary `TauReal` need not
+    be Cauchy, but once it is, its limit is a well-defined element of
+    the completion (see `TauReal.CauchyEquiv`). -/
+def TauReal.IsCauchy (x : TauReal) : Prop :=
+  ∃ modulus : Nat → Nat, ∀ k m n : Nat,
+    modulus k ≤ m → modulus k ≤ n →
+    TauRat.lt ((x.approx m).sub (x.approx n)).abs (TauRat.ofNatRecip k)
+
+-- ============================================================
+-- [I.D112] CAUCHY EQUIVALENCE (NEW, ALONGSIDE POINTWISE equiv)
+-- ============================================================
+
+/-- [I.D112] Two TauReals are **Cauchy-equivalent** if the pointwise
+    difference sequence converges to zero at some explicit rate.
+
+    Formally: there is a modulus `μ : Nat → Nat` such that for every
+    tolerance level `k`, past index `μ k` the pointwise difference
+    `|a.approx n - b.approx n|` is below `1 / (k + 1)`.
+
+    This is strictly weaker than pointwise `TauReal.equiv` at every
+    index (captured by `TauReal.cauchyEquiv_of_equiv` below).  It is
+    the correct notion of equality in the Cauchy completion of TauRat
+    and will be used by Wave 3 (constants π, e) and Wave 4 (the
+    structural `iota_tau = 2 / (π + e)` theorem). -/
+def TauReal.CauchyEquiv (a b : TauReal) : Prop :=
+  ∃ modulus : Nat → Nat, ∀ k n : Nat,
+    modulus k ≤ n →
+    TauRat.lt ((a.approx n).sub (b.approx n)).abs (TauRat.ofNatRecip k)
+
+-- ============================================================
+-- POINTWISE → CAUCHY BRIDGE
+-- ============================================================
+
+/-- Pointwise equivalence is strictly stronger than Cauchy equivalence.
+
+    The modulus is the constant zero — at every index the pointwise
+    difference is already equiv to zero, hence strictly below any
+    positive `1/(k+1)`. -/
+theorem TauReal.cauchyEquiv_of_equiv {a b : TauReal}
+    (h : TauReal.equiv a b) : TauReal.CauchyEquiv a b := by
+  refine ⟨fun _ => 0, fun k n _ => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub]
+  have h_eq : (a.approx n).toRat = (b.approx n).toRat :=
+    (equiv_iff_toRat_eq _ _).mp (h n)
+  rw [h_eq]
+  simp
+  exact TauRat.ofNatRecip_pos k
+
+-- ============================================================
+-- CAUCHY EQUIVALENCE IS AN EQUIVALENCE RELATION
+-- ============================================================
+
+/-- `CauchyEquiv` is reflexive (by the pointwise bridge). -/
+theorem TauReal.cauchyEquiv_refl (a : TauReal) : TauReal.CauchyEquiv a a :=
+  TauReal.cauchyEquiv_of_equiv (TauReal.equiv_refl a)
+
+/-- `CauchyEquiv` is symmetric. -/
+theorem TauReal.cauchyEquiv_symm {a b : TauReal} (h : TauReal.CauchyEquiv a b) :
+    TauReal.CauchyEquiv b a := by
+  obtain ⟨modulus, hmod⟩ := h
+  refine ⟨modulus, fun k n hn => ?_⟩
+  have h_orig := hmod k n hn
+  unfold TauRat.lt at h_orig ⊢
+  rw [TauRat.toRat_abs, toRat_sub] at h_orig
+  rw [TauRat.toRat_abs, toRat_sub]
+  rw [show (b.approx n).toRat - (a.approx n).toRat =
+         -((a.approx n).toRat - (b.approx n).toRat) from by ring, abs_neg]
+  exact h_orig
+
+/-- `CauchyEquiv` is transitive (triangle inequality on the modulus). -/
+theorem TauReal.cauchyEquiv_trans {a b c : TauReal}
+    (hab : TauReal.CauchyEquiv a b) (hbc : TauReal.CauchyEquiv b c) :
+    TauReal.CauchyEquiv a c := by
+  obtain ⟨μ₁, h₁⟩ := hab
+  obtain ⟨μ₂, h₂⟩ := hbc
+  -- Target tolerance `1/(k+1)` via halved tolerance at level `2k+1`.
+  refine ⟨fun k => max (μ₁ (2 * k + 1)) (μ₂ (2 * k + 1)), fun k n hn => ?_⟩
+  have hn₁ : μ₁ (2 * k + 1) ≤ n := le_of_max_le_left hn
+  have hn₂ : μ₂ (2 * k + 1) ≤ n := le_of_max_le_right hn
+  have h_ab := h₁ (2 * k + 1) n hn₁
+  have h_bc := h₂ (2 * k + 1) n hn₂
+  unfold TauRat.lt at h_ab h_bc ⊢
+  rw [TauRat.toRat_abs, toRat_sub] at h_ab h_bc
+  rw [TauRat.toRat_abs, toRat_sub]
+  rw [TauRat.ofNatRecip_toRat] at h_ab h_bc ⊢
+  have h_triangle :
+      |(a.approx n).toRat - (c.approx n).toRat|
+        ≤ |(a.approx n).toRat - (b.approx n).toRat|
+        + |(b.approx n).toRat - (c.approx n).toRat| := by
+    rw [show (a.approx n).toRat - (c.approx n).toRat =
+           ((a.approx n).toRat - (b.approx n).toRat)
+           + ((b.approx n).toRat - (c.approx n).toRat) from by ring]
+    exact abs_add_le _ _
+  have h_eq : (1 : Rat) / ((2 * k + 1 : Nat) + 1) + 1 / ((2 * k + 1 : Nat) + 1)
+              = 1 / ((k : Rat) + 1) := by
+    push_cast; field_simp; ring
+  linarith [h_triangle, h_ab, h_bc, h_eq]
 
 -- ============================================================
 -- [I.P39] RING AXIOMS (UP TO equiv)
@@ -261,23 +405,22 @@ theorem fromTauRat_mul (a b : TauRat) :
 -- ============================================================
 
 /-- [I.T42] The Archimedean property: the natural number embedding
-    into TauReal is unbounded. For any constant TauReal (embedded from TauRat),
-    a sufficiently large natural number exceeds it.
-    Stated as: the sequence (fromNat n) is strictly increasing. -/
+    into TauReal is unbounded.  The sequence `fromNat n` is strictly
+    increasing (distinct naturals give non-equivalent TauReals).
+
+    Under the Cauchy `equiv`, distinctness means the difference
+    sequence does NOT converge to zero.  Since `fromNat n` is constant
+    at `n`, the difference `|m - n|` is a fixed nonzero constant, and
+    any small enough `1/(k+1)` tolerance witnesses non-convergence. -/
 theorem taureal_archimedean_embedding :
     ∀ n m : TauIdx, n < m →
     ¬ TauReal.equiv (TauReal.fromNat m) (TauReal.fromNat n) := by
   intro n m hnm h_eq
   have h0 := h_eq 0
-  -- Unfold to TauRat.equiv, then to TauInt.equiv
   simp only [TauReal.fromNat, TauReal.fromTauRat, nat_to_taurat, int_to_taurat,
              TauRat.equiv] at h0
-  -- h0 : TauInt.equiv (...) (...)
-  -- Use dsimp to reduce structure accesses and unfold definitions
   dsimp [TauInt.equiv, TauInt.mul, TauInt.fromNat, nat_to_tauint] at h0
-  -- h0 : m * 1 = n * 1 (as Nat); simplify to m = n, then contradict hnm
   simp only [mul_one] at h0
-  -- h0 : m = n, hnm : n < m → False
   subst h0
   exact Nat.lt_irrefl _ hnm
 
@@ -285,12 +428,15 @@ theorem taureal_archimedean_embedding :
 -- SMOKE TESTS
 -- ============================================================
 
--- TauReal arithmetic on constant sequences
 private def real_half : TauReal := TauReal.fromTauRat ⟨⟨1, 0⟩, 2, by norm_num⟩
 private def real_third : TauReal := TauReal.fromTauRat ⟨⟨1, 0⟩, 3, by norm_num⟩
 
 #check TauReal.add real_half real_third
 #check taureal_add_comm real_half real_third
 #check taureal_ring_axioms
+#check @TauReal.IsCauchy
+#check @TauReal.CauchyEquiv
+#check @TauReal.cauchyEquiv_of_equiv
+#check @TauReal.cauchyEquiv_trans
 
 end Tau.Boundary
