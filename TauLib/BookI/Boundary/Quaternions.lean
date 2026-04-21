@@ -132,7 +132,7 @@ def TauQuaternion.normSq (a : TauQuaternion) : TauReal :=
     to TauRat equivalence, which reduces to TauInt via the bridge. -/
 private theorem taureal_const_bridge (a b : TauRat)
     (h : ∀ n : Nat, TauRat.equiv a b) : TauReal.equiv ⟨fun _ => a⟩ ⟨fun _ => b⟩ :=
-  fun n => h n
+  TauReal.equiv_of_pointwise (fun n => h n)
 
 -- ============================================================
 -- [I.T44] HAMILTON RELATIONS: i^2 = j^2 = k^2 = ijk = -1
@@ -145,7 +145,9 @@ def TauQuaternion.neg_one : TauQuaternion := TauQuaternion.negate TauQuaternion.
 theorem qi_squared :
     TauQuaternion.equiv (TauQuaternion.mul TauQuaternion.qi TauQuaternion.qi)
                         TauQuaternion.neg_one := by
-  refine ⟨?_, ?_, ?_, ?_⟩ <;> intro n <;>
+  refine ⟨TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_,
+          TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_⟩ <;>
+    intro n <;>
   simp only [TauQuaternion.mul, TauQuaternion.qi, TauQuaternion.neg_one,
     TauQuaternion.negate, TauQuaternion.one,
     TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
@@ -160,7 +162,9 @@ theorem qi_squared :
 theorem qj_squared :
     TauQuaternion.equiv (TauQuaternion.mul TauQuaternion.qj TauQuaternion.qj)
                         TauQuaternion.neg_one := by
-  refine ⟨?_, ?_, ?_, ?_⟩ <;> intro n <;>
+  refine ⟨TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_,
+          TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_⟩ <;>
+    intro n <;>
   simp only [TauQuaternion.mul, TauQuaternion.qj, TauQuaternion.neg_one,
     TauQuaternion.negate, TauQuaternion.one,
     TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
@@ -175,7 +179,9 @@ theorem qj_squared :
 theorem qk_squared :
     TauQuaternion.equiv (TauQuaternion.mul TauQuaternion.qk TauQuaternion.qk)
                         TauQuaternion.neg_one := by
-  refine ⟨?_, ?_, ?_, ?_⟩ <;> intro n <;>
+  refine ⟨TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_,
+          TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_⟩ <;>
+    intro n <;>
   simp only [TauQuaternion.mul, TauQuaternion.qk, TauQuaternion.neg_one,
     TauQuaternion.negate, TauQuaternion.one,
     TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
@@ -191,7 +197,9 @@ theorem ijk_relation :
     TauQuaternion.equiv
       (TauQuaternion.mul (TauQuaternion.mul TauQuaternion.qi TauQuaternion.qj) TauQuaternion.qk)
       TauQuaternion.neg_one := by
-  refine ⟨?_, ?_, ?_, ?_⟩ <;> intro n <;>
+  refine ⟨TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_,
+          TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_⟩ <;>
+    intro n <;>
   simp only [TauQuaternion.mul, TauQuaternion.qi, TauQuaternion.qj, TauQuaternion.qk,
     TauQuaternion.neg_one, TauQuaternion.negate, TauQuaternion.one,
     TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
@@ -207,22 +215,31 @@ theorem ijk_relation :
 -- ============================================================
 
 /-- Non-commutativity witness: qi * qj and qj * qi differ in the z-component.
-    qi * qj has z = 1 while qj * qi has z = -1. -/
+    qi * qj has z = 1 while qj * qi has z = -1.
+
+    Under the Cauchy `TauReal.equiv`, we extract the modulus, evaluate at
+    tolerance level `k = 0` (bound `1/(0+1) = 1`), and derive the
+    contradiction `2 < 1` from the fact that `|1 − (−1)| = 2` at every
+    index of the constant z-component sequences. -/
 theorem non_commutativity_witness :
     ¬ TauQuaternion.equiv (TauQuaternion.mul TauQuaternion.qi TauQuaternion.qj)
                           (TauQuaternion.mul TauQuaternion.qj TauQuaternion.qi) := by
   intro ⟨_, _, _, hz⟩
-  -- hz : TauReal.equiv (z-component of qi*qj) (z-component of qj*qi)
-  -- qi*qj has z = 1, qj*qi has z = -1
-  have h0 := hz 0
+  obtain ⟨μ, h⟩ := hz
+  have h0 := h 0 (μ 0) (_root_.le_refl _)
+  -- Unfold the Cauchy bound to an inequality in `Rat`
+  unfold TauRat.lt at h0
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat] at h0
+  -- Evaluate the z-components of qi*qj and qj*qi at index `μ 0`.
+  -- They are constant TauRats whose toRat values are `1` and `-1`.
   simp only [TauQuaternion.mul, TauQuaternion.qi, TauQuaternion.qj,
     TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
-    TauReal.zero, TauReal.one,
-    TauRat.equiv, TauRat.sub, TauRat.add, TauRat.mul, TauRat.negate,
-    TauRat.zero, TauRat.one] at h0
-  rw [equiv_iff_toInt_eq] at h0
-  simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one] at h0
-  omega
+    TauReal.zero, TauReal.one] at h0
+  simp only [toRat_add, toRat_mul, toRat_negate, toRat_sub,
+    toRat_zero, toRat_one] at h0
+  -- h0 now says |(1 * 1 - 0) - (-(0 - 1 * 1))| < 1/(0+1) in Rat, i.e. |2| < 1
+  push_cast at h0
+  linarith [abs_nonneg ((1 : Rat) * 1 - 0 * 0 - -(0 * 0 - 1 * 1))]
 
 -- ============================================================
 -- ADDITIVE RING AXIOMS (componentwise from TauReal)
@@ -260,7 +277,9 @@ theorem tauquat_add_negate (a : TauQuaternion) :
 /-- One is a right identity for quaternion multiplication (up to equiv). -/
 theorem tauquat_mul_one (a : TauQuaternion) :
     TauQuaternion.equiv (TauQuaternion.mul a TauQuaternion.one) a := by
-  refine ⟨?_, ?_, ?_, ?_⟩ <;> intro n <;>
+  refine ⟨TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_,
+          TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_⟩ <;>
+    intro n <;>
   simp only [TauQuaternion.mul, TauQuaternion.one,
     TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
     TauReal.zero, TauReal.one,
@@ -273,7 +292,9 @@ theorem tauquat_mul_one (a : TauQuaternion) :
 /-- One is a left identity for quaternion multiplication (up to equiv). -/
 theorem tauquat_one_mul (a : TauQuaternion) :
     TauQuaternion.equiv (TauQuaternion.mul TauQuaternion.one a) a := by
-  refine ⟨?_, ?_, ?_, ?_⟩ <;> intro n <;>
+  refine ⟨TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_,
+          TauReal.equiv_of_pointwise ?_, TauReal.equiv_of_pointwise ?_⟩ <;>
+    intro n <;>
   simp only [TauQuaternion.mul, TauQuaternion.one,
     TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
     TauReal.zero, TauReal.one,

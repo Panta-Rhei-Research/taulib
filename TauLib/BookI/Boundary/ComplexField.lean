@@ -109,6 +109,7 @@ theorem taucomplex_i_squared :
                      (TauComplex.negate TauComplex.one) := by
   constructor
   · -- Real part: sub(mul(0,0), mul(1,1)) ≡ negate(1) i.e. 0*0 - 1*1 ≡ -1
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.mul, TauComplex.i_unit, TauComplex.negate, TauComplex.one,
                TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate, TauReal.zero, TauReal.one]
@@ -117,6 +118,7 @@ theorem taucomplex_i_squared :
     simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
     push_cast; try ring
   · -- Imaginary part: add(mul(0,1), mul(1,0)) ≡ negate(0) i.e. 0*1 + 1*0 ≡ 0
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.mul, TauComplex.i_unit, TauComplex.negate, TauComplex.one,
                TauReal.add, TauReal.mul, TauReal.negate, TauReal.zero, TauReal.one]
@@ -156,6 +158,7 @@ theorem taucomplex_mul_comm (a b : TauComplex) :
     TauComplex.equiv (TauComplex.mul a b) (TauComplex.mul b a) := by
   constructor
   · -- Real part: sub(mul(a.re, b.re), mul(a.im, b.im)) ≡ sub(mul(b.re, a.re), mul(b.im, a.im))
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.mul, TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate]
     simp only [TauRat.equiv, TauRat.sub, TauRat.add, TauRat.mul, TauRat.negate]
@@ -163,6 +166,7 @@ theorem taucomplex_mul_comm (a b : TauComplex) :
     simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat]
     push_cast; try ring
   · -- Imaginary part: add(mul(a.re, b.im), mul(a.im, b.re)) ≡ add(mul(b.re, a.im), mul(b.im, a.re))
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.mul, TauReal.add, TauReal.mul]
     simp only [TauRat.equiv, TauRat.add, TauRat.mul]
@@ -177,6 +181,7 @@ theorem taucomplex_mul_assoc (a b c : TauComplex) :
                      (TauComplex.mul a (TauComplex.mul b c)) := by
   constructor
   · -- Real part
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.mul, TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate]
     simp only [TauRat.equiv, TauRat.sub, TauRat.add, TauRat.mul, TauRat.negate]
@@ -184,6 +189,7 @@ theorem taucomplex_mul_assoc (a b c : TauComplex) :
     simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat]
     push_cast; try ring
   · -- Imaginary part
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.mul, TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate]
     simp only [TauRat.equiv, TauRat.sub, TauRat.add, TauRat.mul, TauRat.negate]
@@ -196,6 +202,7 @@ theorem taucomplex_mul_one (a : TauComplex) :
     TauComplex.equiv (TauComplex.mul a TauComplex.one) a := by
   constructor
   · -- Real part: a.re * 1 - a.im * 0 ≡ a.re
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.mul, TauComplex.one, TauReal.sub, TauReal.add, TauReal.mul,
                TauReal.negate, TauReal.one, TauReal.zero]
@@ -205,6 +212,7 @@ theorem taucomplex_mul_one (a : TauComplex) :
     simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
     push_cast; try ring
   · -- Imaginary part: a.re * 0 + a.im * 1 ≡ a.im
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.mul, TauComplex.one, TauReal.add, TauReal.mul,
                TauReal.one, TauReal.zero]
@@ -219,6 +227,7 @@ theorem taucomplex_left_distrib (a b c : TauComplex) :
                      (TauComplex.add (TauComplex.mul a b) (TauComplex.mul a c)) := by
   constructor
   · -- Real part
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.mul, TauComplex.add, TauReal.sub, TauReal.add, TauReal.mul,
                TauReal.negate]
@@ -227,6 +236,7 @@ theorem taucomplex_left_distrib (a b c : TauComplex) :
     simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat]
     push_cast; try ring
   · -- Imaginary part
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.mul, TauComplex.add, TauReal.sub, TauReal.add, TauReal.mul,
                TauReal.negate]
@@ -300,6 +310,7 @@ theorem taucomplex_conj_involution (a : TauComplex) :
   constructor
   · exact TauReal.equiv_refl a.re
   · -- negate(negate(a.im)) ≡ a.im
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.conj, TauReal.negate]
     simp only [TauRat.equiv, TauRat.negate]
@@ -314,6 +325,7 @@ theorem taucomplex_conj_add (a b : TauComplex) :
   constructor
   · exact TauReal.equiv_refl _
   · -- negate(add(a.im, b.im)) ≡ add(negate(a.im), negate(b.im))
+    apply TauReal.equiv_of_pointwise
     intro n
     simp only [TauComplex.conj, TauComplex.add, TauReal.negate, TauReal.add]
     simp only [TauRat.equiv, TauRat.negate, TauRat.add]
