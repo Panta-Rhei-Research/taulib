@@ -17,10 +17,10 @@ Ordering on `TauReal`: strict less-than (`lt`) and less-than-or-equal
 - [I.D84] TauReal — the Cauchy completion of TauRat
 - [I.D112] TauReal.equiv — the Cauchy equivalence relation on TauReal
   (from `ConstructiveReals.lean`, Wave 2a)
-
-New declarations in this module are not yet registered (pending the
-Wave 2 registry-bookkeeping commit): `TauReal.lt`, `TauReal.le`,
-`LT TauReal` / `LE TauReal` instances, and the basic order lemmas.
+- [I.D113] TauReal Ordering — `lt`, `le` (this module's subject),
+  wired into Lean core's `LT` / `LE` hierarchy via instances
+- [I.P49] TauReal Ordered Field Structure — collective proposition for
+  the full Wave 2 ordered-field layer
 
 ## Mathematical Content
 

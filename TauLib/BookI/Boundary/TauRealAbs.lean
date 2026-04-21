@@ -16,10 +16,10 @@ sequence.
 - [I.D84] TauReal — the Cauchy completion of TauRat
 - [I.D109] TauRat Absolute Value — `TauRat.abs` (Wave 1c), lifted pointwise
 - [I.D112] TauReal.equiv — the Cauchy equivalence relation
-
-New declarations (pending Wave 2 registry commit): `TauReal.abs`,
-`TauReal.abs_nonneg`, `TauReal.abs_of_equiv`, `TauReal.abs_triangle`,
-`TauReal.abs_preserves_cauchy`.
+- [I.D114] TauReal Absolute Value, Inverse, Division — bundled abs /
+  inv / div layer; this module supplies the abs half
+- [I.P49] TauReal Ordered Field Structure — collective proposition for
+  the full Wave 2 ordered-field layer
 
 ## Mathematical Content
 
