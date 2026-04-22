@@ -166,13 +166,44 @@ def parse_harvest_markers(driver_path: Path) -> dict[str, str]:
     return mapping
 
 
+def _coalesce_bracketed_lines(text: str) -> str:
+    """Join `depends on axioms: [...]` listings that Lean wraps across
+    multiple output lines for theorems with long axiom sets.
+
+    Lean 4's elaborator emits `#print axioms` output as a single logical
+    message but may line-wrap the `[axiom1, axiom2, ...]` payload when
+    the combined length exceeds its internal pretty-printer budget.
+    The downstream regex `AXIOM_LINE_WITH` requires `[` and `]` on the
+    same line, so we preprocess here to rejoin wrapped continuations.
+    """
+    out: list[str] = []
+    buffer: str | None = None
+    for line in text.splitlines():
+        if buffer is not None:
+            buffer += " " + line.strip()
+            if "]" in line:
+                out.append(buffer)
+                buffer = None
+        elif "depends on axioms: [" in line and "]" not in line:
+            buffer = line
+        else:
+            out.append(line)
+    if buffer is not None:
+        # Unclosed bracket — shouldn't happen in practice, but don't
+        # silently drop data.  Append as-is; downstream regex will miss
+        # it and the "harvested N/M" count will flag the mismatch.
+        out.append(buffer)
+    return "\n".join(out)
+
+
 def parse_lean_output(text: str) -> dict[str, list[str]]:
     """Scan Lean's combined stdout/stderr for `#print axioms` results.
 
     Returns a dict name -> list of axioms (possibly empty).
     """
     results: dict[str, list[str]] = {}
-    for raw in text.splitlines():
+    normalized = _coalesce_bracketed_lines(text)
+    for raw in normalized.splitlines():
         line = raw.strip()
         m = AXIOM_LINE_WITH.match(line)
         if m:
