@@ -1,4 +1,5 @@
 import TauLib.BookI.Boundary.TauRealIotaTau
+import TauLib.BookI.Boundary.TauRealMulCongr
 import TauLib.BookI.Polarity.Lemniscate
 import TauLib.BookI.Polarity.OmegaGerms
 
@@ -201,6 +202,28 @@ theorem coupling_identity_reduces_to_wave4
   have h_mul_equiv :=
     mul_respects_equiv_left (Read g) TauReal.iota_tau
       (TauReal.pi.add TauReal.e) h_read
+  exact TauReal.equiv_trans h_mul_equiv TauReal.iota_tau_mul_pi_plus_e_eq_two
+
+/-- **Coupling identity, refined form** — uses the Wave 2.5
+    `mul_respects_equiv_right_of_bound` directly, leaving only the
+    `(π + e)`-bound as a parameter (a Nat M plus the per-index bound
+    `∀ n, |(π+e).approx n| ≤ M`).  The Wave 2.5 mul-congruence
+    bridge is now internal to the proof; the *only* remaining
+    parameter is the explicit bound on `(π + e)`.
+
+    Once a concrete `(π + e).bound_le_seven` lemma is added to
+    `TauRealPiPlusE.lean` (a small follow-up using the Wave 3
+    monotonicity infrastructure), the bound and its proof can be
+    supplied automatically and a fully zero-arg `coupling_identity`
+    becomes statable. -/
+theorem coupling_identity_via_bounded_mul
+    (g : CrossingPointDefectGerm) (h : IsCrossingPoint g)
+    (M : Nat) (hM : 1 ≤ M)
+    (h_bound : ∀ n, ((TauReal.pi.add TauReal.e).approx n).abs.toRat ≤ M) :
+    TauReal.equiv ((Read g).mul (TauReal.pi.add TauReal.e)) TauReal.two := by
+  have h_read := iota_tau_read_eq_division g h
+  have h_mul_equiv := TauReal.mul_respects_equiv_right_of_bound
+    (Read g) TauReal.iota_tau (TauReal.pi.add TauReal.e) M hM h_bound h_read
   exact TauReal.equiv_trans h_mul_equiv TauReal.iota_tau_mul_pi_plus_e_eq_two
 
 end Tau.Boundary
