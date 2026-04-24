@@ -168,4 +168,177 @@ theorem TauReal.pi_plus_e_boundedAwayFromZero :
   push_cast
   linarith
 
+-- ============================================================
+-- PART 5: NON-NEGATIVITY OF pi_partial AND e_partial
+-- ============================================================
+
+/-- `pi_partial n ≥ 0` at the `toRat` level, from monotonicity and
+    `pi_partial 0 = 0`.  All terms `pi_pair_term k` are positive, so
+    their prefix sum is non-negative. -/
+theorem TauRat.pi_partial_nonneg (n : Nat) :
+    0 ≤ (TauRat.pi_partial n).toRat := by
+  have h_zero : (TauRat.pi_partial 0).toRat = 0 := by
+    show (TauRat.sum _ 0).toRat = 0
+    rw [TauRat.sum_zero, toRat_zero]
+  have h_mono := TauRat.pi_partial_monotone (Nat.zero_le n)
+  linarith
+
+/-- `e_partial n ≥ 0` at the `toRat` level, from monotonicity and
+    `e_partial 0 = 0`.  All terms `e_term k` are positive, so their
+    prefix sum is non-negative. -/
+theorem TauRat.e_partial_nonneg (n : Nat) :
+    0 ≤ (TauRat.e_partial n).toRat := by
+  have h_zero : (TauRat.e_partial 0).toRat = 0 := by
+    show (TauRat.sum _ 0).toRat = 0
+    rw [TauRat.sum_zero, toRat_zero]
+  have h_mono := TauRat.e_partial_monotone (Nat.zero_le n)
+  linarith
+
+-- ============================================================
+-- PART 6: UPPER BOUNDS VIA TELESCOPING
+-- ============================================================
+
+/-- **Upper bound on `pi_partial`**: for every `n`,
+    `pi_partial n .toRat ≤ 19/6`.  Proof: for `n = 0`, value is 0;
+    for `n ≥ 1`, telescope via `sum_sub_toRat_eq_sumFromTo` and apply
+    `sumFromTo_pi_pair_term_bound` with starting index `1`:
+
+      `pi_partial n .toRat = pi_partial 1 .toRat + sumFromTo pi_pair_term 1 n .toRat`
+                          `≤ 8/3 + (1/2 - 1/(2n)) ≤ 8/3 + 1/2 = 19/6 < 4`.
+
+    The bound `19/6 ≈ 3.17 < π ≈ 3.14159...` is loose by design; we just
+    need *some* integer bound below 7 for the `(π + e)` combination. -/
+theorem TauRat.pi_partial_le_19_div_6 (n : Nat) :
+    (TauRat.pi_partial n).toRat ≤ 19 / 6 := by
+  by_cases hn : 1 ≤ n
+  · -- Case n ≥ 1: telescope via sum_sub_toRat_eq_sumFromTo
+    have h_tele := TauRat.sum_sub_toRat_eq_sumFromTo TauRat.pi_pair_term 1 n hn
+    have h_sum_bound :
+        (TauRat.sumFromTo TauRat.pi_pair_term 1 n).toRat
+          ≤ 1 / (2 * (1 : Rat)) - 1 / (2 * (n : Rat)) :=
+      TauReal.sumFromTo_pi_pair_term_bound 1 (by norm_num) n hn
+    have h_pi1 : (TauRat.pi_partial 1).toRat = 8 / 3 :=
+      TauRat.pi_partial_one_toRat
+    have h_n_pos : (0 : Rat) < (n : Rat) := by exact_mod_cast hn
+    have h_2n_pos : (0 : Rat) < 2 * (n : Rat) := by linarith
+    have h_recip_nonneg : (0 : Rat) ≤ 1 / (2 * (n : Rat)) := by
+      have h_one_nn : (0 : Rat) ≤ 1 := by norm_num
+      exact div_nonneg h_one_nn h_2n_pos.le
+    -- Bound the ranged sum by `1/2` directly via calc, avoiding
+    -- reliance on linarith's ability to normalise `1 / (2 * 1) = 1/2`.
+    have h_sum_le_half :
+        (TauRat.sumFromTo TauRat.pi_pair_term 1 n).toRat ≤ 1 / 2 := by
+      have h_21 : (1 : Rat) / (2 * (1 : Rat)) = 1 / 2 := by norm_num
+      have h_step :
+          (1 : Rat) / (2 * (1 : Rat)) - 1 / (2 * (n : Rat)) ≤ 1 / 2 := by
+        rw [h_21]; linarith
+      linarith [h_sum_bound]
+    have h_pi_eq :
+        (TauRat.pi_partial n).toRat =
+          (TauRat.pi_partial 1).toRat + (TauRat.sumFromTo TauRat.pi_pair_term 1 n).toRat := by
+      show (TauRat.sum TauRat.pi_pair_term n).toRat =
+           (TauRat.sum TauRat.pi_pair_term 1).toRat + _
+      linarith [h_tele]
+    rw [h_pi_eq, h_pi1]
+    linarith
+  · -- Case n = 0: value is 0 ≤ 19/6 trivially
+    push_neg at hn
+    have hn0 : n = 0 := by omega
+    subst hn0
+    show (TauRat.sum TauRat.pi_pair_term 0).toRat ≤ 19 / 6
+    rw [TauRat.sum_zero, toRat_zero]
+    norm_num
+
+/-- **Upper bound on `e_partial`**: for every `n`,
+    `e_partial n .toRat ≤ 3`.  Proof: for `n = 0`, value is 0; for
+    `n ≥ 1`, telescope via `sum_sub_toRat_eq_sumFromTo` and apply
+    `sumFromTo_e_term_bound` with starting index `1`:
+
+      `e_partial n .toRat = e_partial 1 .toRat + sumFromTo e_term 1 n .toRat`
+                         `≤ 1 + (2 - 4/2^n) ≤ 3`.
+
+    The bound `3 > e ≈ 2.718` is loose; tight enough for the
+    `(π + e) ≤ 7` combination. -/
+theorem TauRat.e_partial_le_three (n : Nat) :
+    (TauRat.e_partial n).toRat ≤ 3 := by
+  by_cases hn : 1 ≤ n
+  · -- Case n ≥ 1
+    have h_tele := TauRat.sum_sub_toRat_eq_sumFromTo TauRat.e_term 1 n hn
+    have h_sum_bound :
+        (TauRat.sumFromTo TauRat.e_term 1 n).toRat
+          ≤ 4 / (2 ^ (1 : Nat) : Rat) - 4 / (2 ^ n : Rat) :=
+      TauReal.sumFromTo_e_term_bound 1 (by norm_num) n hn
+    have h_e1 : (TauRat.e_partial 1).toRat = 1 :=
+      TauRat.e_partial_one_toRat
+    have h_pow_pos : (0 : Rat) < 2 ^ n := by positivity
+    have h_recip_nonneg : (0 : Rat) ≤ 4 / (2 ^ n : Rat) := by
+      have h_4_nn : (0 : Rat) ≤ 4 := by norm_num
+      exact div_nonneg h_4_nn h_pow_pos.le
+    -- Bound the ranged sum by 2 directly via calc, avoiding reliance
+    -- on linarith's ability to normalise `4 / 2^1 = 2`.
+    have h_sum_le_2 : (TauRat.sumFromTo TauRat.e_term 1 n).toRat ≤ 2 := by
+      have h_base : (4 : Rat) / (2 ^ (1 : Nat) : Rat) = 2 := by norm_num
+      have h_step :
+          (4 : Rat) / (2 ^ (1 : Nat) : Rat) - 4 / (2 ^ n : Rat) ≤ 2 := by
+        rw [h_base]; linarith
+      linarith [h_sum_bound]
+    have h_e_eq :
+        (TauRat.e_partial n).toRat =
+          (TauRat.e_partial 1).toRat + (TauRat.sumFromTo TauRat.e_term 1 n).toRat := by
+      show (TauRat.sum TauRat.e_term n).toRat =
+           (TauRat.sum TauRat.e_term 1).toRat + _
+      linarith [h_tele]
+    rw [h_e_eq, h_e1]
+    linarith
+  · -- Case n = 0: value is 0 ≤ 3 trivially
+    push_neg at hn
+    have hn0 : n = 0 := by omega
+    subst hn0
+    show (TauRat.sum TauRat.e_term 0).toRat ≤ 3
+    rw [TauRat.sum_zero, toRat_zero]
+    norm_num
+
+-- ============================================================
+-- PART 7: UPPER BOUND ON (π + e).approx n
+-- ============================================================
+
+/-- `(π + e).approx n .toRat ≥ 0`: the partial sum is non-negative. -/
+theorem TauReal.pi_plus_e_approx_nonneg (n : Nat) :
+    0 ≤ ((TauReal.pi.add TauReal.e).approx n).toRat := by
+  show 0 ≤ ((TauReal.pi.approx n).add (TauReal.e.approx n)).toRat
+  rw [toRat_add]
+  have h_pi_nonneg : 0 ≤ (TauReal.pi.approx n).toRat :=
+    TauRat.pi_partial_nonneg n
+  have h_e_nonneg : 0 ≤ (TauReal.e.approx n).toRat :=
+    TauRat.e_partial_nonneg n
+  linarith
+
+/-- **Master upper bound**: `(π + e).approx n .toRat ≤ 7` for every
+    `n`.  Combines `pi_partial_le_19_div_6` and `e_partial_le_three`:
+    `19/6 + 3 = 19/6 + 18/6 = 37/6 ≈ 6.17 ≤ 7`. -/
+theorem TauReal.pi_plus_e_approx_le_seven (n : Nat) :
+    ((TauReal.pi.add TauReal.e).approx n).toRat ≤ 7 := by
+  show ((TauReal.pi.approx n).add (TauReal.e.approx n)).toRat ≤ 7
+  rw [toRat_add]
+  have h_pi := TauRat.pi_partial_le_19_div_6 n
+  have h_e := TauRat.e_partial_le_three n
+  -- pi.approx n = pi_partial n, e.approx n = e_partial n (definitional)
+  show (TauReal.pi.approx n).toRat + (TauReal.e.approx n).toRat ≤ 7
+  have h_pi_unfold : (TauReal.pi.approx n).toRat = (TauRat.pi_partial n).toRat := rfl
+  have h_e_unfold : (TauReal.e.approx n).toRat = (TauRat.e_partial n).toRat := rfl
+  rw [h_pi_unfold, h_e_unfold]
+  linarith
+
+/-- **The bound theorem consumed by `coupling_identity`**: for every
+    `n`, the absolute value of `(π + e).approx n` is bounded above
+    by `7`.  Since the approximation is non-negative
+    (`pi_plus_e_approx_nonneg`), `abs = value`, and the bound is the
+    pointwise `≤ 7` established above. -/
+theorem TauReal.pi_plus_e_abs_le_seven (n : Nat) :
+    ((TauReal.pi.add TauReal.e).approx n).abs.toRat ≤ 7 := by
+  rw [TauRat.toRat_abs]
+  have h_nonneg := TauReal.pi_plus_e_approx_nonneg n
+  rw [abs_of_nonneg h_nonneg]
+  exact TauReal.pi_plus_e_approx_le_seven n
+
 end Tau.Boundary

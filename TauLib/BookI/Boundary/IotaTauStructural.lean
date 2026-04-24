@@ -226,4 +226,27 @@ theorem coupling_identity_via_bounded_mul
     (Read g) TauReal.iota_tau (TauReal.pi.add TauReal.e) M hM h_bound h_read
   exact TauReal.equiv_trans h_mul_equiv TauReal.iota_tau_mul_pi_plus_e_eq_two
 
+/-- **Coupling identity, fully zero-arg form** — the capstone
+    closing the Wave 2.5 / H3 Wave 7 ledger-book.
+
+    Uses the concrete `(π + e)`-bound `pi_plus_e_abs_le_seven` from
+    `TauRealPiPlusE.lean` (established via Wave 3 monotonicity
+    infrastructure: `pi_partial_le_19_div_6` + `e_partial_le_three`,
+    each via telescoping on `sumFromTo_{pi_pair_term,e_term}_bound`)
+    to automate the `M = 7`, `1 ≤ M`, and `∀ n, |(π+e).approx n| ≤ M`
+    parameters, leaving only the germ and the crossing-point
+    hypothesis.
+
+    This retires the last Wave 2.5 / Wave 7 loose end: the
+    structural coupling identity `Read(Δ_ω) · (π + e) ≡ 2` now holds
+    at Cauchy equivalence for every crossing-point defect germ,
+    without any explicit bound-parameter plumbing.  Combined with
+    the Wave 4 numerical capstone `iota_tau_mul_pi_plus_e_eq_two`,
+    this closes the H3 structural arc at full generality. -/
+theorem coupling_identity
+    (g : CrossingPointDefectGerm) (h : IsCrossingPoint g) :
+    TauReal.equiv ((Read g).mul (TauReal.pi.add TauReal.e)) TauReal.two :=
+  coupling_identity_via_bounded_mul g h 7 (by norm_num)
+    TauReal.pi_plus_e_abs_le_seven
+
 end Tau.Boundary
