@@ -371,4 +371,20 @@ example : ultra_dist (mk_omega_tail 42 5) (mk_omega_tail 42 5) = 0 := by native_
 #eval ultra_dist (mk_omega_tail 7 5) (mk_omega_tail 7 5)     -- 0 (self)
 #eval ultra_dist (mk_omega_tail 7 5) (mk_omega_tail 37 5)    -- diverges at some level
 
+-- ============================================================
+-- WAVE 38: τ-NATIVE TRICHOTOMY LEMMA (Tier 3 nice-to-have)
+-- ============================================================
+
+/-- **τ-native trichotomy for τ-Idx**: every TauIdx is either zero or
+    positive.  Delegates to `Nat.eq_zero_or_pos` via the
+    `TauIdx := abbrev Nat` definitional alias.
+
+    Wave 38 — Tier 3 nice-to-have from `nat-usage-audit-bookI`.
+    Companion to `tauIdx_zero_not_succ` and
+    `tauIdx_no_additive_inverse` — closes the trichotomy gap at the
+    τ-Idx level so future τ-native code can avoid bare
+    `Nat.eq_zero_or_pos` calls. -/
+theorem tauIdx_eq_zero_or_pos (n : TauIdx) : n = 0 ∨ n > 0 :=
+  Nat.eq_zero_or_pos n
+
 end Tau.Denotation.Structural

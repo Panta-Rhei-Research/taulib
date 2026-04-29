@@ -104,27 +104,27 @@ open Tau.Denotation
     the abstract real `ℝ` is via the kernel identification
     `ℝ_τ ≅ ℝ` (Book I ch. 38), which is structural and not
     formalised here. -/
-def numericalReadoutAtDepth (x : TauReal) (N : Nat) : Rat :=
+def numericalReadoutAtDepth (x : TauReal) (N : TauIdx) : Rat :=
   (x.approx N).toRat
 
 /-- **Convenience name**: the depth-`N` readout of `Ger2`. -/
-def twoNumericalAt (N : Nat) : Rat :=
+def twoNumericalAt (N : TauIdx) : Rat :=
   numericalReadoutAtDepth TauReal.two N
 
 /-- **Convenience name**: the depth-`N` readout of `GerPi`. -/
-def piNumericalAt (N : Nat) : Rat :=
+def piNumericalAt (N : TauIdx) : Rat :=
   numericalReadoutAtDepth TauReal.pi N
 
 /-- **Convenience name**: the depth-`N` readout of `GerE`. -/
-def eNumericalAt (N : Nat) : Rat :=
+def eNumericalAt (N : TauIdx) : Rat :=
   numericalReadoutAtDepth TauReal.e N
 
 /-- **Convenience name**: the depth-`N` readout of `GerIota`. -/
-def iotaNumericalAt (N : Nat) : Rat :=
+def iotaNumericalAt (N : TauIdx) : Rat :=
   numericalReadoutAtDepth TauReal.iota_tau N
 
 /-- **Convenience name**: the depth-`N` readout of `GerPi + GerE`. -/
-def piPlusENumericalAt (N : Nat) : Rat :=
+def piPlusENumericalAt (N : TauIdx) : Rat :=
   numericalReadoutAtDepth (TauReal.pi.add TauReal.e) N
 
 -- ============================================================
@@ -136,7 +136,7 @@ def piPlusENumericalAt (N : Nat) : Rat :=
     Direct from the dyadic-clock content: `TauReal.two` is the
     constant Cauchy sequence at `2`, so its readout at every depth
     is exactly `2`. -/
-theorem numericalReadout_two_const (N : Nat) :
+theorem numericalReadout_two_const (N : TauIdx) :
     twoNumericalAt N = 2 := by
   unfold twoNumericalAt numericalReadoutAtDepth
   exact TauReal.two_approx_toRat N
@@ -160,7 +160,7 @@ theorem numericalReadout_two_const (N : Nat) :
 
     Concrete bridge: combining `iotaApproxAt` (Wave 15) and
     `numericalReadoutAtDepth`: -/
-theorem numerical_coupling_at_depth (N : Nat) :
+theorem numerical_coupling_at_depth (N : TauIdx) :
     (iotaNumericalAt N) *
       ((piNumericalAt N) + (eNumericalAt N)) =
     2 + (finiteStageEpsilon N).toRat := by
@@ -196,7 +196,7 @@ theorem numerical_coupling_at_depth (N : Nat) :
     paper §6.2's qualitative `ε_n → 0` claim — a TauLib bonus
     arising from Wave 4's operational construction of `ι_τ` as
     `2 / (π + e)`. -/
-theorem numerical_coupling_exact_when_epsilon_zero (N : Nat)
+theorem numerical_coupling_exact_when_epsilon_zero (N : TauIdx)
     (h : (finiteStageEpsilon N).toRat = 0) :
     (iotaNumericalAt N) *
       ((piNumericalAt N) + (eNumericalAt N)) = 2 := by
@@ -219,7 +219,7 @@ theorem numerical_coupling_exact_when_epsilon_zero (N : Nat)
     e_τ^(N))` yields the corollary, provided the denominator is
     nonzero (which holds past Wave 11's `boundedAwayFromZero`
     modulus). -/
-theorem numerical_isomorphism_at_depth (N : Nat)
+theorem numerical_isomorphism_at_depth (N : TauIdx)
     (h_eps : (finiteStageEpsilon N).toRat = 0)
     (h_denom : piNumericalAt N + eNumericalAt N ≠ 0) :
     iotaNumericalAt N = 2 / (piNumericalAt N + eNumericalAt N) := by
@@ -279,7 +279,7 @@ theorem numerical_isomorphism_at_depth (N : Nat)
     final identity is `\tau`-native, derived from the kernel by
     independent constructions, and converges numerically to a
     specific decimal value verified at concrete depths via `#eval`. -/
-theorem h3_complete_proof_chain_at_depth (N : Nat)
+theorem h3_complete_proof_chain_at_depth (N : TauIdx)
     (h_eps : (finiteStageEpsilon N).toRat = 0) :
     (iotaNumericalAt N) *
       ((piNumericalAt N) + (eNumericalAt N)) = 2 :=

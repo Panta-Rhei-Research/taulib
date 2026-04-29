@@ -67,8 +67,11 @@ def OmegaTail.get (t : OmegaTail) (i : Nat) : TauIdx :=
 -- COMPATIBILITY CHECK
 -- ============================================================
 
-/-- Check compatibility at indices k ≤ l: component[l-1] mod M_k = component[k-1]. -/
-def compat_inner (comps : List TauIdx) (k l : Nat) (fuel : Nat) : Bool :=
+/-- Check compatibility at indices k ≤ l: component[l-1] mod M_k = component[k-1].
+    Wave 38 type-discipline refactor: stage indices `k`, `l` are now
+    `TauIdx` (was `Nat`) to reflect their τ-stage semantics; `fuel`
+    remains `Nat` as a recursion variant. -/
+def compat_inner (comps : List TauIdx) (k l : TauIdx) (fuel : Nat) : Bool :=
   if fuel = 0 then true
   else if k > l then true
   else
@@ -77,8 +80,9 @@ def compat_inner (comps : List TauIdx) (k l : Nat) (fuel : Nat) : Bool :=
     (xl % primorial k == xk) && compat_inner comps (k + 1) l (fuel - 1)
 termination_by fuel
 
-/-- Check full compatibility of an omega-tail. -/
-def compat_outer (comps : List TauIdx) (d k : Nat) (fuel : Nat) : Bool :=
+/-- Check full compatibility of an omega-tail.
+    Wave 38: stage indices `d`, `k` are now `TauIdx`. -/
+def compat_outer (comps : List TauIdx) (d k : TauIdx) (fuel : Nat) : Bool :=
   if fuel = 0 then true
   else if k > d then true
   else compat_inner comps k d d && compat_outer comps d (k + 1) (fuel - 1)
