@@ -52,8 +52,111 @@ open Tau.Denotation
 -- PART 1: Markov bridge — auto-derived < to TauReal.lt
 -- ============================================================
 
-/-- **Markov-classical bridge** (Wave 41e keystone): for Cauchy `a, b`,
-    if `a ≤ b` and `¬ b ≤ a`, then `a < b` in TauReal's strict-lt sense.
+/-!
+## STRUCTURAL-HONESTY NOTE — Classical Site #2 of 2
+
+The theorem below is the **second** of exactly two `Classical.byCases` /
+`by_contra` invocations across the entire τ-Real Mathlib bridge cascade
+(Waves 41a–41e). It is the **load-bearing classical step** for the
+`IsStrictOrderedRing TauRealQ` instance (Wave 41e), the keystone
+closing the constructive ordered-field bombshell.
+
+### What this site does
+
+It bridges between two equivalent characterisations of "the Cauchy
+class of `a` is strictly less than that of `b`":
+
+  * τ-NATIVE form    : `TauReal.lt a b` — explicit `(k₀, N₀)` witness
+                        with `aₙ + 1/(k₀+1) < bₙ` past `N₀`.
+                        Constructive, computable, eventually-separated.
+  * MATHLIB-SHAPE form: `a ≤ b ∧ ¬ b ≤ a` — the auto-derived `<` from
+                        `PartialOrder` (`Preorder` defaults `lt` to
+                        `≤ ∧ ¬ ≥`). What we get when destructuring
+                        `0 < x` for `IsStrictOrderedRing.of_mul_pos`.
+
+The implication right→left (`TauReal.lt` ⇒ `≤ ∧ ¬ ≥`) is fully
+**constructive** — strict separation gives both pieces. We don't need
+this direction here; it's the easy half.
+
+The implication left→right (`≤ ∧ ¬ ≥` ⇒ `TauReal.lt`) is **Markov**:
+to extract an explicit `(k₀, N₀)` witness with strict separation from
+the negation of an existential statement, we need
+`Classical.byContradiction`. This is provably equivalent to Markov's
+principle for the τ-Real (in the same way Wave 41c's analogous
+extraction is — see that companion site for parallel discussion).
+
+### What it does NOT do
+
+This theorem **does not extend τ**. It does not define new τ-objects,
+does not add new axioms to the kernel, and does not make any τ-native
+theorem true that wasn't already constructively true. It is purely an
+**encoding-transform** — a translation dictionary between two
+expressions of the same τ-fact about the same pair of Cauchy classes.
+
+The noncomputability sits on the **receiving side of the bridge**
+(Mathlib's PartialOrder typeclass, which auto-defines `<` as
+`≤ ∧ ¬ ≥` rather than as our explicit-modulus `TauReal.lt`), not on
+the **source side** (τ-Real, which natively expresses strict order via
+eventually-separated witnesses). When `IsStrictOrderedRing.of_mul_pos`
+calls our `TauRealQ.mul_pos` with `0 < x` and `0 < y` and expects
+`0 < x * y`, all three `<` are in the auto-derived form; this lemma is
+the visa stamp that lets us decode each into the τ-native form to
+apply `TauReal.mul_pos`, then re-encode the result back into the
+auto-derived form.
+
+### Why exactly here, and not elsewhere
+
+We could have avoided this Classical site by NOT instantiating
+`IsStrictOrderedRing` on `TauRealQ`. The cost: every Mathlib theorem
+stated for `[IsStrictOrderedRing K]` would no longer apply to τ-native
+reals' Cauchy completion. The benefit: zero classical reasoning beyond
+Wave 41c's site.
+
+We chose to pay the second classical cost because (a) it is
+**localised** (this single lemma, just like Wave 41c's), (b) it is
+**bounded** (the cardinality ceiling prevents adding more — see
+`LinearOrderedField` discussion in atlas insight
+`2026-04-29-constructive-real-cardinality-boundary`), and (c) the
+resulting strict-order Mathlib-typeclass coverage closes the
+ordered-field bombshell at the strongest classically-named tier
+achievable on a τ-native countable real.
+
+### Companion site
+
+The other Classical site is `TauReal.boundedAway_of_not_equiv_zero` in
+`Bridge/TauRealQuotientField.lean` (Wave 41c), which serves the
+analogous role for the apartness encoding mismatch between τ-native
+`BoundedAwayFromZero` (explicit modulus) and Field's `a ≠ 0`.
+
+Together these two sites *quantify* the classical-encoding cost of
+speaking Mathlib's typeclass language for objects that natively live
+in τ-constructive vocabulary. There are exactly two; they are
+localised; they are bounded by the cardinality ceiling. **Everywhere
+else the construction is fully constructive.**
+
+### The cardinality check (why we cannot add a third site)
+
+A bridge that secretly extended τ would have no obstruction to
+`LinearOrderedField` — we could just keep using more Markov for full
+trichotomy. But we cannot. Decidable comparison on ALL pairs of Cauchy
+classes (`a < b ∨ a = b ∨ b < a` for arbitrary `a, b`) requires Markov
+for *every* pair, not just for pairs already known to be apart or
+already known to be ≤. That breaks the kernel's countable cardinality
+commitment: a successful instantiation of `LinearOrderedField` would
+imply `TauRealQ ≅ ℝ` as ordered fields (Mathlib's classical reals,
+provably uncountable by Cantor).
+
+The fact that we **cannot push further** is the structural signal that
+the two sites we did use are bounded — they don't open the door to
+uncountable territory. This is the load-bearing feature of the
+τ-kernel's design, not a deficiency.
+-/
+
+/-- **Classical bridge #2 from auto-derived `<` to τ-native `TauReal.lt`
+    (the `IsStrictOrderedRing`-side Markov site)** (Wave 41e keystone).
+
+    For Cauchy `a, b`, if `a ≤ b` and `¬ b ≤ a`, then `a < b` in
+    TauReal's strict-lt sense.
 
     Strategy: pull the witness `k₀` from `¬ b ≤ a`. Refine Cauchy modulus
     of both `a` and `b` to level `8k₀ + 7` (which gives `1/(8k₀+8)`
@@ -62,7 +165,10 @@ open Tau.Denotation
        `b.n - a.n ≥ (b.n* - a.n*) - 2/(8k₀+8)`
                  `≥ 1/(k₀+1) - 1/(4k₀+4)`
                  `= 1/(2k₀+2) + 1/(4k₀+4) > 1/(2k₀+2)`
-    so witnesses `a + 1/(2k₀+2) < b` at the strict-lt level `2k₀+1`. -/
+    so witnesses `a + 1/(2k₀+2) < b` at the strict-lt level `2k₀+1`.
+
+    See the structural-honesty note above for what this Classical step
+    means (and does not mean) for the τ-kernel. -/
 theorem TauReal.lt_of_le_of_not_le_cauchy {a b : TauReal}
     (ha : a.IsCauchy) (hb : b.IsCauchy)
     (h_le : TauReal.le a b) (h_not_le : ¬ TauReal.le b a) :

@@ -224,13 +224,91 @@ theorem TauReal.IsCauchy_inv (a : TauReal)
 -- PART 2: Markov-classical bridge — non-equiv-zero ⇒ BoundedAway
 -- ============================================================
 
-/-- **Classical bridge from non-equivalence-to-zero to apartness**.
+/-!
+## STRUCTURAL-HONESTY NOTE — Classical Site #1 of 2
+
+The theorem below is the **first** of exactly two `Classical.byCases` /
+`by_contra` invocations across the entire τ-Real Mathlib bridge cascade
+(Waves 41a–41e). It is the **load-bearing classical step** for the
+`Field TauRealQ` instance (Wave 41c).
+
+### What this site does
+
+It bridges between two equivalent characterisations of "the Cauchy class
+of `a` is nonzero":
+
+  * τ-NATIVE form    : `a.BoundedAwayFromZero` — explicit `(k₀, N₀)`
+                        witness with `|aₙ| > 1/(k₀+1)` past `N₀`.
+                        Constructive, computable, intrinsic to τ.
+  * MATHLIB-SHAPE form: `¬ TauReal.equiv a TauReal.zero` — negation of
+                        Cauchy-equivalence-to-zero. What Mathlib's
+                        `mul_inv_cancel : a ≠ 0 → a * a⁻¹ = 1` gives us
+                        when we destructure `a ≠ 0` on the quotient.
+
+The implication right→left (`BoundedAway` ⇒ `¬ equiv 0`) is fully
+**constructive** — apartness implies non-equivalence. We don't need
+this direction here; it's the easy half.
+
+The implication left→right (`¬ equiv 0` ⇒ `BoundedAway`) is **Markov**:
+to extract an explicit `(k₀, N₀)` witness from the negation of an
+existential statement, we need `Classical.byContradiction`. This is
+provably equivalent to Markov's principle for the τ-Real.
+
+### What it does NOT do
+
+This theorem **does not extend τ**. It does not define new τ-objects,
+does not add new axioms to the kernel, and does not make any τ-native
+theorem true that wasn't already constructively true. It is purely an
+**encoding-transform** — a translation dictionary between two
+expressions of the same τ-fact about the same Cauchy class.
+
+The noncomputability sits on the **receiving side of the bridge**
+(Mathlib's classical typeclass interface, which expects `a ≠ 0` rather
+than apartness witnesses), not on the **source side** (τ-Real, which
+natively expresses positivity via explicit-modulus apartness). When a
+caller eventually invokes `Field`'s `inv` or `mul_inv_cancel`, they're
+stepping out of τ-native vocabulary into Mathlib-classical vocabulary;
+this lemma is the visa stamp that lets them cross.
+
+### Why exactly here, and not elsewhere
+
+We could have avoided this Classical site by NOT instantiating `Field`
+on `TauRealQ`. The cost: every Mathlib theorem stated for `[Field K]`
+would no longer apply to τ-native rationals' Cauchy completion. The
+benefit: zero classical reasoning anywhere.
+
+We chose to pay the classical cost because (a) it is **localised**
+(this single lemma), (b) it is **bounded** (the cardinality ceiling
+prevents adding more — see `LinearOrderedField` discussion in atlas
+insight `2026-04-29-constructive-real-cardinality-boundary`), and
+(c) the resulting Mathlib-typeclass coverage is enormous.
+
+### Companion site
+
+The other Classical site is `TauReal.lt_of_le_of_not_le_cauchy` in
+`Bridge/TauRealQuotientStrictOrderedRing.lean` (Wave 41e), which serves
+exactly the analogous role for the strict-order encoding mismatch
+between τ-native `TauReal.lt` (eventually-strictly-separated) and
+PartialOrder's auto-derived `<` (≤ ∧ ¬ ≥).
+
+Together these two sites *quantify* the classical-encoding cost of
+speaking Mathlib's typeclass language for objects that natively live in
+τ-constructive vocabulary. There are exactly two; they are localised;
+they are bounded by the cardinality ceiling. **Everywhere else the
+construction is fully constructive.**
+-/
+
+/-- **Classical bridge #1 from non-equivalence-to-zero to apartness
+    (the `Field`-side Markov site)**.
 
     For a Cauchy `a`, if `a ≢ 0` (Cauchy-equiv), then `a` is bounded
     away from zero. Proof by classical contradiction: if not bounded
     away, then for every level there's an arbitrarily late index where
     `|aₙ|` shrinks; combined with Cauchy, the whole tail goes to zero,
-    contradicting `a ≢ 0`. Uses `Classical.byContradiction`. -/
+    contradicting `a ≢ 0`. Uses `Classical.byContradiction`.
+
+    See the structural-honesty note above for what this Classical step
+    means (and does not mean) for the τ-kernel. -/
 theorem TauReal.boundedAway_of_not_equiv_zero (a : TauReal)
     (ha : a.IsCauchy) (hne : ¬ TauReal.equiv a TauReal.zero) :
     a.BoundedAwayFromZero := by
