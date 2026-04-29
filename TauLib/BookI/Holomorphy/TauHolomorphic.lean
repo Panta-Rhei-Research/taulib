@@ -94,8 +94,10 @@ structure GermTransformer where
   sector_fun : SectorFun
   /-- The stagewise evaluation (arithmetic structure). -/
   stage_fun : StageFun
-  /-- Maximum depth. -/
-  depth : Nat
+  /-- Maximum depth as a τ-native primorial-tower index.
+      Wave 38 type-discipline refactor: was `Nat`, elevated to `TauIdx`
+      to reflect the τ-stage-index semantics (paper §H4 + Wave 16). -/
+  depth : TauIdx
 
 /-- Evaluate a germ transformer at stage k on input n. -/
 def GermTransformer.eval (gt : GermTransformer) (n k : TauIdx) : SectorPair :=
@@ -144,15 +146,15 @@ def id_stage : StageFun :=
   ⟨fun n k => reduce n k, fun n k => reduce n k⟩
 
 /-- The χ₊ germ transformer. -/
-def chi_plus_gt (d : Nat) : GermTransformer :=
+def chi_plus_gt (d : TauIdx) : GermTransformer :=
   ⟨chi_plus_sf, chi_plus_stage, d⟩
 
 /-- The χ₋ germ transformer. -/
-def chi_minus_gt (d : Nat) : GermTransformer :=
+def chi_minus_gt (d : TauIdx) : GermTransformer :=
   ⟨chi_minus_sf, chi_minus_stage, d⟩
 
 /-- The identity germ transformer. -/
-def id_gt (d : Nat) : GermTransformer :=
+def id_gt (d : TauIdx) : GermTransformer :=
   ⟨SectorFun.id, id_stage, d⟩
 
 -- ============================================================
@@ -195,15 +197,15 @@ theorem id_coherent : TowerCoherent id_stage := by
   · intro n k l hkl; exact reduce_compat n hkl
 
 /-- χ₊ as a HolFun. -/
-def chi_plus_holfun (d : Nat) : HolFun :=
+def chi_plus_holfun (d : TauIdx) : HolFun :=
   ⟨chi_plus_gt d, chi_plus_coherent⟩
 
 /-- χ₋ as a HolFun. -/
-def chi_minus_holfun (d : Nat) : HolFun :=
+def chi_minus_holfun (d : TauIdx) : HolFun :=
   ⟨chi_minus_gt d, chi_minus_coherent⟩
 
 /-- The identity as a HolFun. -/
-def id_holfun (d : Nat) : HolFun :=
+def id_holfun (d : TauIdx) : HolFun :=
   ⟨id_gt d, id_coherent⟩
 
 -- ============================================================
