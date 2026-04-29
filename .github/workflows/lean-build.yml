@@ -38,16 +38,25 @@ jobs:
       - name: Enforce tactics-only Mathlib import policy
         run: |
           set -euo pipefail
+          # Forbidden Mathlib categories (mathematical content, not tactics).
           FORBIDDEN='^import Mathlib\.(Order|Algebra|CategoryTheory|Topology|Analysis|Data\.Nat|Logic)\b'
-          if hits=$(grep -rnE "$FORBIDDEN" TauLib/ --include='*.lean'); then
-            echo "::error::Forbidden Mathlib mathematical-content import detected."
+          # Allowlist exception: `Bridge/` subdirectories are designated
+          # orthodox-bridge zones (per `BookIII/Bridge/` + `ScopeLabel`
+          # convention). Mathlib.Algebra etc. imports there are EXPLICIT
+          # bridges, not τ-native foundational code, and are explicitly
+          # scoped under the `Tau.*.Bridge` namespace. The tactics-only
+          # discipline still applies to ALL non-Bridge τ-native code.
+          if hits=$(grep -rnE "$FORBIDDEN" TauLib/ --include='*.lean' | grep -vE '/Bridge/'); then
+            echo "::error::Forbidden Mathlib mathematical-content import detected outside Bridge/."
             echo "::error::TauLib's tactics-only-Mathlib policy forbids imports from"
-            echo "::error::Mathlib.{Order, Algebra, CategoryTheory, Topology, Analysis, Data.Nat, Logic}."
+            echo "::error::Mathlib.{Order, Algebra, CategoryTheory, Topology, Analysis, Data.Nat, Logic}"
+            echo "::error::in τ-native code. Place such imports under a Bridge/ subdirectory"
+            echo "::error::(e.g. TauLib/BookI/Boundary/Bridge/) for explicit orthodox-bridge zones."
             echo "::error::Offending lines:"
             echo "$hits"
             exit 1
           fi
-          echo "✓ Tactics-only Mathlib policy: no forbidden direct imports detected."
+          echo "✓ Tactics-only Mathlib policy: no forbidden direct imports outside Bridge/ zones."
 
       - name: Enforce axiom and sorry count invariants
         # Delegated to scripts/check_no_sorry.py, which correctly handles
