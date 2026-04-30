@@ -22,13 +22,14 @@ right_rail:
 <div class="hero-card">
   <span class="eyebrow">Lean 4 Formalization</span>
   <h1>TauLib</h1>
-  <p>Lean 4 formalization layer of the <a href="https://panta-rhei.site">Panta Rhei Research Program</a>.</p>
+  <p>Dedicated Lean documentation site for the <a href="https://panta-rhei.site">Panta Rhei Research Program</a>.</p>
   <div class="btn-group">
-    <a href="https://panta-rhei.site/" class="btn-primary">Open Research Program</a>
+    <a href="https://panta-rhei.site/verify/taulib/" class="btn-primary">Open Verify / TauLib</a>
     <a href="{{ '/docs/' | relative_url }}" class="btn-secondary">Browse All Modules</a>
+    <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-secondary">Release Manifest</a>
     <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-ghost" target="_blank" rel="noopener">View on GitHub</a>
   </div>
-  <p class="hero-supporting-line">445 Lean 4 modules · 127,440 lines · 4,332 machine-checked theorems · 0 sorry across all seven books · 3 custom axioms (all conjectural, all Book III) · Mathlib restricted to proof tactics.</p>
+  <p class="hero-supporting-line">This site is the dedicated Lean documentation surface. Current metrics, trusted-base details, and count reconciliation live in the Panta Rhei Release Manifest.</p>
 </div>
 
 <div class="content-card" markdown="1">
@@ -37,26 +38,21 @@ right_rail:
 
 TauLib is the Lean 4 formalization layer of the Panta Rhei Research Program. It contains the formal kernel and proof-oriented implementation work that supports the program's public verification surface.
 
-The full public documentation for TauLib also lives inside the [main research-program site](https://panta-rhei.site/verify/taulib/). The [GitHub repository](https://github.com/Panta-Rhei-Research/taulib) remains the live source and community-facing development home.
+This site is intentionally narrow: it hosts Lean-oriented documentation generated from the public TauLib repository. The full verification context lives on [Verify / TauLib](https://panta-rhei.site/verify/taulib/), and current release metrics live in the [Release Manifest](https://panta-rhei.site/verify/release-manifest/).
 
-## Library at a Glance
+## What This Site Is
 
-| Metric | Value |
-|--------|------:|
-| **Source files** | 445 |
-| **Lines of Lean 4** | 127,440 |
-| **Theorems & lemmas** | 4,332 |
-| **Definitions** | 3,542 |
-| **Axioms** | 3 (all conjectural, all Book III) |
-| **Sorry** | 0 (all seven books sorry-free) |
-| **Mathlib usage** | Tactics only — all math from scratch |
+- A generated documentation shell for TauLib modules and source-facing readers.
+- A companion to the active [TauLib GitHub repository](https://github.com/Panta-Rhei-Research/taulib).
+- A route back to the full public verification matrix on `panta-rhei.site`.
 
-*As of v2.0.0 (2026-04-19, commit `b743f4c`). The 4th axiom `central_theorem_physical : True` was retired in `peer-review-fixes-v1` as a no-op. The three Book VII structural commitments are encoded as `def` values of a [`Commitment`](https://github.com/Panta-Rhei-Research/taulib/blob/main/TauLib/BookVII/Meta/Commitment.lean) structure (inspectable data), not as `theorem X : True := sorry`. See [CHANGELOG.md](https://github.com/Panta-Rhei-Research/taulib/blob/main/CHANGELOG.md) for the full history.*
+TauLib checks Lean-formalized proof obligations where they are represented in source. It does not, by itself, settle empirical truth, bridge adequacy, semantic correspondence, life-recovery interpretation, or external acceptance.
 
 ## Browse the Documentation
 
 <div class="btn-group section-ctas">
   <a href="{{ '/docs/' | relative_url }}" class="btn-secondary">Browse All Modules</a>
+  <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-secondary">Read Release Manifest</a>
   <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-ghost">View on GitHub</a>
 </div>
 

@@ -24,12 +24,8 @@ keywords:
 abstract: >-
   TauLib is a Lean 4 formalization of Category tau, a categorical framework
   built from 7 axioms (K0-K6) on 5 generators with a single primitive
-  iterator. It spans 450 modules and 125,771 lines of Lean 4 code, containing
-  4,332 theorems and 3,721 live computations across foundations, complex
-  analysis, spectral theory, quantum mechanics, gravity, cosmology, biology,
-  and philosophy. All mathematical structures are built from scratch — Mathlib
-  is used for proof tactics only. All seven books are sorry-free as of v2.0.0
-  (peer-review-fixes-v1, 2026-04-19); the three Book VII structural
-  commitments are encoded as `def` values of a `Commitment` structure rather
-  than as performative `theorem X : True := sorry` declarations. Companion to
-  the 7-book Panta Rhei series (2nd Edition, 2026).
+  iterator. This repository is the active Lean source and documentation build
+  surface for the Panta Rhei Research Program. Current metrics, trusted-base
+  details, axiom/sorry status, and count reconciliation are maintained in the
+  Release Manifest at https://panta-rhei.site/verify/release-manifest/.
+  Companion to the 7-book Panta Rhei series (2nd Edition, 2026).
