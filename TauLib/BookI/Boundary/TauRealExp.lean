@@ -128,69 +128,242 @@ def TauReal.exp (a : TauReal) : TauReal :=
   ⟨fun n => TauRat.exp_partial (a.approx n) n⟩
 
 -- ============================================================
--- PART 4: TERM AND PARTIAL-SUM CAUCHY BOUND
+-- PART 4: PRIVATE HELPERS FOR THE TERM AND PARTIAL-SUM BOUNDS
+-- ============================================================
+
+/-- `(exp_term x k).toRat = (pow x k).toRat / k!`. -/
+private theorem exp_term_toRat (x : TauRat) (k : Nat) :
+    (TauRat.exp_term x k).toRat =
+      (TauRat.pow x k).toRat / (Nat.factorial k : Rat) := by
+  unfold TauRat.exp_term TauRat.toRat TauInt.toInt
+  have h_fac : (0 : Rat) < (Nat.factorial k : Rat) := by
+    have := Nat.factorial_pos k; exact_mod_cast this
+  push_cast
+  field_simp
+
+/-- `|(exp_term x k).toRat| ≤ R / 2^(k-1)` for `k ≥ 1`, `|x| ≤ R ≤ 1`.
+
+    **Wave R8c R-c1-adjacent: SORRY — abs-distribution lemmas not in scope.**
+
+    The proof mathematically requires `abs_pow : |x^k| = |x|^k`, `abs_div`,
+    and `abs_mul` to manipulate `|x^k / k!|`. These lemmas live in
+    `Mathlib.Algebra.Order.*` modules which the CI grep-guard forbids
+    (per `taulib_tactic_budget` — only `Mathlib.Tactic.*` allowed).
+    Without these, the Rat-level abs decomposition cannot be performed
+    inline; would need either:
+    (a) inductive proofs of `abs_pow`/`abs_mul` (each ~30 lines via 4-case
+        analysis on signs), totalling ~100+ lines just for the helpers;
+    (b) lift the CI grep-guard to permit `Mathlib.Algebra.Order.AbsoluteValue.Basic`;
+    (c) rephrase the bound to avoid abs entirely.
+
+    Wave R8d task: pursue option (b) or (c) — likely (b) since a single
+    targeted import would unblock significant downstream work. -/
+private theorem exp_term_abs_le_geom (x : TauRat) (R : Rat)
+    (hR0 : 0 ≤ R) (hR1 : R ≤ 1) (hx : |x.toRat| ≤ R)
+    (k : Nat) (hk : 1 ≤ k) :
+    |(TauRat.exp_term x k).toRat| ≤ R / (2 ^ (k - 1) : Rat) := by
+  sorry  -- Wave R8d: needs abs_pow + abs_div (Mathlib.Algebra.Order.*)
+
+/-- Telescoping bound on the abs partial sum of exp terms (mirrors `sumFromTo_e_term_bound`). -/
+private theorem sumFromTo_exp_term_bound (x : TauRat) (R : Rat)
+    (hR0 : 0 ≤ R) (hR1 : R ≤ 1) (hx : |x.toRat| ≤ R)
+    (n : Nat) (hn : 1 ≤ n) :
+    ∀ m, n ≤ m →
+    (TauRat.sumFromTo (fun k => (TauRat.exp_term x k).abs) n m).toRat
+      ≤ 4 * R / (2 ^ n : Rat) - 4 * R / (2 ^ m : Rat) := by
+  intro m hnm
+  induction m with
+  | zero => omega
+  | succ m ih =>
+    by_cases h_eq : n = m + 1
+    · subst h_eq
+      rw [TauRat.sumFromTo_self, toRat_zero]
+      have : (0 : Rat) ≤ 4 * R / (2 : Rat) ^ (m + 1) :=
+        div_nonneg (by linarith) (by positivity)
+      linarith
+    · have hnm' : n ≤ m := by omega
+      have hm1 : 1 ≤ m := by omega
+      have ih' := ih hnm'
+      have h_rec :
+          TauRat.sumFromTo (fun k => (TauRat.exp_term x k).abs) n (m + 1) =
+            (TauRat.sumFromTo (fun k => (TauRat.exp_term x k).abs) n m).add
+              ((TauRat.exp_term x m).abs) := by
+        show (if n ≤ m then _ else _) = _; rw [if_pos hnm']
+      rw [h_rec, toRat_add]
+      have h_term : (TauRat.exp_term x m).abs.toRat ≤ R / (2 ^ (m - 1) : Rat) := by
+        rw [TauRat.toRat_abs]
+        exact exp_term_abs_le_geom x R hR0 hR1 hx m hm1
+      have h_pow_eq : (2 : Rat) ^ m = 2 * (2 : Rat) ^ (m - 1) := Rat.pow_pred_eq m hm1
+      have h_pow_pos : (0 : Rat) < (2 : Rat) ^ (m - 1) := by positivity
+      have h_rewrite_term : R / (2 : Rat) ^ (m - 1) = 2 * R / (2 : Rat) ^ m := by
+        rw [h_pow_eq]; field_simp
+      rw [h_rewrite_term] at h_term
+      have h_pow_succ : (2 : Rat) ^ (m + 1) = 2 * (2 : Rat) ^ m := by ring
+      have h_pos_m : (0 : Rat) < (2 : Rat) ^ m := by positivity
+      have h_rewrite_goal : (4 : Rat) * R / 2 ^ (m + 1) = 2 * R / 2 ^ m := by
+        rw [h_pow_succ]; field_simp; ring
+      rw [h_rewrite_goal]
+      have h_BC : (4 : Rat) * R / 2 ^ m = 2 * (2 * R / 2 ^ m) := by ring
+      rw [h_BC] at ih'
+      linarith
+
+-- ============================================================
+-- PART 5: PARTIAL-SUM CAUCHY BOUND
 -- ============================================================
 
 /-- `|exp_partial x m − exp_partial x n| ≤ 4R/2^n` for 1 ≤ n ≤ m, |x| ≤ R ≤ 1.
-    Direct analogue of `TauReal.e_partial_cauchy_bound`. Proof outline:
-    triangle inequality + telescoping geometric bound on `sumFromTo`.
-
-    Wave R8c task: complete the telescoping calibration (Engineer B's
-    output had this proof at ~40 lines but flagged sub-lemma calibration
-    risks; defer detailed proof to R8c). -/
+    Direct analogue of `TauReal.e_partial_cauchy_bound`. -/
 theorem TauReal.exp_partial_cauchy_bound (x : TauRat) (R : Rat)
     (hR0 : 0 ≤ R) (hR1 : R ≤ 1) (hx : |x.toRat| ≤ R)
     (m n : Nat) (hn : 1 ≤ n) (hnm : n ≤ m) :
     |(TauRat.exp_partial x m).toRat - (TauRat.exp_partial x n).toRat|
       ≤ 4 * R / (2 ^ n : Rat) := by
-  sorry  -- Wave R8c: telescoping + triangle inequality calibration.
+  unfold TauRat.exp_partial
+  rw [TauRat.sum_sub_toRat_eq_sumFromTo (TauRat.exp_term x) n m hnm]
+  have h_tri := TauRat.sumFromTo_abs_le (TauRat.exp_term x) n m
+  have h_strong := sumFromTo_exp_term_bound x R hR0 hR1 hx n hn m hnm
+  have h_pos_m : (0 : Rat) ≤ 4 * R / (2 : Rat) ^ m :=
+    div_nonneg (by linarith) (by positivity)
+  linarith
 
 -- ============================================================
--- PART 5: IsCauchy FOR exp_of_rat  (modulus λ k => k + 3)
+-- PART 6: IsCauchy FOR exp_of_rat  (modulus λ k => k + 3)
 -- ============================================================
 
 /-- `TauReal.exp_of_rat x` is Cauchy with modulus `λ k => k + 3`,
-    provided `|x.toRat| ≤ R ≤ 1`. Proof mirrors `TauReal.e_isCauchy`. -/
+    provided `|x.toRat| ≤ R ≤ 1`. Mirrors `TauReal.e_isCauchy`. -/
 theorem TauReal.exp_of_rat_isCauchy (x : TauRat) (R : Rat)
     (hR0 : 0 ≤ R) (hR1 : R ≤ 1) (hx : |x.toRat| ≤ R) :
     (TauReal.exp_of_rat x).IsCauchy := by
-  sorry  -- Wave R8c: Cauchy proof via exp_partial_cauchy_bound + four_div_two_pow.
+  refine ⟨fun k => k + 3, ?_⟩
+  intro k m n hm hn
+  change k + 3 ≤ m at hm
+  change k + 3 ≤ n at hn
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |(TauRat.exp_partial x m).toRat - (TauRat.exp_partial x n).toRat|
+         < 1 / ((k : Rat) + 1)
+  by_cases h_le : n ≤ m
+  · have h_n_ge : 1 ≤ n := by omega
+    have h_bound := TauReal.exp_partial_cauchy_bound x R hR0 hR1 hx m n h_n_ge h_le
+    have h1 : 4 * R / (2 : Rat) ^ n ≤ 4 / (2 : Rat) ^ n := by
+      have h_pos : (0 : Rat) < (2 : Rat) ^ n := by positivity
+      rw [div_le_div_iff₀ h_pos h_pos]
+      nlinarith
+    have h2 := Rat.four_div_two_pow_lt_recip k n hn
+    linarith
+  · push_neg at h_le
+    have h_m_ge : 1 ≤ m := by omega
+    have h_swap_abs :
+        |(TauRat.exp_partial x m).toRat - (TauRat.exp_partial x n).toRat|
+          = |(TauRat.exp_partial x n).toRat - (TauRat.exp_partial x m).toRat| := by
+      rw [show (TauRat.exp_partial x m).toRat - (TauRat.exp_partial x n).toRat
+            = -((TauRat.exp_partial x n).toRat - (TauRat.exp_partial x m).toRat) from by ring,
+          abs_neg]
+    rw [h_swap_abs]
+    have h_bound := TauReal.exp_partial_cauchy_bound x R hR0 hR1 hx n m h_m_ge
+      (Nat.le_of_lt h_le)
+    have h1 : 4 * R / (2 : Rat) ^ m ≤ 4 / (2 : Rat) ^ m := by
+      have h_pos : (0 : Rat) < (2 : Rat) ^ m := by positivity
+      rw [div_le_div_iff₀ h_pos h_pos]
+      nlinarith
+    have h2 := Rat.four_div_two_pow_lt_recip k m hm
+    linarith
 
 -- ============================================================
--- PART 6: HEADLINE THEOREMS
+-- PART 7: HEADLINE THEOREMS
 -- ============================================================
+
+/-- `(exp_partial zero n).toRat = 1` for `n ≥ 1`.
+    Only the k=0 term contributes (= 1); all k≥1 terms are 0. -/
+private theorem exp_partial_zero_toRat (n : Nat) (hn : 1 ≤ n) :
+    (TauRat.exp_partial TauRat.zero n).toRat = 1 := by
+  induction n with
+  | zero => omega
+  | succ n ih =>
+    rw [TauRat.exp_partial_succ, toRat_add]
+    rcases Nat.eq_zero_or_pos n with rfl | hn'
+    · -- n = 0: exp_partial zero 0 = zero, exp_term zero 0 = one (since 0^0 = 1, 0! = 1)
+      rw [TauRat.exp_partial_zero, toRat_zero, exp_term_toRat, TauRat.pow_zero,
+          toRat_one]
+      simp [Nat.factorial]
+    · -- n ≥ 1: exp_partial zero n = 1 by ih; exp_term zero n = 0 since 0^n = 0
+      have h_ih := ih hn'
+      have h_term_zero : (TauRat.exp_term TauRat.zero n).toRat = 0 := by
+        rw [exp_term_toRat, TauRat.pow_toRat, toRat_zero]
+        have hn_ne : n ≠ 0 := Nat.pos_iff_ne_zero.mp hn'
+        rw [zero_pow hn_ne]
+        simp
+      linarith
 
 /-- `exp(0) ≡ 1` up to TauReal.equiv.
 
-    The n-th approximation of `(exp TauReal.zero)` is
-    `exp_partial TauRat.zero n`. For n ≥ 1, this equals `TauRat.one`
-    (only the k=0 term survives since 0^k = 0 for k ≥ 1). The diff
-    sequence is 0 for n ≥ 1 (stale at n=0). Modulus `λ _ => 1` closes. -/
+    The n-th approximation of `(exp TauReal.zero)` is `exp_partial TauRat.zero n`.
+    For n ≥ 1, this equals `TauRat.one` (only k=0 term survives). Modulus `λ _ => 1`. -/
 theorem TauReal.exp_zero :
     TauReal.equiv (TauReal.exp TauReal.zero) TauReal.one := by
-  sorry  -- Wave R8c: direct Cauchy proof with modulus λ _ => 1.
+  refine ⟨fun _ => 1, fun k n hn => ?_⟩
+  change 1 ≤ n at hn
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |(TauRat.exp_partial TauRat.zero n).toRat - (TauRat.one).toRat|
+         < 1 / ((k : Rat) + 1)
+  rw [exp_partial_zero_toRat n hn, toRat_one]
+  have h_eq : (1 : Rat) - 1 = 0 := by ring
+  rw [h_eq, abs_zero]
+  have h_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  exact div_pos (by norm_num) h_pos
 
-/-- `exp(1) ≡ e` up to TauReal.equiv.
+/-- `(exp_term TauRat.one k).toRat = (e_term k).toRat`. -/
+private theorem exp_term_one_toRat (k : Nat) :
+    (TauRat.exp_term TauRat.one k).toRat = (TauRat.e_term k).toRat := by
+  rw [exp_term_toRat, TauRat.pow_toRat, toRat_one, one_pow,
+      TauRat.e_term_toRat]
 
-    `TauReal.exp TauReal.one` has n-th approximation
-    `exp_partial TauRat.one n`, which equals `e_partial n` since
-    `exp_term TauRat.one k = e_term k`. -/
+/-- `(exp_partial TauRat.one n).toRat = (e_partial n).toRat`. -/
+private theorem exp_partial_one_toRat (n : Nat) :
+    (TauRat.exp_partial TauRat.one n).toRat = (TauRat.e_partial n).toRat := by
+  unfold TauRat.exp_partial TauRat.e_partial
+  induction n with
+  | zero => simp [TauRat.sum_zero, toRat_zero]
+  | succ n ih =>
+    rw [TauRat.sum_succ, TauRat.sum_succ, toRat_add, toRat_add, ih,
+        exp_term_one_toRat]
+
+/-- `exp(1) ≡ e` up to TauReal.equiv. -/
 theorem TauReal.exp_one :
     TauReal.equiv (TauReal.exp TauReal.one) TauReal.e := by
-  sorry  -- Wave R8c: equiv_of_pointwise via term equality.
+  -- Both sides have the same toRat at every index n: exp_partial one n = e_partial n.
+  -- Use the Cauchy-equiv directly with modulus λ _ => 0 (always equal).
+  refine ⟨fun _ => 0, fun k n _ => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |(TauRat.exp_partial TauRat.one n).toRat - (TauRat.e_partial n).toRat|
+         < 1 / ((k : Rat) + 1)
+  rw [exp_partial_one_toRat n]
+  have h_eq : (TauRat.e_partial n).toRat - (TauRat.e_partial n).toRat = 0 := by ring
+  rw [h_eq, abs_zero]
+  have h_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  exact div_pos (by norm_num) h_pos
 
 /-- `exp(a + b) ≡ exp(a) · exp(b)` up to TauReal.equiv.
 
-    **R4-equiv: TRIGGERED.** This proof depends on
-    `TauRat.cauchy_product_bound` in `TauRealSum.lean` Part 6 (Wave R8b
-    stub). Wave R8c closes both simultaneously. -/
+    **BLOCKED — Wave R8d.** This proof depends on `TauRat.cauchy_product_bound`
+    in `TauRealSum.lean` Part 6 (Wave R8b stub). Engineer B's Wave R8c work
+    revealed that the original `cauchy_product_bound` statement (`4 · C² / 2^n`)
+    is mathematically false for n ≥ 4 (counterexample: C=1, n=4 gives 17/64 > 16/64).
+    Corrected statement is `n · C² / 2^(n-1)`. Closure deferred to Wave R8d. -/
 theorem TauReal.exp_add (a b : TauReal) (R : Rat)
     (hR0 : 0 ≤ R) (hR1 : R ≤ 1)
     (ha : TauReal.BoundedBy a R) (hb : TauReal.BoundedBy b R) :
     TauReal.equiv
       (TauReal.exp (a.add b))
       ((TauReal.exp a).mul (TauReal.exp b)) := by
-  sorry  -- R4-equiv: Wave R8c via cauchy_product_bound.
+  sorry  -- Wave R8d: blocked on cauchy_product_bound statement correction.
 
 -- ============================================================
 -- PART 7: SMOKE TESTS

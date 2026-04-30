@@ -215,25 +215,24 @@ def TauRat.cauchyPStar (a b : Nat → TauRat) (N : Nat) : TauRat :=
 @[simp] theorem TauRat.cauchyPStar_zero (a b : Nat → TauRat) :
     TauRat.cauchyPStar a b 0 = TauRat.zero := rfl
 
-/-- **Cauchy-product bound (Wave R8b R4-equiv stub).**
+/-- **Cauchy-product bound (Wave R8b R4-equiv stub; STATEMENT BUG flagged by Wave R8c B).**
 
-    If |a_i| ≤ C/2^i and |b_j| ≤ C/2^j for all i, j (with C > 0), then for n ≥ 1:
+    **STATEMENT BUG (Wave R8c Engineer B):** the original conclusion
+    `4 · C² / 2^n` is mathematically FALSE for n ≥ 4. Counterexample:
+    C=1, n=4 gives upper-triangular sum 17/64 > 16/64.
 
-      |(sum a n).toRat * (sum b n).toRat − (cauchyPStar a b n).toRat| ≤ 4·C²/2^n.
+    **Corrected statement (Wave R8d):** `n · C² / 2^(n-1)`. Derivation:
+    Σ_{i<n} (C/2^i) · (Σ_{j=n-i}^{n-1} C/2^j) ≤ Σ_{i<n} (C/2^i) · (2C/2^(n-i))
+    = 2nC²/2^n = nC²/2^(n-1).
 
-    The bound comes from: the n×n product grid minus the lower-triangular
-    Cauchy partial sum = the upper-triangular remainder
-    `{(i,j) : i<n, j<n, i+j≥n}`. Each pair contributes ≤ C²/2^(i+j) ≤ C²/2^n.
-    Summing n(n-1)/2 such pairs with the geometric row-sum gives the 4·C²/2^n
-    bound via n ≤ 2^(n-1).
+    Engineer B Wave R8c provided complete `ratGeomSum` + `sumFromTo_abs_le_geomSum`
+    helpers but flagged R-c1 (proof block ~115 lines) and the statement bug.
+    Wave R8d will fix the statement, integrate the helpers, and prove the
+    corrected bound. Downstream `exp_add` must use modulus `k ↦ 2k+3` instead
+    of `k ↦ k+3` to absorb the polynomial-in-n factor (exponential beats
+    polynomial: `(2k+3) · C² / 2^(2k+2) < 1/(k+1)` for k ≥ 0, C ≤ 1).
 
-    **R4-equiv (Wave R8c):** the double-induction formalising the row-sum
-    argument does not close with a single `linarith` call. The sorry is
-    precisely located here; it is the only gap in `TauRealExp.exp_add`.
-
-    Wave R8c task: write the dedicated `TauRat.geometric_rowsum_bound`
-    intermediate lemma (~40 lines) summing `Σ_{j≥n−i} C/2^j` per row,
-    then summing those row bounds. -/
+    **R4-equiv (Wave R8d):** statement correction + ~115-line proof. -/
 theorem TauRat.cauchy_product_bound
     (a b : Nat → TauRat) (C : Rat) (hC : 0 < C)
     (h_a : ∀ i, |(a i).toRat| ≤ C / (2 : Rat) ^ i)
@@ -242,6 +241,6 @@ theorem TauRat.cauchy_product_bound
     |(TauRat.sum a n).toRat * (TauRat.sum b n).toRat
        - (TauRat.cauchyPStar a b n).toRat|
       ≤ 4 * C ^ 2 / (2 : Rat) ^ n := by
-  sorry  -- R4-equiv: Wave R8c double-geometric-induction helper.
+  sorry  -- Wave R8d: statement correction + ratGeomSum + product_minus_cauchy_eq.
 
 end Tau.Boundary

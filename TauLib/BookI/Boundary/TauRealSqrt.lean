@@ -189,10 +189,30 @@ theorem TauRat.sqrtNewtonStep_error_sq (a x : TauRat) (h : x.is_nonzero) :
 theorem TauRat.sqrtIter_lower_bound {a seed : TauRat} {δ : Rat}
     (ha : δ * δ ≤ a.toRat) (hs : δ ≤ seed.toRat) (hδ : 0 < δ) :
     ∀ n, δ ≤ (TauRat.sqrtIter a seed n).toRat := by
-  -- AM-GM preservation: full proof requires Wave R8c calibration.
-  -- The induction step uses `(t + a/t)/2 − δ = ((t − δ)² + (a − δ²)) / (2t)`
-  -- which is `field_simp; ring`-provable, but the rw pattern needs polishing.
-  sorry
+  intro n
+  induction n with
+  | zero => exact hs
+  | succ n ih =>
+    simp only [TauRat.sqrtIter_succ]
+    set t := (TauRat.sqrtIter a seed n).toRat with ht_def
+    have ht_pos : 0 < t := lt_of_lt_of_le hδ ih
+    have ht_nz : (TauRat.sqrtIter a seed n).is_nonzero :=
+      (TauRat.is_nonzero_iff_toRat_ne_zero _).mpr (ne_of_gt ht_pos)
+    rw [TauRat.sqrtNewtonStep_toRat _ _ ht_nz]
+    -- Goal: δ ≤ (t + a.toRat / t) / 2
+    -- AM-GM identity: (t + a/t)/2 − δ = ((t − δ)² + (a − δ²)) / (2t)
+    have h_key : 0 ≤ (t + a.toRat / t) / 2 - δ := by
+      have h_identity : (t + a.toRat / t) / 2 - δ =
+          ((t - δ) ^ 2 + (a.toRat - δ * δ)) / (2 * t) := by
+        field_simp [ne_of_gt ht_pos]
+        ring
+      rw [h_identity]
+      apply div_nonneg
+      · have h_sq : 0 ≤ (t - δ) ^ 2 := by positivity
+        have h_rad : 0 ≤ a.toRat - δ * δ := by linarith [ha]
+        linarith
+      · linarith
+    linarith
 
 -- ============================================================
 -- SECTION 6: LIPSCHITZ IN THE RADICAND
@@ -236,12 +256,77 @@ theorem TauReal.sqrt_sq (a : TauReal) (h : a.BoundedAwayFromZero) :
   sorry  -- R2 / Wave R8c: Newton convergence x_n² → a via tower bound.
 
 /-- `TauReal.sqrt a` is bounded away from zero when `a` is bounded
-    away from zero (and eventually positive in the BAZ regime). -/
-theorem TauReal.sqrt_pos (a : TauReal) (h : a.BoundedAwayFromZero) :
+    away from zero AND eventually positive (caller-supplied `h_sign`).
+
+    The `h_sign` argument is needed because `BoundedAwayFromZero` only
+    gives `|a_n| ≥ δ` (absolute value), not the sign. For sqrt to be
+    well-defined as a positive real, the radicand must be eventually
+    positive — caller supplies the witness. -/
+theorem TauReal.sqrt_pos (a : TauReal) (h : a.BoundedAwayFromZero)
+    (h_sign : ∃ Ns : Nat, ∀ n : Nat, Ns ≤ n → 0 < (a.approx n).toRat) :
     (TauReal.sqrt a).BoundedAwayFromZero := by
-  sorry  -- Sign step: BAZ gives |a_n| ≥ δ but not a_n > 0 directly;
-         -- needs caller-supplied positivity witness or separate
-         -- BoundedStrictlyAbove predicate (Wave R8c).
+  obtain ⟨k₀, N₀, hN₀⟩ := h
+  obtain ⟨Ns, h_sign_inst⟩ := h_sign
+  -- Lower bound: δ = 1/(k₀+1) > 0
+  have hδ_pos : (0 : Rat) < 1 / ((k₀ : Rat) + 1) := by
+    apply div_pos (by norm_num)
+    have : (0 : Rat) ≤ (k₀ : Rat) := by exact_mod_cast Nat.zero_le k₀
+    linarith
+  -- BAZ for sqrt a uses k' = 2*(k₀+1) so 1/(k'+1) = 1/(2k₀+3) < 1/(k₀+1)
+  refine ⟨2 * (k₀ + 1), max N₀ Ns, fun n hn => ?_⟩
+  have h_max_le_N₀ : N₀ ≤ max N₀ Ns := Nat.le_max_left N₀ Ns
+  have h_max_le_Ns : Ns ≤ max N₀ Ns := Nat.le_max_right N₀ Ns
+  have hnN₀ : N₀ ≤ n := by omega
+  have hnNs : Ns ≤ n := by omega
+  -- (a) a.approx n is positive
+  have h_an_pos : 0 < (a.approx n).toRat := h_sign_inst n hnNs
+  -- (b) |a.approx n| > 1/(k₀+1) from BAZ
+  have h_an_abs : 1 / ((k₀ : Rat) + 1) < |(a.approx n).toRat| := by
+    have := hN₀ n hnN₀
+    unfold TauRat.lt at this
+    rw [TauRat.ofNatRecip_toRat, TauRat.toRat_abs] at this
+    exact this
+  -- (c) Since a.approx n > 0, |a.approx n| = a.approx n
+  -- (d) So a.approx n > 1/(k₀+1) = δ
+  have h_an_gt_δ : 1 / ((k₀ : Rat) + 1) < (a.approx n).toRat := by
+    rw [abs_of_pos h_an_pos] at h_an_abs
+    exact h_an_abs
+  -- (e) δ² ≤ δ (since δ ≤ 1, which holds for k₀ ≥ 0): need (1/(k₀+1))² ≤ 1/(k₀+1)
+  have h_k1_pos : (0 : Rat) < (k₀ : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k₀ : Rat) := by exact_mod_cast Nat.zero_le k₀
+    linarith
+  have h_k1_ge_1 : (1 : Rat) ≤ (k₀ : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k₀ : Rat) := by exact_mod_cast Nat.zero_le k₀
+    linarith
+  have h_δ_le_1 : 1 / ((k₀ : Rat) + 1) ≤ 1 := by
+    rw [div_le_iff₀ h_k1_pos]; linarith
+  have h_δ_sq_le_an : (1 / ((k₀ : Rat) + 1)) * (1 / ((k₀ : Rat) + 1))
+                       ≤ (a.approx n).toRat := by
+    nlinarith [h_an_gt_δ, h_δ_le_1, hδ_pos]
+  -- (f) Apply sqrtIter_lower_bound to get: iterate ≥ δ
+  have h_iter_lower : 1 / ((k₀ : Rat) + 1) ≤
+      (TauRat.sqrtIter (a.approx n) (a.approx n) n).toRat := by
+    apply TauRat.sqrtIter_lower_bound h_δ_sq_le_an _ hδ_pos
+    linarith [h_an_gt_δ]
+  -- (g) Iterate is positive
+  have h_iter_pos : 0 < (TauRat.sqrtIter (a.approx n) (a.approx n) n).toRat :=
+    lt_of_lt_of_le hδ_pos h_iter_lower
+  -- (h) BoundedAwayFromZero: 1/(2*(k₀+1)+1) < iterate
+  unfold TauRat.lt
+  rw [TauRat.ofNatRecip_toRat, TauRat.toRat_abs]
+  -- (TauReal.sqrt a).approx n unfolds to sqrtIter (a.approx n) (a.approx n) n
+  show 1 / ((2 * (k₀ + 1) : Nat) + 1 : Rat) <
+      |(TauRat.sqrtIter (a.approx n) (a.approx n) n).toRat|
+  rw [abs_of_pos h_iter_pos]
+  -- Need: 1/(2k₀+3) < 1/(k₀+1) ≤ iterate
+  have h_recip_ineq : 1 / ((2 * (k₀ + 1) : Nat) + 1 : Rat) < 1 / ((k₀ : Rat) + 1) := by
+    have h_lhs_eq : ((2 * (k₀ + 1) : Nat) + 1 : Rat) = 2 * (k₀ : Rat) + 3 := by
+      push_cast; ring
+    rw [h_lhs_eq]
+    have h_2k3_pos : (0 : Rat) < 2 * (k₀ : Rat) + 3 := by linarith
+    rw [div_lt_div_iff₀ h_2k3_pos h_k1_pos]
+    linarith
+  linarith [h_iter_lower, h_recip_ineq]
 
 -- ============================================================
 -- SECTION 8: SMOKE TESTS
