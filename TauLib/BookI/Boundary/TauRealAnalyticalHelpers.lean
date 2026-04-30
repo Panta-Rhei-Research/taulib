@@ -152,4 +152,63 @@ theorem Rat.four_div_two_pow_lt_recip (k n : Nat) (hn : k + 3 ≤ n) :
   rw [div_lt_div_iff₀ h_exp_pos h_pos_k1]
   linarith
 
+-- ============================================================
+-- PART 5: TOWER-EXPONENT BOUND  (Wave R8b R2 helper)
+--
+-- Required by Newton's quadratic convergence in TauRealSqrt.lean.
+-- The existing four_div_two_pow_lt_recip handles linear-exponent n
+-- (used for series of factorial / Leibniz type); Newton iteration
+-- converges as 1/2^{2^n} — a tower exponential — needing a sharper
+-- bound. This section provides it.
+-- ============================================================
+
+/-- `2^{2^n}` grows faster than `n+1`. Proved by induction:
+    base case `2^{2^0} = 2 > 1`; step case `2^{2^{n+1}} = (2^{2^n})^2`
+    grows quadratically while `n+2` grows linearly. -/
+theorem Nat.two_tower_pow_gt_linear (n : Nat) : n + 1 < 2 ^ (2 ^ n) := by
+  induction n with
+  | zero => decide
+  | succ n ih =>
+    have h_exp : 2 ^ (2 ^ (n + 1)) = (2 ^ (2 ^ n)) ^ 2 := by
+      rw [pow_succ, pow_mul]
+    rw [h_exp]
+    have h_base : 2 ≤ 2 ^ (2 ^ n) := by
+      have h_pos : 0 < 2 ^ n := by positivity
+      calc 2 = 2^1 := by norm_num
+        _ ≤ 2^(2^n) := Nat.pow_le_pow_right (by norm_num) h_pos
+    have h_pos2 : 0 < 2 ^ (2 ^ n) := by positivity
+    nlinarith [h_base, h_pos2, ih]
+
+/-- Rat cast of the tower bound: `(n + 1 : Rat) < 2^{2^n}`. -/
+theorem Rat.two_tower_pow_gt_linear (n : Nat) :
+    ((n : Rat) + 1) < (2 : Rat) ^ (2 ^ n) := by
+  have h_nat := Nat.two_tower_pow_gt_linear n
+  have h_cast : ((n + 1 : Nat) : Rat) < ((2 ^ (2^n) : Nat) : Rat) := by
+    exact_mod_cast h_nat
+  have h1 : ((n + 1 : Nat) : Rat) = (n : Rat) + 1 := by push_cast; ring
+  have h2 : ((2 ^ (2^n) : Nat) : Rat) = (2 : Rat) ^ (2^n) := by push_cast; ring
+  linarith
+
+/-- Tower-exponent bound: for `n ≥ k+1`, `1 / 2^{2^n} < 1 / (k+1)`.
+
+    This is the Cauchy bound for Newton's quadratic convergence in
+    `TauRealSqrt.lean`. Compare `Rat.four_div_two_pow_lt_recip` (linear
+    `n`; used for factorial/Leibniz series). Here the exponent is `2^n`
+    — a tower — giving far stronger decay. -/
+theorem Rat.one_div_tower_pow_lt_recip (k n : Nat) (hn : k + 1 ≤ n) :
+    (1 : Rat) / (2 : Rat) ^ (2 ^ n) < 1 / ((k : Rat) + 1) := by
+  have h_k1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  have h_exp_pos : (0 : Rat) < (2 : Rat) ^ (2 ^ n) := by positivity
+  have h_tower := Rat.two_tower_pow_gt_linear n
+  -- 2^{2^n} > n + 1 ≥ k + 1 (since k + 1 ≤ n implies k ≤ n - 1 ≤ n, hence k + 1 ≤ n + 1)
+  have h_n_ge_k : ((k : Rat) + 1) ≤ ((n : Rat) + 1) := by
+    have h_kn : k ≤ n := by omega
+    have : (k : Rat) ≤ (n : Rat) := by exact_mod_cast h_kn
+    linarith
+  have h_large : ((k : Rat) + 1) < (2 : Rat) ^ (2 ^ n) := lt_of_le_of_lt h_n_ge_k h_tower
+  rw [div_lt_div_iff₀ h_exp_pos h_k1_pos]
+  linarith
+
 end Tau.Boundary
