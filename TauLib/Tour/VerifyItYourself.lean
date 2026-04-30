@@ -78,8 +78,8 @@ that the framework earns from its own geometry (Book I, Part X).
 
 /-
 A `sorry` in Lean marks an unproven assertion — a gap in the proof.
-TauLib claims zero sorry across all seven books (435 modules,
-120,000+ lines). This includes Book VII: the three statements that
+TauLib claims zero sorry across all seven books (522 modules,
+142,000+ lines). This includes Book VII: the three statements that
 once occupied the metaphysical boundary are no longer encoded as
 `theorem X : True := sorry`. They are now `def` values of type
 `Commitment` — an inspectable structure carrying `statement`,
