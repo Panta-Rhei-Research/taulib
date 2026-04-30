@@ -163,6 +163,97 @@ def pred_tensor_scalar : TestablePrediction where
   currently_testable := false
 
 -- ============================================================
+-- N15 LRD-CATEGORICAL FALSIFICATION ENTRIES (Wave R7)
+-- ============================================================
+-- The four V.T-LRD-1 sub-theorems land here as separate
+-- TestablePrediction instances. The N15 ledger entries in
+-- WAVE_50_FALSIFICATION_LEDGER.md split similarly.
+
+/-- Q4 (N15.A): V.T-LRD-1A lower cutoff at 10^4.5 M_sun. -/
+def pred_lrd_lower_cutoff : TestablePrediction where
+  name := "Q4 (N15.A): LRD seed lower cutoff at 10^4.5 M_sun"
+  level := .Quantitative
+  description :=
+    "V.T-LRD-1A: lower cutoff at 10^4.5 M_sun. ORTHODOX-IMPORTED" ++
+    " on value (atomic-cooling halo floor, V.D-LRD-1a;" ++
+    " Bromm-Loeb 2003), TAU-DISTINCTIVE on sharpness (V.T109" ++
+    " d_top=1 + V.T110 T^2 horizon excludes Pop-III remnant" ++
+    " tail). Cross-coupling: V.T108 BBN H-cooling (mu = 0.6" ++
+    " from Y_p = 20/81); V.T88 mass gap (S^2 vs T^2 horizon" ++
+    " distinction)."
+  status :=
+    "Pending Inayoshi-corrected M_BH function from JWST cycle 4-5;" ++
+    " requires N >= 60 LRDs with M_BH > 10^5.5 M_sun for KS-test" ++
+    " 5 sigma."
+  currently_testable := false
+
+/-- Q5 (N15.B): V.T-LRD-1B upper cutoff at 10^(6.5 plus or minus 0.15) M_sun. -/
+def pred_lrd_upper_cutoff : TestablePrediction where
+  name := "Q5 (N15.B): LRD seed upper cutoff at 10^(6.5+-0.15) M_sun"
+  level := .Quantitative
+  description :=
+    "V.T-LRD-1B: upper cutoff at 10^(6.5+-0.15) M_sun." ++
+    " TAU-DISTINCTIVE; load-bearing N15 signature 1 falsifier." ++
+    " Anchored on V.T110 + new structural lemma" ++
+    " J_max^{T^2} = iota_tau * sqrt(kappa_D) * G * M^2 / c" ++
+    " (V.D-LRD-1d, currently in HeavySeedBirth.lean, not yet" ++
+    " promoted to a separate registry entry). Wave R7 cross-" ++
+    "validation: Specialists E (Wald-Carter-Penrose lens) and" ++
+    " G (categorical/homological lens) independently converged" ++
+    " on iota_tau-power exponent = 1. Cross-coupling:" ++
+    " inflation N11 (A_s -> sigma_8 -> M_h^{ACH,max}" ++
+    " normalisation, logarithmically weak)."
+  status :=
+    "Currently testable: KS test discriminating flat-with-cutoff" ++
+    " vs orthodox DCBH power-law extension; 5 sigma at N >= 60" ++
+    " Inayoshi-corrected LRDs (JWST cycle 4-5 sample)."
+  currently_testable := true
+
+/-- Q6 (N15.C): V.T-LRD-1C flat interior |dlogN/dlogM| ≤ 0.3. -/
+def pred_lrd_flat_shape : TestablePrediction where
+  name := "Q6 (N15.C): LRD seed flat interior shape |beta| <= 0.3"
+  level := .Quantitative
+  description :=
+    "V.T-LRD-1C: |dlogN/dlogM_BH| <= 0.3 in interior" ++
+    " 10^4.5-10^6.5 M_sun. TAU-DISTINCTIVE: unit Jacobian" ++
+    " |dlogM_BH/dlogλ| = 1 from T^2-coherence f_BH(λ) prop 1/λ" ++
+    " in regime λ > λ_⋆ ~ iota_tau * λ_bar. Discriminator vs" ++
+    " orthodox DCBH (β ≈ -0.9 from Sheth-Tormen halo-MF" ++
+    " inheritance) at > 5 sigma for N >= 60 LRDs. Wave R7" ++
+    " Specialist G provides homological grounding via coherence" ++
+    " projection Pi_coh on H_1(T^2;Z) tensor R. Cross-coupling:" ++
+    " V.T110 (the unit-Jacobian lemma is a structural extension" ++
+    " of V.T110, not yet a separate registry entry)."
+  status :=
+    "Currently testable: same JWST cycle 4-5 sample as Q5;" ++
+    " statistical comparison of flat-shape vs power-law DCBH."
+  currently_testable := true
+
+/-- Q7 (N15.D): V.T-LRD-1D sharp slope transition at upper cutoff. -/
+def pred_lrd_sharp_transition : TestablePrediction where
+  name := "Q7 (N15.D): LRD upper-cutoff sharp slope transition"
+  level := .Quantitative
+  description :=
+    "V.T-LRD-1D: slope transition from 0+-0.3 to <= -2 at" ++
+    " upper cutoff (Hossenfelder ask). PENDING PHYSICS:" ++
+    " Wave R7 specialist outputs gave incompatible widths" ++
+    " (Specialist A: 1.66 dex outer-cutoff binary mechanism;" ++
+    " Specialist C: 0.41 dex unit-Jacobian smooth-fraction" ++
+    " mechanism); Wave R7 Specialist F's reconciliation" ++
+    " (Inayoshi-Mayer-Bonoli-Haiman lens) found both mechanisms" ++
+    " genuinely apply in different sub-regions, with composite" ++
+    " width 0.9^{+0.5}_{-0.4} dex. The conservative <= 0.2 dex" ++
+    " witness in HeavySeedBirth.lean matches the v2.1 paper" ++
+    " claim but the v2.2 paper must relax to either <= 0.4 dex" ++
+    " (single-mechanism C-edge) or <= 1.5 dex (composite" ++
+    " operational falsifier). See" ++
+    " research-notes/V-T-LRD-1-derivation.md §5."
+  status :=
+    "PENDING PHYSICS RESOLUTION: marked not-currently-testable" ++
+    " until v2.2 paper headline relaxation lands."
+  currently_testable := false
+
+-- ============================================================
 -- LEVEL 3: FRONTIER PREDICTIONS
 -- ============================================================
 
@@ -198,7 +289,9 @@ def pred_no_transplanckian : TestablePrediction where
 def falsification_package : FalsificationLevels where
   structural := [pred_no_sixth_force, pred_no_dm_particle,
                  pred_cgw_equals_c, pred_no_gw_echoes]
-  quantitative := [pred_electron_mass, pred_grav_constant, pred_tensor_scalar]
+  quantitative := [pred_electron_mass, pred_grav_constant, pred_tensor_scalar,
+                   pred_lrd_lower_cutoff, pred_lrd_upper_cutoff,
+                   pred_lrd_flat_shape, pred_lrd_sharp_transition]
   frontier := [pred_torus_shadow, pred_discreteness, pred_no_transplanckian]
   has_structural := by native_decide
   has_quantitative := by native_decide
@@ -208,19 +301,20 @@ def falsification_package : FalsificationLevels where
 theorem structural_count :
     falsification_package.structural.length = 4 := by native_decide
 
-/-- 3 quantitative predictions. -/
+/-- 7 quantitative predictions (3 prior + 4 V.T-LRD-1 sub-theorems
+    from Wave R7 N15 entries). -/
 theorem quantitative_count :
-    falsification_package.quantitative.length = 3 := by native_decide
+    falsification_package.quantitative.length = 7 := by native_decide
 
 /-- 3 frontier predictions. -/
 theorem frontier_count :
     falsification_package.frontier.length = 3 := by native_decide
 
-/-- Total: 10 testable predictions. -/
+/-- Total: 14 testable predictions (4 + 7 + 3). -/
 theorem total_predictions :
     falsification_package.structural.length +
     falsification_package.quantitative.length +
-    falsification_package.frontier.length = 10 := by native_decide
+    falsification_package.frontier.length = 14 := by native_decide
 
 -- ============================================================
 -- SCOPE NOTE: CMB PREDICTIONS [V.R243]
