@@ -93,7 +93,7 @@ Books IV–VII build on I–III
 1. `Tour/MindAndEthics.lean` — CI formalization, consciousness, free will, Logos
 2. `BookVII/Ethics/CIProof.lean` — The Categorical Imperative as theorem
 3. `BookVII/Logos/Sector.lean` — Consciousness as global section
-4. `BookVII/Final/Boundary.lean` — The three methodological sorry
+4. `BookVII/Final/Boundary.lean` — Boundary commitments encoded as inspectable data
 5. `BookVII/Social/Ontology.lean` — Social ontology as sheaf theory
 
 ### For Lean Users
@@ -103,7 +103,7 @@ Books IV–VII build on I–III
 1. `Tour/Foundations.lean` — Interactive walkthrough of the axioms
 2. `lakefile.lean` — Mathlib tactics-only dependency policy
 3. `BookI/Kernel/Axioms.lean` — See how axioms become Lean theorems
-4. Browse any module — all 450 files have 30+ line docstring headers
+4. Browse generated module documentation or the source tree
 
 ## Per-Book Start Files
 
@@ -117,18 +117,6 @@ Books IV–VII build on I–III
 | VI | `BookVI/LifeCore/Distinction.lean` | The 5-condition life predicate |
 | VII | `BookVII/Meta/Saturation.lean` | Saturation theorem |
 
-## Module Counts
+## Current Counts
 
-| Book | Families | Files | Lines | Axioms | Sorry |
-|------|:--------:|------:|------:|:------:|:-----:|
-| I &mdash; Foundations | 12 | 94 | 20,554 | 0 | 0 |
-| II &mdash; Holomorphy | 12 | 65 | 18,069 | 0 | 0 |
-| III &mdash; Spectrum | 12 | 70 | 16,807 | 3 | 0 |
-| IV &mdash; Microcosm | 11 | 89 | 29,730 | 1 | 0 |
-| V &mdash; Macrocosm | 10 | 80 | 28,394 | 0 | 0 |
-| VI &mdash; Life | 9 | 30 | 5,221 | 0 | 0 |
-| VII &mdash; Metaphysics | 5 | 7 | 4,278 | 0 | 3 |
-| Tour | &mdash; | 8 | ~1,850 | 0 | 0 |
-| **Total** | **71** | **450** | **125,771** | **4** | **3** |
-
-See [Formalization Status](FORMALIZATION_STATUS.md) for the full axiom and sorry inventory.
+This architecture note describes reading paths and module families. It does not own current counts. See the [Release Manifest](https://panta-rhei.site/verify/release-manifest/) for the authoritative module, declaration, axiom, sorry, and trusted-base status.

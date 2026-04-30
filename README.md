@@ -1,52 +1,21 @@
-<p align="center">
-  <strong>TauLib</strong><br>
-  <em>Mechanized Formalization of Category &tau;</em>
-</p>
+# TauLib
 
-<p align="center">
-  <a href="https://lean-lang.org"><img src="https://img.shields.io/badge/Lean_4-v4.28.0--rc1-blue?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSJub25lIi8+PHRleHQgeD0iMyIgeT0iMTIiIGZpbGw9IndoaXRlIiBmb250LXNpemU9IjEyIj5MPC90ZXh0Pjwvc3ZnPg==" alt="Lean 4"></a>
-  <a href="https://github.com/Panta-Rhei-Research/taulib/actions"><img src="https://github.com/Panta-Rhei-Research/taulib/actions/workflows/lean-build.yml/badge.svg" alt="CI"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-green.svg" alt="License"></a>
-  <a href="https://panta-rhei.site"><img src="https://img.shields.io/badge/Panta_Rhei-Books-8B4513" alt="Panta Rhei"></a>
-</p>
+TauLib is the public Lean 4 formalization repo of the Panta Rhei Research Program.
 
----
+This repository is the active contributor-facing source for Lean development: build files, source modules, guided tours, documentation generation, CI, and issue/PR review. The full research-program observatory lives at [panta-rhei.site](https://panta-rhei.site), while the dedicated Lean documentation site generated from this repo is [taulib.site](https://taulib.site).
 
-TauLib is a **125,000-line Lean 4 formalization** of **Category &tau;** &mdash; a categorical framework built from 7 axioms (K0&ndash;K6) on 5 generators (&alpha;, &pi;, &gamma;, &eta;, &omega;) with a single primitive iterator &rho;. Starting from these axioms alone, TauLib derives arithmetic, analysis, geometry, physics, biology, and philosophy as earned consequences &mdash; all compiled and verified by Lean's kernel with **zero sorry across all seven books**.
+TauLib verifies formal proof obligations where they are represented in Lean. It does not, by itself, establish empirical truth, bridge adequacy, semantic correspondence to prose, or external scientific acceptance. Current release metrics, trusted-base details, axiom/sorry status, and count reconciliation are published in the [Release Manifest](https://panta-rhei.site/verify/release-manifest/).
 
-Companion to the 7-book [**Panta Rhei**](https://panta-rhei.site) series by Thorsten Fuchs and Anna-Sophie Fuchs (2nd Edition, 2026).
+## Start Here
 
----
-
-## At a Glance
-
-| Metric | Value |
-|--------|------:|
-| Source files | 450 |
-| Lines of Lean 4 | 125,771 |
-| Theorems &amp; lemmas | 4,332 |
-| Definitions | 3,542 |
-| Structures, classes &amp; inductives | 1,685 |
-| Instances | 28 |
-| Examples | 350 |
-| Computations (`#eval`) | 3,721 |
-| Axioms | 3 (all conjectural) |
-| Sorry | **0** |
-| Mathlib usage | Tactics only &mdash; all mathematics from scratch |
-
----
-
-## What Makes TauLib Unique
-
-- **Everything from scratch.** TauLib does not import mathematical content from Mathlib or any other library. All arithmetic, algebra, analysis, topology, category theory, quantum mechanics, and cosmology are derived within the framework, from the 5 generators and 7 axioms. Mathlib is used for proof *tactics* only (`simp`, `omega`, `ring`, `decide`, `linarith`, `norm_num`).
-
-- **3,721 live computations.** Every quantitative claim is backed by `#eval` statements that execute in the Lean kernel, producing concrete numerical values from the master constant &iota;<sub>&tau;</sub> = 2/(&pi; + e).
-
-- **Physics predictions at ppm accuracy.** The library formalizes predictions for 9 electroweak quantities, CMB first peak position (+69 ppm), 20 galaxy rotation curves, baryon asymmetry, and more &mdash; all derived from a single constant with zero free parameters.
-
-- **Transparent foundations.** The 3 axioms (all conjectural, all Book III) and 0 sorry are explicitly documented, with precise classification. The conjectural axioms follow a "compute-then-axiomatize" pattern: finite checks pass computationally; the axiom asserts the infinite extension.
-
----
+| Need | Route |
+|---|---|
+| Read the public verification overview | [Verify / TauLib](https://panta-rhei.site/verify/taulib/) |
+| Check current metrics and trusted base | [Release Manifest](https://panta-rhei.site/verify/release-manifest/) |
+| Browse generated Lean documentation | [taulib.site](https://taulib.site) |
+| Inspect the source | [`TauLib/`](TauLib/) and [`TauLib.lean`](TauLib.lean) |
+| Report a concrete Lean defect | [TauLib Issues](https://github.com/Panta-Rhei-Research/taulib/issues) |
+| Ask a public question | [Organization Discussions](https://github.com/orgs/Panta-Rhei-Research/discussions) |
 
 ## Quick Start
 
@@ -64,7 +33,7 @@ lake build
 
 The first build downloads Mathlib (for tactics) and compiles ~1,256 lake jobs. Subsequent builds use the cache and are fast.
 
-### Use as a Dependency
+## Use as a Dependency
 
 Add to your `lakefile.lean`:
 
@@ -82,9 +51,11 @@ git = "https://github.com/Panta-Rhei-Research/taulib.git"
 rev = "main"
 ```
 
-### Build API Documentation
+## Dedicated Documentation Site
 
-TauLib includes a full [doc-gen4](https://github.com/leanprover/doc-gen4) documentation pipeline with Panta Rhei theming, a statistics dashboard, and an interactive dependency graph:
+The `taulib.site` site is generated from this repository. Its purpose is narrow: expose Lean-oriented documentation, module pages, source links, and pointers back to the full verification context on `panta-rhei.site`.
+
+The documentation workflow uses [doc-gen4](https://github.com/leanprover/doc-gen4), filters the generated output to TauLib content, extracts module pages into the Jekyll documentation shell under `site/`, and deploys through GitHub Pages.
 
 ```bash
 # First build (initializes doc-gen4):
@@ -97,14 +68,7 @@ cd docbuild && MATHLIB_NO_CACHE_ON_UPDATE=1 lake update doc-gen4 && cd ..
 cd docbuild/.lake/build/doc && python3 -m http.server 8000
 ```
 
-The generated documentation includes:
-- **API pages** for all 450 modules with rendered docstrings and cross-linked types
-- **Statistics dashboard** with per-book formalization coverage from the registry
-- **Interactive dependency graph** visualizing 4,500+ mathematical registry entries across 7 books
-
----
-
-## Start Here
+## Guided Tours
 
 Open these files in VS Code with the Lean 4 extension and step through line by line:
 
@@ -128,7 +92,7 @@ Open these files in VS Code with the Lean 4 extension and step through line by l
 | **Physicist** | `Tour/Physics` &rarr; `Tour/OneConstant` | `BookIV/Electroweak/EWSynthesis` &rarr; `BookV/Cosmology/CMBSpectrum` |
 | **Biologist** | `Tour/LifeFromPhysics` | `BookVI/Source/GeneticCode` &rarr; `BookVI/Consumer/Neural` |
 | **Philosopher** | `Tour/MindAndEthics` | `BookVII/Ethics/CIProof` &rarr; `BookVII/Final/Boundary` |
-| **Lean user** | `Tour/Foundations` &rarr; `lakefile.lean` | Browse any module &mdash; all 450 files have 30+ line docstrings |
+| **Lean user** | `Tour/Foundations` &rarr; `lakefile.lean` | Browse generated documentation and source modules |
 
 See the [Architecture Guide](docs/ARCHITECTURE.md) for detailed reading paths, dependency graphs, and per-book start files.
 
@@ -136,18 +100,18 @@ See the [Architecture Guide](docs/ARCHITECTURE.md) for detailed reading paths, d
 
 ## Module Architecture
 
-All 450 modules are organized under seven book namespaces. The dependency order is strict: each book builds only on what came before.
+TauLib modules are organized under seven book namespaces plus guided tours. The dependency order is strict: each book builds only on what came before.
 
 ```
 TauLib
- ├── BookI    Categorical Foundations    94 files   20,554 lines
- ├── BookII   Categorical Holomorphy     65 files   18,069 lines
- ├── BookIII  Categorical Spectrum       70 files   16,807 lines
- ├── BookIV   Categorical Microcosm      89 files   29,730 lines
- ├── BookV    Categorical Macrocosm      80 files   28,394 lines
- ├── BookVI   Categorical Life           30 files    5,221 lines
- ├── BookVII  Categorical Metaphysics     7 files    4,278 lines
- └── Tour     Interactive Guides          3 files      674 lines
+ ├── BookI    Categorical Foundations
+ ├── BookII   Categorical Holomorphy
+ ├── BookIII  Categorical Spectrum
+ ├── BookIV   Categorical Microcosm
+ ├── BookV    Categorical Macrocosm
+ ├── BookVI   Categorical Life
+ ├── BookVII  Categorical Metaphysics
+ └── Tour     Interactive Guides
 ```
 
 ### Book I &mdash; Categorical Foundations (94 files, 20,554 lines)
@@ -171,14 +135,14 @@ The foundation builds everything from the 5 generators, using 12 module families
 
 ### Books II&ndash;VII
 
-| Book | Files | Lines | Key Content |
-|------|------:|------:|-------------|
-| **II** Holomorphy | 65 | 18,069 | &tau;&sup3; = &tau;&sup1; &times;<sub>f</sub> T&sup2;, Central Theorem: O(&tau;&sup3;) &cong; A<sub>spec</sub>(&Lscr;) |
-| **III** Spectrum | 70 | 16,807 | 8 spectral forces, Millennium Problems, &tau;-Turing machine |
-| **IV** Microcosm | 89 | 29,730 | Electroweak synthesis, 3 generations, Majorana, strong CP, Higgs |
-| **V** Macrocosm | 80 | 28,394 | Gravity, CMB (+69 ppm), rotation curves, baryogenesis, lensing |
-| **VI** Life | 30 | 5,221 | 5-condition life predicate, origin of life, consciousness |
-| **VII** Metaphysics | 7 | 4,278 | Saturation, archetypes, Categorical Imperative, social ontology |
+| Book | Key Content |
+|------|-------------|
+| **II** Holomorphy | &tau;&sup3; = &tau;&sup1; &times;<sub>f</sub> T&sup2;, Central Theorem: O(&tau;&sup3;) &cong; A<sub>spec</sub>(&Lscr;) |
+| **III** Spectrum | Spectral forces, Millennium-problem stress tests, &tau;-Turing machine |
+| **IV** Microcosm | Electroweak synthesis, generations, Majorana, strong CP, Higgs |
+| **V** Macrocosm | Gravity, CMB, rotation curves, baryogenesis, lensing |
+| **VI** Life | Life predicate, origin-of-life surfaces, neural architecture |
+| **VII** Metaphysics | Saturation, archetypes, Categorical Imperative, social ontology |
 
 ---
 
@@ -205,7 +169,7 @@ Formalized results with their Lean entry points:
 
 ## Axioms and Sorry
 
-TauLib is maximally transparent about its foundations.
+TauLib is maximally transparent about its foundations. The Release Manifest is the authoritative public status page for current axiom and sorry counts.
 
 ### 3 Axioms (all conjectural, all Book III)
 
@@ -231,7 +195,7 @@ The `peer-review-fixes-v1` PR retires all three by replacing them with `def` val
 | `science_faith_boundary` | `BookVII/Logos/Sector` | `def : Commitment` | [VII.P29] science-faith boundary; Reg_C stance-stability |
 | `no_forced_stance` | `BookVII/Final/Boundary` | `def : Commitment` | [VII.T47] No-Forced-Stance; constitutive of the framework |
 
-`#print axioms omega_point_theorem` reports no axioms (these are `def`s, not axioms or theorems). `rg ':= sorry' TauLib/` returns zero matches. CI on every push to `main` asserts the `sorry` count is exactly 0. **Books I&ndash;VI have been sorry-free since Wave 12; the v2 Book VII sorries were retired in `peer-review-fixes-v1`.**
+`#print axioms omega_point_theorem` reports no axioms (these are `def`s, not axioms or theorems). `rg ':= sorry' TauLib/` returns zero matches at the release state documented in the Release Manifest. **Books I&ndash;VI have been sorry-free since Wave 12; the v2 Book VII sorries were retired in `peer-review-fixes-v1`.**
 
 ---
 
@@ -246,7 +210,7 @@ TauLib uses Mathlib for **proof tactics only**:
 | `linarith`, `positivity`, `field_simp` | `Mathlib.CategoryTheory.*` |
 | `constructor`, `exact`, `apply` | `Mathlib.Topology.*` |
 
-**All mathematical content** &mdash; natural numbers, rings, fields, groups, topology, analysis, category theory &mdash; is **built from scratch** within TauLib, derived from the 5 generators and 7 axioms. This is a deliberate design choice: the framework claims to generate all of mathematics from its foundation, and TauLib proves this claim mechanically.
+The dependency policy is designed to make imported mathematical content visible. TauLib uses Mathlib for tactics and infrastructure, while framework-specific mathematical constructions are represented in this repository. This does not mean that Lean compilation alone settles the program's external mathematical, empirical, or interpretive claims; those boundaries are recorded on the main verification site.
 
 ---
 
@@ -276,7 +240,7 @@ Available at [panta-rhei.site](https://panta-rhei.site).
 | [Architecture Guide](docs/ARCHITECTURE.md) | Module dependency graph, reading paths by audience, per-book start files |
 | [Scope Labels](docs/SCOPE_LABELS.md) | The 4-tier scope discipline: established, &tau;-effective, conjectural, metaphorical |
 | [Glossary](docs/GLOSSARY.md) | Key terms, symbols, constants, and registry ID format |
-| [Formalization Status](docs/FORMALIZATION_STATUS.md) | Per-book formalization coverage and sorry/axiom inventory |
+| [Formalization Status](docs/FORMALIZATION_STATUS.md) | Local status notes; authoritative current metrics live in the Release Manifest |
 | [Contributing](CONTRIBUTING.md) | Issue reporting, code style, citation, and fork guidelines |
 
 ---
@@ -311,7 +275,7 @@ If you use TauLib in academic work, please cite:
   year      = {2026},
   version   = {2.0.0},
   url       = {https://github.com/Panta-Rhei-Research/taulib},
-  note      = {450 modules, 125{,}771 lines of Lean 4, 4{,}332 theorems},
+  note      = {Lean 4 source repository; current metrics and trusted-base details are maintained in the Panta Rhei Release Manifest},
   license   = {Apache-2.0}
 }
 ```

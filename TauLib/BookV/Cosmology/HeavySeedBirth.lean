@@ -1,5 +1,6 @@
 import TauLib.BookV.Cosmology.NoShrinkExtended
 import TauLib.BookV.Astrophysics.CompactObjects
+import TauLib.BookI.Boundary.TauRealIotaTau
 
 /-!
 # TauLib.BookV.Cosmology.HeavySeedBirth
@@ -88,28 +89,98 @@ Orthodox-imported (acknowledged dependencies on external cosmology):
 - The halo spin distribution is assumed log-normal in λ centred at
   λ̄ ≈ 0.04 with σ_logλ ≈ 0.30 (Bullock et al. 2001), not τ-derived.
 
-## Honest gap: transition-width width
+## Honest gap: transition-width width (Wave R7 reconciliation)
 
 The Hossenfelder ask in N15 §6.1 of the v2.1 paper is for a
-transition width Δlog M_BH ≤ 0.2 dex. Two parallel red-team
-specialist derivations disagree on whether this is achievable:
+transition width Δlog M_BH ≤ 0.2 dex. Wave R7 dispatched
+Specialist F (DCBH simulation lens, Inayoshi-Mayer-Bonoli-Haiman
+tradition) to resolve the Specialist A vs C arithmetic-and-
+mechanism discrepancy. F's reconciliation:
 
-- Specialist A (cutoff in λ-space, Jacobian 1/2): Δlog M_BH ≈
-  1.66 dex (substantially wider than the v2.1 paper's claim).
-- Specialist C (unit Jacobian from smooth f_BH(λ) ∝ 1/λ):
-  Δlog M_BH ≈ 0.41 dex (still wider than 0.2 dex).
-- Reconciliation: the two specialists are computing different
-  mechanisms (outer-cutoff vs. interior dynamics). If
-  σ_logλ ≈ 0.20 for atomic-cooling subsamples specifically
-  (Macciò 2007 plausible but unverified), Specialist C's value
-  drops to ≈ 0.18 dex and the v2.1 claim survives.
+- Phase 1 (arithmetic gate): both specialists' formulae are
+  arithmetically pristine. Specialist A: Δlog M_BH ≈ 1.66 dex
+  (cutoff in λ-space, Jacobian 1/2). Specialist C: Δlog M_BH
+  ≈ 0.41 dex (unit Jacobian, smooth f_BH(λ) ∝ 1/λ). The
+  difference is exactly the squared Jacobian ratio (2)² = 4.
+- Phase 2 (mechanism dominance): both mechanisms genuinely
+  apply in different sub-regions of the cutoff transition.
+  Specialist C dominates the lower edge (interior + smooth
+  fraction); Specialist A dominates the upper edge (binary-
+  outcome cutoff). Inayoshi & Haiman 2014, Mayer & Bonoli 2019,
+  Wise et al. 2019, Regan et al. 2017 all confirm this two-
+  regime picture from radiation-hydro DCBH simulations.
+- Phase 3 (η_J bound): η_J ∈ [0.05, 0.15] (radiation-hydro
+  consensus, central ≈ 0.08). The single-cascade Begelman-
+  Volonteri-Rees 2006 form η_J ∼ (R_vir/r_g)^(-1/2)
+  undershoots the simulation-measured cumulative cascade by
+  3-4 orders of magnitude; multi-stage Begelman-Shlosman 2009
+  cascade is the right model.
+- Phase 4 (reconciled prediction): Δlog M_BH^reconciled =
+  0.9^(+0.5)_(-0.4) dex composite, dominated by neither
+  mechanism alone.
 
-The Lean module records the conservative skeleton-status bound
-Δlog M_BH ≤ 0.20 dex at the witness level (matching the v2.1
-paper claim) but flags this as the principal pending physics
-question for the V.T-LRD-1 wave. See
-`research-notes/V-T-LRD-1-derivation.md` §5 for the full
-analysis.
+**R2 RISK FLAG TRIGGERED.** The v2.1 paper's ≤ 0.2 dex headline
+is NOT survivable: even at σ_logλ = 0.20 for atomic-cooling
+subsamples (Macciò 2007 — F notes this is not actually tighter
+in the high-z atomic-cooling-mass regime), Specialist A's
+binary-outcome edge gives ≥ 0.74 dex. The v2.2 paper must
+relax this headline to either (a) ≤ 0.4 dex single-mechanism
+C-edge claim, or (b) ≤ 1.5 dex composite operational falsifier.
+
+The Lean module retains the conservative ≤ 0.2 dex witness for
+backward compatibility with the v2.1 paper claim, but
+`pred_lrd_sharp_transition` in `FalsificationPack.lean` is
+correctly marked `currently_testable := false` pending v2.2
+revision.
+
+## Wave R7 cross-validation results (E + G converged)
+
+Two parallel Wave 1 specialists independently derived
+J_max^{T²}(M_BH, ι_τ):
+
+- Specialist E (GR/Wald-Carter-Penrose lens): rigorous T²-Kerr
+  metric construction with the V.T110 θ-quotient promoting ∂_θ
+  to a third Killing vector beyond Kerr's two. Transport-
+  bottleneck argument on the (0,1) primitive linking class
+  gives J_max^{T²} = ι_τ √κ_D · GM²/c ≈ 0.277 GM²/c.
+- Specialist G (categorical/homological lens): coherence
+  projection Π_coh on H_1(T²;ℤ) ⊗ ℝ kills ω_η leaving ω_γ
+  scaled by r/R = ι_τ. Centrifugal √κ_D from V.T109
+  threshold-survival. Same answer.
+
+**Both arrive at ι_τ-power exponent = 1** (with κ_D^(1/2)
+multiplicative factor, κ_D = 1 - ι_τ). This is strong cross-
+validation of V.T-LRD-1 sub-theorem B.
+
+**R1 RISK FLAG: NO TRIGGER.** Refined cutoff is
+log_10(M_BH^max/M_⊙) ≈ 6.54 ± 0.10 at z = 11 (Wave 2 Specialist
+A refined value). This is 0.04 dex below the v2.1 paper's
+6.50 headline — well within the ±0.15 dex stated systematic.
+
+## Phase 0 status (Wave R7 verified by Specialist I)
+
+The original V.T-LRD-1 derivation note (Wave R7 round 1) was
+overly pessimistic about TauReal infrastructure. Specialist I
+verified the actual state:
+
+- **Confirmed-present (Phase 0 complete)**: TauReal.inv,
+  TauReal.div (TauRealInv.lean), TauReal.pi (TauRealPi.lean),
+  TauReal.e (TauRealE.lean), TauReal.abs (TauRealAbs.lean),
+  TauReal.lt/le (TauRealOrder.lean), TauReal.fromNat/fromTauRat
+  (ConstructiveReals.lean), Tau.Boundary.TauReal.iota_tau
+  (TauRealIotaTau.lean) with defining identity proven.
+- **Confirmed-missing (Phase 0.5 targets)**: TauReal.sqrt (the
+  only critical-path blocker for J_max^{T²} = ι_τ √κ_D · GM²/c
+  formalisation), TauReal.log (for d log N / d log M_BH slope
+  bounds), TauReal.exp (function-form, vs the constant e).
+
+The "4-7 month upgrade" estimate in V-T-LRD-1-derivation.md v1
+is calibrated against the stale ROADMAP-3-HINGES Phase 0 audit
+and should be revised downward to 4-5 weeks (Phase 0.5 only,
+2 engineers in parallel) per Specialist I's design doc.
+
+See `research-notes/PHASE-0.5-ANALYTIC-PRIMITIVES.md` for the
+detailed Phase 0.5 design.
 
 ## Honest gap markers
 
@@ -169,6 +240,39 @@ theorem iota_tau_rebind_canonical :
   rfl
 
 -- ============================================================
+-- WAVE R7 PROMOTION (T1): TAUREAL-WITNESSED ι_τ REBINDING
+-- ============================================================
+
+/-- [Wave R7 promotion (T1)] TauReal-witnessed master constant ι_τ.
+
+    The structural TauReal definition at `Tau.Boundary.TauReal.iota_tau`
+    instantiates `ι_τ = 2/(π+e)` directly via `TauReal.div` (Phase 0,
+    confirmed-present per Specialist I's Phase 0 audit), with the
+    defining identity `iota_tau · (π+e) ≡ 2` proved at the Cauchy level
+    in `TauRealIotaTau.lean` line 118.
+
+    This sibling rebinding makes the TauReal-level dependency on
+    V.T110's `r/R = ι_τ` relation visible at the module API level,
+    alongside the `Nat`-scaled `iota_tau_x_1000000`. Required for
+    promoting V.D-LRD-1d's `f_iota_x_10000` field once Phase 0.5
+    (TauReal.sqrt) lands. -/
+def iota_tau_TauReal : Tau.Boundary.TauReal :=
+  Tau.Boundary.TauReal.iota_tau
+
+/-- [Wave R7 promotion (T1)] Defining identity:
+    `iota_tau_TauReal · (π+e) ≡ 2` at the Cauchy level.
+
+    This is just `Tau.Boundary.TauReal.iota_tau_mul_pi_plus_e_eq_two`
+    re-stated for the local rebinding; both reduce to the same
+    `TauReal.equiv` proof. -/
+theorem iota_tau_TauReal_defining :
+    Tau.Boundary.TauReal.equiv
+      (iota_tau_TauReal.mul
+        (Tau.Boundary.TauReal.pi.add Tau.Boundary.TauReal.e))
+      Tau.Boundary.TauReal.two :=
+  Tau.Boundary.TauReal.iota_tau_mul_pi_plus_e_eq_two
+
+-- ============================================================
 -- ATOMIC-COOLING HALO FLOOR [V.D-LRD-1a]
 -- ============================================================
 
@@ -204,6 +308,17 @@ def atomic_cooling_floor_z10 : AtomicCoolingHaloFloor where
   redshift_in_range := ⟨by omega, by omega⟩
   mass_in_atomic_regime := ⟨by omega, by omega⟩
 
+/-- [Wave R7 promotion (T4)] TauReal-witnessed atomic-cooling halo
+    mass at z = 10.
+
+    The mass floor M_halo,min(z=10) ≈ 3.2 × 10^7 M_☉ promoted from
+    `Nat`-scaled `m_halo_min_e7_x10 = 32` to a TauReal-witnessed
+    constant via `TauReal.fromTauRat`. Phase 0 confirmed-present
+    primitives are sufficient (no sqrt/log needed for a rational
+    mass value). -/
+def atomic_cooling_floor_z10_mass_TauReal : Tau.Boundary.TauReal :=
+  Tau.Boundary.TauReal.fromTauRat ⟨⟨32, 0⟩, 1, Nat.one_pos⟩
+
 -- ============================================================
 -- DCBH COLLAPSE FRACTION [V.D-LRD-1b]
 -- ============================================================
@@ -237,6 +352,17 @@ theorem dcbh_fraction_orthodox :
     dcbh_fraction.f_dcbh_x10000 = 100 ∧
     dcbh_fraction.is_orthodox_imported = true :=
   ⟨rfl, rfl⟩
+
+/-- [Wave R7 promotion (T3)] TauReal-witnessed DCBH collapse fraction.
+
+    `f_DCBH = 1/100 = 0.01` promoted from `Nat`-scaled
+    `f_dcbh_x10000 = 100` to a TauReal-witnessed rational via
+    `TauReal.fromTauRat`. The radiation-hydro consensus value
+    (Inayoshi-Visbal-Haiman 2020 ARA&A; Begelman-Volonteri 2017)
+    remains orthodox-imported; this promotion only changes the
+    Lean witness type, not the scope flag. -/
+def dcbh_fraction_TauReal : Tau.Boundary.TauReal :=
+  Tau.Boundary.TauReal.fromTauRat ⟨⟨1, 0⟩, 100, by norm_num⟩
 
 -- ============================================================
 -- SPIN-PARAMETER LOG-UNIFORM ASSUMPTION [V.D-LRD-1c]
@@ -331,6 +457,24 @@ structure T2HorizonAngularMomentumBound where
   /-- F(ι_τ) is a proper reduction (< 1). -/
   f_proper : f_iota_x_10000 < 10000
   deriving Repr
+
+/-- [Wave R7 promotion (partial T2)] TauReal-witnessed ι_τ for the
+    T²-horizon angular-momentum bound.
+
+    This sibling exposes the master constant ι_τ as a TauReal value
+    at the bound's API. The full closed-form F(ι_τ) = ι_τ √κ_D ≈ 0.277
+    requires `TauReal.sqrt` (Phase 0.5 target) and is **deferred**;
+    once `TauRealSqrt.lean` lands, the headline witness will be
+        f_iota_TauReal = iota_tau_TauReal.mul
+                          (TauReal.sqrt (TauReal.one.sub iota_tau_TauReal))
+    cleanly typed without the `Nat`-scaled `f_iota_x_10000 = 2773`
+    placeholder.
+
+    Wave R7 cross-validation (Specialists E + G) confirms
+    the F(ι_τ) = ι_τ √κ_D form with ι_τ-power exponent 1; see
+    docstring "Wave R7 cross-validation" section. -/
+def iota_tau_T2_bound_TauReal : Tau.Boundary.TauReal :=
+  iota_tau_TauReal
 
 -- ============================================================
 -- SEED MASS DISTRIBUTION [V.D-LRD-1e]

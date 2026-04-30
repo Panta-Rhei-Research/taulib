@@ -1,38 +1,14 @@
 # Formalization Status
 
-This document provides a detailed inventory of TauLib's formalization coverage, axiom usage, and sorry count.
+This document is a local orientation note for TauLib's formalization status. The authoritative public snapshot for current metrics, trusted-base details, axiom/sorry status, and count reconciliation is the [Panta Rhei Release Manifest](https://panta-rhei.site/verify/release-manifest/).
 
 ---
 
 ## Summary
 
-| Metric | Value |
-|--------|------:|
-| Total modules | 450 |
-| Total lines | 125,771 |
-| Theorems & lemmas | 4,332 |
-| Definitions | 3,542 |
-| Structures & types | 1,685 |
-| Computations (`#eval`) | 3,721 |
-| Examples | 350 |
-| Axioms | 3 |
-| Sorry | 0 |
-
----
-
-## Per-Book Breakdown
-
-| Book | Modules | Lines | Theorems | `#eval` | Axioms | Sorry |
-|------|--------:|------:|---------:|--------:|-------:|------:|
-| I &mdash; Foundations | 94 | 20,554 | ~900 | ~700 | 0 | **0** |
-| II &mdash; Holomorphy | 65 | 18,069 | ~700 | ~500 | 0 | **0** |
-| III &mdash; Spectrum | 70 | 16,807 | ~600 | ~450 | 3 | **0** |
-| IV &mdash; Microcosm | 89 | 29,730 | ~1,000 | ~900 | 0 | **0** |
-| V &mdash; Macrocosm | 80 | 28,394 | ~900 | ~850 | 0 | **0** |
-| VI &mdash; Life | 30 | 5,221 | ~200 | ~200 | 0 | **0** |
-| VII &mdash; Metaphysics | 7 | 4,278 | ~120 | ~100 | 0 | **0** |
-| Tour | 8 | ~1,850 | &mdash; | &mdash; | 0 | **0** |
-| **Total** | **450** | **125,771** | **~4,332** | **~3,721** | **3** | **0** |
+- Current public metrics live in the Release Manifest, not in this hand-maintained document.
+- TauLib's CI builds the Lean source and enforces the repository's axiom/sorry checks.
+- The public verification site separates Lean compilation from empirical truth, bridge adequacy, semantic correspondence, and external acceptance.
 
 ---
 
@@ -124,7 +100,7 @@ Lean 4 kernel (trusted)
             ├── 0 sorry (all seven books sorry-free since peer-review-fixes-v1, 2026-04-19)
             │       └── 3 Book VII structural commitments encoded as `def : Commitment`, not sorry
             │
-            └── 4,332 theorems + 3,721 #eval computations
+            └── Lean declarations and executable checks documented in the Release Manifest
                     └── Verified by Lean's kernel
 ```
 
