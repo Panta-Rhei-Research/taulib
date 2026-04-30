@@ -61,7 +61,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # ── Build TauLib library ────────────────────────────────
       - name: Build TauLib
@@ -71,7 +71,7 @@ jobs:
 
       # ── Generate doc-gen4 HTML (cached) ─────────────────────
       - name: Cache docbuild
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: docbuild/.lake
           key: docbuild-v2-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'docbuild/lakefile.toml') }}
