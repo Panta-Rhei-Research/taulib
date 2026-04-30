@@ -18,7 +18,7 @@
 - **(H3) Horizon presence.** A connected non-degenerate Killing horizon `H` with compact 2-dimensional cross-sections `Σ`.
 - **(H4) τ-fibration compatibility.** `M` carries a `τ³ = τ¹ ×_f T²` fibration (V.T110 `bh_toroidal_topology` + `bh_toroidal_structural`); `Σ` is diffeomorphic to T² with linking class `ℓ ∈ H₁(T²; ℤ) = ℤ ⊕ ℤ` non-trivial.
 - **(H5) V.T110 lock.** The two T²-circle radii satisfy `r/R = ι_τ`.
-- **(H6) Asymptotic τ-flatness** (modulator: see §5 R3 YELLOW Gap-1).
+- **(H6) Asymptotic τ-flatness.** The metric approaches the bare `τ³ = τ¹ ×_f T²(∞)` fibration at `r → ∞`, where `T²(∞)` is the asymptotic torus with aspect ratio `ρ(∞)/R(∞) = ι_τ` inherited from V.T110's *fibration-wide* lock (not a horizon-local statement). This is *not* asymptotic Minkowski in the classical sense — the fiber does not shrink to a point — but it is the correct τ-analog: the asymptotic geometry is the bare fibration with no curvature contribution, and the fiber breathing fraction is preserved. **(Wave R8a Wave 2 β verification: §6 Gap-1 CLOSED GREEN.)**
 - **(H7) τ-vacuum / τ-Einstein condition** (modulator: see §5 R3 YELLOW Gap-2).
 
 **Conclusion.** The pair `(M, g)` is τ-equivalent (lies in the same conjugacy class under `Diff_τ(M)`) to E's T²-Kerr construction parametrised by `(M, J_γ)` with `|J_γ| ≤ J_max^{T²}(M) = ι_τ √κ_D · GM²/c`.
@@ -115,7 +115,7 @@ Under (0,1): J-shedding flows through the η-cycle, which is *not* the mass-carr
 
 α flagged **two assumption gaps** that are R3-YELLOW (patchable by explicit declaration; not RED):
 
-**Gap-1 (asymptotic τ-flatness).** Classical asymptotic flatness assumes the metric approaches Minkowski at infinity. In `τ³ = τ¹ ×_f T²`, the fiber does not shrink to a point at large r — it stays at finite size dictated by the fibration. The V.T110 `r/R = ι_τ` lock is a statement about the *horizon-scale* T²; whether the same lock persists at infinity, or whether the asymptotic T² has a different aspect ratio, is **not settled** by V.T110 itself. **Wave 2 task for β:** confirm whether E's T²-Kerr construction exhibits constant `r/R = ι_τ` from horizon to infinity, or only locally near the horizon. If the latter, V.T-NEW-5 must be reformulated with two aspect-ratio parameters.
+**Gap-1 (asymptotic τ-flatness) — CLOSED GREEN by Wave R8a Wave 2 β.** The T²-Kerr metric construction carries `𝒜(r) := ρ(r)/R(r) = ι_τ` constantly from horizon to infinity, because V.T110's `r/R = ι_τ` lock is a *fibration-wide* statement (`BHBirthTopology.lean:261-294` docstring: "*By definition of the fiber structure, R = ℓ_τ and r = ι_τ·ℓ_τ, so r/R = ι_τ*"), not horizon-local. The η-cycle radius `ρ(r)` is rigidly slaved to the γ-cycle radius `R(r)` by V.T40 base/fiber asymmetry + V.T110 fiber structure; it carries no independent radial profile. The Killing reduction in E's metric construction has only three independent metric functions `(F(r), R(r), A(r))` — there is no fourth function `ρ(r)` that could carry an independent profile. H6 stands as restated in §1 above; no two-aspect-ratio reformulation needed. **Confidence 0.9.** See Wave 2 β verification note for the full trace.
 
 **Gap-2 (τ-vacuum form).** Without committing to whether V.T204's `a₀(z) = c·H(z)·ι_τ/2` correction enters the bulk equations. For an isolated stationary BH, this is moot. But the V.T-LRD-1 application is at z = 8–15 where V.T204's high-z correction is non-negligible. **Recommendation:** prove V.T-NEW-5 in the *isolated regime* first (clean uniqueness), then state the cosmological extension as a separate corollary V.T-NEW-5b with the V.T204 modification absorbed into the τ-vacuum tensor on the RHS.
 
@@ -170,7 +170,7 @@ The cross-coupling matrix at `taulib/research-notes/V-T-LRD-1-cross-coupling-mat
 
 ## 10. Open questions for the next wave (Wave R8 proper or follow-up)
 
-1. **R3 YELLOW Gap-1 resolution** — Wave 2 β-task (or Wave R8c): confirm constant `r/R = ι_τ` from horizon to infinity in E's T²-Kerr metric construction. Pending physics flag if not constant.
+1. ~~**R3 YELLOW Gap-1 resolution**~~ — **CLOSED GREEN by Wave R8a Wave 2 β** (see §6 above). V.T110's `r/R = ι_τ` lock is fibration-wide; the T²-Kerr metric construction carries constant aspect ratio from horizon to infinity. No reformulation needed. Confidence 0.9.
 
 2. **R3 YELLOW Gap-2 resolution** — formalise the isolated-vs-cosmological regime distinction; introduce V.T-NEW-5b for the V.T204-corrected variant.
 

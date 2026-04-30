@@ -55,12 +55,26 @@ plus `exact` delegation to existing named lemmas.
 
 Specialist α flagged two assumption gaps in V.T-NEW-5:
 - Gap-1: asymptotic τ-flatness — does V.T110 r/R = ι_τ persist
-  from horizon to infinity? (Wave 2 β-task to verify.)
+  from horizon to infinity?
+  **CLOSED GREEN by Wave R8a Wave 2 β.** The V.T110 lock is
+  fibration-wide (BHBirthTopology.lean:261-294 docstring states
+  the lock is "by definition of the fiber structure"), not
+  horizon-local. The η-cycle radius ρ(r) is rigidly slaved to
+  the γ-cycle R(r) by V.T40 base/fiber asymmetry; no independent
+  radial profile possible. Constant 𝒜(r) = ι_τ from horizon to
+  infinity. Confidence 0.9. See research-notes/V-T-NEW-5-derivation.md
+  §6 for the full β verification trace.
 - Gap-2: τ-vacuum form — V.T204 cosmological correction not
   addressed; recommend stating isolated regime first, V.T-NEW-5b
-  as separate corollary for cosmological extension.
+  as separate corollary for cosmological extension. **Status: still
+  YELLOW pending V.T-NEW-5b carve-out (out of Wave R8a scope).**
 
-Both YELLOW (patchable by explicit declaration); not RED.
+**Remark on H6 asymptotic τ-flatness (per β Wave 2):** "Asymptotic
+τ-flatness" here means the metric approaches the bare τ³ = τ¹ ×_f T²(∞)
+fibration with T²(∞) preserving ρ/R = ι_τ from V.T110's fibration-wide
+lock — *not* asymptotic Minkowski. The η-cycle radius is rigidly slaved
+to the γ-cycle by V.T40 base/fiber asymmetry, so there is no second
+aspect-ratio modulus at infinity. (Wave R8a Wave 2 β verification.)
 
 ## Inputs (all formalized in TauLib)
 
