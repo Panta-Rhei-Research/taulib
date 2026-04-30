@@ -361,7 +361,12 @@ structure SeedMassDistribution where
   log_dN_per_dlogM_x100_plus_1000 : Fin 21 → Nat
   /-- Redshift in the seed-formation window [z=8, z=15]. -/
   z_in_window : redshift_x10 ≥ 80 ∧ redshift_x10 ≤ 150
-  deriving Repr
+  -- Note: no `deriving Repr` here — the `Fin 21 → Nat` field would
+  -- require `Repr (Fin 21 → Nat)` which is unavailable at the pinned
+  -- Mathlib commit (lake-manifest.json: 85028a69). The structure is
+  -- not displayed via `#eval` anywhere in this file, so omitting the
+  -- derivation has no functional impact; downstream code uses field
+  -- accessors directly.
 
 -- ============================================================
 -- LOWER CUTOFF [V.T-LRD-1, sub-claim A]
