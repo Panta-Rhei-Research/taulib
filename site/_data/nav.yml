@@ -1,13 +1,16 @@
 header:
+  - title: "Docs"
+    url: "/docs/"
+    match: "__never__"
+  - title: "Verify"
+    url: "https://panta-rhei.site/verify/taulib/"
+    match: "__never__"
+    external: true
   - title: "Panta Rhei"
     url: "https://panta-rhei.site"
     match: "__never__"
     external: true
   - title: "GitHub"
     url: "https://github.com/Panta-Rhei-Research/taulib"
-    match: "__never__"
-    external: true
-  - title: "Verify"
-    url: "https://panta-rhei.site/verify/taulib/"
     match: "__never__"
     external: true
