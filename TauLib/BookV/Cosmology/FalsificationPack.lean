@@ -235,22 +235,26 @@ def pred_lrd_sharp_transition : TestablePrediction where
   level := .Quantitative
   description :=
     "V.T-LRD-1D: slope transition from 0+-0.3 to <= -2 at" ++
-    " upper cutoff (Hossenfelder ask). PENDING PHYSICS:" ++
-    " Wave R7 specialist outputs gave incompatible widths" ++
-    " (Specialist A: 1.66 dex outer-cutoff binary mechanism;" ++
-    " Specialist C: 0.41 dex unit-Jacobian smooth-fraction" ++
-    " mechanism); Wave R7 Specialist F's reconciliation" ++
-    " (Inayoshi-Mayer-Bonoli-Haiman lens) found both mechanisms" ++
-    " genuinely apply in different sub-regions, with composite" ++
-    " width 0.9^{+0.5}_{-0.4} dex. The conservative <= 0.2 dex" ++
-    " witness in HeavySeedBirth.lean matches the v2.1 paper" ++
-    " claim but the v2.2 paper must relax to either <= 0.4 dex" ++
-    " (single-mechanism C-edge) or <= 1.5 dex (composite" ++
-    " operational falsifier). See" ++
+    " upper cutoff. The original v2.1 Hossenfelder ask was" ++
+    " <= 0.2 dex single-edge. Wave R7 specialist outputs gave" ++
+    " incompatible widths (Specialist A: 1.66 dex outer-cutoff" ++
+    " binary mechanism; Specialist C: 0.41 dex unit-Jacobian" ++
+    " smooth-fraction mechanism); Wave R7 Specialist F's" ++
+    " reconciliation (Inayoshi-Mayer-Bonoli-Haiman lens) found" ++
+    " both mechanisms genuinely apply in different sub-regions," ++
+    " with composite width 0.9^{+0.5}_{-0.4} dex (68% CI)." ++
+    " v2.2 (acknowledged in v2.3 §7 Gap 7) shipped the relaxed" ++
+    " <= 1.5 dex composite operational falsifier; Wave R10-4" ++
+    " resynced the HeavySeedBirth.lean carrier" ++
+    " (transition_width_x100 = 150, invariant <= 150). See" ++
     " research-notes/V-T-LRD-1-derivation.md §5."
   status :=
-    "PENDING PHYSICS RESOLUTION: marked not-currently-testable" ++
-    " until v2.2 paper headline relaxation lands."
+    "Operational falsifier (<= 1.5 dex composite) is now" ++
+    " well-defined in v2.2/v2.3 and the Lean carrier (Wave" ++
+    " R10-4). Currently_testable left false here pending a" ++
+    " separate downstream review of testability gating against" ++
+    " the JWST cycle 4-5 LRD sample (out of scope for the" ++
+    " R10-4 carrier-resync sprint)."
   currently_testable := false
 
 -- ============================================================
