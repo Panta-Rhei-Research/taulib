@@ -1,13 +1,23 @@
 <header class="site-header">
   <a href="{{ '/' | relative_url }}" class="header-brand">
+    <span class="brand-mark" aria-hidden="true"><span class="glyph-pi">π</span><span class="glyph-rho">ρ</span></span>
     <span class="brand-stack">
       <span class="brand-title">TauLib</span>
       <span class="brand-sub">Lean 4 formalization &middot; Panta Rhei Research</span>
     </span>
+    <span class="site-tag" aria-label="Lean formalization site">λ</span>
   </a>
 
-  <!-- Mobile + desktop header controls -->
+  <!-- Mobile + desktop header controls (order: search → TOC → hamburger, matching panta-rhei.site) -->
   <div class="header-controls">
+    <!-- Search button (always visible — 1-tap access) -->
+    <button class="header-search" aria-label="Search (press / or Ctrl+K)" type="button" onclick="openSearch()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="6.5" cy="6.5" r="5"/>
+        <line x1="10" y1="10" x2="14.5" y2="14.5"/>
+      </svg>
+    </button>
+
     <!-- TOC dropdown (shown by JS only when page has h2 headings) -->
     <div class="header-toc-wrapper" id="header-toc-wrapper" hidden>
       <button class="header-toc-btn" aria-label="On this page" aria-expanded="false" type="button">
@@ -25,14 +35,6 @@
         <!-- Populated by JS from right-rail TOC -->
       </div>
     </div>
-
-    <!-- Search button (always visible — 1-tap access) -->
-    <button class="header-search" aria-label="Search (press / or Ctrl+K)" type="button" onclick="openSearch()">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-        <circle cx="6.5" cy="6.5" r="5"/>
-        <line x1="10" y1="10" x2="14.5" y2="14.5"/>
-      </svg>
-    </button>
 
     <!-- Hamburger (mobile only) -->
     <button class="header-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav" type="button">

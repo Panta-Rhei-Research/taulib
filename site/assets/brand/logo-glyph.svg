@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="100 120 300 180" role="img" aria-label="Panta Rhei Research">
+  <title>Panta Rhei Research</title>
+  <desc>The πρ glyph pair — Greek letters pi (upright serif) and rho (italic serif with long descender) in deep navy, without frame.</desc>
+  <g transform="translate(-17 0)">
+    <text fill="#163E64" font-family="'Source Serif 4', 'Source Serif Pro', Palatino, 'Palatino Linotype', 'Book Antiqua', Georgia, serif" font-weight="400" font-size="478" transform="matrix(0.417293 0 0 0.418118 138.595 242)">π</text>
+    <text fill="#163E64" font-family="'Source Serif 4', 'Source Serif Pro', Palatino, 'Palatino Linotype', 'Book Antiqua', Georgia, serif" font-weight="400" font-style="italic" font-size="478" transform="matrix(0.417293 0 0 0.418118 241.217 301)">ρ</text>
+  </g>
+</svg>

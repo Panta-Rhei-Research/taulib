@@ -38,6 +38,7 @@ exclude:
   - vendor
   - README.md
   - .DS_Store
+  - scripts/        # site maintenance scripts (sync-design-tokens.sh, etc.)
 
 defaults:
   - scope:
