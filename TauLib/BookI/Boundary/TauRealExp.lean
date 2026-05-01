@@ -163,6 +163,17 @@ private theorem exp_term_toRat (x : TauRat) (k : Nat) :
   push_cast
   field_simp
 
+/-- **Public re-export of `exp_term_toRat`** (Wave R10-1b).
+
+    Mirrors the private version verbatim — exposed so downstream
+    `TauRealLog.exp_log_one_plus_zero` can reduce `exp_partial` on
+    structurally-distinct TauRat inputs that share the same `.toRat`
+    value (the bridge from `log_partial 0 n` to `TauRat.zero`). -/
+theorem TauRat.exp_term_toRat_eq (x : TauRat) (k : Nat) :
+    (TauRat.exp_term x k).toRat =
+      (TauRat.pow x k).toRat / (Nat.factorial k : Rat) :=
+  exp_term_toRat x k
+
 /-- `|(exp_term x k).toRat| ≤ R / 2^(k-1)` for `k ≥ 1`, `|x| ≤ R ≤ 1`.
 
     Wave R8d closure via `Bridge.TauRealAbsBridge` (re-exports `abs_pow`,
@@ -330,6 +341,15 @@ private theorem exp_partial_zero_toRat (n : Nat) (hn : 1 ≤ n) :
         rw [zero_pow hn_ne]
         simp
       linarith
+
+/-- **Public re-export of `exp_partial_zero_toRat`** (Wave R10-1b).
+
+    Exposed for downstream `TauRealLog.exp_log_one_plus_zero` use:
+    after toRat-invariance reduces `exp_partial (log_partial 0 n) n`
+    to `exp_partial TauRat.zero n`, this lemma gives the toRat value `1`. -/
+theorem TauRat.exp_partial_zero_toRat_eq (n : Nat) (hn : 1 ≤ n) :
+    (TauRat.exp_partial TauRat.zero n).toRat = 1 :=
+  exp_partial_zero_toRat n hn
 
 /-- `exp(0) ≡ 1` up to TauReal.equiv.
 
