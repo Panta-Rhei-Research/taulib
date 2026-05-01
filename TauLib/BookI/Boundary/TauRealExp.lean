@@ -1,6 +1,7 @@
 import TauLib.BookI.Boundary.TauRealE
 import TauLib.BookI.Boundary.TauRealAnalyticalHelpers
 import TauLib.BookI.Boundary.TauRealSum
+import TauLib.BookI.Boundary.Bridge.TauRealAbsBridge
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.LinearCombination
 import Mathlib.Tactic.NormNum
@@ -143,26 +144,39 @@ private theorem exp_term_toRat (x : TauRat) (k : Nat) :
 
 /-- `|(exp_term x k).toRat| ≤ R / 2^(k-1)` for `k ≥ 1`, `|x| ≤ R ≤ 1`.
 
-    **Wave R8c R-c1-adjacent: SORRY — abs-distribution lemmas not in scope.**
-
-    The proof mathematically requires `abs_pow : |x^k| = |x|^k`, `abs_div`,
-    and `abs_mul` to manipulate `|x^k / k!|`. These lemmas live in
-    `Mathlib.Algebra.Order.*` modules which the CI grep-guard forbids
-    (per `taulib_tactic_budget` — only `Mathlib.Tactic.*` allowed).
-    Without these, the Rat-level abs decomposition cannot be performed
-    inline; would need either:
-    (a) inductive proofs of `abs_pow`/`abs_mul` (each ~30 lines via 4-case
-        analysis on signs), totalling ~100+ lines just for the helpers;
-    (b) lift the CI grep-guard to permit `Mathlib.Algebra.Order.AbsoluteValue.Basic`;
-    (c) rephrase the bound to avoid abs entirely.
-
-    Wave R8d task: pursue option (b) or (c) — likely (b) since a single
-    targeted import would unblock significant downstream work. -/
+    Wave R8d closure via `Bridge.TauRealAbsBridge` (re-exports `abs_pow`,
+    `abs_div`, `pow_le_pow_left₀`, `pow_le_one₀` from `Mathlib.Algebra.*`
+    in the explicit Bridge zone).
+-/
 private theorem exp_term_abs_le_geom (x : TauRat) (R : Rat)
     (hR0 : 0 ≤ R) (hR1 : R ≤ 1) (hx : |x.toRat| ≤ R)
     (k : Nat) (hk : 1 ≤ k) :
     |(TauRat.exp_term x k).toRat| ≤ R / (2 ^ (k - 1) : Rat) := by
-  sorry  -- Wave R8d: needs abs_pow + abs_div (Mathlib.Algebra.Order.*)
+  rw [exp_term_toRat, TauRat.pow_toRat]
+  have h_fac_pos : (0 : Rat) < (Nat.factorial k : Rat) := by
+    have := Nat.factorial_pos k; exact_mod_cast this
+  have h_pow_pos : (0 : Rat) < (2 : Rat) ^ (k - 1) := by positivity
+  rw [Tau.Boundary.Bridge.rat_abs_div, abs_of_pos h_fac_pos,
+      Tau.Boundary.Bridge.rat_abs_pow]
+  -- Goal: |x.toRat|^k / k! ≤ R / 2^(k-1)
+  have h_xk_le : |x.toRat| ^ k ≤ R ^ k :=
+    Tau.Boundary.Bridge.rat_pow_le_pow_left₀ (abs_nonneg _) hx k
+  have h_Rk_le : R ^ k ≤ R := by
+    have h_k_eq : k = (k - 1) + 1 := by omega
+    rw [h_k_eq, pow_succ]
+    have h_Rk1 : R ^ (k - 1) ≤ 1 :=
+      Tau.Boundary.Bridge.rat_pow_le_one₀ hR0 hR1 (k - 1)
+    nlinarith
+  have h_fact_ge : (2 : Rat) ^ (k - 1) ≤ (Nat.factorial k : Rat) := by
+    have h1 : ((2 ^ (k - 1) : Nat) : Rat) ≤ (Nat.factorial k : Rat) := by
+      exact_mod_cast Nat.factorial_ge_two_pow k hk
+    have h2 : ((2 ^ (k - 1) : Nat) : Rat) = (2 : Rat) ^ (k - 1) := by
+      push_cast; ring
+    linarith
+  rw [div_le_div_iff₀ h_fac_pos h_pow_pos]
+  have h_xk_nn : 0 ≤ |x.toRat| ^ k := pow_nonneg (abs_nonneg _) k
+  have h_pow_nn : 0 ≤ (2 : Rat) ^ (k - 1) := le_of_lt h_pow_pos
+  nlinarith [h_xk_le, h_Rk_le, h_fact_ge, h_xk_nn, h_pow_nn, hR0]
 
 /-- Telescoping bound on the abs partial sum of exp terms (mirrors `sumFromTo_e_term_bound`). -/
 private theorem sumFromTo_exp_term_bound (x : TauRat) (R : Rat)
