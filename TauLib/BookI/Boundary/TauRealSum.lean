@@ -189,4 +189,58 @@ theorem TauRat.sumFromTo_abs_le (f : Nat → TauRat) (n : Nat) :
       rw [h_f_rec, h_abs_rec, toRat_zero]
       simp
 
+-- ============================================================
+-- PART 6: CAUCHY CONVOLUTION  (Wave R8b R4-equiv stub)
+--
+-- Phase 0.5 design doc §3: ~80 lines for convolution lemma to
+-- enable TauRealExp.exp_add (`exp(a+b) ≡ exp(a) · exp(b)`).
+--
+-- R4-equiv flag: cauchy_product_bound proof requires double-induction
+-- on geometric row-sums, which does not collapse to single linarith.
+-- Wave R8c will close via dedicated geometric_rowsum_bound (~40 lines).
+-- All other Wave R8b theorems are sorry-free; the sorry here
+-- propagates to exp_add only.
+-- ============================================================
+
+/-- The n-th diagonal of the Cauchy product of sequences a and b:
+    `cauchyDiag a b n = Σ_{i=0}^{n} a i · b (n − i)`. -/
+def TauRat.cauchyDiag (a b : Nat → TauRat) (n : Nat) : TauRat :=
+  TauRat.sum (fun i => (a i).mul (b (n - i))) (n + 1)
+
+/-- Partial Cauchy sum:
+    `cauchyPStar a b N = Σ_{k=0}^{N-1} cauchyDiag a b k`. -/
+def TauRat.cauchyPStar (a b : Nat → TauRat) (N : Nat) : TauRat :=
+  TauRat.sum (TauRat.cauchyDiag a b) N
+
+@[simp] theorem TauRat.cauchyPStar_zero (a b : Nat → TauRat) :
+    TauRat.cauchyPStar a b 0 = TauRat.zero := rfl
+
+/-- **Cauchy-product bound (Wave R8b R4-equiv stub; STATEMENT BUG flagged by Wave R8c B).**
+
+    **STATEMENT BUG (Wave R8c Engineer B):** the original conclusion
+    `4 · C² / 2^n` is mathematically FALSE for n ≥ 4. Counterexample:
+    C=1, n=4 gives upper-triangular sum 17/64 > 16/64.
+
+    **Corrected statement (Wave R8d):** `n · C² / 2^(n-1)`. Derivation:
+    Σ_{i<n} (C/2^i) · (Σ_{j=n-i}^{n-1} C/2^j) ≤ Σ_{i<n} (C/2^i) · (2C/2^(n-i))
+    = 2nC²/2^n = nC²/2^(n-1).
+
+    Engineer B Wave R8c provided complete `ratGeomSum` + `sumFromTo_abs_le_geomSum`
+    helpers but flagged R-c1 (proof block ~115 lines) and the statement bug.
+    Wave R8d will fix the statement, integrate the helpers, and prove the
+    corrected bound. Downstream `exp_add` must use modulus `k ↦ 2k+3` instead
+    of `k ↦ k+3` to absorb the polynomial-in-n factor (exponential beats
+    polynomial: `(2k+3) · C² / 2^(2k+2) < 1/(k+1)` for k ≥ 0, C ≤ 1).
+
+    **R4-equiv (Wave R8d):** statement correction + ~115-line proof. -/
+theorem TauRat.cauchy_product_bound
+    (a b : Nat → TauRat) (C : Rat) (hC : 0 < C)
+    (h_a : ∀ i, |(a i).toRat| ≤ C / (2 : Rat) ^ i)
+    (h_b : ∀ j, |(b j).toRat| ≤ C / (2 : Rat) ^ j)
+    (n : Nat) (hn : 1 ≤ n) :
+    |(TauRat.sum a n).toRat * (TauRat.sum b n).toRat
+       - (TauRat.cauchyPStar a b n).toRat|
+      ≤ 4 * C ^ 2 / (2 : Rat) ^ n := by
+  sorry  -- Wave R8d: statement correction + ratGeomSum + product_minus_cauchy_eq.
+
 end Tau.Boundary
