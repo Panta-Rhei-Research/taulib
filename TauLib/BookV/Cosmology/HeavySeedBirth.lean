@@ -1,6 +1,7 @@
 import TauLib.BookV.Cosmology.NoShrinkExtended
 import TauLib.BookV.Astrophysics.CompactObjects
 import TauLib.BookI.Boundary.TauRealIotaTau
+import TauLib.BookI.Boundary.TauRealSqrt
 
 /-!
 # TauLib.BookV.Cosmology.HeavySeedBirth
@@ -475,6 +476,49 @@ structure T2HorizonAngularMomentumBound where
     docstring "Wave R7 cross-validation" section. -/
 def iota_tau_T2_bound_TauReal : Tau.Boundary.TauReal :=
   iota_tau_TauReal
+
+/-- [Wave R8 proper, post-Phase-0.5] TauReal-witnessed F(ι_τ) = ι_τ √κ_D
+    closed-form headline witness for the T²-horizon J_max bound.
+
+    Concretely: F(ι_τ) = ι_τ · √(1 − ι_τ) ≈ 0.277 numerically.
+
+    This replaces the Wave R7 Nat-scaled placeholder `f_iota_x_10000 = 2773`
+    (which encoded F(ι_τ) ≈ 0.2773 as 2773/10000) with the proper
+    TauReal-typed witness. The Nat-scaled value remains for backwards
+    compatibility / ergonomic numeric reference on the
+    `T2HorizonAngularMomentumBound` carrier.
+
+    Cross-validation: `(f_iota_TauReal.approx N).toRat` should converge
+    to 0.2773... as N → ∞.
+
+    Phase 0.5 dependencies (all sorry-free):
+    - `Tau.Boundary.TauReal.sqrt` (Wave R8b def, R8j Cauchy + sq closures)
+    - `Tau.Boundary.TauReal.one`, `.sub`, `.mul` (foundational,
+      ConstructiveReals.lean)
+    - `iota_tau_TauReal` (TauRealIotaTau, pre-Phase-0.5)
+
+    Sibling at the V.T-NEW-5A bundling site:
+    `Tau.Boundary.f_iota_t2_TauReal` in `T2KerrUniqueness.lean`, built
+    from `iota_tau_T2_bound_TauReal` (which is defeq-equal to
+    `iota_tau_TauReal`). -/
+def f_iota_TauReal : Tau.Boundary.TauReal :=
+  iota_tau_TauReal.mul
+    (Tau.Boundary.TauReal.sqrt
+      (Tau.Boundary.TauReal.one.sub iota_tau_TauReal))
+
+/-- Smoke theorem: `f_iota_TauReal` unfolds to its closed-form
+    definition (rfl). -/
+theorem f_iota_TauReal_def :
+    f_iota_TauReal =
+    iota_tau_TauReal.mul
+      (Tau.Boundary.TauReal.sqrt
+        (Tau.Boundary.TauReal.one.sub iota_tau_TauReal)) := rfl
+
+-- Companion smoke `#check`: confirm `f_iota_TauReal` is well-typed.
+#check f_iota_TauReal
+
+-- Numerical smoke: should be close to 0.277 for moderate N.
+#eval (f_iota_TauReal.approx 8).toRat
 
 -- ============================================================
 -- SEED MASS DISTRIBUTION [V.D-LRD-1e]
