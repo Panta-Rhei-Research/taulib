@@ -1,11 +1,14 @@
 import Mathlib.Algebra.Order.Ring.Abs
 import Mathlib.Algebra.Order.AbsoluteValue.Basic
 import Mathlib.Algebra.Order.Field.Basic
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.Positivity
 import Mathlib.Tactic.FieldSimp
+
+open BigOperators
 
 /-!
 # TauLib.BookI.Boundary.Bridge.TauRealAbsBridge
@@ -81,5 +84,27 @@ theorem rat_pow_le_one₀ {a : Rat} (h_nn : 0 ≤ a) (h_le : a ≤ 1) (n : Nat) 
     rw [pow_succ]
     have h_pow_nn : 0 ≤ a ^ n := pow_nonneg h_nn n
     nlinarith
+
+-- ============================================================
+-- WAVE R8f: Finset re-export for cauchy_product_bound closure
+-- ============================================================
+
+/-- Sum of constants over `Finset.range n` equals `n · c`. Re-export from Mathlib. -/
+theorem rat_sum_const_range (c : Rat) (n : Nat) :
+    ∑ _i ∈ Finset.range n, c = (n : Rat) * c := by
+  rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+
+/-- Sum upper bound via per-term bounds. -/
+theorem rat_finset_sum_le_const_mul {n : Nat} (f : Nat → Rat) (c : Rat)
+    (hf : ∀ i ∈ Finset.range n, f i ≤ c) :
+    ∑ i ∈ Finset.range n, f i ≤ (n : Rat) * c := by
+  rw [← rat_sum_const_range c n]
+  apply Finset.sum_le_sum
+  exact hf
+
+/-- Abs of finset sum bounded by sum of abs (triangle inequality). -/
+theorem rat_abs_finset_sum_le (f : Nat → Rat) (n : Nat) :
+    |∑ i ∈ Finset.range n, f i| ≤ ∑ i ∈ Finset.range n, |f i| := by
+  exact Finset.abs_sum_le_sum_abs f (Finset.range n)
 
 end Tau.Boundary.Bridge
