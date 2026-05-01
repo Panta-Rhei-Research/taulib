@@ -2,6 +2,7 @@ import Mathlib.Algebra.Order.Ring.Abs
 import Mathlib.Algebra.Order.AbsoluteValue.Basic
 import Mathlib.Algebra.Order.Field.Basic
 import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+import Mathlib.Algebra.BigOperators.Ring.Finset
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.NormNum
@@ -106,5 +107,10 @@ theorem rat_finset_sum_le_const_mul {n : Nat} (f : Nat → Rat) (c : Rat)
 theorem rat_abs_finset_sum_le (f : Nat → Rat) (n : Nat) :
     |∑ i ∈ Finset.range n, f i| ≤ ∑ i ∈ Finset.range n, |f i| := by
   exact Finset.abs_sum_le_sum_abs f (Finset.range n)
+
+/-- Re-export of right-distribution of multiplication over finite sums. -/
+theorem rat_finset_sum_mul (n : Nat) (f : Nat → Rat) (a : Rat) :
+    (∑ i ∈ Finset.range n, f i) * a = ∑ i ∈ Finset.range n, f i * a :=
+  Finset.sum_mul (Finset.range n) f a
 
 end Tau.Boundary.Bridge
