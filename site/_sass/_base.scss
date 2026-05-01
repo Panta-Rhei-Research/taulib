@@ -98,7 +98,7 @@ a {
   transition: color $transition;
 
   &:hover {
-    color: darken($accent, 10%);
+    color: var(--color-brand-900);
   }
 }
 
