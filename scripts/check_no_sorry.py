@@ -27,8 +27,13 @@ Matching rules, applied AFTER comment/string stripping:
           tactic positions — i.e., real proof debt.
 
 Usage:
+  # Strict mode (preserves the original sorry-free invariant):
   python3 scripts/check_no_sorry.py \\
     --root TauLib --expected-axioms 3 --expected-sorry 0
+
+  # Budget mode (Phase 0.5 in-progress sorry closure):
+  python3 scripts/check_no_sorry.py \\
+    --root TauLib --expected-axioms 3 --max-sorry 4
 """
 
 from __future__ import annotations
@@ -152,17 +157,31 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--root", type=Path, default=Path("TauLib"))
     p.add_argument("--expected-axioms", type=int, default=3)
-    p.add_argument("--expected-sorry", type=int, default=0)
+    sorry_group = p.add_mutually_exclusive_group()
+    sorry_group.add_argument(
+        "--expected-sorry", type=int, default=None,
+        help="Strict-equality sorry count (drift in either direction fails).")
+    sorry_group.add_argument(
+        "--max-sorry", type=int, default=None,
+        help="Budget/ceiling sorry count (regression above ceiling fails; "
+             "below ceiling passes with a ratchet hint).")
     p.add_argument("--report-only", action="store_true",
                    help="Print counts and offenders but do not exit nonzero.")
     args = p.parse_args()
+
+    # Default: strict zero, preserving back-compat with prior CI invocations.
+    if args.expected_sorry is None and args.max_sorry is None:
+        args.expected_sorry = 0
 
     if not args.root.exists():
         print(f"::error::root not found: {args.root}", file=sys.stderr)
         return 1
 
     axioms, sorries = scan(args.root)
-    print(f"Expected: axioms={args.expected_axioms}, sorry={args.expected_sorry}")
+    if args.max_sorry is not None:
+        print(f"Expected: axioms={args.expected_axioms}, sorry≤{args.max_sorry} (budget)")
+    else:
+        print(f"Expected: axioms={args.expected_axioms}, sorry={args.expected_sorry}")
     print(f"Actual:   axioms={len(axioms)}, sorry={len(sorries)}")
 
     fail = False
@@ -183,21 +202,45 @@ def main() -> int:
     else:
         print(f"✓ Axiom count: {len(axioms)} (expected {args.expected_axioms})")
 
-    if len(sorries) != args.expected_sorry:
-        print(
-            f"::error::Sorry count drift: expected {args.expected_sorry}, "
-            f"got {len(sorries)}.",
-            file=sys.stderr,
-        )
-        print("::error::TauLib is sorry-free in all seven books since peer-review-fixes-v1.", file=sys.stderr)
-        print("::error::If a new sorry-closed declaration is intentional, first discuss", file=sys.stderr)
-        print("::error::via issue, then update EXPECTED_SORRY in this workflow and the paper.", file=sys.stderr)
-        print("::error::Current sorry hits (after comment/string stripping):", file=sys.stderr)
-        for path, line in sorries:
-            print(f"::error::  {path}:{line}", file=sys.stderr)
-        fail = True
+    if args.max_sorry is not None:
+        # Budget mode: regression above ceiling fails; equal or below passes.
+        if len(sorries) > args.max_sorry:
+            print(
+                f"::error::Sorry budget exceeded: ceiling {args.max_sorry}, "
+                f"got {len(sorries)}.",
+                file=sys.stderr,
+            )
+            print("::error::A new sorry was introduced beyond the active Phase 0.5 budget.", file=sys.stderr)
+            print("::error::Either close the offending sorry or, if intentional, raise", file=sys.stderr)
+            print("::error::--max-sorry in .github/workflows/lean-build.yml (with rationale).", file=sys.stderr)
+            print("::error::Current sorry hits (after comment/string stripping):", file=sys.stderr)
+            for path, line in sorries:
+                print(f"::error::  {path}:{line}", file=sys.stderr)
+            fail = True
+        else:
+            print(f"✓ Sorry budget: {len(sorries)} ≤ {args.max_sorry} (ceiling)")
+            if len(sorries) < args.max_sorry:
+                print(f"::notice::Sorry budget headroom: {args.max_sorry - len(sorries)}. "
+                      f"Consider ratcheting --max-sorry down to {len(sorries)} once stable.")
+            print("Current sorry hits (within budget):")
+            for path, line in sorries:
+                print(f"  {path}:{line}")
     else:
-        print(f"✓ Sorry count: {len(sorries)} (expected {args.expected_sorry})")
+        if len(sorries) != args.expected_sorry:
+            print(
+                f"::error::Sorry count drift: expected {args.expected_sorry}, "
+                f"got {len(sorries)}.",
+                file=sys.stderr,
+            )
+            print("::error::TauLib is sorry-free in all seven books since peer-review-fixes-v1.", file=sys.stderr)
+            print("::error::If a new sorry-closed declaration is intentional, first discuss", file=sys.stderr)
+            print("::error::via issue, then update EXPECTED_SORRY in this workflow and the paper.", file=sys.stderr)
+            print("::error::Current sorry hits (after comment/string stripping):", file=sys.stderr)
+            for path, line in sorries:
+                print(f"::error::  {path}:{line}", file=sys.stderr)
+            fail = True
+        else:
+            print(f"✓ Sorry count: {len(sorries)} (expected {args.expected_sorry})")
 
     if fail and not args.report_only:
         return 1
