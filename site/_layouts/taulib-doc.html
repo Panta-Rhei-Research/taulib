@@ -12,12 +12,16 @@ layout: default
   {% endif %}
 </nav>
 
-<div class="hero-card">
+<div class="hero-card taulib-doc-hero">
   <div class="module-eyebrow-row">
     <span class="eyebrow">TauLib &middot; API</span>
     {% if page.book %}<span class="chip">Book {{ page.book }}</span>{% endif %}
+    {% if page.book_label %}<span class="chip chip-book-label">{{ page.book_label }}</span>{% endif %}
   </div>
   <h1 class="taulib-module-title">{{ page.title }}</h1>
+  {% if page.module_name %}
+  <p class="taulib-module-namespace" aria-label="Fully qualified module name"><code>{{ page.module_name }}</code></p>
+  {% endif %}
 </div>
 
 <div class="content-card taulib-doc-content">
