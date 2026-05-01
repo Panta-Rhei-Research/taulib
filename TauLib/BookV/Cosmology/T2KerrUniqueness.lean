@@ -1,4 +1,5 @@
 import TauLib.BookV.Cosmology.HeavySeedBirth
+import TauLib.BookI.Boundary.TauRealSqrt
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.Linarith
@@ -286,11 +287,42 @@ theorem t_v_new_5a_uses_v_t40 (s : NoShrinkStatement) :
     s.mass_n_plus_1 ≥ s.mass_n :=
   no_shrink_theorem s
 
--- TODO: Wave R8b — add j_max_t2_TauReal once TauRealSqrt lands:
---   def j_max_t2_TauReal : Tau.Boundary.TauReal :=
---     iota_tau_T2_bound_TauReal.mul
---       (Tau.Boundary.TauReal.sqrt
---         (Tau.Boundary.TauReal.one.sub iota_tau_T2_bound_TauReal))
+-- ============================================================
+-- WAVE R8 PROPER: f_iota_TauReal PROMOTION (R8e opener)
+-- ============================================================
+
+/-- **Wave R8 proper opener (Wave R8e):** the closed-form TauReal-witnessed
+    `J_max^{T²}` factor `F(ι_τ) = ι_τ · √(1 − ι_τ) = ι_τ · √κ_D`, now expressible
+    using `TauReal.sqrt` (Wave R8b) at `def` level.
+
+    This is the actual physics-relevant TauReal-witnessed promotion that
+    motivated all of Phase 0.5: V.T-NEW-5A's J_max^{T²} bound carrier
+    `f_iota_x_10000 = 2773` (Nat-scaled) now has its TauReal sibling.
+
+    The Cauchy + algebraic-correctness theorems for `TauReal.sqrt`
+    (`sqrt_isCauchy`, `sqrt_sq`) remain sorry-guarded pending Wave R8f
+    two-phase tower convergence work, but `TauReal.sqrt` itself is a
+    total function (no sorry needed for the def itself).
+
+    **Cross-validation against the Nat-scaled value:** evaluating
+    `f_iota_t2_TauReal.approx 10` should give a TauRat close to
+    `0.2773` (matching `f_iota_x_10000 / 10000`). -/
+def f_iota_t2_TauReal : Tau.Boundary.TauReal :=
+  iota_tau_T2_bound_TauReal.mul
+    (Tau.Boundary.TauReal.sqrt
+      (Tau.Boundary.TauReal.one.sub iota_tau_T2_bound_TauReal))
+
+/-- Smoke theorem: the TauReal-witnessed `f_iota_t2_TauReal` is well-typed
+    and built from canonical TauReal operations. This is `rfl`-provable
+    because `f_iota_t2_TauReal` is itself a definition. -/
+theorem f_iota_t2_TauReal_def :
+    f_iota_t2_TauReal =
+    iota_tau_T2_bound_TauReal.mul
+      (Tau.Boundary.TauReal.sqrt
+        (Tau.Boundary.TauReal.one.sub iota_tau_T2_bound_TauReal)) := rfl
+
+-- Companion smoke `#check`: confirm `f_iota_t2_TauReal` is well-typed.
+#check f_iota_t2_TauReal
 
 -- ============================================================
 -- SECTION 3: V.T-NEW-5B — UNIT JACOBIAN LEMMA

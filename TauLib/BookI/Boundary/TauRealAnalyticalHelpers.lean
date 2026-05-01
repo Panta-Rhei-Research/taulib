@@ -211,4 +211,53 @@ theorem Rat.one_div_tower_pow_lt_recip (k n : Nat) (hn : k + 1 ≤ n) :
   rw [div_lt_div_iff₀ h_exp_pos h_k1_pos]
   linarith
 
+-- ============================================================
+-- PART 6: EVENTUAL BOUNDEDNESS OF CAUCHY SEQUENCES (Wave R8e)
+-- ============================================================
+
+/-- A Cauchy sequence is eventually bounded:
+    there exists `C` and `N` such that `|(x.approx n).toRat| ≤ C` for all `n ≥ N`.
+
+    Proof: at level k = 0, past the modulus M = μ(0), all terms satisfy
+    `|(x.approx n).toRat - (x.approx M).toRat| < 1/(0+1) = 1`.
+    Triangle inequality then gives `|(x.approx n).toRat| ≤ |(x.approx M).toRat| + 1`.
+
+    Required by Wave R8e for sqrt_isCauchy Term C and sqrt_sq tower bound:
+    bounding the initial Newton error `e₀ = (a_n + 1)² − a_n` requires
+    eventual boundedness of `a.approx n`.
+-/
+theorem TauReal.IsCauchy.eventually_bounded {x : TauReal} (hx : x.IsCauchy) :
+    ∃ C : Rat, ∃ N : Nat, ∀ idx : Nat, N ≤ idx → |(x.approx idx).toRat| ≤ C := by
+  obtain ⟨μ, hμ⟩ := hx
+  refine ⟨|(x.approx (μ 0)).toRat| + 1, μ 0, ?_⟩
+  intro idx h_idx_ge
+  -- Cauchy at level 0: |x_idx - x_(μ 0)| < 1/(0+1)
+  have h_self : μ 0 ≤ μ 0 := Nat.le_refl _
+  have h_close : TauRat.lt
+      (((x.approx idx).sub (x.approx (μ 0))).abs) (TauRat.ofNatRecip 0) :=
+    hμ 0 idx (μ 0) h_idx_ge h_self
+  unfold TauRat.lt at h_close
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat] at h_close
+  -- h_close: |(x_idx).toRat - (x_(μ 0)).toRat| < 1/((0:Rat)+1)
+  have h_one_eq : (1 : Rat) / ((0 : Rat) + 1) = 1 := by norm_num
+  have h_diff_lt_1 : |(x.approx idx).toRat - (x.approx (μ 0)).toRat| < 1 := by
+    linarith [h_close, h_one_eq]
+  -- Triangle inequality directly (avoid rewrite trap):
+  -- |a| ≤ |b| + |a - b| via |a| = |b + (a - b)| ≤ |b| + |a - b|
+  have h_abs_triangle :
+      |(x.approx idx).toRat|
+      ≤ |(x.approx (μ 0)).toRat|
+        + |(x.approx idx).toRat - (x.approx (μ 0)).toRat| := by
+    have h_split :
+        (x.approx (μ 0)).toRat + ((x.approx idx).toRat - (x.approx (μ 0)).toRat)
+        = (x.approx idx).toRat := by ring
+    have h_add_le : |(x.approx (μ 0)).toRat
+                     + ((x.approx idx).toRat - (x.approx (μ 0)).toRat)|
+                  ≤ |(x.approx (μ 0)).toRat|
+                    + |(x.approx idx).toRat - (x.approx (μ 0)).toRat| :=
+      abs_add_le _ _
+    rw [h_split] at h_add_le
+    exact h_add_le
+  linarith
+
 end Tau.Boundary
