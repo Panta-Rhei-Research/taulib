@@ -1,10 +1,12 @@
 import TauLib.BookI.Boundary.TauRealInv
+import TauLib.BookI.Boundary.Bridge.TauRealAbsBridge
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.LinearCombination
 import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Push
 import Mathlib.Tactic.FieldSimp
+import Mathlib.Tactic.Positivity
 
 /-!
 # TauLib.BookI.Boundary.TauRealSum
@@ -190,16 +192,16 @@ theorem TauRat.sumFromTo_abs_le (f : Nat → TauRat) (n : Nat) :
       simp
 
 -- ============================================================
--- PART 6: CAUCHY CONVOLUTION  (Wave R8b R4-equiv stub)
+-- PART 6: CAUCHY CONVOLUTION  (Wave R8g — sorry-free closure)
 --
--- Phase 0.5 design doc §3: ~80 lines for convolution lemma to
--- enable TauRealExp.exp_add (`exp(a+b) ≡ exp(a) · exp(b)`).
+-- Statement corrected from `4 · C² / 2^n` (FALSE for n ≥ 4;
+-- counterexample C=1, n=4: 17/64 > 16/64) to `n · C² / 2^(n-1)`.
 --
--- R4-equiv flag: cauchy_product_bound proof requires double-induction
--- on geometric row-sums, which does not collapse to single linarith.
--- Wave R8c will close via dedicated geometric_rowsum_bound (~40 lines).
--- All other Wave R8b theorems are sorry-free; the sorry here
--- propagates to exp_add only.
+-- Proof chain (Engineer R8f-A archived; R8g calibration fixes applied):
+-- (1) row identity: product − cauchyPStar = Σ_{i<n} aᵢ·(sumFromTo b (n−i) n)
+-- (2) triangle inequality on the outer sum
+-- (3) per-row bound: (C/2^i) · (2C/2^(n−i)) = 2C²/2^n
+-- (4) rat_finset_sum_le_const_mul: n rows → n·2C²/2^n = nC²/2^(n−1)
 -- ============================================================
 
 /-- The n-th diagonal of the Cauchy product of sequences a and b:
@@ -215,24 +217,125 @@ def TauRat.cauchyPStar (a b : Nat → TauRat) (N : Nat) : TauRat :=
 @[simp] theorem TauRat.cauchyPStar_zero (a b : Nat → TauRat) :
     TauRat.cauchyPStar a b 0 = TauRat.zero := rfl
 
-/-- **Cauchy-product bound (Wave R8b R4-equiv stub; STATEMENT BUG flagged by Wave R8c B).**
+section CauchyConvolution
 
-    **STATEMENT BUG (Wave R8c Engineer B):** the original conclusion
-    `4 · C² / 2^n` is mathematically FALSE for n ≥ 4. Counterexample:
-    C=1, n=4 gives upper-triangular sum 17/64 > 16/64.
+open BigOperators Tau.Boundary.Bridge
 
-    **Corrected statement (Wave R8d):** `n · C² / 2^(n-1)`. Derivation:
-    Σ_{i<n} (C/2^i) · (Σ_{j=n-i}^{n-1} C/2^j) ≤ Σ_{i<n} (C/2^i) · (2C/2^(n-i))
-    = 2nC²/2^n = nC²/2^(n-1).
+-- §6.1  TauRat.sum toRat ↔ Finset.range sum -----------------
 
-    Engineer B Wave R8c provided complete `ratGeomSum` + `sumFromTo_abs_le_geomSum`
-    helpers but flagged R-c1 (proof block ~115 lines) and the statement bug.
-    Wave R8d will fix the statement, integrate the helpers, and prove the
-    corrected bound. Downstream `exp_add` must use modulus `k ↦ 2k+3` instead
-    of `k ↦ k+3` to absorb the polynomial-in-n factor (exponential beats
-    polynomial: `(2k+3) · C² / 2^(2k+2) < 1/(k+1)` for k ≥ 0, C ≤ 1).
+private theorem sum_toRat_eq_finset (f : Nat → TauRat) (n : Nat) :
+    (TauRat.sum f n).toRat = ∑ i ∈ Finset.range n, (f i).toRat := by
+  induction n with
+  | zero => simp [TauRat.sum_zero, toRat_zero]
+  | succ n ih => rw [TauRat.sum_succ, toRat_add, ih, Finset.sum_range_succ]
 
-    **R4-equiv (Wave R8d):** statement correction + ~115-line proof. -/
+-- §6.3  Key reindexing identity (R8g FIX #1, FIX #2)
+
+private theorem cauchyPStar_toRat_eq_row_sums (a b : Nat → TauRat) (n : Nat) :
+    (TauRat.cauchyPStar a b n).toRat =
+    ∑ i ∈ Finset.range n, (a i).toRat * (TauRat.sum b (n - i)).toRat := by
+  induction n with
+  | zero =>
+    simp [TauRat.cauchyPStar, TauRat.sum_zero, toRat_zero]
+  | succ n ih =>
+    have h_unfold : (TauRat.cauchyPStar a b (n + 1)).toRat =
+        (TauRat.cauchyPStar a b n).toRat + (TauRat.cauchyDiag a b n).toRat := by
+      unfold TauRat.cauchyPStar; rw [TauRat.sum_succ, toRat_add]
+    rw [h_unfold, ih]
+    have h_diag : (TauRat.cauchyDiag a b n).toRat =
+        ∑ i ∈ Finset.range (n + 1), (a i).toRat * (b (n - i)).toRat := by
+      unfold TauRat.cauchyDiag
+      rw [sum_toRat_eq_finset]; congr 1; ext i; exact toRat_mul _ _
+    rw [h_diag]
+    rw [Finset.sum_range_succ (f := fun i => (a i).toRat * (TauRat.sum b (n + 1 - i)).toRat)]
+    -- FIX #1: Replace simp set with explicit rewrites for the n+1-n step
+    have h_top : n + 1 - n = 1 := by omega
+    rw [h_top]
+    -- Now the dangling top term is (a n).toRat * (TauRat.sum b 1).toRat
+    -- Note: TauRat.sum b 1 = (TauRat.sum b 0).add (b 0) = TauRat.zero.add (b 0)
+    -- so (TauRat.sum b 1).toRat = 0 + (b 0).toRat = (b 0).toRat
+    have h_sum1 : (TauRat.sum b 1).toRat = (b 0).toRat := by
+      rw [TauRat.sum_succ, toRat_add, TauRat.sum_zero, toRat_zero, zero_add]
+    rw [h_sum1]
+    have h_step : ∀ i ∈ Finset.range n,
+        (a i).toRat * (TauRat.sum b (n + 1 - i)).toRat =
+        (a i).toRat * (TauRat.sum b (n - i)).toRat +
+        (a i).toRat * (b (n - i)).toRat := by
+      intro i hi
+      have hi' : i < n := Finset.mem_range.mp hi
+      have h_succ_eq : n + 1 - i = (n - i) + 1 := by omega
+      rw [h_succ_eq, TauRat.sum_succ, toRat_add]
+      ring
+    rw [Finset.sum_congr rfl h_step, Finset.sum_add_distrib]
+    rw [Finset.sum_range_succ (f := fun i => (a i).toRat * (b (n - i)).toRat)]
+    -- The Finset.sum_range_succ on the diag part splits off i = n term:
+    -- ... + (a n).toRat * (b (n - n)).toRat
+    have h_nn : n - n = 0 := Nat.sub_self n
+    rw [h_nn]
+    ring
+
+-- §6.4  sumFromTo abs as Finset sum --------------------------
+
+private theorem sumFromTo_abs_toRat_eq_finset (b : Nat → TauRat) (s m : Nat) :
+    (TauRat.sumFromTo (fun k => (b k).abs) s (s + m)).toRat =
+    ∑ j ∈ Finset.range m, |(b (s + j)).toRat| := by
+  induction m with
+  | zero =>
+    simp [TauRat.sumFromTo_self, toRat_zero]
+  | succ m ihm =>
+    have h_le : s ≤ s + m := Nat.le_add_right s m
+    have h_rec : TauRat.sumFromTo (fun k => (b k).abs) s (s + (m + 1)) =
+        (TauRat.sumFromTo (fun k => (b k).abs) s (s + m)).add ((b (s + m)).abs) := by
+      show (if s ≤ s + m then
+              (TauRat.sumFromTo (fun k => (b k).abs) s (s + m)).add ((b (s + m)).abs)
+            else TauRat.zero)
+            = (TauRat.sumFromTo (fun k => (b k).abs) s (s + m)).add ((b (s + m)).abs)
+      rw [if_pos h_le]
+    rw [h_rec, toRat_add, ihm, Finset.sum_range_succ, TauRat.toRat_abs]
+
+-- §6.5  Geometric tail bound (R8g FIX #3 — strengthened invariant)
+
+/-- Strengthened tail invariant: the partial geometric sum equals
+    `2*C/2^s · (1 − (1/2)^m)`, expressed via `2C/2^s − 2C/2^(s+m)`. -/
+private theorem ratGeomTail_eq (C : Rat) (s : Nat) (m : Nat) :
+    ∑ j ∈ Finset.range m, C / (2 : Rat) ^ (s + j)
+      = 2 * C / (2 : Rat) ^ s - 2 * C / (2 : Rat) ^ (s + m) := by
+  induction m with
+  | zero =>
+    simp only [Finset.sum_range_zero, Nat.add_zero]
+    ring
+  | succ m ih =>
+    rw [Finset.sum_range_succ, ih]
+    have h_pow : (2 : Rat) ^ (s + (m + 1)) = 2 * (2 : Rat) ^ (s + m) := by
+      rw [show s + (m + 1) = (s + m) + 1 from by omega, pow_succ]
+      ring
+    have h_pow_ne : (2 : Rat) ^ (s + m) ≠ 0 := by positivity
+    rw [h_pow]
+    field_simp
+    ring
+
+private theorem ratGeomTail_le (C : Rat) (hC : 0 ≤ C) (s : Nat) (m : Nat) :
+    ∑ j ∈ Finset.range m, C / (2 : Rat) ^ (s + j) ≤ 2 * C / (2 : Rat) ^ s := by
+  rw [ratGeomTail_eq C s m]
+  have h_nn : 0 ≤ 2 * C / (2 : Rat) ^ (s + m) := by positivity
+  linarith
+
+-- §6.6  Inline helper for `(2 : Rat)^n = 2 * (2 : Rat)^(n-1)` when 1 ≤ n.
+-- (TauRealAnalyticalHelpers is not imported here; inline.)
+
+private theorem rat_pow_pred_eq (n : Nat) (hn : 1 ≤ n) :
+    (2 : Rat) ^ n = 2 * (2 : Rat) ^ (n - 1) := by
+  obtain ⟨k, rfl⟩ : ∃ k, n = k + 1 := ⟨n - 1, by omega⟩
+  rw [Nat.add_sub_cancel, pow_succ, mul_comm]
+
+-- §6.6  Headline theorem: cauchy_product_bound (R8g FIX #4, FIX #5)
+
+/-- **Cauchy-product bound (Wave R8g — sorry-free closure).**
+
+    Statement corrected from the original `4 · C² / 2^n` (FALSE for n ≥ 4;
+    counterexample C=1, n=4 gives upper-triangular sum 17/64 > 16/64) to
+    `n · C² / 2^(n-1)`. Downstream `exp_add` uses modulus `k ↦ 2k+3` to
+    absorb the polynomial-in-n factor. -/
 theorem TauRat.cauchy_product_bound
     (a b : Nat → TauRat) (C : Rat) (hC : 0 < C)
     (h_a : ∀ i, |(a i).toRat| ≤ C / (2 : Rat) ^ i)
@@ -240,7 +343,84 @@ theorem TauRat.cauchy_product_bound
     (n : Nat) (hn : 1 ≤ n) :
     |(TauRat.sum a n).toRat * (TauRat.sum b n).toRat
        - (TauRat.cauchyPStar a b n).toRat|
-      ≤ 4 * C ^ 2 / (2 : Rat) ^ n := by
-  sorry  -- Wave R8d: statement correction + ratGeomSum + product_minus_cauchy_eq.
+      ≤ n * C ^ 2 / (2 : Rat) ^ (n - 1) := by
+  -- (1) Row identity
+  have h_row_id :
+      (TauRat.sum a n).toRat * (TauRat.sum b n).toRat
+        - (TauRat.cauchyPStar a b n).toRat =
+      ∑ i ∈ Finset.range n,
+        (a i).toRat * ((TauRat.sum b n).toRat - (TauRat.sum b (n - i)).toRat) := by
+    rw [cauchyPStar_toRat_eq_row_sums, sum_toRat_eq_finset,
+        rat_finset_sum_mul n (fun i => (a i).toRat) (TauRat.sum b n).toRat]
+    simp_rw [mul_sub, ← Finset.sum_sub_distrib]
+  rw [h_row_id]
+  -- (2) Triangle inequality
+  have h_tri := rat_abs_finset_sum_le
+    (fun i => (a i).toRat * ((TauRat.sum b n).toRat - (TauRat.sum b (n - i)).toRat)) n
+  refine h_tri.trans ?_
+  simp_rw [abs_mul]
+  -- (3) Per-row bound ≤ 2C²/2^n
+  have h_row_bound : ∀ i ∈ Finset.range n,
+      |(a i).toRat| * |(TauRat.sum b n).toRat - (TauRat.sum b (n - i)).toRat|
+      ≤ 2 * C ^ 2 / (2 : Rat) ^ n := by
+    intro i hi
+    have hi' : i < n := Finset.mem_range.mp hi
+    have h_ai := h_a i
+    have h_sft_eq :
+        (TauRat.sum b n).toRat - (TauRat.sum b (n - i)).toRat =
+        (TauRat.sumFromTo b (n - i) n).toRat :=
+      TauRat.sum_sub_toRat_eq_sumFromTo b (n - i) n (by omega)
+    rw [h_sft_eq]
+    have h_abs_sft : |(TauRat.sumFromTo b (n - i) n).toRat|
+        ≤ (TauRat.sumFromTo (fun k => (b k).abs) (n - i) n).toRat :=
+      TauRat.sumFromTo_abs_le b (n - i) n
+    have h_upper : (n - i) + i = n := by omega
+    have h_finset_eq :
+        (TauRat.sumFromTo (fun k => (b k).abs) (n - i) n).toRat
+          = ∑ j ∈ Finset.range i, |(b ((n - i) + j)).toRat| := by
+      have := sumFromTo_abs_toRat_eq_finset b (n - i) i
+      rw [h_upper] at this
+      exact this
+    rw [h_finset_eq] at h_abs_sft
+    have h_bj_bound : ∀ j ∈ Finset.range i,
+        |(b ((n - i) + j)).toRat| ≤ C / (2 : Rat) ^ ((n - i) + j) :=
+      fun j _ => h_b ((n - i) + j)
+    have h_sum_le : ∑ j ∈ Finset.range i, |(b ((n - i) + j)).toRat|
+        ≤ ∑ j ∈ Finset.range i, C / (2 : Rat) ^ ((n - i) + j) :=
+      Finset.sum_le_sum h_bj_bound
+    have hC_nn : (0 : Rat) ≤ C := hC.le
+    have h_tail : ∑ j ∈ Finset.range i, |(b ((n - i) + j)).toRat|
+        ≤ 2 * C / (2 : Rat) ^ (n - i) :=
+      h_sum_le.trans (ratGeomTail_le C hC_nn (n - i) i)
+    have h_pow_i_nn : (0 : Rat) ≤ (2 : Rat) ^ i := by positivity
+    have h_upper_bound : |(TauRat.sumFromTo b (n - i) n).toRat|
+        ≤ 2 * C / (2 : Rat) ^ (n - i) :=
+      h_abs_sft.trans h_tail
+    have h_abs_nn : (0 : Rat) ≤ |(TauRat.sumFromTo b (n - i) n).toRat| :=
+      _root_.abs_nonneg _
+    calc |(a i).toRat| * |(TauRat.sumFromTo b (n - i) n).toRat|
+        ≤ (C / (2 : Rat) ^ i) * (2 * C / (2 : Rat) ^ (n - i)) :=
+          mul_le_mul h_ai h_upper_bound h_abs_nn
+            (div_nonneg hC_nn h_pow_i_nn)
+      _ = 2 * C ^ 2 / (2 : Rat) ^ n := by
+          rw [div_mul_div_comm, ← pow_add]
+          have h_sum_eq : i + (n - i) = n := by omega
+          rw [h_sum_eq]
+          ring
+  -- (4) Sum n rows, each ≤ 2C²/2^n, then simplify n·(2C²/2^n) = nC²/2^(n-1)
+  have h_const := rat_finset_sum_le_const_mul
+    (fun i => |(a i).toRat| * |(TauRat.sum b n).toRat - (TauRat.sum b (n - i)).toRat|)
+    (2 * C ^ 2 / (2 : Rat) ^ n) h_row_bound
+  refine h_const.trans ?_
+  have h_pow_pred_pos : (0 : Rat) < (2 : Rat) ^ (n - 1) := by positivity
+  have h_pred : (2 : Rat) ^ n = 2 * (2 : Rat) ^ (n - 1) := rat_pow_pred_eq n hn
+  have h_ne : (2 : Rat) ^ (n - 1) ≠ 0 := ne_of_gt h_pow_pred_pos
+  have h_eq : (n : Rat) * (2 * C ^ 2 / (2 : Rat) ^ n)
+      = (n : Rat) * C ^ 2 / (2 : Rat) ^ (n - 1) := by
+    rw [h_pred]
+    field_simp
+  exact h_eq.le
+
+end CauchyConvolution
 
 end Tau.Boundary
