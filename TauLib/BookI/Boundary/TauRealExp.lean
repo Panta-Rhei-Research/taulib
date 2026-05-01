@@ -40,21 +40,18 @@ choice — ship "small-x only" Exp first.
 
 - **R1 (new TauReal.equiv relation): NOT triggered.** Single-relation
   kernel rule preserved; `TauReal.equiv` reused verbatim.
-- **R4-equiv (Cauchy convolution proof harder than expected): TRIGGERED.**
+- **R4-equiv (Cauchy convolution proof harder than expected): TRIGGERED then RESOLVED.**
   `exp_add` depends on `TauRat.cauchy_product_bound` in TauRealSum.lean
-  Part 6 (Wave R8b stub). Wave R8c will close via dedicated
-  `geometric_rowsum_bound` (~40 lines). All other Wave R8b theorems are
-  sorry-free in *intent*; some calibration-risk sites are sorry-guarded
-  pending detailed sub-lemma adjustments (see Wave R8c task list in
-  closing dashboard).
+  (closed Wave R8g with corrected statement `n · C² / 2^(n-1)`). Wave R8h-A
+  closes `exp_add` via the binomial identity bridge `add_pow` and modulus
+  `k ↦ 2k+6` to absorb the polynomial-in-n factor.
 
 ## Status
 
 Definitions of `pow`, `exp_term`, `exp_partial`, `BoundedBy`, `exp_of_rat`,
 `exp` are all in place. The headline theorems `exp_zero`, `exp_one`,
-`exp_of_rat_isCauchy`, `exp_partial_cauchy_bound` are stated; some carry
-`sorry` marks at sub-proof calibration sites that Wave R8c will close.
-`exp_add` is sorry-guarded pending Engineer B's `cauchy_product_bound`.
+`exp_of_rat_isCauchy`, `exp_partial_cauchy_bound`, **`exp_add`** are all
+proven sorry-free.
 -/
 
 set_option autoImplicit false
@@ -364,20 +361,252 @@ theorem TauReal.exp_one :
     linarith
   exact div_pos (by norm_num) h_pos
 
+-- ============================================================
+-- PART 6.5: BINOMIAL IDENTITY  (Wave R8h-A — exp_add support)
+--
+-- Goal: prove `exp_partial (x.add y) n = cauchyPStar (exp_term x) (exp_term y) n`
+-- at the toRat level.  The pointwise identity at term `k` is the binomial
+-- theorem `(x+y)^k / k! = Σ_{i ≤ k} (x^i / i!) * (y^(k-i) / (k-i)!)`.
+-- ============================================================
+
+section BinomialExp
+
+open BigOperators Tau.Boundary.Bridge
+
+/-- Binomial expansion at `Rat`, divided through by `k!`:
+    `(x + y)^k / k! = Σ_{i ≤ k} (x^i / i!) * (y^(k-i) / (k-i)!)`. -/
+private theorem rat_exp_term_binomial (x y : Rat) (k : Nat) :
+    (x + y) ^ k / (Nat.factorial k : Rat) =
+      ∑ i ∈ Finset.range (k + 1),
+        x ^ i / (Nat.factorial i : Rat)
+          * (y ^ (k - i) / (Nat.factorial (k - i) : Rat)) := by
+  have h_fac_pos : (0 : Rat) < (Nat.factorial k : Rat) := by
+    have := Nat.factorial_pos k; exact_mod_cast this
+  have h_fac_ne : (Nat.factorial k : Rat) ≠ 0 := ne_of_gt h_fac_pos
+  -- Multiply both sides by k! and check the resulting polynomial identity.
+  rw [div_eq_iff h_fac_ne]
+  rw [rat_finset_sum_mul (k + 1)]
+  -- Goal: (x + y)^k = ∑ i, (x^i/i! * (y^(k-i)/(k-i)!)) * k!
+  rw [rat_add_pow]
+  refine rat_finset_sum_congr (k + 1) _ _ ?_
+  intro i hi
+  have hi' : i ≤ k := Nat.le_of_lt_succ (Finset.mem_range.mp hi)
+  have h_fi_pos : (0 : Rat) < (Nat.factorial i : Rat) := by
+    have := Nat.factorial_pos i; exact_mod_cast this
+  have h_fi_ne : (Nat.factorial i : Rat) ≠ 0 := ne_of_gt h_fi_pos
+  have h_fki_pos : (0 : Rat) < (Nat.factorial (k - i) : Rat) := by
+    have := Nat.factorial_pos (k - i); exact_mod_cast this
+  have h_fki_ne : (Nat.factorial (k - i) : Rat) ≠ 0 := ne_of_gt h_fki_pos
+  have h_ch := rat_choose_mul_factorial k i hi'
+  -- Goal: x^i * y^(k-i) * (choose k i : Rat) = (x^i/i! * (y^(k-i)/(k-i)!)) * k!
+  -- Use h_ch: (choose k i) * i! * (k-i)! = k!
+  field_simp
+  linear_combination (x ^ i * y ^ (k - i)) * h_ch
+
+/-- The pointwise identity: `(exp_term (x+y) k).toRat = (cauchyDiag (exp_term x) (exp_term y) k).toRat`. -/
+private theorem exp_term_add_toRat_eq_cauchyDiag (x y : TauRat) (k : Nat) :
+    (TauRat.exp_term (x.add y) k).toRat =
+      (TauRat.cauchyDiag (TauRat.exp_term x) (TauRat.exp_term y) k).toRat := by
+  rw [exp_term_toRat, TauRat.pow_toRat, toRat_add]
+  unfold TauRat.cauchyDiag
+  have h_sum_toRat :
+      (TauRat.sum (fun i => (TauRat.exp_term x i).mul (TauRat.exp_term y (k - i)))
+        (k + 1)).toRat
+      = ∑ i ∈ Finset.range (k + 1),
+          (TauRat.exp_term x i).toRat * (TauRat.exp_term y (k - i)).toRat := by
+    induction (k + 1) with
+    | zero => simp [TauRat.sum_zero, toRat_zero]
+    | succ m ih =>
+      rw [TauRat.sum_succ, toRat_add, ih, toRat_mul, Finset.sum_range_succ]
+  rw [h_sum_toRat]
+  have h_each :
+      ∀ i ∈ Finset.range (k + 1),
+        (TauRat.exp_term x i).toRat * (TauRat.exp_term y (k - i)).toRat
+        = x.toRat ^ i / (Nat.factorial i : Rat)
+          * (y.toRat ^ (k - i) / (Nat.factorial (k - i) : Rat)) := by
+    intro i _hi
+    rw [exp_term_toRat, exp_term_toRat, TauRat.pow_toRat, TauRat.pow_toRat]
+  rw [rat_finset_sum_congr _ _ _ h_each]
+  exact rat_exp_term_binomial x.toRat y.toRat k
+
+/-- Lifted to partial sums. -/
+private theorem exp_partial_add_toRat_eq_cauchyPStar (x y : TauRat) (n : Nat) :
+    (TauRat.exp_partial (x.add y) n).toRat =
+      (TauRat.cauchyPStar (TauRat.exp_term x) (TauRat.exp_term y) n).toRat := by
+  unfold TauRat.exp_partial TauRat.cauchyPStar
+  induction n with
+  | zero => simp [TauRat.sum_zero, toRat_zero]
+  | succ n ih =>
+    rw [TauRat.sum_succ, TauRat.sum_succ, toRat_add, toRat_add, ih,
+        exp_term_add_toRat_eq_cauchyDiag]
+
+end BinomialExp
+
+-- ============================================================
+-- PART 6.6: Nat-arithmetic helpers for the modulus inequality
+-- ============================================================
+
+/-- Polynomial-vs-exponential, Nat form: `4 * n * (k + 1) < 2^(n - 1)` for `n ≥ 2k + 6`.
+
+    Proven by induction on the slack `n - (2k + 6)`. The base case
+    `n = 2k + 6` reduces to `4(2k+6)(k+1) < 2^(2k+5)`, i.e.
+    `(2k+6)(k+1) < 2^(2k+3)`, a clean polynomial-vs-exponential inequality.
+    The step case uses `2 · LHS < RHS_succ` for slack ≥ 1. -/
+private theorem nat_exp_add_modulus_ineq (k n : Nat) (hn : 2 * k + 6 ≤ n) :
+    4 * n * (k + 1) < 2 ^ (n - 1) := by
+  -- Reparametrize via `n = 2k + 6 + m`.
+  obtain ⟨m, hm⟩ : ∃ m, n = 2 * k + 6 + m := ⟨n - (2 * k + 6), by omega⟩
+  subst hm
+  -- Goal: 4 * (2k+6+m) * (k+1) < 2^((2k+6+m) - 1) = 2^(2k+5+m)
+  induction m with
+  | zero =>
+    -- n = 2k + 6: need 4 * (2k + 6) * (k + 1) < 2^(2k + 5)
+    -- Inner Nat lemma: `(2*k+6)*(k+1) < 2^(2*k+3)` for all k ≥ 0.
+    have h_nat : ∀ k', (2 * k' + 6) * (k' + 1) < 2 ^ (2 * k' + 3) := by
+      intro k'
+      induction k' with
+      | zero => decide
+      | succ k' ih =>
+        have h_pow : 2 ^ (2 * (k' + 1) + 3) = 4 * 2 ^ (2 * k' + 3) := by
+          have h_eq : 2 * (k' + 1) + 3 = (2 * k' + 3) + 2 := by ring
+          rw [h_eq, pow_add]; ring
+        have h_pos : 0 < 2 ^ (2 * k' + 3) := by positivity
+        rw [h_pow]
+        nlinarith [ih, h_pos]
+    have h_nat_k := h_nat k
+    have h_pow_eq : 2 ^ (2 * k + 5) = 4 * 2 ^ (2 * k + 3) := by
+      have h_eq : 2 * k + 5 = (2 * k + 3) + 2 := by ring
+      rw [h_eq, pow_add]; ring
+    have h_idx_eq : 2 * k + 6 + 0 - 1 = 2 * k + 5 := by omega
+    rw [h_idx_eq, h_pow_eq]
+    nlinarith [h_nat_k]
+  | succ m ih =>
+    -- Inductive step: assume 4*(2k+6+m)*(k+1) < 2^(2k+5+m).
+    -- Need: 4*(2k+6+m+1)*(k+1) < 2^(2k+5+m+1) = 2 * 2^(2k+5+m)
+    have h_idx_eq : 2 * k + 6 + (m + 1) - 1 = 2 * k + 6 + m := by omega
+    rw [h_idx_eq]
+    have h_idx_ih : 2 * k + 6 + m - 1 = 2 * k + 5 + m := by omega
+    rw [h_idx_ih] at ih
+    have h_pow : 2 ^ (2 * k + 6 + m) = 2 * 2 ^ (2 * k + 5 + m) := by
+      have h_eq : 2 * k + 6 + m = (2 * k + 5 + m) + 1 := by omega
+      rw [h_eq, pow_succ]; ring
+    rw [h_pow]
+    have h_pos : 0 < 2 ^ (2 * k + 5 + m) := by positivity
+    -- ih is conditional; supply the trivial witness.
+    have h_ih : 4 * (2 * k + 6 + m) * (k + 1) < 2 ^ (2 * k + 5 + m) := ih (by omega)
+    -- Need: 4 * (2k+6+m+1) * (k+1) < 2 * 2^(2k+5+m)
+    -- Have: 4 * (2k+6+m) * (k+1) < 2^(2k+5+m)
+    -- So 2 * 4 * (2k+6+m) * (k+1) < 2 * 2^(2k+5+m)
+    -- And 4 * (2k+6+m+1) * (k+1) = 4*(2k+6+m)*(k+1) + 4*(k+1)
+    --                              ≤ 4*(2k+6+m)*(k+1) + 4*(2k+6+m)*(k+1) since 1 ≤ 2k+6+m.
+    have h_M_ge_1 : 1 ≤ 2 * k + 6 + m := by omega
+    nlinarith [h_ih, h_pos, h_M_ge_1]
+
+/-- Rat cast of the modulus inequality. -/
+private theorem rat_exp_add_modulus_ineq (k n : Nat) (hn : 2 * k + 6 ≤ n) :
+    4 * (n : Rat) * ((k : Rat) + 1) < (2 : Rat) ^ (n - 1) := by
+  have h_nat := nat_exp_add_modulus_ineq k n hn
+  have h_cast : ((4 * n * (k + 1) : Nat) : Rat) < ((2 ^ (n - 1) : Nat) : Rat) := by
+    exact_mod_cast h_nat
+  have h_lhs : ((4 * n * (k + 1) : Nat) : Rat) = 4 * (n : Rat) * ((k : Rat) + 1) := by
+    push_cast; ring
+  have h_rhs : ((2 ^ (n - 1) : Nat) : Rat) = (2 : Rat) ^ (n - 1) := by push_cast; ring
+  linarith
+
+-- ============================================================
+-- PART 6.7: Uniform exp term bound (covers k = 0 and k ≥ 1) at C = 2
+-- ============================================================
+
+/-- Uniform geometric bound on `exp_term`: `|exp_term x k| ≤ 2 / 2^k` for all k,
+    when `|x| ≤ R ≤ 1`. -/
+private theorem exp_term_abs_le_two_geom (x : TauRat) (R : Rat)
+    (hR0 : 0 ≤ R) (hR1 : R ≤ 1) (hx : |x.toRat| ≤ R)
+    (k : Nat) : |(TauRat.exp_term x k).toRat| ≤ (2 : Rat) / (2 : Rat) ^ k := by
+  rcases Nat.eq_zero_or_pos k with rfl | hk
+  · -- k = 0: |exp_term x 0| = |1| = 1 ≤ 2/1 = 2
+    rw [exp_term_toRat, TauRat.pow_zero, toRat_one]
+    simp [Nat.factorial]
+  · -- k ≥ 1: |exp_term x k| ≤ R/2^(k-1) = 2R/2^k ≤ 2/2^k
+    have h_geom := exp_term_abs_le_geom x R hR0 hR1 hx k hk
+    have h_pow_pos : (0 : Rat) < (2 : Rat) ^ k := by positivity
+    have h_pow_pred_pos : (0 : Rat) < (2 : Rat) ^ (k - 1) := by positivity
+    have h_pow_eq : (2 : Rat) ^ k = 2 * (2 : Rat) ^ (k - 1) := Rat.pow_pred_eq k hk
+    have h_rewrite : R / (2 : Rat) ^ (k - 1) = 2 * R / (2 : Rat) ^ k := by
+      rw [h_pow_eq]; field_simp
+    rw [h_rewrite] at h_geom
+    have h_R2_le : 2 * R ≤ 2 := by linarith
+    have h_step : 2 * R / (2 : Rat) ^ k ≤ 2 / (2 : Rat) ^ k := by
+      rw [div_le_div_iff₀ h_pow_pos h_pow_pos]
+      nlinarith
+    linarith
+
 /-- `exp(a + b) ≡ exp(a) · exp(b)` up to TauReal.equiv.
 
-    **BLOCKED — Wave R8d.** This proof depends on `TauRat.cauchy_product_bound`
-    in `TauRealSum.lean` Part 6 (Wave R8b stub). Engineer B's Wave R8c work
-    revealed that the original `cauchy_product_bound` statement (`4 · C² / 2^n`)
-    is mathematically false for n ≥ 4 (counterexample: C=1, n=4 gives 17/64 > 16/64).
-    Corrected statement is `n · C² / 2^(n-1)`. Closure deferred to Wave R8d. -/
+    **Wave R8h-A closure.**  Proof structure:
+    (i)  binomial identity:
+         `exp_partial (x+y) n .toRat = cauchyPStar (exp_term x) (exp_term y) n .toRat`,
+    (ii) `cauchy_product_bound` (R8g) with `C = 2`, term bound
+         `|exp_term x k| ≤ 2 / 2^k` for all k,
+    (iii) modulus `k ↦ 2k + 6`: at `n ≥ 2k+6`, `4n / 2^(n-1) < 1/(k+1)`. -/
 theorem TauReal.exp_add (a b : TauReal) (R : Rat)
     (hR0 : 0 ≤ R) (hR1 : R ≤ 1)
     (ha : TauReal.BoundedBy a R) (hb : TauReal.BoundedBy b R) :
     TauReal.equiv
       (TauReal.exp (a.add b))
       ((TauReal.exp a).mul (TauReal.exp b)) := by
-  sorry  -- Wave R8d: blocked on cauchy_product_bound statement correction.
+  refine ⟨fun k => 2 * k + 6, fun k n hn => ?_⟩
+  change 2 * k + 6 ≤ n at hn
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |(TauRat.exp_partial ((a.approx n).add (b.approx n)) n).toRat
+        - ((TauRat.exp_partial (a.approx n) n).mul
+            (TauRat.exp_partial (b.approx n) n)).toRat|
+       < 1 / ((k : Rat) + 1)
+  rw [toRat_mul]
+  -- Step (i): binomial identity.
+  rw [exp_partial_add_toRat_eq_cauchyPStar (a.approx n) (b.approx n) n]
+  -- Sign-swap so the form matches cauchy_product_bound.
+  have h_neg_eq :
+      (TauRat.cauchyPStar (TauRat.exp_term (a.approx n))
+          (TauRat.exp_term (b.approx n)) n).toRat
+        - (TauRat.exp_partial (a.approx n) n).toRat
+          * (TauRat.exp_partial (b.approx n) n).toRat
+      = -((TauRat.exp_partial (a.approx n) n).toRat
+            * (TauRat.exp_partial (b.approx n) n).toRat
+          - (TauRat.cauchyPStar (TauRat.exp_term (a.approx n))
+              (TauRat.exp_term (b.approx n)) n).toRat) := by ring
+  rw [h_neg_eq, abs_neg]
+  -- exp_partial = sum (exp_term ·) at toRat level (definitional).
+  show |(TauRat.sum (TauRat.exp_term (a.approx n)) n).toRat
+        * (TauRat.sum (TauRat.exp_term (b.approx n)) n).toRat
+        - (TauRat.cauchyPStar (TauRat.exp_term (a.approx n))
+            (TauRat.exp_term (b.approx n)) n).toRat|
+       < 1 / ((k : Rat) + 1)
+  -- Step (ii): apply cauchy_product_bound with C = 2.
+  have hn_ge_1 : 1 ≤ n := by omega
+  have h_a_term_bound : ∀ i, |(TauRat.exp_term (a.approx n) i).toRat|
+                            ≤ (2 : Rat) / (2 : Rat) ^ i :=
+    fun i => exp_term_abs_le_two_geom (a.approx n) R hR0 hR1 (ha n) i
+  have h_b_term_bound : ∀ j, |(TauRat.exp_term (b.approx n) j).toRat|
+                            ≤ (2 : Rat) / (2 : Rat) ^ j :=
+    fun j => exp_term_abs_le_two_geom (b.approx n) R hR0 hR1 (hb n) j
+  have h_cpb := TauRat.cauchy_product_bound
+    (TauRat.exp_term (a.approx n)) (TauRat.exp_term (b.approx n))
+    (2 : Rat) (by norm_num) h_a_term_bound h_b_term_bound n hn_ge_1
+  -- h_cpb: bound ≤ n * 2^2 / 2^(n-1)  =  4n / 2^(n-1)
+  refine lt_of_le_of_lt h_cpb ?_
+  -- Step (iii): show n * 4 / 2^(n-1) < 1/(k+1).
+  have h_pow_pos : (0 : Rat) < (2 : Rat) ^ (n - 1) := by positivity
+  have h_k1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  -- n * 2^2 = 4n
+  have h_simp : (n : Rat) * (2 : Rat) ^ 2 = 4 * (n : Rat) := by ring
+  rw [h_simp]
+  -- 4n / 2^(n-1) < 1/(k+1)  ⟺  4n(k+1) < 2^(n-1)
+  rw [div_lt_div_iff₀ h_pow_pos h_k1_pos]
+  have h_main := rat_exp_add_modulus_ineq k n hn
+  linarith
 
 -- ============================================================
 -- PART 7: SMOKE TESTS

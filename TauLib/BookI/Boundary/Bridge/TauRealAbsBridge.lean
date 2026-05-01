@@ -3,6 +3,9 @@ import Mathlib.Algebra.Order.AbsoluteValue.Basic
 import Mathlib.Algebra.Order.Field.Basic
 import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Algebra.BigOperators.Ring.Finset
+import Mathlib.Data.Nat.Choose.Sum
+import Mathlib.Data.Nat.Choose.Basic
+import Mathlib.Data.Nat.Factorial.Basic
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.NormNum
@@ -112,5 +115,36 @@ theorem rat_abs_finset_sum_le (f : Nat → Rat) (n : Nat) :
 theorem rat_finset_sum_mul (n : Nat) (f : Nat → Rat) (a : Rat) :
     (∑ i ∈ Finset.range n, f i) * a = ∑ i ∈ Finset.range n, f i * a :=
   Finset.sum_mul (Finset.range n) f a
+
+-- ============================================================
+-- WAVE R8h-A: Binomial-theorem re-export for exp_add closure
+-- ============================================================
+
+/-- Binomial theorem (`add_pow`) at `Rat`, re-exported via Bridge. -/
+theorem rat_add_pow (x y : Rat) (n : Nat) :
+    (x + y) ^ n =
+      ∑ k ∈ Finset.range (n + 1),
+        x ^ k * y ^ (n - k) * (Nat.choose n k : Rat) :=
+  add_pow x y n
+
+/-- Pointwise rewrite of finite sums (extensionality). -/
+theorem rat_finset_sum_congr (n : Nat) (f g : Nat → Rat)
+    (h : ∀ i ∈ Finset.range n, f i = g i) :
+    ∑ i ∈ Finset.range n, f i = ∑ i ∈ Finset.range n, g i :=
+  Finset.sum_congr rfl h
+
+/-- Pull a constant scalar out of a finite sum (left). -/
+theorem rat_mul_finset_sum (n : Nat) (a : Rat) (f : Nat → Rat) :
+    a * (∑ i ∈ Finset.range n, f i) = ∑ i ∈ Finset.range n, a * f i :=
+  Finset.mul_sum (Finset.range n) f a
+
+/-- Choose-factorial identity at the `Rat` level (key for binomial / exp).
+    `n.choose k * (k! * (n-k)!) = n!` as Rats, when `k ≤ n`. -/
+theorem rat_choose_mul_factorial (n k : Nat) (hk : k ≤ n) :
+    (Nat.choose n k : Rat) * (Nat.factorial k : Rat) * (Nat.factorial (n - k) : Rat)
+      = (Nat.factorial n : Rat) := by
+  have h_nat : Nat.choose n k * Nat.factorial k * Nat.factorial (n - k) = Nat.factorial n :=
+    Nat.choose_mul_factorial_mul_factorial hk
+  exact_mod_cast h_nat
 
 end Tau.Boundary.Bridge
