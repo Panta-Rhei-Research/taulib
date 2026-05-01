@@ -5,11 +5,35 @@
       <div class="footer-desc">Lean 4 formalization layer &middot; verification surface &middot; open source</div>
     </div>
     <nav class="footer-links" aria-label="Footer">
-      <a href="https://panta-rhei.site">Research Program</a>
-      <a href="https://panta-rhei.site/verify/taulib/">Documentation</a>
-      <a href="https://github.com/Panta-Rhei-Research/taulib" target="_blank" rel="noopener">Repository</a>
-      <a href="{{ '/docs/' | relative_url }}">API Docs</a>
-      <a href="https://lean-lang.org">Lean</a>
+      <div class="footer-link-group">
+        <span class="footer-group-title">TauLib</span>
+        <a href="{{ '/' | relative_url }}">Home</a>
+        <a href="{{ '/docs/' | relative_url }}">API Docs</a>
+        <a href="{{ '/about/' | relative_url }}">About</a>
+        <button type="button" class="footer-link-button" onclick="openSearch()">Search</button>
+      </div>
+      <div class="footer-link-group">
+        <span class="footer-group-title">Sister sites</span>
+        <a href="https://panta-rhei.site">Panta Rhei Research</a>
+        <a href="https://panta-rhei.site/verify/taulib/">Verify lane</a>
+        <a href="https://panta-rhei.site/program/">Program</a>
+        <a href="https://panta-rhei.site/corpus/">Corpus</a>
+      </div>
+      <div class="footer-link-group">
+        <span class="footer-group-title">External</span>
+        <a href="https://github.com/Panta-Rhei-Research/taulib" target="_blank" rel="noopener">Repository</a>
+        <a href="https://lean-lang.org" target="_blank" rel="noopener">Lean</a>
+        <a href="https://leanprover-community.github.io/mathlib4_docs/" target="_blank" rel="noopener">Mathlib</a>
+      </div>
     </nav>
+    <div class="footer-legal">
+      <div class="footer-legal-text">
+        <span class="footer-copyright">&copy; {{ site.time | date: "%Y" }} Thorsten Fuchs &amp; Anna-Sophie Fuchs</span>
+        <span class="footer-legal-sep" aria-hidden="true">&middot;</span>
+        <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noopener license">Code Apache&nbsp;2.0</a>
+        <span class="footer-legal-sep" aria-hidden="true">&middot;</span>
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener license">Docs CC&nbsp;BY&nbsp;4.0</a>
+      </div>
+    </div>
   </footer>
 </div>
