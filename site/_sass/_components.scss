@@ -1,57 +1,7 @@
 // ================================================================
-// Buttons
+// Components — taulib-specific UI pieces
+// (Button library lives in _buttons.scss, synced from panta-rhei.site.)
 // ================================================================
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 40px;
-  padding: 0 14px;
-  font-family: $font-ui;
-  font-size: 0.84rem;
-  font-weight: 580;
-  border-radius: $radius-pill;
-  border: none;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all $transition;
-
-  &:hover {
-    transform: translateY(-1px);
-  }
-}
-
-.btn-primary {
-  @extend .btn;
-  background: $accent;
-  color: white;
-  box-shadow: 0 2px 8px rgba(22, 62, 100, 0.25);
-
-  &:hover {
-    background: darken($accent, 6%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(22, 62, 100, 0.3);
-  }
-}
-
-.btn-secondary {
-  @extend .btn;
-  background: rgba(255, 255, 255, 0.52);
-  color: $accent;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.72);
-  }
-}
-
-.btn-group {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 18px;
-}
 
 // Supporting line under a hero btn-group — subtle, one-line technical note
 .hero-supporting-line {
@@ -421,21 +371,10 @@
 
 // ================================================================
 // Mobile Touch Targets — WCAG 2.1 AA (44px minimum)
+// (.btn family is handled inside _buttons.scss.)
 // ================================================================
 
 @media (max-width: $bp-stack) {
-  .btn,
-  .btn-primary,
-  .btn-secondary {
-    min-height: 44px;
-    padding: 0 16px;
-  }
-
-  .btn-ghost {
-    min-height: 44px;
-    padding: 0 16px;
-  }
-
   .format-btn {
     min-height: 44px;
     padding: 0 14px;

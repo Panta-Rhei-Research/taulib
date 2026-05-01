@@ -14,16 +14,19 @@
   margin-bottom: $shell-gap;
 }
 
+// Eyebrow chip — branded label for surface headings (e.g. "TauLib · API")
+// Aligned with panta-rhei.site eyebrow pattern; uses brand accent because
+// taulib has no lane palette of its own (single visual mode per W1 plan).
 .eyebrow {
   display: inline-block;
   font-family: $font-ui;
   font-size: 0.76rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: $text-muted;
-  background: $chip-bg;
-  border: 1px solid $chip-border;
+  letter-spacing: 0;
+  color: $accent;
+  background: $accent-soft;
+  border: 1px solid rgba(22, 62, 100, 0.12);
   border-radius: $radius-pill;
   padding: 4px 12px;
   margin-bottom: 16px;
@@ -249,29 +252,6 @@
   color: $accent;
   opacity: 0.25;
   pointer-events: none;
-}
-
-// Ghost button — very subtle secondary CTA
-.btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 14px;
-  font-family: $font-ui;
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: $text-muted;
-  text-decoration: none;
-  border-radius: $radius-pill;
-  border: 1px solid transparent;
-  transition: all $transition;
-
-  &:hover {
-    color: $accent;
-    border-color: rgba($accent, 0.18);
-    background: rgba($accent, 0.04);
-  }
 }
 
 // TauLib doc-gen4 content

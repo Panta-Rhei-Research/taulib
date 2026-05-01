@@ -1,24 +1,47 @@
 // ================================================================
-// Panta Rhei Atlas — Design Tokens
-// Extracted from panta-rhei-atlas-page-shell-spec-v1
+// SYNCED FROM panta-rhei.site — DO NOT EDIT IN PLACE
+// Source: panta-rhei.site/_sass/_variables.scss
+// Sync mechanism: taulib/site/scripts/sync-design-tokens.sh
+// To update: edit upstream in panta-rhei.site/_sass, then re-run sync.
+// ================================================================
+
+// ================================================================
+// Panta Rhei site — Design Tokens
+// Extracted from the v2 page shell specification
 // ================================================================
 
 // Colors
-$bg:            #f6f7f3;
-$bg-secondary:  #eef1eb;
-$text:          #182027;
-$text-muted:    #5b6772;
-$accent:        #163e64;
-$accent-soft:   rgba(22, 62, 100, 0.12);
-$panel-bg:      rgba(255, 255, 255, 0.58);
-$panel-border:  rgba(255, 255, 255, 0.72);
-$panel-shadow:  0 18px 42px rgba(22, 29, 37, 0.08),
-                0 4px 14px rgba(22, 29, 37, 0.05);
-$divider:       rgba(24, 32, 39, 0.08);
+$paper:         #ffffff;
+$paper-warm:    #fafaf7;
+$paper-quiet:   #f6f7f3;
+$paper-tint:    #eef0ea;
+$paper-edge:    #e3e7dd;
+$ink:           #15171c;
+$ink-soft:      #22262d;
+$ink-muted:     #4b5563;
+$ink-subtle:    #667085;
+$ink-faint:     #8a94a3;
+$accent:        #163e64;  // canonical brand navy
+$accent-dark:   #0b2238;
+$accent-mid:    #1e527e;
+$accent-soft:   rgba(22, 62, 100, 0.10);
+$line-soft:     #ecefe8;
+$line-default:  #dde2d8;
+$line-strong:   #cad2c4;
+
+$bg:            $paper-quiet;
+$bg-secondary:  $paper-tint;
+$text:          $ink;
+$text-muted:    $ink-muted;
+$panel-bg:      rgba(255, 255, 255, 0.74);
+$panel-border:  rgba(221, 226, 216, 0.86);
+$panel-shadow:  0 14px 32px rgba(21, 23, 28, 0.08),
+                0 2px 8px rgba(21, 23, 28, 0.04);
+$divider:       rgba(202, 210, 196, 0.72);
 
 // Chip / eyebrow
-$chip-bg:       rgba(255, 255, 255, 0.42);
-$chip-border:   rgba(255, 255, 255, 0.62);
+$chip-bg:       rgba(232, 240, 246, 0.68);
+$chip-border:   rgba(22, 62, 100, 0.14);
 
 // Typography
 $font-ui:       'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -35,11 +58,16 @@ $rail-left-w:   260px;
 $rail-right-w:  240px;
 $content-max:   860px;
 $page-px:       22px;
+$shell-max:     calc(#{$rail-left-w} + #{$content-max} + #{$rail-right-w} + #{$shell-gap} * 2);
+$home-shell-max: 1164px;
 
 // Radii
-$radius-lg:     22px;
-$radius-md:     16px;
-$radius-sm:     12px;
+$radius-2xl:    28px;
+$radius-xl:     22px;
+$radius-lg:     16px;
+$radius-md:     12px;
+$radius-sm:     8px;
+$radius-xs:     6px;
 $radius-pill:   999px;
 
 // Effects
@@ -55,3 +83,120 @@ $bp-narrow-rails: 1240px;
 $bp-collapse:     1080px;
 $bp-tablet:       1024px;
 $bp-stack:        760px;
+
+:root {
+  color-scheme: light;
+
+  --color-paper-0: #{$paper};
+  --color-paper-50: #{$paper-warm};
+  --color-paper-100: #{$paper-quiet};
+  --color-paper-200: #{$paper-tint};
+  --color-paper-300: #{$paper-edge};
+
+  --color-ink-900: #{$ink};
+  --color-ink-800: #{$ink-soft};
+  --color-ink-700: #343a44;
+  --color-ink-600: #{$ink-muted};
+  --color-ink-500: #{$ink-subtle};
+  --color-ink-400: #{$ink-faint};
+  --color-ink-300: #b4bbc6;
+
+  --color-brand-950: #{$accent-dark};
+  --color-brand-900: #123657;
+  --color-brand-800: #{$accent};
+  --color-brand-700: #{$accent-mid};
+  --color-brand-600: #2d6e9f;
+  --color-brand-100: #e8f0f6;
+
+  --site-shell-max: #{$shell-max};
+  --site-home-shell-max: #{$home-shell-max};
+  --color-brand-50: #f3f7fa;
+
+  --color-line-soft: #{$line-soft};
+  --color-line-default: #{$line-default};
+  --color-line-strong: #{$line-strong};
+
+  --semantic-success: #2f6f4e;
+  --semantic-success-soft: #e8f3ed;
+  --semantic-warning: #a8792a;
+  --semantic-warning-soft: #f7efe1;
+  --semantic-danger: #9a3b35;
+  --semantic-danger-soft: #f7e9e7;
+  --semantic-info: #2d6e9f;
+  --semantic-info-soft: #e8f0f6;
+
+  --lane-discover: #a8792a;
+  --lane-discover-soft: #f7efe1;
+  --lane-program: #163e64;
+  --lane-program-soft: #e8f0f6;
+  --lane-corpus: #3a3d42;
+  --lane-corpus-soft: #ecefed;
+  --lane-results: #2f6f6a;
+  --lane-results-soft: #e5f2ef;
+  --lane-verify: #4d4a8a;
+  --lane-verify-soft: #eeedf7;
+  --lane-publications: #7a4b36;
+  --lane-publications-soft: #f3ebe6;
+  --lane-impact: #66723a;
+  --lane-impact-soft: #eef1e2;
+  --lane-engage: #2f7a78;
+  --lane-engage-soft: #e3f2f1;
+  --lane-support: #737373;
+  --lane-support-soft: #f0f0ee;
+  --lane-current: var(--lane-support);
+  --lane-current-soft: var(--lane-support-soft);
+
+  --font-ui: #{$font-ui};
+  --font-display: #{$font-display};
+  --font-mono: #{$font-mono};
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius-xs: #{$radius-xs};
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+  --radius-xl: #{$radius-xl};
+  --radius-2xl: #{$radius-2xl};
+  --radius-pill: #{$radius-pill};
+
+  --shadow-card: 0 10px 24px rgba(21, 23, 28, 0.07);
+  --shadow-shell: #{$panel-shadow};
+  --shadow-popover: 0 24px 64px rgba(21, 23, 28, 0.18), 0 8px 24px rgba(21, 23, 28, 0.10);
+  --border-subtle: 1px solid var(--color-line-soft);
+  --border-default: 1px solid var(--color-line-default);
+  --border-strong: 1px solid var(--color-line-strong);
+
+  --surface-page: var(--color-paper-100);
+  --surface-shell: rgba(255, 255, 255, 0.78);
+  --surface-hero: rgba(255, 255, 255, 0.84);
+  --surface-card: rgba(255, 255, 255, 0.72);
+  --surface-plate: rgba(250, 250, 247, 0.86);
+  --surface-meta: rgba(238, 240, 234, 0.66);
+  --surface-raised: #ffffff;
+
+  --motion-fast: 140ms ease;
+  --motion-standard: 200ms ease;
+  --focus-ring: 0 0 0 3px rgba(45, 110, 159, 0.22);
+}
+
+// taulib.site transformation: lane CLASSES stripped per Workstream W1,
+// decision 3. The lane CSS custom-properties (--lane-*) in :root above
+// are preserved for any shared component that references them; taulib.site
+// is single-purpose Lean docs, so no lane-classes are attached to pages.
