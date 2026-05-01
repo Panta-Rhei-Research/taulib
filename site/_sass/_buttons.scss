@@ -1,0 +1,125 @@
+// ================================================================
+// Synced from panta-rhei.site/_sass/_components.scss (button block)
+// — do not edit in place; re-sync via scripts/sync-design-tokens.sh
+// ================================================================
+//
+// Canonical button library shared across panta-rhei.site and
+// taulib.site. Variants:
+//   .btn-primary    — navy publisher CTA (Series brand)
+//   .btn-secondary  — soft brand-tinted, less weight than primary
+//   .btn-tertiary   — transparent ghost with neutral border, lane-tinted hover
+//   .btn-lean       — Lean-azure CTA (technical companion to .btn-primary)
+//   .btn-sm / .btn-lg — size modifiers
+// ================================================================
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  font-family: $font-ui;
+  font-size: 0.84rem;
+  font-weight: 580;
+  border-radius: $radius-pill;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform $transition, background $transition, border-color $transition, box-shadow $transition, color $transition;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.btn-primary {
+  @extend .btn;
+  background: var(--color-brand-800);
+  color: white;
+  box-shadow: 0 2px 8px rgba(22, 62, 100, 0.25);
+
+  &:hover {
+    background: var(--color-brand-900);
+    color: white;
+    box-shadow: 0 4px 12px rgba(22, 62, 100, 0.3);
+  }
+}
+
+.btn-secondary {
+  @extend .btn;
+  background: var(--color-brand-50);
+  color: var(--color-brand-800);
+  border-color: rgba(22, 62, 100, 0.16);
+
+  &:hover {
+    background: var(--color-brand-100);
+    box-shadow: 0 2px 8px rgba(22, 62, 100, 0.1);
+  }
+}
+
+.btn-tertiary {
+  @extend .btn;
+  background: transparent;
+  color: var(--color-ink-600);
+  border-color: var(--color-line-default);
+
+  &:hover {
+    color: var(--lane-current);
+    background: var(--lane-current-soft);
+    border-color: var(--lane-current);
+  }
+}
+
+.btn-sm {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 0.78rem;
+}
+
+.btn-lg {
+  min-height: 46px;
+  padding: 0 18px;
+  font-size: 0.92rem;
+}
+
+// Lean CTA — technical cool-azure companion to .btn-primary (navy publisher).
+// Exact Lean brand azure from lean-lang.org (#386EE0 / #1D4ED8 hover).
+// Matches .btn-primary in size, height, radius, and prominence; only the
+// hue distinguishes the two so code and books read as peer routes.
+.btn-lean {
+  @extend .btn;
+  background: #386EE0;
+  color: white;
+  box-shadow: 0 2px 8px rgba(56, 110, 224, 0.28);
+
+  &:hover {
+    background: #1D4ED8;
+    color: white;
+    box-shadow: 0 4px 12px rgba(56, 110, 224, 0.34);
+  }
+}
+
+.btn-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+// Mobile touch targets — WCAG 2.1 AA (44px minimum)
+@media (max-width: $bp-stack) {
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-tertiary,
+  .btn-lean {
+    min-height: 44px;
+    padding: 0 16px;
+  }
+}

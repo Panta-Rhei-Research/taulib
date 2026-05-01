@@ -26,8 +26,8 @@ right_rail:
   <div class="btn-group">
     <a href="https://panta-rhei.site/verify/taulib/" class="btn-primary">Open Verify / TauLib</a>
     <a href="{{ '/docs/' | relative_url }}" class="btn-secondary">Browse All Modules</a>
-    <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-secondary">Release Manifest</a>
-    <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-ghost" target="_blank" rel="noopener">View on GitHub</a>
+    <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-tertiary">Release Manifest</a>
+    <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-lean" target="_blank" rel="noopener">View on GitHub</a>
   </div>
   <p class="hero-supporting-line">This site is the dedicated Lean documentation surface. Current metrics, trusted-base details, and count reconciliation live in the Panta Rhei Release Manifest.</p>
 </div>
@@ -52,8 +52,8 @@ TauLib checks Lean-formalized proof obligations where they are represented in so
 
 <div class="btn-group section-ctas">
   <a href="{{ '/docs/' | relative_url }}" class="btn-secondary">Browse All Modules</a>
-  <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-secondary">Read Release Manifest</a>
-  <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-ghost">View on GitHub</a>
+  <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-tertiary">Read Release Manifest</a>
+  <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-lean" target="_blank" rel="noopener">View on GitHub</a>
 </div>
 
 </div>
