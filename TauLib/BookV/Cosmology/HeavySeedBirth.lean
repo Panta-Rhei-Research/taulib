@@ -2,6 +2,7 @@ import TauLib.BookV.Cosmology.NoShrinkExtended
 import TauLib.BookV.Astrophysics.CompactObjects
 import TauLib.BookI.Boundary.TauRealIotaTau
 import TauLib.BookI.Boundary.TauRealSqrt
+import TauLib.BookI.Boundary.Bridge.TauRealQuotientField
 
 /-!
 # TauLib.BookV.Cosmology.HeavySeedBirth
@@ -765,6 +766,213 @@ theorem t_lrd_1_upper_cutoff_tau_real_witnessed :
     |((f_iota_TauReal.approx 1).toRat) - (2773 : Rat) / 10000| ≤ 1 / 5 := by
   refine ⟨rfl, upper_cutoff_statement.width_within_n15_prior, rfl, ?_⟩
   native_decide
+
+-- ============================================================
+-- WAVE R10-2: CAUCHY-GRADE CONVERGENCE FOR f_iota_TauReal
+-- ============================================================
+
+/-! ### Wave R10-2 — Cauchy tightening of `f_iota_TauReal_approx_within_rat_bound`
+
+The Wave R9-2B existential `f_iota_TauReal_approx_within_rat_bound`
+discharged a single (`N = 1`, `ε = 1/5`) numerical witness via
+`native_decide`. Wave R10-2 promotes this to a **uniform** Cauchy-grade
+statement: `f_iota_TauReal.IsCauchy`. From there, the canonical
+"approx tail is uniformly close" form is a direct unfolding of the
+`IsCauchy` modulus.
+
+Mirrors the companion `f_iota_t2_TauReal_isCauchy` in
+`T2KerrUniqueness.lean` (the latter reuses the same private helper
+chain at the T² scope; here we inline the helpers at HSB scope so the
+witness is self-contained).
+
+The Wave R9-2B existential is **kept** for backward compatibility with
+`t_lrd_1_upper_cutoff_tau_real_witnessed` (which encodes the LRD note's
+N15 signature 1 falsifier numerical bridge). -/
+
+open Tau.Boundary in
+/-- **Helper (private, Wave R10-2):** for every `n ≥ 1`, the toRat
+    value of `(π + e).approx n` lies in `[11/3, 7]`. Mirror of the
+    T2KerrUniqueness private helper, inlined here at HSB scope. -/
+private theorem hsb_pi_plus_e_approx_in_interval (n : Nat) (hn : 1 ≤ n) :
+    (11 : Rat) / 3 ≤ ((TauReal.pi.add TauReal.e).approx n).toRat ∧
+    ((TauReal.pi.add TauReal.e).approx n).toRat ≤ 7 := by
+  have h_unfold :
+      ((TauReal.pi.add TauReal.e).approx n).toRat
+        = (TauRat.pi_partial n).toRat + (TauRat.e_partial n).toRat := by
+    show ((TauReal.pi.approx n).add (TauReal.e.approx n)).toRat = _
+    rw [toRat_add]; rfl
+  refine ⟨?_, ?_⟩
+  · rw [h_unfold]; exact TauReal.pi_plus_e_partial_lower_bound n hn
+  · exact TauReal.pi_plus_e_approx_le_seven n
+
+open Tau.Boundary in
+/-- **Helper (private, Wave R10-2):** at toRat level,
+    `iota_tau_TauReal.approx n = 2 / (π+e).approx n` for `n ≥ 1`. -/
+private theorem hsb_iota_tau_TauReal_approx_toRat_eq (n : Nat) (hn : 1 ≤ n) :
+    (iota_tau_TauReal.approx n).toRat
+      = 2 / ((TauReal.pi.add TauReal.e).approx n).toRat := by
+  have h_pe_pos : 0 < ((TauReal.pi.add TauReal.e).approx n).toRat := by
+    have h_lb := (hsb_pi_plus_e_approx_in_interval n hn).1
+    linarith
+  have h_pe_nz : ((TauReal.pi.add TauReal.e).approx n).is_nonzero := by
+    rw [TauRat.is_nonzero_iff_toRat_ne_zero]
+    linarith
+  show (((TauReal.two.approx n).mul ((TauReal.pi.add TauReal.e).inv.approx n))).toRat
+        = 2 / ((TauReal.pi.add TauReal.e).approx n).toRat
+  have h_inv_approx :
+      (TauReal.pi.add TauReal.e).inv.approx n
+        = TauRat.inv ((TauReal.pi.add TauReal.e).approx n) h_pe_nz := by
+    show (if h : ((TauReal.pi.add TauReal.e).approx n).is_nonzero
+          then TauRat.inv ((TauReal.pi.add TauReal.e).approx n) h
+          else TauRat.one) = _
+    rw [dif_pos h_pe_nz]
+  rw [h_inv_approx, toRat_mul, TauReal.two_approx_toRat, toRat_inv]
+  rw [div_eq_mul_inv]
+
+open Tau.Boundary in
+/-- **Helper (private, Wave R10-2):** for `n ≥ 1`,
+    `(iota_tau_TauReal.approx n).toRat < 1` (since `ι_τ ≤ 6/11 < 1`). -/
+private theorem hsb_iota_tau_TauReal_lt_one_eventually :
+    ∃ Ns : Nat, ∀ n : Nat, Ns ≤ n →
+      (iota_tau_TauReal.approx n).toRat < 1 := by
+  refine ⟨1, fun n hn => ?_⟩
+  rw [hsb_iota_tau_TauReal_approx_toRat_eq n hn]
+  have ⟨h_lb, _⟩ := hsb_pi_plus_e_approx_in_interval n hn
+  have h_pe_pos : 0 < ((TauReal.pi.add TauReal.e).approx n).toRat := by linarith
+  rw [div_lt_one h_pe_pos]
+  linarith
+
+open Tau.Boundary in
+/-- **Helper (private, Wave R10-2):** the radicand `1 − ι_τ` is
+    eventually positive at toRat level. -/
+private theorem hsb_one_sub_iota_tau_TauReal_pos_eventually :
+    ∃ Ns : Nat, ∀ n : Nat, Ns ≤ n →
+      0 < (((TauReal.one).sub iota_tau_TauReal).approx n).toRat := by
+  obtain ⟨Ns, h_iota_lt_one⟩ := hsb_iota_tau_TauReal_lt_one_eventually
+  refine ⟨Ns, fun n hn => ?_⟩
+  have h_unfold :
+      (((TauReal.one).sub iota_tau_TauReal).approx n).toRat
+        = 1 - (iota_tau_TauReal.approx n).toRat := by
+    show (((TauReal.one).approx n).add ((iota_tau_TauReal).negate.approx n)).toRat = _
+    rw [toRat_add]
+    show ((TauReal.one).approx n).toRat
+            + ((iota_tau_TauReal.approx n).negate).toRat = _
+    rw [toRat_negate]
+    show (TauRat.one).toRat + (- (iota_tau_TauReal.approx n).toRat) = _
+    rw [toRat_one]; ring
+  rw [h_unfold]
+  have h_lt := h_iota_lt_one n hn
+  linarith
+
+open Tau.Boundary in
+/-- **Helper (private, Wave R10-2):** the radicand `1 − ι_τ` is
+    bounded away from zero, with witness `k = 2` (so `1/(k+1) = 1/3`).
+    From `(ι_τ.approx n).toRat ≤ 6/11`, `1 − ι_τ ≥ 5/11 > 1/3`. -/
+private theorem hsb_one_sub_iota_tau_TauReal_BAZ :
+    ((TauReal.one).sub iota_tau_TauReal).BoundedAwayFromZero := by
+  refine ⟨2, 1, fun n hn => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.ofNatRecip_toRat, TauRat.toRat_abs]
+  have h_iota_eq := hsb_iota_tau_TauReal_approx_toRat_eq n hn
+  have ⟨h_lb, h_ub⟩ := hsb_pi_plus_e_approx_in_interval n hn
+  have h_pe_pos : 0 < ((TauReal.pi.add TauReal.e).approx n).toRat := by linarith
+  have h_iota_le : (iota_tau_TauReal.approx n).toRat ≤ 6 / 11 := by
+    rw [h_iota_eq, div_le_iff₀ h_pe_pos]
+    linarith
+  have h_one_sub_unfold :
+      (((TauReal.one).sub iota_tau_TauReal).approx n).toRat
+        = 1 - (iota_tau_TauReal.approx n).toRat := by
+    show (((TauReal.one).approx n).add ((iota_tau_TauReal).negate.approx n)).toRat = _
+    rw [toRat_add]
+    show ((TauReal.one).approx n).toRat
+            + ((iota_tau_TauReal.approx n).negate).toRat = _
+    rw [toRat_negate]
+    show (TauRat.one).toRat + (- (iota_tau_TauReal.approx n).toRat) = _
+    rw [toRat_one]; ring
+  rw [h_one_sub_unfold]
+  have h_pos : 0 < 1 - (iota_tau_TauReal.approx n).toRat := by linarith
+  rw [abs_of_pos h_pos]
+  show (1 : Rat) / ((2 : Nat) + 1) < 1 - (iota_tau_TauReal.approx n).toRat
+  push_cast
+  linarith
+
+open Tau.Boundary in
+/-- **Helper (private, Wave R10-2):** `iota_tau_TauReal.IsCauchy`.
+    By definition `iota_tau_TauReal = TauReal.iota_tau = 2 · (π+e)⁻¹`,
+    a product of two Cauchy sequences. -/
+private theorem hsb_iota_tau_TauReal_isCauchy : iota_tau_TauReal.IsCauchy := by
+  show (TauReal.two.mul (TauReal.pi.add TauReal.e).inv).IsCauchy
+  apply TauReal.IsCauchy_mul
+  · -- TauReal.two — constant sequence is Cauchy with modulus 0
+    refine ⟨fun _ => 0, fun k _ _ _ _ => ?_⟩
+    show TauRat.lt _ _
+    unfold TauRat.lt
+    rw [TauRat.toRat_abs, toRat_sub]
+    show |(TauReal.two.approx _).toRat - (TauReal.two.approx _).toRat|
+            < (TauRat.ofNatRecip k).toRat
+    rw [TauReal.two_approx_toRat, TauReal.two_approx_toRat]
+    simp
+    exact TauRat.ofNatRecip_pos k
+  · apply TauReal.IsCauchy_inv
+    · exact TauReal.IsCauchy_add _ _ TauReal.pi_isCauchy TauReal.e_isCauchy
+    · exact TauReal.pi_plus_e_boundedAwayFromZero
+
+open Tau.Boundary in
+/-- **Helper (private, Wave R10-2):** the radicand `1 − ι_τ` is Cauchy. -/
+private theorem hsb_one_sub_iota_tau_TauReal_isCauchy :
+    ((TauReal.one).sub iota_tau_TauReal).IsCauchy := by
+  show ((TauReal.one).add iota_tau_TauReal.negate).IsCauchy
+  apply TauReal.IsCauchy_add
+  · exact TauReal.one_isCauchy
+  · exact TauReal.IsCauchy_negate _ hsb_iota_tau_TauReal_isCauchy
+
+/-- **Wave R10-2 — HEADLINE: `f_iota_TauReal.IsCauchy`.**
+
+    The product of the Cauchy `iota_tau_TauReal` and the Cauchy
+    `√(1 − iota_tau_TauReal)` (both witnessed in scope via the
+    private helpers above + `TauReal.sqrt_isCauchy` from R8j).
+
+    Mirrors the T2-scope companion `f_iota_t2_TauReal_isCauchy`
+    in `T2KerrUniqueness.lean`. This delivers the uniform Cauchy
+    grade promised by Wave R9-2B's hand-off note: every approximation
+    tail of `f_iota_TauReal` is uniformly close, with an explicit
+    constructive modulus. -/
+theorem f_iota_TauReal_isCauchy : f_iota_TauReal.IsCauchy := by
+  show (iota_tau_TauReal.mul
+          (Tau.Boundary.TauReal.sqrt
+            ((Tau.Boundary.TauReal.one).sub iota_tau_TauReal))).IsCauchy
+  apply Tau.Boundary.TauReal.IsCauchy_mul
+  · exact hsb_iota_tau_TauReal_isCauchy
+  · exact Tau.Boundary.TauReal.sqrt_isCauchy _
+      hsb_one_sub_iota_tau_TauReal_isCauchy
+      hsb_one_sub_iota_tau_TauReal_BAZ
+      hsb_one_sub_iota_tau_TauReal_pos_eventually
+
+/-- **Wave R10-2 — uniform convergence corollary.**
+
+    Direct unpacking of `f_iota_TauReal.IsCauchy`: for every tolerance
+    level `k`, there is a modulus index `N` past which any two
+    approximation values agree (at toRat) within `1/(k+1)`.
+
+    This is the natural Cauchy-equivalence form of "the approximation
+    sequence is uniformly close to its tail." Replaces the loose,
+    `native_decide`-discharged single-witness existential
+    `f_iota_TauReal_approx_within_rat_bound` with a uniform statement
+    parameterised by `k`. -/
+theorem f_iota_TauReal_approx_uniform_convergence :
+    ∀ k : Nat, ∃ N : Nat, ∀ m n : Nat, N ≤ m → N ≤ n →
+      |((f_iota_TauReal.approx m).toRat) -
+        ((f_iota_TauReal.approx n).toRat)| < 1 / ((k : Rat) + 1) := by
+  obtain ⟨μ, hμ⟩ := f_iota_TauReal_isCauchy
+  intro k
+  refine ⟨μ k, fun m n hm hn => ?_⟩
+  have h_cauchy_step := hμ k m n hm hn
+  -- Unfold TauRat.lt (fully qualified — namespace not opened in this scope)
+  unfold Tau.Boundary.TauRat.lt at h_cauchy_step
+  rw [Tau.Boundary.TauRat.toRat_abs, Tau.Boundary.toRat_sub,
+      Tau.Boundary.TauRat.ofNatRecip_toRat] at h_cauchy_step
+  -- h_cauchy_step : |(f.approx m).toRat - (f.approx n).toRat| < 1 / (↑k + 1)
+  exact h_cauchy_step
 
 -- ============================================================
 -- FLAT INTERIOR SHAPE [V.T-LRD-1, sub-claim C]
