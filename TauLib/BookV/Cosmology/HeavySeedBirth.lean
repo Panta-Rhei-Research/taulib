@@ -40,7 +40,9 @@ deliberately avoided.
   - Sub-claim A: lower cutoff at ~10^4.5 M_☉ — `t_lrd_1_lower_cutoff`
   - Sub-claim B: upper cutoff at ~10^(6.5±0.15) M_☉ — `t_lrd_1_upper_cutoff`
   - Sub-claim C: |dlogN/dlogM| ≤ 0.3 in interior — `t_lrd_1_flat_shape`
-  - Sub-claim D: slope transitions over ≤ 0.2 dex — `t_lrd_1_sharp_transition`
+  - Sub-claim D: slope transitions over ≤ 1.5 dex composite
+    (Wave R7 Specialist F reconciliation; see v2.2/v2.3 §7 Gap 7)
+    — `t_lrd_1_sharp_transition`
 - [V.D-LRD-1a] Atomic-cooling halo floor — `AtomicCoolingHaloFloor`
 - [V.D-LRD-1b] DCBH collapse fraction (orthodox) — `DCBHCollapseFraction`
 - [V.D-LRD-1c] Spin-parameter log-uniform hypothesis (orthodox)
@@ -77,8 +79,10 @@ deliberately avoided.
 - The flat interior shape (|dlogN/dlogM| ≤ 0.3) following from
   the unit Jacobian |dlogM_BH/dlogλ| = 1 enforced by T²-coherence
   on f_BH(λ) ∝ 1/λ in the regime λ > λ_⋆.
-- The sharp slope transition (≤ 0.2 dex) at the upper cutoff
-  (Hossenfelder ask in N15 §6.1) — see honest gap below.
+- The sharp slope transition (≤ 1.5 dex composite operational
+  falsifier, relaxed in v2.2 from the v2.1 ≤ 0.2 dex Hossenfelder
+  ask via Wave R7 Specialist F's binary-A-edge + smooth-C-edge
+  reconciliation; see honest gap below) at the upper cutoff.
 
 Orthodox-imported (acknowledged dependencies on external cosmology):
 
@@ -128,11 +132,15 @@ binary-outcome edge gives ≥ 0.74 dex. The v2.2 paper must
 relax this headline to either (a) ≤ 0.4 dex single-mechanism
 C-edge claim, or (b) ≤ 1.5 dex composite operational falsifier.
 
-The Lean module retains the conservative ≤ 0.2 dex witness for
-backward compatibility with the v2.1 paper claim, but
-`pred_lrd_sharp_transition` in `FalsificationPack.lean` is
-correctly marked `currently_testable := false` pending v2.2
-revision.
+**Wave R10-4 resync (2026-05-01).** This Lean module previously
+retained the conservative ≤ 0.2 dex witness (`transition_width_x100
+= 20`) for backward compatibility with the v2.1 paper claim. With
+v2.2 (and v2.3 §7 Gap 7 acknowledgement) shipping the relaxed
+≤ 1.5 dex composite operational falsifier, the carrier is now
+resynced to `transition_width_x100 = 150` (with invariant
+`transition_width_x100 ≤ 150`). `pred_lrd_sharp_transition` in
+`FalsificationPack.lean` continues to track the operational
+status of the predicate.
 
 ## Wave R7 cross-validation results (E + G converged)
 
@@ -833,35 +841,61 @@ theorem t_lrd_1_flat_shape :
 -- SHARP TRANSITION AT UPPER CUTOFF [V.T-LRD-1, sub-claim D]
 -- ============================================================
 
-/-- Carrier for the sharp-transition statement (Hossenfelder ask).
+/-- Carrier for the sharp-transition statement
+    (Wave R7 Specialist F reconciliation of the original
+    Hossenfelder ask).
 
     The slope transitions from |dlogN/dlogM| ≤ 0.3 (interior)
     to dlogN/dlogM ≤ -2 (exterior, i.e. above 10^6.5 M_☉) over
-    a window of width ≤ 0.2 dex centred at M_BH = 10^(6.5 ±
-    0.15) M_☉.
+    a composite window of width ≤ 1.5 dex centred at
+    M_BH = 10^(6.5 ± 0.15) M_☉.
 
-    The conservative skeleton-status bound matches the v2.1
-    paper claim. The honest gap (see module docstring above):
-    two specialist derivations disagreed on the achievable
-    width — Specialist A computed 1.66 dex, Specialist C
-    computed 0.41 dex (or 0.18 dex if σ_logλ for atomic-
-    cooling subsamples is tightened to 0.20). The principal
-    pending physics question is reconciling these mechanisms.
+    **Wave R7 reconciliation (Specialist F, see v2.2 §7 Gap 7
+    and v2.3 §7 Gap 7 acknowledgement).** The transition is a
+    two-mechanism composite:
+
+    - **A-edge (binary-outcome, Specialist A):** the upper
+      edge of the cutoff is set by the binary J_halo·ε_J vs.
+      J_max^{T²} comparison. Specialist A's λ-space cutoff
+      Jacobian (1/2) gives ≈ 1.66 dex on this edge, with a
+      σ_logλ-tightened floor of ≈ 0.74 dex.
+    - **C-edge (smooth-interior, Specialist C):** the lower
+      edge is set by the smooth f_BH(λ) ∝ 1/λ unit-Jacobian
+      tail. Specialist C's calculation gives ≈ 0.41 dex on
+      this edge (≈ 0.18 dex with σ_logλ for atomic-cooling
+      subsamples tightened to 0.20).
+
+    Phase 4 reconciled prediction:
+    Δlog M_BH^reconciled = 0.9^{+0.5}_{-0.4} dex (68 % CI)
+    composite, dominated by neither mechanism alone. The
+    operational falsifier is therefore ≤ 1.5 dex composite,
+    NOT the ≤ 0.2 dex single-edge claim of the v2.1 paper
+    (which Wave R7 R2 RISK FLAG identified as not survivable).
+
+    **History.** The v2.1 paper headline ≤ 0.2 dex was encoded
+    in this Lean carrier as `transition_width_x100 = 20`. Wave
+    R10-4 (2026-05-01) resynced the carrier to
+    `transition_width_x100 = 150` to match the v2.2/v2.3
+    relaxed composite ≤ 1.5 dex operational falsifier.
 
     Stored as the transition width × 100. -/
 structure SharpTransitionStatement where
   /-- Centre of the transition × 100 in units of
       log_10(M_BH/M_☉) (= 650 for 10^6.5). -/
   transition_centre_x100 : Nat
-  /-- Width of the transition × 100 in dex (= 20 for 0.2 dex). -/
+  /-- Width of the transition × 100 in dex (= 150 for the v2.2
+      composite ≤ 1.5 dex operational falsifier; was 20 for the
+      v2.1 ≤ 0.2 dex headline pre Wave R10-4). -/
   transition_width_x100 : Nat
   /-- Pre-transition slope × 100 absolute bound (= 30 for ≤ 0.3). -/
   pre_slope_max_x100 : Nat
   /-- Post-transition slope × 100 absolute bound (= 200 for ≤ -2,
       stored as the magnitude). -/
   post_slope_min_abs_x100 : Nat
-  /-- Width within Hossenfelder bound. -/
-  width_within_bound : transition_width_x100 ≤ 20
+  /-- Width within the v2.2/v2.3 composite operational bound
+      (≤ 1.5 dex; relaxed by Wave R7 Specialist F from the
+      v2.1 ≤ 0.2 dex single-edge claim). -/
+  width_within_bound : transition_width_x100 ≤ 150
   /-- Pre-slope is shallow. -/
   pre_slope_shallow : pre_slope_max_x100 ≤ 30
   /-- Post-slope is steep. -/
@@ -869,13 +903,14 @@ structure SharpTransitionStatement where
   /-- Derivation source. -/
   derivation_source : String :=
     "T²-cutoff geometric rigidity + log-normal convolution"
-  /-- This is τ-DISTINCTIVE (Hossenfelder ask). -/
+  /-- This is τ-DISTINCTIVE (composite operational falsifier
+      surviving Wave R7 reconciliation of the Hossenfelder ask). -/
   is_tau_distinctive : Bool := true
   deriving Repr
 
 def sharp_transition_statement : SharpTransitionStatement where
   transition_centre_x100 := 650
-  transition_width_x100 := 20
+  transition_width_x100 := 150
   pre_slope_max_x100 := 30
   post_slope_min_abs_x100 := 200
   width_within_bound := by omega
@@ -883,45 +918,36 @@ def sharp_transition_statement : SharpTransitionStatement where
   post_slope_steep := by omega
 
 /-- [V.T-LRD-1, D] Sharp transition: the slope of dN/dlogM_BH
-    transitions from |slope| ≤ 0.3 to slope ≤ -2 over ≤ 0.2 dex
-    centred at M_BH = 10^(6.5 ± 0.15) M_☉.
+    transitions from |slope| ≤ 0.3 to slope ≤ -2 over a
+    composite window of width ≤ 1.5 dex centred at
+    M_BH = 10^(6.5 ± 0.15) M_☉.
 
-    This is the SHARPNESS condition required by the Hossenfelder
-    ask in v2.1 §6.1: the upper cutoff must be a quasi-step,
-    not a smooth power-law tail.
+    This is the QUASI-SHARPNESS condition surviving Wave R7
+    Specialist F's reconciliation of the original Hossenfelder
+    ask in v2.1 §6.1. The cutoff is composite — a binary-
+    outcome A-edge stacked above a smooth-interior C-edge —
+    rather than a single-mechanism quasi-step (see v2.2 §7
+    Gap 7 and v2.3 §7 Gap 7 acknowledgement).
 
-    The sharpness arises from the T² angular-momentum cutoff
-    being itself sharp (a hard geometric constraint, not a soft
-    one): once J_halo · ε_J exceeds J_max^{T²}, the contraction
-    fragments rather than partially succeeding.
+    The geometric origin remains τ-distinctive: the T² angular-
+    momentum cutoff is itself sharp (a hard geometric
+    constraint, not a soft one); once J_halo · ε_J exceeds
+    J_max^{T²}, the contraction fragments rather than
+    partially succeeding. The composite ≤ 1.5 dex width
+    reflects the convolution of this hard binary edge with
+    the J_halo log-normal scatter (σ_logJ ≈ 0.30 from
+    Bullock 2001) and the smooth f_BH(λ) ∝ 1/λ tail.
 
-    HONEST GAP: the conservative bound recorded here matches
-    the v2.1 paper claim but may need to be relaxed to ≤ 0.4
-    dex pending reconciliation of two specialist derivations
-    that gave incompatible widths (1.66 dex vs. 0.41 dex; see
-    module docstring and research-notes/V-T-LRD-1-derivation.md
-    §5).
-
-    TODO(V.T-LRD-1 wave): physics input needed —
-      (a) Reconcile Specialist A (cutoff in λ-space, Jacobian
-          1/2) vs. Specialist C (unit Jacobian from smooth
-          f_BH(λ) ∝ 1/λ) on the dominant transition mechanism;
-      (b) The width of J_max^{T²} as a function of M_BH
-          (sharper than 0.2 dex follows from the τ-distinctive
-          geometric rigidity if the T²-cutoff is a hard step);
-      (c) The convolution with the J_halo log-normal scatter
-          (σ_logJ ≈ 0.30 from Bullock 2001) — this is what
-          BROADENS the cutoff from a step to a tanh of width
-          σ-controlled;
-      (d) Justify σ_logλ ≈ 0.20 for atomic-cooling subsamples
-          specifically (Macciò 2007 plausible but unverified)
-          to tighten the predicted width to ≤ 0.2 dex; OR
-          relax the v2.1 paper claim to ≤ 0.4 dex;
-      (e) Verification: pre-transition slope stays shallow up
-          to M_BH = 10^6.4 M_☉; post-transition slope is ≤ -2
-          by M_BH = 10^6.6 M_☉. -/
+    HISTORY (Wave R10-4 resync, 2026-05-01): the previous
+    v2.1 ≤ 0.2 dex bound (`transition_width_x100 ≤ 20`) was
+    relaxed per Wave R7 Specialist F to the v2.2/v2.3 ≤ 1.5
+    dex composite operational falsifier
+    (`transition_width_x100 ≤ 150`). The Phase 4 reconciled
+    point estimate is Δlog M_BH = 0.9^{+0.5}_{-0.4} dex
+    (68 % CI). See module docstring "Honest gap" section and
+    research-notes/V-T-LRD-1-derivation.md §5. -/
 theorem t_lrd_1_sharp_transition :
-    sharp_transition_statement.transition_width_x100 ≤ 20 ∧
+    sharp_transition_statement.transition_width_x100 ≤ 150 ∧
     sharp_transition_statement.pre_slope_max_x100 ≤ 30 ∧
     sharp_transition_statement.post_slope_min_abs_x100 ≥ 200 ∧
     sharp_transition_statement.is_tau_distinctive = true :=
@@ -981,9 +1007,10 @@ def t_lrd_1_witness : VTLRD1Main where
     (C) Flat interior shape: |dlogN/dlogM_BH| ≤ 0.3 throughout
         the interior (τ-DISTINCTIVE: unit Jacobian from T²-
         coherence f_BH(λ) ∝ 1/λ).
-    (D) Sharp slope transition over ≤ 0.2 dex at the upper
-        cutoff (Hossenfelder ask; see honest gap in module
-        docstring).
+    (D) Quasi-sharp slope transition over ≤ 1.5 dex composite
+        (binary A-edge + smooth C-edge) at the upper cutoff
+        — Wave R7 Specialist F reconciliation, v2.2/v2.3 §7
+        Gap 7; see honest gap in module docstring.
 
     This combines `t_lrd_1_lower_cutoff`, `t_lrd_1_upper_cutoff`,
     `t_lrd_1_flat_shape`, and `t_lrd_1_sharp_transition` into a
@@ -1015,7 +1042,7 @@ theorem t_lrd_1_main :
     t_lrd_1_witness.upper.m_max_e6_x10 = 32 ∧
     t_lrd_1_witness.upper.m_max_logsigma_x100 ≤ 15 ∧
     t_lrd_1_witness.flat.max_abs_slope_x100 ≤ 30 ∧
-    t_lrd_1_witness.sharp.transition_width_x100 ≤ 20 ∧
+    t_lrd_1_witness.sharp.transition_width_x100 ≤ 150 ∧
     t_lrd_1_witness.sharp.post_slope_min_abs_x100 ≥ 200 ∧
     t_lrd_1_witness.upper.is_tau_distinctive = true ∧
     t_lrd_1_witness.z_min_x10 < t_lrd_1_witness.z_max_x10 := by
@@ -1058,7 +1085,7 @@ theorem t_lrd_1_above_mass_gap :
 #eval upper_cutoff_statement.m_max_e6_x10               -- 32
 #eval upper_cutoff_statement.m_max_logsigma_x100        -- 15
 #eval flat_shape_statement.max_abs_slope_x100           -- 30
-#eval sharp_transition_statement.transition_width_x100  -- 20
+#eval sharp_transition_statement.transition_width_x100  -- 150
 #eval t_lrd_1_witness.z_min_x10                         -- 80
 #eval t_lrd_1_witness.z_max_x10                         -- 150
 
