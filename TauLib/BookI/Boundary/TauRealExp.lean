@@ -52,6 +52,30 @@ Definitions of `pow`, `exp_term`, `exp_partial`, `BoundedBy`, `exp_of_rat`,
 `exp` are all in place. The headline theorems `exp_zero`, `exp_one`,
 `exp_of_rat_isCauchy`, `exp_partial_cauchy_bound`, **`exp_add`** are all
 proven sorry-free.
+
+**Wave R9-1a additions** (positivity, monotonicity, injectivity):
+
+- `TauReal.exp_pos_of_quarter` — `0 < exp(a)` (definite gap 1/3 past
+  index 1) for `a` BoundedBy `R ≤ 1/4`.
+- `TauReal.exp_gt_one_of_pos` — `1 < exp(a)` (definite gap) when `a`
+  has a `lt`-positive witness `(k₀, N₀)` AND `BoundedBy R` with
+  `R ≤ 1/(2(k₀+1))`.
+- `TauReal.exp_strict_mono_of_bounded` — **HEADLINE.**  For `a, b` both
+  BoundedBy `R ≤ 1/(4(k₀+1))` with explicit `lt`-witness `(k₀, N₀)` for
+  `a < b`: `exp(a) < exp(b)`.
+- `TauReal.exp_lt_not_equiv_of_bounded` — injectivity contrapositive:
+  same hypotheses give `¬ equiv (exp a) (exp b)`.
+- `TauReal.exp_strict_mono_of_lt_bounded` — convenience wrapper that
+  takes the `TauReal.lt`-shape gap directly.
+
+The `R ≤ 1/(4(k₀+1))` bound is the trade-off price for our Cauchy
+remainder estimate `|exp_partial − (1 + x)| ≤ R`: to ensure the input
+gap `1/(k₀+1)` survives the `2R` symmetric truncation noise, we need
+`2R ≤ 1/(2(k₀+1))`, equivalently `R ≤ 1/(4(k₀+1))`.
+
+Range-reduction (lifting these results from bounded inputs to all of
+TauReal via `exp(x) = exp(k·ln 2) · exp(r)` for small `r`) is deferred
+to TauRealLog (R9-1b).
 -/
 
 set_option autoImplicit false
@@ -607,6 +631,465 @@ theorem TauReal.exp_add (a b : TauReal) (R : Rat)
   rw [div_lt_div_iff₀ h_pow_pos h_k1_pos]
   have h_main := rat_exp_add_modulus_ineq k n hn
   linarith
+
+-- ============================================================
+-- PART 6.8: POSITIVITY INFRASTRUCTURE  (Wave R9-1a)
+--
+-- Foundation for `exp_strict_mono` / `exp_injectivity` (R9-1a).  We
+-- supply the constructive lower bound `(exp_partial x m).toRat ≥ 1 − 2R`
+-- (Lemma A) and, for sufficiently small radicand `R ≤ 1/4`, the strict
+-- positivity bound `(exp_partial x m).toRat ≥ 1/2` (Lemma B).
+--
+-- These are the partial-sum-level analogues of `0 < exp(x)`.  Lifting
+-- to the TauReal `exp` is straightforward: the n-th approximation of
+-- `(TauReal.exp a)` is `exp_partial (a.approx n) n`, so the same lower
+-- bound applies pointwise whenever `a` is BoundedBy R with R ≤ 1/4.
+-- ============================================================
+
+/-- **Lower bound on the exp partial sum.**
+
+    For `|x| ≤ R ≤ 1` and `n ≥ 1`:
+        `(exp_partial x n).toRat ≥ 1 − 2R`.
+
+    Proof: `exp_partial x 1 = 1` (only the k=0 term, which is 1).
+    For `n ≥ 1`, the difference
+        `(exp_partial x n) − (exp_partial x 1) = sumFromTo (exp_term x) 1 n`
+    has absolute value bounded by `sumFromTo |exp_term x| 1 n ≤ 2R`
+    (via `sumFromTo_exp_term_bound` with `n = 1`, giving `4R/2 − 4R/2^n`). -/
+private theorem exp_partial_lower_bound (x : TauRat) (R : Rat)
+    (hR0 : 0 ≤ R) (hR1 : R ≤ 1) (hx : |x.toRat| ≤ R)
+    (n : Nat) (hn : 1 ≤ n) :
+    (1 : Rat) - 2 * R ≤ (TauRat.exp_partial x n).toRat := by
+  -- Step 1: (exp_partial x 1).toRat = 1.
+  have h_partial_one : (TauRat.exp_partial x 1).toRat = 1 := by
+    -- exp_partial x 1 = sum (exp_term x) 1 = 0 + exp_term x 0 = exp_term x 0
+    show (TauRat.sum (TauRat.exp_term x) 1).toRat = 1
+    rw [TauRat.sum_succ, TauRat.sum_zero, toRat_add, toRat_zero]
+    rw [exp_term_toRat, TauRat.pow_zero, toRat_one]
+    simp [Nat.factorial]
+  -- Step 2: telescoping difference.
+  have h_diff_eq :
+      (TauRat.exp_partial x n).toRat - (TauRat.exp_partial x 1).toRat
+        = (TauRat.sumFromTo (TauRat.exp_term x) 1 n).toRat := by
+    unfold TauRat.exp_partial
+    exact TauRat.sum_sub_toRat_eq_sumFromTo (TauRat.exp_term x) 1 n hn
+  -- Step 3: triangle inequality on sumFromTo.
+  have h_tri := TauRat.sumFromTo_abs_le (TauRat.exp_term x) 1 n
+  -- Step 4: telescoping bound.
+  have h_strong := sumFromTo_exp_term_bound x R hR0 hR1 hx 1 (le_refl 1) n hn
+  -- 4R/2^1 - 4R/2^n = 2R - 4R/2^n ≤ 2R.
+  have h_pow_pos_n : (0 : Rat) < (2 : Rat) ^ n := by positivity
+  have h_decr_nn : (0 : Rat) ≤ 4 * R / (2 : Rat) ^ n :=
+    div_nonneg (by linarith) (le_of_lt h_pow_pos_n)
+  have h_pow_one : (2 : Rat) ^ 1 = 2 := by norm_num
+  rw [h_pow_one] at h_strong
+  -- h_strong : sumFromTo |exp_term x| 1 n .toRat ≤ 4R/2 - 4R/2^n
+  have h_4R2 : (4 : Rat) * R / 2 = 2 * R := by ring
+  rw [h_4R2] at h_strong
+  -- |diff| ≤ sumFromTo |exp_term x| 1 n .toRat ≤ 2R - 4R/2^n ≤ 2R
+  have h_abs_diff_le_2R :
+      |(TauRat.exp_partial x n).toRat - (TauRat.exp_partial x 1).toRat|
+        ≤ 2 * R := by
+    rw [h_diff_eq]
+    linarith
+  -- Step 5: extract lower bound from |partial - 1| ≤ 2R.
+  rw [h_partial_one] at h_abs_diff_le_2R
+  have h_neg := (abs_le.mp h_abs_diff_le_2R).1
+  linarith
+
+/-- **Strict positivity of exp partial sum (R ≤ 1/4).**
+
+    For `|x| ≤ R ≤ 1/4` and `n ≥ 1`:
+        `(exp_partial x n).toRat ≥ 1/2 > 0`. -/
+private theorem exp_partial_pos_of_quarter (x : TauRat) (R : Rat)
+    (hR0 : 0 ≤ R) (hR4 : R ≤ 1 / 4) (hx : |x.toRat| ≤ R)
+    (n : Nat) (hn : 1 ≤ n) :
+    (1 : Rat) / 2 ≤ (TauRat.exp_partial x n).toRat := by
+  have hR1 : R ≤ 1 := by linarith
+  have h_lb := exp_partial_lower_bound x R hR0 hR1 hx n hn
+  -- 1 - 2R ≥ 1 - 2/4 = 1/2
+  linarith
+
+/-- **TauReal.exp is positive when the input is bounded by 1/4.**
+
+    For `a : TauReal` with `BoundedBy a R`, `R ≤ 1/4`:
+        `0 < TauReal.exp a`  (in the constructive `TauReal.lt` sense).
+
+    The witness gap is `1/3` — past index `N = 1`, every approximation
+    of `exp a` is `≥ 1/2`, so `0 + 1/3 < 1/2 ≤ exp_partial`. -/
+theorem TauReal.exp_pos_of_quarter (a : TauReal) (R : Rat)
+    (hR0 : 0 ≤ R) (hR4 : R ≤ 1 / 4) (ha : TauReal.BoundedBy a R) :
+    TauReal.lt TauReal.zero (TauReal.exp a) := by
+  -- We need an explicit gap k and threshold N such that for n ≥ N:
+  --   (zero + 1/(k+1)).toRat < (exp a).approx n .toRat
+  -- Use k = 2 (giving gap 1/3) and N = 1.
+  refine ⟨2, 1, fun n hn => ?_⟩
+  unfold TauRat.lt
+  rw [toRat_add, TauRat.ofNatRecip_toRat]
+  -- (zero.approx n).toRat = 0
+  show (TauReal.zero.approx n).toRat + 1 / (((2 : Nat) : Rat) + 1)
+        < ((TauReal.exp a).approx n).toRat
+  have h_zero : (TauReal.zero.approx n).toRat = 0 := by
+    show (TauRat.zero).toRat = 0
+    rw [toRat_zero]
+  rw [h_zero]
+  -- (exp a).approx n = exp_partial (a.approx n) n
+  show (0 : Rat) + 1 / (((2 : Nat) : Rat) + 1)
+        < (TauRat.exp_partial (a.approx n) n).toRat
+  have hx : |(a.approx n).toRat| ≤ R := ha n
+  have h_lb := exp_partial_pos_of_quarter (a.approx n) R hR0 hR4 hx n hn
+  -- 1/(2+1) = 1/3 < 1/2 ≤ exp_partial
+  have h_simp : (1 : Rat) / (((2 : Nat) : Rat) + 1) = 1 / 3 := by push_cast; norm_num
+  rw [h_simp]
+  linarith
+
+-- ============================================================
+-- PART 6.9: GREATER-THAN-ONE FOR DEFINITELY-POSITIVE INPUT  (Wave R9-1a)
+--
+-- Proves `1 < exp(a)` (definite gap) when `a` has a definite gap from 0
+-- AND is BoundedBy R for sufficiently small R.  The second pillar of
+-- `exp_strict_mono`.
+--
+-- Sketch (partial-sum level): for `|x| ≤ R ≤ 1` and `n ≥ 2`,
+-- `(exp_partial x n).toRat ≥ 1 + x.toRat − R` (since the k≥2 tail in
+-- absolute value is ≤ R, by the same telescoping bound as Part 6.8).
+-- ============================================================
+
+/-- Closed form for the n=2 partial sum: `(exp_partial x 2).toRat = 1 + x.toRat`. -/
+private theorem exp_partial_two_toRat (x : TauRat) :
+    (TauRat.exp_partial x 2).toRat = 1 + x.toRat := by
+  show (TauRat.sum (TauRat.exp_term x) 2).toRat = 1 + x.toRat
+  rw [TauRat.sum_succ, TauRat.sum_succ, TauRat.sum_zero,
+      toRat_add, toRat_add, toRat_zero]
+  -- Goal: 0 + (exp_term x 0).toRat + (exp_term x 1).toRat = 1 + x.toRat
+  rw [exp_term_toRat, exp_term_toRat,
+      TauRat.pow_zero, TauRat.pow_succ, TauRat.pow_zero,
+      toRat_one]
+  -- Goal: 0 + 1 / (Nat.factorial 0 : Rat) + (TauRat.one.mul x).toRat / (Nat.factorial 1 : Rat)
+  --     = 1 + x.toRat
+  rw [toRat_mul, toRat_one]
+  simp [Nat.factorial]
+
+/-- **Lower bound on exp_partial when k=1 term is included.**
+
+    For `|x| ≤ R ≤ 1` and `n ≥ 2`:
+        `(exp_partial x n).toRat ≥ 1 + x.toRat − R`.
+
+    Proof: telescope from `n = 2` onwards.  At n=2 the partial sum is
+    exactly `1 + x.toRat`.  The k≥2 tail in absolute value is bounded by
+    `sumFromTo |exp_term x| 2 m .toRat ≤ 4R/2² − 4R/2^m ≤ R`. -/
+private theorem exp_partial_ge_one_plus_x_sub_R (x : TauRat) (R : Rat)
+    (hR0 : 0 ≤ R) (hR1 : R ≤ 1) (hx : |x.toRat| ≤ R)
+    (n : Nat) (hn : 2 ≤ n) :
+    (1 : Rat) + x.toRat - R ≤ (TauRat.exp_partial x n).toRat := by
+  -- Step 1: telescope from index 2.
+  have h_diff_eq :
+      (TauRat.exp_partial x n).toRat - (TauRat.exp_partial x 2).toRat
+        = (TauRat.sumFromTo (TauRat.exp_term x) 2 n).toRat := by
+    unfold TauRat.exp_partial
+    exact TauRat.sum_sub_toRat_eq_sumFromTo (TauRat.exp_term x) 2 n hn
+  -- Step 2: triangle inequality on sumFromTo.
+  have h_tri := TauRat.sumFromTo_abs_le (TauRat.exp_term x) 2 n
+  -- Step 3: telescoping bound starting at index 2.
+  have h_strong :=
+    sumFromTo_exp_term_bound x R hR0 hR1 hx 2 (by omega) n hn
+  -- 4R/2² - 4R/2^n = R - 4R/2^n.  Show ≤ R.
+  have h_pow_two : (2 : Rat) ^ 2 = 4 := by norm_num
+  rw [h_pow_two] at h_strong
+  have h_pow_pos_n : (0 : Rat) < (2 : Rat) ^ n := by positivity
+  have h_decr_nn : (0 : Rat) ≤ 4 * R / (2 : Rat) ^ n :=
+    div_nonneg (by linarith) (le_of_lt h_pow_pos_n)
+  have h_4R4 : (4 : Rat) * R / 4 = R := by ring
+  rw [h_4R4] at h_strong
+  -- h_strong : sumFromTo |exp_term x| 2 n .toRat ≤ R - 4R/2^n
+  have h_abs_diff_le_R :
+      |(TauRat.exp_partial x n).toRat - (TauRat.exp_partial x 2).toRat| ≤ R := by
+    rw [h_diff_eq]
+    linarith
+  -- Step 4: extract lower bound from |partial - (1 + x.toRat)| ≤ R.
+  rw [exp_partial_two_toRat] at h_abs_diff_le_R
+  have h_neg := (abs_le.mp h_abs_diff_le_R).1
+  linarith
+
+/-- **TauReal.exp(a) > 1 (definite gap) when 0 < a and a is bounded suitably.**
+
+    Constructive form: given that `a` is `lt`-positive (with witness gap
+    `1/(k₀+1)` past index `N₀`) AND `BoundedBy a R` with `R ≤ 1/(2(k₀+1))`,
+    we have `1 < TauReal.exp a` with witness gap `1/(2(k₀+1)+1)` past
+    index `max N₀ 2`.
+
+    Proof: at any qualifying n,
+      `(exp_partial (a.approx n) n).toRat ≥ 1 + (a.approx n).toRat − R`
+      ≥ 1 + 1/(k₀+1) − 1/(2(k₀+1)) = 1 + 1/(2(k₀+1))
+      > 1 + 1/(2(k₀+1)+1)
+      = (TauReal.one.approx n).toRat + 1/(2(k₀+1)+1).
+-/
+theorem TauReal.exp_gt_one_of_pos (a : TauReal) (R : Rat) (k₀ N₀ : Nat)
+    (hR0 : 0 ≤ R) (hRsmall : R ≤ 1 / (2 * ((k₀ : Rat) + 1)))
+    (hR1 : R ≤ 1)
+    (ha_bound : TauReal.BoundedBy a R)
+    (ha_pos : ∀ n, N₀ ≤ n →
+      ((TauReal.zero.approx n).toRat + 1 / (((k₀ : Nat) : Rat) + 1)
+        < (a.approx n).toRat)) :
+    TauReal.lt TauReal.one (TauReal.exp a) := by
+  refine ⟨2 * (k₀ + 1), max N₀ 2, fun n hn => ?_⟩
+  have hN : N₀ ≤ n := le_of_max_le_left hn
+  have h2 : 2 ≤ n := le_of_max_le_right hn
+  unfold TauRat.lt
+  rw [toRat_add, TauRat.ofNatRecip_toRat]
+  show (TauReal.one.approx n).toRat + 1 / (((2 * (k₀ + 1) : Nat) : Rat) + 1)
+        < ((TauReal.exp a).approx n).toRat
+  have h_one : (TauReal.one.approx n).toRat = 1 := by
+    show (TauRat.one).toRat = 1
+    rw [toRat_one]
+  rw [h_one]
+  show (1 : Rat) + 1 / (((2 * (k₀ + 1) : Nat) : Rat) + 1)
+        < (TauRat.exp_partial (a.approx n) n).toRat
+  -- Use exp_partial_ge_one_plus_x_sub_R.
+  have hx : |(a.approx n).toRat| ≤ R := ha_bound n
+  have h_lb := exp_partial_ge_one_plus_x_sub_R (a.approx n) R hR0 hR1 hx n h2
+  -- The positivity witness:
+  have h_pos := ha_pos n hN
+  have h_zero : (TauReal.zero.approx n).toRat = 0 := by
+    show (TauRat.zero).toRat = 0; rw [toRat_zero]
+  rw [h_zero] at h_pos
+  -- h_pos : 0 + 1/(k₀+1) < (a.approx n).toRat,
+  -- i.e. (a.approx n).toRat > 1/(k₀+1).
+  -- Combine: exp_partial ≥ 1 + (a.approx n).toRat - R > 1 + 1/(k₀+1) - R
+  -- and 1/(k₀+1) - R ≥ 1/(k₀+1) - 1/(2(k₀+1)) = 1/(2(k₀+1)).
+  -- We need 1 + 1/(2(k+1)+1) < exp_partial, where 2(k+1)+1 (Nat) cast.
+  have h_k1_pos : (0 : Rat) < ((k₀ : Nat) : Rat) + 1 := by
+    have : (0 : Rat) ≤ ((k₀ : Nat) : Rat) := by exact_mod_cast Nat.zero_le k₀
+    linarith
+  have h_2k1_pos : (0 : Rat) < 2 * (((k₀ : Nat) : Rat) + 1) := by linarith
+  -- Cast Nat-form `2 * (k₀ + 1)` and rewrite.
+  have h_cast_2k1 : (((2 * (k₀ + 1) : Nat) : Rat)) = 2 * (((k₀ : Nat) : Rat) + 1) := by
+    push_cast; ring
+  rw [h_cast_2k1]
+  -- Cast hRsmall to match: (k₀ : Rat) appears as ((k₀ : Nat) : Rat).
+  -- They are the same term modulo Nat.cast unification.
+  have hRsmall' : R ≤ 1 / (2 * (((k₀ : Nat) : Rat) + 1)) := hRsmall
+  -- Need: 1 + 1/(2*(k₀+1)+1) < exp_partial.
+  -- We have: exp_partial ≥ 1 + (a.approx n).toRat - R, and (a.approx n).toRat > 1/(k₀+1).
+  -- Consequently, exp_partial > 1 + 1/(k₀+1) - R ≥ 1 + 1/(k₀+1) - 1/(2(k₀+1))
+  --   = 1 + (2 - 1)/(2(k₀+1)) = 1 + 1/(2(k₀+1)).
+  -- And 1/(2(k₀+1)+1) < 1/(2(k₀+1)).
+  -- Direct linear chain:
+  -- Let q = ((k₀ : Nat) : Rat) + 1.
+  -- exp_partial ≥ 1 + (a.approx n).toRat - R    [h_lb]
+  -- (a.approx n).toRat > 1/q                    [h_pos]
+  -- R ≤ 1/(2q)                                  [hRsmall']
+  -- Therefore exp_partial > 1 + 1/q - 1/(2q) = 1 + 1/(2q).
+  -- And 1/(2q+1) < 1/(2q).
+  have h_one_div_2q_pos : (0 : Rat) < 1 / (2 * (((k₀ : Nat) : Rat) + 1)) :=
+    div_pos (by norm_num) h_2k1_pos
+  have h_two_q_plus_one_pos : (0 : Rat) < 2 * (((k₀ : Nat) : Rat) + 1) + 1 := by
+    linarith
+  have h_strict_recip :
+      1 / (2 * (((k₀ : Nat) : Rat) + 1) + 1)
+        < 1 / (2 * (((k₀ : Nat) : Rat) + 1)) := by
+    rw [div_lt_div_iff₀ h_two_q_plus_one_pos h_2k1_pos]
+    linarith
+  -- The key inequality:
+  -- exp_partial > 1 + 1/q - R ≥ 1 + 1/q - 1/(2q) = 1 + 1/(2q)
+  have h_combine_alg :
+      1 / (((k₀ : Nat) : Rat) + 1) - 1 / (2 * (((k₀ : Nat) : Rat) + 1))
+        = 1 / (2 * (((k₀ : Nat) : Rat) + 1)) := by
+    have h_q_ne : ((k₀ : Nat) : Rat) + 1 ≠ 0 := ne_of_gt h_k1_pos
+    field_simp
+    ring
+  -- Putting it together:
+  -- We want: 1 + 1/(2q+1) < exp_partial.
+  -- Use chain: 1 + 1/(2q+1) < 1 + 1/(2q) ≤ 1 + (1/q - R)
+  --   ≤ 1 + ((a.approx n).toRat - R) [from h_pos: 1/q < (a.approx n).toRat]
+  --   ≤ exp_partial [from h_lb].
+  linarith [h_combine_alg, h_strict_recip, h_pos, h_lb, hRsmall']
+
+/-- **Upper bound on exp_partial.**
+
+    For `|x| ≤ R ≤ 1` and `n ≥ 2`:
+        `(exp_partial x n).toRat ≤ 1 + x.toRat + R`.
+
+    Companion to `exp_partial_ge_one_plus_x_sub_R`. -/
+private theorem exp_partial_le_one_plus_x_add_R (x : TauRat) (R : Rat)
+    (hR0 : 0 ≤ R) (hR1 : R ≤ 1) (hx : |x.toRat| ≤ R)
+    (n : Nat) (hn : 2 ≤ n) :
+    (TauRat.exp_partial x n).toRat ≤ (1 : Rat) + x.toRat + R := by
+  -- Same telescoping setup as the lower bound, but extract upper bound.
+  have h_diff_eq :
+      (TauRat.exp_partial x n).toRat - (TauRat.exp_partial x 2).toRat
+        = (TauRat.sumFromTo (TauRat.exp_term x) 2 n).toRat := by
+    unfold TauRat.exp_partial
+    exact TauRat.sum_sub_toRat_eq_sumFromTo (TauRat.exp_term x) 2 n hn
+  have h_tri := TauRat.sumFromTo_abs_le (TauRat.exp_term x) 2 n
+  have h_strong :=
+    sumFromTo_exp_term_bound x R hR0 hR1 hx 2 (by omega) n hn
+  have h_pow_two : (2 : Rat) ^ 2 = 4 := by norm_num
+  rw [h_pow_two] at h_strong
+  have h_pow_pos_n : (0 : Rat) < (2 : Rat) ^ n := by positivity
+  have h_decr_nn : (0 : Rat) ≤ 4 * R / (2 : Rat) ^ n :=
+    div_nonneg (by linarith) (le_of_lt h_pow_pos_n)
+  have h_4R4 : (4 : Rat) * R / 4 = R := by ring
+  rw [h_4R4] at h_strong
+  have h_abs_diff_le_R :
+      |(TauRat.exp_partial x n).toRat - (TauRat.exp_partial x 2).toRat| ≤ R := by
+    rw [h_diff_eq]
+    linarith
+  rw [exp_partial_two_toRat] at h_abs_diff_le_R
+  have h_pos := (abs_le.mp h_abs_diff_le_R).2
+  linarith
+
+-- ============================================================
+-- PART 6.10: EXP STRICT MONOTONICITY (Wave R9-1a HEADLINE)
+--
+-- For BOUNDED inputs `a, b` with `a < b` (definite gap), `exp(a) < exp(b)`.
+-- The bound condition is essential because `exp_partial`'s remainder
+-- estimate depends on the radicand.
+--
+-- INJECTIVITY corollary: `equiv (exp a) (exp b) → equiv a b` (for
+-- bounded a, b) — since `equiv` rules out both `lt` directions.
+-- ============================================================
+
+/-- **Exponential is strictly monotone on bounded inputs.**
+
+    For `a, b : TauReal` with:
+    - `a < b` (definite gap with witness `k₀, N₀`),
+    - `BoundedBy a R` and `BoundedBy b R` for `R ≤ 1/(4(k₀+1))`,
+    we have `exp(a) < exp(b)` (definite gap with witness
+    `k = 2(k₀+1), N = max N₀ 2`).
+
+    Proof: at any qualifying n,
+      `(exp_partial (b.approx n) n) − (exp_partial (a.approx n) n)`
+      ≥ ((b.approx n) − (a.approx n)) − 2R
+      ≥ 1/(k₀+1) − 1/(2(k₀+1))
+      = 1/(2(k₀+1)).
+    Then `1/(2(k₀+1)+1) < 1/(2(k₀+1))` gives the strict gap. -/
+theorem TauReal.exp_strict_mono_of_bounded
+    (a b : TauReal) (R : Rat) (k₀ N₀ : Nat)
+    (hR0 : 0 ≤ R)
+    (hRsmall : R ≤ 1 / (4 * (((k₀ : Nat) : Rat) + 1)))
+    (hR1 : R ≤ 1)
+    (ha_bound : TauReal.BoundedBy a R)
+    (hb_bound : TauReal.BoundedBy b R)
+    (h_ab_gap : ∀ n, N₀ ≤ n →
+      ((a.approx n).toRat + 1 / (((k₀ : Nat) : Rat) + 1)
+        < (b.approx n).toRat)) :
+    TauReal.lt (TauReal.exp a) (TauReal.exp b) := by
+  refine ⟨2 * (k₀ + 1), max N₀ 2, fun n hn => ?_⟩
+  have hN : N₀ ≤ n := le_of_max_le_left hn
+  have h2 : 2 ≤ n := le_of_max_le_right hn
+  unfold TauRat.lt
+  rw [toRat_add, TauRat.ofNatRecip_toRat]
+  show ((TauReal.exp a).approx n).toRat + 1 / (((2 * (k₀ + 1) : Nat) : Rat) + 1)
+        < ((TauReal.exp b).approx n).toRat
+  show (TauRat.exp_partial (a.approx n) n).toRat
+        + 1 / (((2 * (k₀ + 1) : Nat) : Rat) + 1)
+        < (TauRat.exp_partial (b.approx n) n).toRat
+  -- Bound exp_partial of a from above and exp_partial of b from below.
+  have hxa : |(a.approx n).toRat| ≤ R := ha_bound n
+  have hxb : |(b.approx n).toRat| ≤ R := hb_bound n
+  have h_a_upper := exp_partial_le_one_plus_x_add_R (a.approx n) R hR0 hR1 hxa n h2
+  have h_b_lower := exp_partial_ge_one_plus_x_sub_R (b.approx n) R hR0 hR1 hxb n h2
+  -- The gap inequality.
+  have h_gap := h_ab_gap n hN
+  -- Cast and algebra.
+  have h_k1_pos : (0 : Rat) < ((k₀ : Nat) : Rat) + 1 := by
+    have : (0 : Rat) ≤ ((k₀ : Nat) : Rat) := by exact_mod_cast Nat.zero_le k₀
+    linarith
+  have h_q_ne : ((k₀ : Nat) : Rat) + 1 ≠ 0 := ne_of_gt h_k1_pos
+  have h_2k1_pos : (0 : Rat) < 2 * (((k₀ : Nat) : Rat) + 1) := by linarith
+  have h_4k1_pos : (0 : Rat) < 4 * (((k₀ : Nat) : Rat) + 1) := by linarith
+  have h_two_q_plus_one_pos : (0 : Rat) < 2 * (((k₀ : Nat) : Rat) + 1) + 1 := by
+    linarith
+  have h_strict_recip :
+      1 / (2 * (((k₀ : Nat) : Rat) + 1) + 1)
+        < 1 / (2 * (((k₀ : Nat) : Rat) + 1)) := by
+    rw [div_lt_div_iff₀ h_two_q_plus_one_pos h_2k1_pos]
+    linarith
+  have h_cast_2k1 : (((2 * (k₀ + 1) : Nat) : Rat)) = 2 * (((k₀ : Nat) : Rat) + 1) := by
+    push_cast; ring
+  rw [h_cast_2k1]
+  -- 2R ≤ 2 * 1/(4q) = 1/(2q).
+  have h_2R_le_1_2q : 2 * R ≤ 1 / (2 * (((k₀ : Nat) : Rat) + 1)) := by
+    have h_2_4q : (2 : Rat) * (1 / (4 * (((k₀ : Nat) : Rat) + 1)))
+                    = 1 / (2 * (((k₀ : Nat) : Rat) + 1)) := by
+      field_simp
+      ring
+    linarith [hRsmall]
+  -- Algebra: 1/q - 1/(2q) = 1/(2q).
+  have h_combine_alg :
+      1 / (((k₀ : Nat) : Rat) + 1) - 1 / (2 * (((k₀ : Nat) : Rat) + 1))
+        = 1 / (2 * (((k₀ : Nat) : Rat) + 1)) := by
+    field_simp
+    ring
+  -- Putting it together.  Let q = (k₀ : Rat) + 1, R0 = (a.approx n).toRat, etc.
+  -- exp_partial b n ≥ 1 + bn - R          [h_b_lower]
+  -- exp_partial a n ≤ 1 + an + R          [h_a_upper]
+  -- bn - an > 1/q                          [h_gap]
+  -- ⇒ exp_partial b n - exp_partial a n ≥ (bn - an) - 2R > 1/q - 2R ≥ 1/q - 1/(2q) = 1/(2q)
+  -- And 1/(2q+1) < 1/(2q), so exp_partial a n + 1/(2q+1) < exp_partial b n.
+  linarith [h_combine_alg, h_strict_recip, h_a_upper, h_b_lower, h_gap, h_2R_le_1_2q]
+
+/-- **Exp injectivity (constructive form, bounded inputs).**
+
+    For `a, b : TauReal` bounded by `R ≤ 1/(4(k+1))` for any tolerance
+    level `k`, **`a < b` implies `¬ (exp a ≡ exp b)`**.
+
+    This is the constructive contrapositive of `exp_strict_mono`:
+    a definite gap in the inputs translates to a definite gap in the
+    outputs, which rules out Cauchy equivalence.
+
+    Downstream consumers (R9-1b `log_round_trip`) use this in the form:
+      assume the inequality, apply this lemma to get a definite gap
+      contradicting `equiv`. -/
+theorem TauReal.exp_lt_not_equiv_of_bounded
+    (a b : TauReal) (R : Rat) (k₀ N₀ : Nat)
+    (hR0 : 0 ≤ R)
+    (hRsmall : R ≤ 1 / (4 * (((k₀ : Nat) : Rat) + 1)))
+    (hR1 : R ≤ 1)
+    (ha_bound : TauReal.BoundedBy a R)
+    (hb_bound : TauReal.BoundedBy b R)
+    (h_ab_gap : ∀ n, N₀ ≤ n →
+      ((a.approx n).toRat + 1 / (((k₀ : Nat) : Rat) + 1)
+        < (b.approx n).toRat)) :
+    ¬ TauReal.equiv (TauReal.exp a) (TauReal.exp b) := by
+  intro h_equiv
+  have h_strict := TauReal.exp_strict_mono_of_bounded a b R k₀ N₀
+    hR0 hRsmall hR1 ha_bound hb_bound h_ab_gap
+  -- h_strict : exp a < exp b, h_equiv : exp a ≡ exp b.
+  -- A < B together with A ≡ B gives B < B (via lt_of_equiv_left), contradicting irreflexivity.
+  have h_self_lt : TauReal.lt (TauReal.exp b) (TauReal.exp b) :=
+    TauReal.lt_of_equiv_left h_equiv h_strict
+  exact TauReal.lt_irrefl _ h_self_lt
+
+/-- **Convenience wrapper accepting `TauReal.lt` directly.**
+
+    Same content as `exp_strict_mono_of_bounded`, but unpacks the
+    `TauReal.lt` witness `(k₀, N₀, gap)` for the caller.  The radicand
+    bound `R ≤ 1/(4(k₀+1))` must be supplied *after* knowing the
+    extracted gap-tolerance level `k₀`.
+
+    Usage pattern (downstream R9-1b):
+      obtain ⟨k₀, N₀, h_gap⟩ := h_lt
+      apply TauReal.exp_strict_mono_of_bounded _ _ R k₀ N₀ ... -/
+theorem TauReal.exp_strict_mono_of_lt_bounded
+    (a b : TauReal) (R : Rat) (k₀ N₀ : Nat)
+    (h_lt_witness :
+      ∀ n, N₀ ≤ n →
+        TauRat.lt ((a.approx n).add (TauRat.ofNatRecip k₀)) (b.approx n))
+    (hR0 : 0 ≤ R)
+    (hRsmall : R ≤ 1 / (4 * (((k₀ : Nat) : Rat) + 1)))
+    (hR1 : R ≤ 1)
+    (ha_bound : TauReal.BoundedBy a R)
+    (hb_bound : TauReal.BoundedBy b R) :
+    TauReal.lt (TauReal.exp a) (TauReal.exp b) := by
+  refine TauReal.exp_strict_mono_of_bounded a b R k₀ N₀
+    hR0 hRsmall hR1 ha_bound hb_bound ?_
+  intro n hN
+  have h := h_lt_witness n hN
+  unfold TauRat.lt at h
+  rw [toRat_add, TauRat.ofNatRecip_toRat] at h
+  exact h
 
 -- ============================================================
 -- PART 7: SMOKE TESTS
