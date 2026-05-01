@@ -79,6 +79,7 @@ import TauLib.BookV.Cosmology.BHBirthTopology
 import TauLib.BookV.Cosmology.BHBipolarFusion
 import TauLib.BookV.Cosmology.NoShrinkExtended
 import TauLib.BookV.Cosmology.HeavySeedBirth
+import TauLib.BookV.Cosmology.IotaTauTauRealHelpers
 import TauLib.BookV.Cosmology.MergerNormalForm
 import TauLib.BookV.Cosmology.GlobalFiniteness
 import TauLib.BookV.Cosmology.CosmologicalEndstate
