@@ -1,9 +1,11 @@
 import TauLib.BookV.Cosmology.HeavySeedBirth
 import TauLib.BookI.Boundary.TauRealSqrt
+import TauLib.BookI.Boundary.Bridge.TauRealQuotientField
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Push
+import Mathlib.Tactic.FieldSimp
 
 /-!
 # TauLib.BookV.Cosmology.T2KerrUniqueness
@@ -323,6 +325,252 @@ theorem f_iota_t2_TauReal_def :
 
 -- Companion smoke `#check`: confirm `f_iota_t2_TauReal` is well-typed.
 #check f_iota_t2_TauReal
+
+-- ============================================================
+-- WAVE R8 PROPER W2: SQUARED-EQ IDENTITY (PHASE 0.5 PAYOFF)
+-- ============================================================
+
+/-! ### Wave R8 proper W2 — closing the Phase 0.5 loop
+
+The R8j sqrt closure (`TauReal.sqrt_sq`) gives `(√a)² ≡ a` whenever `a` is
+Cauchy, bounded away from zero, and eventually positive. We instantiate
+this at `a := 1 − ι_τ`, then assemble the algebraic identity
+
+  `(ι_τ · √(1 − ι_τ))² ≡ ι_τ² · (1 − ι_τ)`
+
+via `mul_assoc` / `mul_comm` chained through `mul_respects_equiv_under_cauchy`.
+This is the headline payoff: physics consumers can now expand the Wave R8e
+opener `f_iota_t2_TauReal` into its squared canonical form for downstream
+arithmetic without further sqrt machinery. -/
+
+open Tau.Boundary
+
+/-- **Helper (private):** for every `n ≥ 1`, the toRat value of
+    `(π + e).approx n` lies in the closed interval `[11/3, 7]`.
+    Combines `pi_plus_e_partial_lower_bound` and
+    `pi_plus_e_approx_le_seven` with a unified unfolding. -/
+private theorem pi_plus_e_approx_in_interval (n : Nat) (hn : 1 ≤ n) :
+    (11 : Rat) / 3 ≤ ((TauReal.pi.add TauReal.e).approx n).toRat ∧
+    ((TauReal.pi.add TauReal.e).approx n).toRat ≤ 7 := by
+  have h_unfold :
+      ((TauReal.pi.add TauReal.e).approx n).toRat
+        = (TauRat.pi_partial n).toRat + (TauRat.e_partial n).toRat := by
+    show ((TauReal.pi.approx n).add (TauReal.e.approx n)).toRat = _
+    rw [toRat_add]; rfl
+  refine ⟨?_, ?_⟩
+  · rw [h_unfold]; exact TauReal.pi_plus_e_partial_lower_bound n hn
+  · exact TauReal.pi_plus_e_approx_le_seven n
+
+/-- **Helper (private):** `iota_tau_TauReal.approx n .toRat = 2 / (π+e).approx n .toRat`
+    for every `n ≥ 1`.
+
+    Mirrors the unfolding inside `iota_tau_mul_pi_plus_e_eq_two` (lines
+    132–154 of TauRealIotaTau.lean): past the BAZ modulus, `(π+e).approx n`
+    is nonzero, so `inv` takes the `TauRat.inv` branch and toRat reduces
+    to scalar division. -/
+private theorem iota_tau_TauReal_approx_toRat_eq (n : Nat) (hn : 1 ≤ n) :
+    (iota_tau_TauReal.approx n).toRat
+      = 2 / ((TauReal.pi.add TauReal.e).approx n).toRat := by
+  have h_pe_pos : 0 < ((TauReal.pi.add TauReal.e).approx n).toRat := by
+    have h_lb := (pi_plus_e_approx_in_interval n hn).1
+    linarith
+  have h_pe_nz : ((TauReal.pi.add TauReal.e).approx n).is_nonzero := by
+    rw [TauRat.is_nonzero_iff_toRat_ne_zero]
+    linarith
+  -- iota_tau_TauReal.approx n
+  --   = TauReal.iota_tau.approx n
+  --   = (TauReal.two.approx n).mul ((π+e).inv.approx n)
+  show (((TauReal.two.approx n).mul ((TauReal.pi.add TauReal.e).inv.approx n))).toRat
+        = 2 / ((TauReal.pi.add TauReal.e).approx n).toRat
+  have h_inv_approx :
+      (TauReal.pi.add TauReal.e).inv.approx n
+        = TauRat.inv ((TauReal.pi.add TauReal.e).approx n) h_pe_nz := by
+    show (if h : ((TauReal.pi.add TauReal.e).approx n).is_nonzero
+          then TauRat.inv ((TauReal.pi.add TauReal.e).approx n) h
+          else TauRat.one) = _
+    rw [dif_pos h_pe_nz]
+  rw [h_inv_approx, toRat_mul, TauReal.two_approx_toRat, toRat_inv]
+  -- 2 * ((π+e).toRat)⁻¹ = 2 / (π+e).toRat
+  rw [div_eq_mul_inv]
+
+/-- **Helper (private — Wave R8 proper W2 cornerstone):** for every
+    `n ≥ 1`, `(iota_tau_TauReal.approx n).toRat < 1`.
+
+    `iota_tau ≈ 2/(π+e) ≤ 2/(11/3) = 6/11 < 1`. The constant `11/3` is
+    the lower bound established by `pi_plus_e_partial_lower_bound`. -/
+private theorem iota_tau_TauReal_lt_one_eventually :
+    ∃ Ns : Nat, ∀ n : Nat, Ns ≤ n →
+      (iota_tau_TauReal.approx n).toRat < 1 := by
+  refine ⟨1, fun n hn => ?_⟩
+  rw [iota_tau_TauReal_approx_toRat_eq n hn]
+  have ⟨h_lb, _⟩ := pi_plus_e_approx_in_interval n hn
+  have h_pe_pos : 0 < ((TauReal.pi.add TauReal.e).approx n).toRat := by linarith
+  rw [div_lt_one h_pe_pos]
+  linarith
+
+/-- **Helper (private):** the radicand `1 − ι_τ` is eventually positive.
+    Direct corollary of `iota_tau_TauReal_lt_one_eventually`: at toRat
+    level, `((1 − ι_τ).approx n).toRat = 1 − (ι_τ.approx n).toRat`. -/
+private theorem one_sub_iota_tau_T2_bound_pos_eventually :
+    ∃ Ns : Nat, ∀ n : Nat, Ns ≤ n →
+      0 < (((TauReal.one).sub iota_tau_T2_bound_TauReal).approx n).toRat := by
+  obtain ⟨Ns, h_iota_lt_one⟩ := iota_tau_TauReal_lt_one_eventually
+  refine ⟨Ns, fun n hn => ?_⟩
+  have h_unfold :
+      (((TauReal.one).sub iota_tau_T2_bound_TauReal).approx n).toRat
+        = 1 - (iota_tau_T2_bound_TauReal.approx n).toRat := by
+    show (((TauReal.one).approx n).add ((iota_tau_T2_bound_TauReal).negate.approx n)).toRat = _
+    rw [toRat_add]
+    show ((TauReal.one).approx n).toRat
+            + ((iota_tau_T2_bound_TauReal.approx n).negate).toRat = _
+    rw [toRat_negate]
+    show (TauRat.one).toRat + (- (iota_tau_T2_bound_TauReal.approx n).toRat) = _
+    rw [toRat_one]; ring
+  rw [h_unfold]
+  show 0 < 1 - (iota_tau_TauReal.approx n).toRat
+  have h_lt := h_iota_lt_one n hn
+  linarith
+
+/-- **Helper (private):** the radicand `1 − ι_τ` is bounded away from zero.
+    From `(iota.approx n).toRat ≤ 6/11`, we get `(1 − ι_τ).approx n .toRat ≥ 5/11 > 1/3`,
+    giving BAZ with witness `k = 2` (so `1/(k+1) = 1/3`). -/
+private theorem one_sub_iota_tau_T2_bound_BAZ :
+    ((TauReal.one).sub iota_tau_T2_bound_TauReal).BoundedAwayFromZero := by
+  refine ⟨2, 1, fun n hn => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.ofNatRecip_toRat, TauRat.toRat_abs]
+  have h_iota_eq := iota_tau_TauReal_approx_toRat_eq n hn
+  have ⟨h_lb, h_ub⟩ := pi_plus_e_approx_in_interval n hn
+  have h_pe_pos : 0 < ((TauReal.pi.add TauReal.e).approx n).toRat := by linarith
+  -- iota.approx n .toRat = 2 / (π+e).approx n .toRat ≤ 2/(11/3) = 6/11
+  have h_iota_le : (iota_tau_TauReal.approx n).toRat ≤ 6 / 11 := by
+    rw [h_iota_eq, div_le_iff₀ h_pe_pos]
+    linarith
+  have h_one_sub_unfold :
+      (((TauReal.one).sub iota_tau_T2_bound_TauReal).approx n).toRat
+        = 1 - (iota_tau_T2_bound_TauReal.approx n).toRat := by
+    -- Same unfolding chain as `pos_eventually` (which works):
+    show (((TauReal.one).approx n).add ((iota_tau_T2_bound_TauReal).negate.approx n)).toRat = _
+    rw [toRat_add]
+    show ((TauReal.one).approx n).toRat
+            + ((iota_tau_T2_bound_TauReal.approx n).negate).toRat = _
+    rw [toRat_negate]
+    show (TauRat.one).toRat + (- (iota_tau_T2_bound_TauReal.approx n).toRat) = _
+    rw [toRat_one]; ring
+  rw [h_one_sub_unfold]
+  -- iota_tau_T2_bound_TauReal = iota_tau_TauReal definitionally (via HSB:476 alias)
+  -- so the upper bound on iota carries through.
+  have h_iota_T2_le : (iota_tau_T2_bound_TauReal.approx n).toRat ≤ 6 / 11 := h_iota_le
+  have h_pos : 0 < 1 - (iota_tau_T2_bound_TauReal.approx n).toRat := by linarith
+  rw [abs_of_pos h_pos]
+  show (1 : Rat) / ((2 : Nat) + 1) < 1 - (iota_tau_T2_bound_TauReal.approx n).toRat
+  push_cast
+  linarith
+
+/-- **Helper (private):** `iota_tau_TauReal.IsCauchy`. By definition,
+    `iota_tau_TauReal = TauReal.div TauReal.two (π + e) = 2.mul (π+e).inv`,
+    a product of two Cauchy sequences (the constant `2` and `inv` of the
+    Cauchy `π + e`). -/
+private theorem iota_tau_TauReal_isCauchy : iota_tau_TauReal.IsCauchy := by
+  show (TauReal.two.mul (TauReal.pi.add TauReal.e).inv).IsCauchy
+  apply TauReal.IsCauchy_mul
+  · -- TauReal.two = TauReal.fromTauRat ⟨⟨2,0⟩, 1, _⟩ — constant sequence is Cauchy
+    refine ⟨fun _ => 0, fun k _ _ _ _ => ?_⟩
+    show TauRat.lt _ _
+    unfold TauRat.lt
+    rw [TauRat.toRat_abs, toRat_sub]
+    show |(TauReal.two.approx _).toRat - (TauReal.two.approx _).toRat|
+            < (TauRat.ofNatRecip k).toRat
+    rw [TauReal.two_approx_toRat, TauReal.two_approx_toRat]
+    simp
+    exact TauRat.ofNatRecip_pos k
+  · apply TauReal.IsCauchy_inv
+    · exact TauReal.IsCauchy_add _ _ TauReal.pi_isCauchy TauReal.e_isCauchy
+    · exact TauReal.pi_plus_e_boundedAwayFromZero
+
+/-- **Helper (private):** the radicand `1 − ι_τ` is Cauchy. -/
+private theorem one_sub_iota_tau_T2_bound_isCauchy :
+    ((TauReal.one).sub iota_tau_T2_bound_TauReal).IsCauchy := by
+  show ((TauReal.one).add iota_tau_T2_bound_TauReal.negate).IsCauchy
+  apply TauReal.IsCauchy_add
+  · exact TauReal.one_isCauchy
+  · exact TauReal.IsCauchy_negate _ iota_tau_TauReal_isCauchy
+
+/-- **Helper (private):** the `h_sign` witness for `sqrt_sq` /
+    `sqrt_isCauchy` instantiated at `a := 1 − ι_τ`. -/
+private theorem one_sub_iota_tau_T2_bound_sign :
+    ∃ Ns : Nat, ∀ n : Nat, Ns ≤ n →
+      0 < (((TauReal.one).sub iota_tau_T2_bound_TauReal).approx n).toRat :=
+  one_sub_iota_tau_T2_bound_pos_eventually
+
+/-- **Wave R8 proper W2 — HEADLINE THEOREM (Phase 0.5 payoff).**
+
+    The squared form of `f_iota_t2_TauReal = ι_τ · √(1 − ι_τ)` is
+    `ι_τ² · (1 − ι_τ)`, expressed as a `TauReal.equiv` via `sqrt_sq`
+    (R8j) chained through associativity / commutativity congruences.
+
+    Physics interpretation: the J_max^{T²} bound's squared canonical
+    form is rational in ι_τ alone (no sqrt remains), enabling clean
+    algebraic manipulation downstream of V.T-NEW-5A. -/
+theorem f_iota_t2_TauReal_squared_eq :
+    TauReal.equiv
+      (f_iota_t2_TauReal.mul f_iota_t2_TauReal)
+      ((iota_tau_T2_bound_TauReal.mul iota_tau_T2_bound_TauReal).mul
+        ((TauReal.one).sub iota_tau_T2_bound_TauReal)) := by
+  set ι := iota_tau_T2_bound_TauReal with hι
+  set r := (TauReal.one).sub iota_tau_T2_bound_TauReal with hr
+  set s := TauReal.sqrt r with hs
+  have hf_def : f_iota_t2_TauReal = ι.mul s := rfl
+  rw [hf_def]
+  -- Goal: equiv ((ι · s) · (ι · s)) ((ι · ι) · r)
+  -- Cauchy facts in scope
+  have h_ι_cauchy : ι.IsCauchy := iota_tau_TauReal_isCauchy
+  have h_r_cauchy : r.IsCauchy := one_sub_iota_tau_T2_bound_isCauchy
+  have h_r_baz : r.BoundedAwayFromZero := one_sub_iota_tau_T2_bound_BAZ
+  have h_r_sign := one_sub_iota_tau_T2_bound_sign
+  have h_ιι_cauchy : (ι.mul ι).IsCauchy :=
+    TauReal.IsCauchy_mul _ _ h_ι_cauchy h_ι_cauchy
+  -- Step A: (ι · s) · (ι · s) ≡ (ι · ι) · (s · s) — pointwise ring identity
+  have h_step_assoc : TauReal.equiv ((ι.mul s).mul (ι.mul s)) ((ι.mul ι).mul (s.mul s)) := by
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    -- Goal: (((ι · s) · (ι · s)).approx n).toRat = (((ι · ι) · (s · s)).approx n).toRat
+    -- Push `.approx n` through `.mul` (defEq) and reduce `.toRat` of `TauRat.mul`
+    -- to plain Rat `*` via `simp only [toRat_mul]`. Then `ring` closes the
+    -- algebraic identity.
+    show (((ι.approx n).mul (s.approx n)).mul ((ι.approx n).mul (s.approx n))).toRat
+          = (((ι.approx n).mul (ι.approx n)).mul ((s.approx n).mul (s.approx n))).toRat
+    simp only [toRat_mul]
+    ring
+  -- Step B: sqrt_sq — (s · s) ≡ r
+  have h_ss_eq_r : TauReal.equiv (s.mul s) r :=
+    TauReal.sqrt_sq r h_r_baz h_r_cauchy h_r_sign
+  -- s.IsCauchy is needed to multiply (ι·ι)·(s·s) congruence
+  have h_s_cauchy : s.IsCauchy :=
+    TauReal.sqrt_isCauchy r h_r_cauchy h_r_baz h_r_sign
+  have h_ss_cauchy : (s.mul s).IsCauchy :=
+    TauReal.IsCauchy_mul _ _ h_s_cauchy h_s_cauchy
+  -- Step C: (ι · ι) · (s · s) ≡ (ι · ι) · r via mul_respects_equiv_under_cauchy
+  have h_step_subst : TauReal.equiv ((ι.mul ι).mul (s.mul s)) ((ι.mul ι).mul r) :=
+    TauReal.mul_respects_equiv_under_cauchy
+      (ι.mul ι) (ι.mul ι) (s.mul s) r
+      h_ιι_cauchy h_ss_cauchy
+      (TauReal.equiv_refl _) h_ss_eq_r
+  exact TauReal.equiv_trans h_step_assoc h_step_subst
+
+/-- **Wave R8 proper W2 — companion: `f_iota_t2_TauReal` is Cauchy.**
+    The product of the Cauchy `ι_τ` and the Cauchy `√(1 − ι_τ)`
+    (both witnessed in scope). -/
+theorem f_iota_t2_TauReal_isCauchy : f_iota_t2_TauReal.IsCauchy := by
+  show (iota_tau_T2_bound_TauReal.mul
+          (TauReal.sqrt ((TauReal.one).sub iota_tau_T2_bound_TauReal))).IsCauchy
+  apply TauReal.IsCauchy_mul
+  · exact iota_tau_TauReal_isCauchy
+  · exact TauReal.sqrt_isCauchy _
+      one_sub_iota_tau_T2_bound_isCauchy
+      one_sub_iota_tau_T2_bound_BAZ
+      one_sub_iota_tau_T2_bound_sign
 
 -- ============================================================
 -- SECTION 3: V.T-NEW-5B — UNIT JACOBIAN LEMMA
