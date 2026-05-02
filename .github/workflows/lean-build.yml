@@ -14,6 +14,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Check manifest-owned public metrics
+        run: python3 scripts/check_manifest_metrics.py .
+
       - name: Lean build (via lean-action)
         uses: leanprover/lean-action@v1
         with:

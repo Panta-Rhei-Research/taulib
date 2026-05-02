@@ -1,0 +1,17 @@
+{%- comment -%}
+  Render a manifest-owned release metric from Atlas.
+
+  Usage:
+    {% include release-metric.html id="taulib.modules" %}
+    {% include release-metric.html id="taulib.modules" unit=true %}
+{%- endcomment -%}
+{%- assign release_metric = site.data.release.current.metrics | where: "id", include.id | first -%}
+{%- if release_metric -%}
+  {%- if include.unit -%}
+    {{- release_metric.display_value -}} {{ release_metric.unit -}}
+  {%- else -%}
+    {{- release_metric.display_value -}}
+  {%- endif -%}
+{%- else -%}
+  <span class="release-metric-missing" data-release-metric-missing="{{ include.id }}">[missing release metric: {{ include.id }}]</span>
+{%- endif -%}
