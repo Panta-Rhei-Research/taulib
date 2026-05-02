@@ -421,6 +421,54 @@ theorem TauRat.cauchy_product_bound
     field_simp
   exact h_eq.le
 
+-- §6.7  Alternating-Mercator Cauchy-product helpers (Wave R12-1a)
+
+/-- Closed-form factor-out: `1/(s+j) ≤ 1/s` for `s ≥ 1, j ≥ 0`;
+    factors out `1/s` from the alternating-Mercator-shape sum. -/
+private theorem ratMercatorTail_eq
+    (C : Rat) (hC : 0 ≤ C) (s : Nat) (hs : 1 ≤ s) (m : Nat) :
+    ∑ j ∈ Finset.range m, C / (((s + j : Nat) : Rat) * (2 : Rat) ^ (s + j))
+      ≤ (1 / ((s : Rat))) *
+        ∑ j ∈ Finset.range m, C / (2 : Rat) ^ (s + j) := by
+  rw [Finset.mul_sum]
+  refine Finset.sum_le_sum ?_
+  intro j _
+  have hs_pos : (0 : Rat) < (s : Rat) := by exact_mod_cast hs
+  have h_sj_pos : (0 : Rat) < ((s + j : Nat) : Rat) := by
+    push_cast; linarith
+  have h_pow_pos : (0 : Rat) < (2 : Rat) ^ (s + j) := by positivity
+  have h_le_sj : ((s : Rat)) ≤ ((s + j : Nat) : Rat) := by
+    push_cast; linarith
+  have h_rhs_eq : (1 / (s : Rat)) * (C / (2 : Rat) ^ (s + j))
+        = C / ((s : Rat) * (2 : Rat) ^ (s + j)) := by field_simp
+  rw [h_rhs_eq]
+  have h_denom_lhs_pos : (0 : Rat) < ((s + j : Nat) : Rat) * (2 : Rat) ^ (s + j) := by
+    positivity
+  have h_denom_rhs_pos : (0 : Rat) < (s : Rat) * (2 : Rat) ^ (s + j) := by
+    positivity
+  have h_denom_le : (s : Rat) * (2 : Rat) ^ (s + j)
+                     ≤ ((s + j : Nat) : Rat) * (2 : Rat) ^ (s + j) :=
+    mul_le_mul_of_nonneg_right h_le_sj h_pow_pos.le
+  exact div_le_div_of_nonneg_left hC h_denom_rhs_pos h_denom_le
+
+/-- Combined alternating-Mercator tail bound: `Σ C/((s+j)·2^(s+j)) ≤ 2C/(s·2^s)`. -/
+private theorem ratMercatorTail_le
+    (C : Rat) (hC : 0 ≤ C) (s : Nat) (hs : 1 ≤ s) (m : Nat) :
+    ∑ j ∈ Finset.range m, C / (((s + j : Nat) : Rat) * (2 : Rat) ^ (s + j))
+      ≤ 2 * C / ((s : Rat) * (2 : Rat) ^ s) := by
+  refine (ratMercatorTail_eq C hC s hs m).trans ?_
+  have h_geom := ratGeomTail_le C hC s m
+  have hs_pos : (0 : Rat) < (s : Rat) := by exact_mod_cast hs
+  have h_eq : 2 * C / ((s : Rat) * (2 : Rat) ^ s)
+      = (1 / (s : Rat)) * (2 * C / (2 : Rat) ^ s) := by
+    field_simp
+  rw [h_eq]
+  exact mul_le_mul_of_nonneg_left h_geom (by positivity)
+
+-- (Endpoint-product bound `i·(n-i) ≥ n-1` for i ∈ [1, n-1], n ≥ 2:
+-- deferred to the headline theorem, where it can be inlined with Int-lift +
+-- nlinarith after the proof's specific Nat hypotheses are in scope.)
+
 end CauchyConvolution
 
 end Tau.Boundary
