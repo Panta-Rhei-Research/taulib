@@ -793,6 +793,7 @@ to a closed-form convergence-rate bound). -/
     crudest precision. Tighter bounds (smaller `ε` at larger `N`)
     follow from `f_iota_TauReal_isCauchy` (T2KerrUniqueness, R8 W2
     companion) and are deferred to Wave R10. -/
+@[deprecated "Wave R13-C: superseded by `f_iota_TauReal_approx_uniform_convergence` (Wave R10-2 closed-form Cauchy bound). Retained as backwards-compatible single-witness existential. Prefer the uniform form for downstream consumption." (since := "2026-05-02")]
 theorem f_iota_TauReal_approx_within_rat_bound :
     ∃ N : Nat, ∃ ε : Rat, 0 < ε ∧ ε ≤ 1 / 10 * 2 ∧
       |((f_iota_TauReal.approx N).toRat) - (2773 : Rat) / 10000| ≤ ε := by
@@ -807,6 +808,7 @@ theorem f_iota_TauReal_approx_within_rat_bound :
     `f_iota_TauReal.approx 1 .toRat` differs from `s.f_iota_x_10000 / 10000`
     by at most `1/5`. This is the structural bridge between the TauReal
     closed form and the Nat-scaled placeholder API. -/
+@[deprecated "Wave R13-C: superseded by `f_iota_TauReal_approx_uniform_convergence` (Wave R10-2 closed-form Cauchy bound). Retained as backwards-compatible single-witness existential. Prefer the uniform form for downstream consumption." (since := "2026-05-02")]
 theorem f_iota_TauReal_consistent_with_f_iota_x_10000
     (s : T2HorizonAngularMomentumBound) (h : s.f_iota_x_10000 = 2773) :
     ∃ N : Nat,
@@ -836,6 +838,15 @@ theorem t_lrd_1_upper_cutoff_tau_real_witnessed :
     upper_cutoff_statement.is_tau_distinctive = true ∧
     |((f_iota_TauReal.approx 1).toRat) - (2773 : Rat) / 10000| ≤ 1 / 5 := by
   refine ⟨rfl, upper_cutoff_statement.width_within_n15_prior, rfl, ?_⟩
+  -- TODO(Wave R13+ continuation): replace this `native_decide` with a derivation
+  -- from `f_iota_TauReal_approx_uniform_convergence` (Wave R10-2 uniform Cauchy
+  -- bound) instantiated at k = 4 (giving 1/5 tolerance). The numerical fact
+  -- discharged here (|48/121 - 2773/10000| = 144467/1210000 ≈ 0.1194 ≤ 1/5)
+  -- is identical to the now-deprecated `f_iota_TauReal_approx_within_rat_bound`
+  -- above; both reduce to the same Rat-arithmetic computation. Replacing this
+  -- single remaining `native_decide` requires an `f_iota_TauReal.IsCauchy`
+  -- → concrete-N witness lemma that is itself ~30-50 lines of helper work,
+  -- itemised separately for follow-up.
   native_decide
 
 -- ============================================================
