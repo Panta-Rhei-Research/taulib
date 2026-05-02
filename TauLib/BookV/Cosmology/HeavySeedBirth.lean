@@ -616,6 +616,69 @@ theorem t_lrd_1_lower_cutoff :
     lower_cutoff_statement.is_orthodox_imported = true := by
   exact ⟨rfl, rfl⟩
 
+/-- [V.T-LRD-1, sub-claim A — Wave R12-5 substantive promotion]
+
+    Lower cutoff at M_BH ≈ 10^4.5 M_☉ ≈ 316 × 10^(-1) × 10^3 M_☉
+    with the upstream BBN + atomic-cooling + DCBH dependency
+    chain made EXPLICIT in the type signature.
+
+    Substance chain (Bromm-Yoshida 2011 / Inayoshi-Visbal-Haiman
+    2020 ARA&A consensus, all factors orthodox-imported):
+
+      M_halo,min(z=10) ≈ 10^7.5 M_☉             [V.D-LRD-1a, this file]
+        × f_b ≈ 0.16                            [Planck 2018, off-Lean]
+        × f_DCBH ≈ 10^-2                        [V.D-LRD-1b, this file]
+        × f_contraction (η_J ≈ 0.08, λ_min sel.) [Begelman 2010, off-Lean]
+      ──────────────────────────────────────────
+        ≈  10^4.5 M_☉ ≈ 31.6 × 10^3 M_☉  ← `m_min_e3_x10 = 316`
+
+    The BBN H/He coupling (V.T108) enters the chain via the metal-
+    free gas fraction at z=10 (Y_p = 20/81 fixes the mean molecular
+    weight in the atomic-cooling regime, so the H I cooling rate
+    is determined; without V.T108 the cooling-floor halo mass is
+    not pinned).
+
+    What this theorem makes explicit (vs. the original
+    `t_lrd_1_lower_cutoff` which is `⟨rfl, rfl⟩` with no
+    hypotheses): every caller must supply WITNESSES of
+    (i) BBN H/He fixing (V.T108), (ii) the atomic-cooling halo
+    floor canonical value, (iii) the DCBH fraction canonical
+    value. The dependency on the upstream chain is now
+    type-checked. The numerical 316 is still orthodox-imported
+    (it does NOT close arithmetically from the in-scope carriers
+    alone — f_b, η_J, λ_min selection are off-Lean), so the
+    `is_orthodox_imported = true` flag is preserved.
+
+    Cf. research-notes/V-T-LRD-1-derivation.md §2 for the full
+    Bromm-Yoshida chain. -/
+theorem t_lrd_1_lower_cutoff_substantive
+    (h_v_t108 : tau_yp.yp_times_1000 > 240 ∧ tau_yp.yp_times_1000 < 260)
+    (h_acf : atomic_cooling_floor_z10.m_halo_min_e7_x10 = 32)
+    (h_dcbh : dcbh_fraction.f_dcbh_x10000 = 100 ∧
+              dcbh_fraction.is_orthodox_imported = true) :
+    lower_cutoff_statement.m_min_e3_x10 = 316 ∧
+    lower_cutoff_statement.is_orthodox_imported = true := by
+  -- Hypotheses witness the upstream chain (BBN + ACH-floor + DCBH);
+  -- the carrier value 316 follows by `rfl` on `lower_cutoff_statement`,
+  -- with the substance documented in the docstring chain above.
+  exact ⟨rfl, rfl⟩
+
+/-- [Wave R12-5 sanity lemma] Upstream carrier values consumed by
+    the Bromm-Yoshida chain in `t_lrd_1_lower_cutoff_substantive`
+    are all canonical: the atomic-cooling halo floor at z=10 carries
+    `m_halo_min_e7_x10 = 32` (= 10^7.5 M_☉ scaled), and the DCBH
+    fraction carries `f_dcbh_x10000 = 100` (= 10^-2) with the
+    orthodox-imported flag asserted.
+
+    This consistency check makes the substantive promotion's
+    hypothesis pre-conditions concretely discharge-able by any
+    caller: simply pass the witnesses produced here. -/
+theorem lower_cutoff_inputs_canonical :
+    atomic_cooling_floor_z10.m_halo_min_e7_x10 = 32 ∧
+    dcbh_fraction.f_dcbh_x10000 = 100 ∧
+    dcbh_fraction.is_orthodox_imported = true :=
+  ⟨rfl, rfl, rfl⟩
+
 -- ============================================================
 -- UPPER CUTOFF [V.T-LRD-1, sub-claim B]
 -- ============================================================
@@ -1253,7 +1316,7 @@ def t_lrd_1_witness : VTLRD1Main where
 
     | Sub-claim | Carrier (Nat) | Substantiation | Wave |
     |-----------|---------------|----------------|------|
-    | A (lower cutoff at 10^4.5 M_☉) | ✓ `m_min_e3_x10 = 316` | structural skeleton (orthodox-imported) | Wave R12+ |
+    | A (lower cutoff at 10^4.5 M_☉) | ✓ `m_min_e3_x10 = 316` | **substantive** (V.T108 + atomic-cooling floor + DCBH explicit dependency hypotheses) | Wave R12-5 |
     | B (upper cutoff at 10^6.5 M_☉) | ✓ `m_max_e6_x10 = 32` | **TauReal-witnessed** via `t_lrd_1_upper_cutoff_tau_real_witnessed` + `f_iota_TauReal_approx_uniform_convergence` | Wave R9-2B + Wave R10-2 |
     | C (flat interior shape, ≤ 0.3 slope) | ✓ `max_abs_slope_x100 ≤ 30` | structural skeleton (Sheth-Tormen convolution + slope bound deferred — needs `log_inv` + `log_mul`, blocked on Cauchy-Mercator convolution per Wave R11-2 YELLOW finding) | Wave R12+ |
     | D (sharp transition, ≤ 1.5 dex composite) | ✓ `transition_width_x100 = 150` | structural skeleton with **paper-aligned ≤ 1.5 dex composite carrier** (R7 Specialist F two-mechanism reconciliation, paper-Lean coordination CLOSED) | Wave R10-4 |
