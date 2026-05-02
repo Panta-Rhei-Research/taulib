@@ -40,6 +40,15 @@ TauLib is the Lean 4 formalization layer of the Panta Rhei Research Program. It 
 
 This site is intentionally narrow: it hosts Lean-oriented documentation generated from the public TauLib repository. The full verification context lives on [Verify / TauLib](https://panta-rhei.site/verify/taulib/), and current release metrics live in the [Release Manifest](https://panta-rhei.site/verify/release-manifest/).
 
+## Manifest-pinned snapshot
+
+<div class="summary-cards">
+  <article class="summary-card"><div class="summary-card-title">{% include release-metric.html id="taulib.modules" unit=true %}</div><div class="summary-card-body">Modules in the pinned v4.0 TauLib release snapshot.</div></article>
+  <article class="summary-card"><div class="summary-card-title">{% include release-metric.html id="taulib.lines" unit=true %}</div><div class="summary-card-body">Lean source lines counted by the Atlas release manifest.</div></article>
+  <article class="summary-card"><div class="summary-card-title">{% include release-metric.html id="taulib.theorems_lemmas" unit=true %}</div><div class="summary-card-body">Theorem and lemma declarations in the release snapshot.</div></article>
+  <article class="summary-card"><div class="summary-card-title">{% include release-metric.html id="taulib.sorry" unit=true %}</div><div class="summary-card-body">Incomplete proof assignments in the release snapshot.</div></article>
+</div>
+
 ## What This Site Is
 
 - A generated documentation shell for TauLib modules and source-facing readers.
