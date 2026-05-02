@@ -16,11 +16,22 @@ an honest element of the Cauchy completion.
 
 ## Registry Cross-References
 
-- [I.D84] TauReal, [I.D114] TauReal inv / div (Wave 2d)
-- [I.D117] TauReal.e, [I.D118] TauReal.pi (Wave 3b / 3c)
-- [I.D119] (π + e) BoundedAwayFromZero (Wave 3d)
+- [I.D84]    TauReal, [I.D114] TauReal inv / div (Wave 2d)
+- [I.D117]   TauReal.e, [I.D118] TauReal.pi (Wave 3b / 3c)
+- [I.D119]   (π + e) BoundedAwayFromZero (Wave 3d)
+- [I.D-IotaTau-Structural]   `TauReal.iota_tau` (Wave 4 — this module)
+- [I.T-IotaTau-DefiningId]   `iota_tau · (π + e) ≡ 2` (Wave 4 — this module)
+- [I.T-IotaTau-NumericalBridge]   `|iota_tau − 341304/1000000| < 1/10⁶`
+                                   (Phase 4 / B1.0b — pending follow-up commit)
 
-New declarations (pending Wave 4 registry commit):
+Cross-reference docs:
+- `atlas/audits/taulib/2026-05-03-iota-tau-callsite-audit.md` —
+  the B1.0a audit establishing the dual-representation pattern
+  (fiat in `Iota.lean` ↔ structural here)
+- `atlas/audits/taulib/2026-05-03-foundations-bridges-state-of-the-union.md` §8 —
+  Workstream B1 roadmap that scopes B1.0a (this) + B1.0b (next)
+
+New declarations:
 `TauReal.two`, `TauReal.iota_tau`, `TauReal.iota_tau_mul_pi_plus_e_eq_two`.
 
 ## Mathematical Content
@@ -55,12 +66,21 @@ plus `equiv_trans` / congruence lemmas to chain the three steps.
 - Statable `iota_tau = 2/(π + e)` theorem (in fact, *the definitional
   identity* is `iota_tau · (π + e) ≡ 2`, which **is** that statement
   once you understand `iota_tau` as division).
-- Replaces the previous `Iota.lean` fiat-rational approach with a
-  structural element of `TauReal`.
+- A structural Cauchy-completion form of `iota_tau` that **coexists**
+  with the fiat-rational form in `BookI/Boundary/Iota.lean` —
+  the two serve different roles per the B1.0a callsite audit
+  (`atlas/audits/taulib/2026-05-03-iota-tau-callsite-audit.md`):
+  * **Fiat form** (`iota_tau_numer / iota_tau_denom` in `Iota.lean`)
+    — used by 162 callsites across 35 BookIV/V/Tour files for
+    Nat-decidable physics-calibration `decide` / `native_decide` checks.
+  * **Structural form** (`TauReal.iota_tau` in this module) — used by
+    theorem-cited identities; the Cauchy-completion class.
 - Numerical identity `|iota_tau - 341304/1000000| < ε` (for any small ε
   by taking enough indices) is derivable from here via partial-sum
-  computation — left as a follow-up that needs no further analytical
-  work, only rational arithmetic on specific partial-sum indices.
+  computation — landing as `TauReal.iota_tau_numerical_bridge` in the
+  Phase 4 / B1.0b follow-up commit. Numerical accuracy: the fiat
+  decimal `0.341304` matches the true ι_τ = `0.341304238875…` to
+  6 decimal places (error < 3 × 10⁻⁷).
 -/
 
 set_option autoImplicit false
