@@ -1,6 +1,7 @@
 import TauLib.BookI.Boundary.TauRealE
 import TauLib.BookI.Boundary.TauRealAnalyticalHelpers
 import TauLib.BookI.Boundary.TauRealSum
+import TauLib.BookI.Boundary.TauRealMulCongr
 import TauLib.BookI.Boundary.Bridge.TauRealAbsBridge
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.LinearCombination
@@ -1110,6 +1111,572 @@ theorem TauReal.exp_strict_mono_of_lt_bounded
   unfold TauRat.lt at h
   rw [toRat_add, TauRat.ofNatRecip_toRat] at h
   exact h
+
+-- ============================================================
+-- PART 6.11: EXP CONGRUENCE  (Wave R11-1)
+--
+-- The Lipschitz/congruence lemma: `exp` carries `equiv` to `equiv`
+-- on bounded inputs.  Establishes the substitution principle needed
+-- by `exp_neg` (and downstream R11-2/3 — `exp_log` round-trip and
+-- `log_inv`).
+-- ============================================================
+
+/-- **Power difference bound.**
+
+    For Rats `x, y, R` with `0 ≤ R`, `|x| ≤ R`, `|y| ≤ R`:
+        `|x^k − y^k| ≤ k · R^(k-1) · |x − y|` for all `k`.
+
+    Proof: induction on `k` via the factoring
+    `x^(k+1) − y^(k+1) = x · (x^k − y^k) + y^k · (x − y)`. -/
+private theorem rat_pow_sub_abs_le (x y R : Rat)
+    (hR0 : 0 ≤ R) (hx : |x| ≤ R) (hy : |y| ≤ R) :
+    ∀ k : Nat, |x ^ k - y ^ k| ≤ (k : Rat) * R ^ (k - 1) * |x - y| := by
+  intro k
+  induction k with
+  | zero =>
+    simp
+  | succ k ih =>
+    have h_id : x ^ (k + 1) - y ^ (k + 1)
+        = x * (x ^ k - y ^ k) + y ^ k * (x - y) := by ring
+    rw [h_id]
+    have h_tri : |x * (x ^ k - y ^ k) + y ^ k * (x - y)|
+                  ≤ |x * (x ^ k - y ^ k)| + |y ^ k * (x - y)| := abs_add_le _ _
+    rw [abs_mul, abs_mul] at h_tri
+    have h_yk : |y| ^ k ≤ R ^ k :=
+      Tau.Boundary.Bridge.rat_pow_le_pow_left₀ (abs_nonneg _) hy k
+    have h_yk_eq : |y ^ k| = |y| ^ k := Tau.Boundary.Bridge.rat_abs_pow y k
+    have h_xy_nn : 0 ≤ |x - y| := abs_nonneg _
+    have h_diff_nn : 0 ≤ |x ^ k - y ^ k| := abs_nonneg _
+    -- |x| · |x^k - y^k| ≤ R · (k · R^(k-1) · |x-y|)
+    have h_step1 : |x| * |x ^ k - y ^ k|
+        ≤ R * ((k : Rat) * R ^ (k - 1) * |x - y|) :=
+      mul_le_mul hx ih h_diff_nn hR0
+    -- |y^k| · |x - y| ≤ R^k · |x - y|
+    have h_step2 : |y ^ k| * |x - y| ≤ R ^ k * |x - y| := by
+      rw [h_yk_eq]
+      exact mul_le_mul_of_nonneg_right h_yk h_xy_nn
+    -- Final RHS: ((k + 1 : Nat) : Rat) * R ^ ((k + 1) - 1) * |x - y|
+    --        = (k + 1) * R ^ k * |x - y|.
+    have h_succ : (((k + 1 : Nat)) : Rat) * R ^ ((k + 1) - 1) * |x - y|
+        = (((k : Nat)) : Rat) * R ^ k * |x - y| + R ^ k * |x - y| := by
+      have h_idx : (k + 1) - 1 = k := by omega
+      rw [h_idx]; push_cast; ring
+    rw [h_succ]
+    -- We have LHS ≤ R · (k · R^(k-1) · |x-y|) + R^k · |x-y|
+    -- Need to show R · k · R^(k-1) = k · R^k.  Split on k = 0 vs k ≥ 1.
+    have h_final : R * ((k : Rat) * R ^ (k - 1) * |x - y|)
+        = (k : Rat) * R ^ k * |x - y| := by
+      rcases Nat.eq_zero_or_pos k with hk | hk
+      · -- k = 0: both sides are 0.
+        subst hk; ring
+      · -- k ≥ 1: R · R^(k-1) = R^k via pow_succ.
+        have h_pow_eq : R * R ^ (k - 1) = R ^ k := by
+          have h_k : k = (k - 1) + 1 := by omega
+          conv_rhs => rw [h_k, pow_succ]
+          ring
+        rw [show R * ((k : Rat) * R ^ (k - 1) * |x - y|)
+              = (k : Rat) * (R * R ^ (k - 1)) * |x - y| from by ring,
+            h_pow_eq]
+    linarith
+
+/-- **Per-term exp difference bound.**
+
+    For Rats `x, y, R` with `0 ≤ R`, `R ≤ 1`, `|x| ≤ R`, `|y| ≤ R`, `n ≥ 1`:
+        `|(exp_term x n).toRat − (exp_term y n).toRat| ≤ |x.toRat − y.toRat| · 4 / 2^n`.
+
+    Proof: `|exp_term x n − exp_term y n| = |x^n − y^n| / n!
+                                          ≤ n · R^(n-1) · |x-y| / n!
+                                          = R^(n-1)/(n-1)! · |x-y|
+                                          ≤ |x-y| · 2 / 2^(n-1)`
+    (since `R ≤ 1` and `(n-1)! ≥ 2^{n-2}` for `n ≥ 2`; for `n = 1` direct).
+    Equivalently, `|x-y| · 4 / 2^n`. -/
+private theorem exp_term_diff_abs_le (x y : TauRat) (R : Rat)
+    (hR0 : 0 ≤ R) (hR1 : R ≤ 1)
+    (hx : |x.toRat| ≤ R) (hy : |y.toRat| ≤ R)
+    (n : Nat) (hn : 1 ≤ n) :
+    |(TauRat.exp_term x n).toRat - (TauRat.exp_term y n).toRat|
+      ≤ |x.toRat - y.toRat| * 4 / (2 : Rat) ^ n := by
+  rw [exp_term_toRat, exp_term_toRat, TauRat.pow_toRat, TauRat.pow_toRat]
+  have h_fac_pos : (0 : Rat) < (Nat.factorial n : Rat) := by
+    have := Nat.factorial_pos n; exact_mod_cast this
+  have h_fac_ne : (Nat.factorial n : Rat) ≠ 0 := ne_of_gt h_fac_pos
+  rw [← sub_div]
+  rw [abs_div, abs_of_pos h_fac_pos]
+  -- Bound numerator: |x^n - y^n| ≤ n · R^(n-1) · |x - y|.
+  have h_pow_diff := rat_pow_sub_abs_le x.toRat y.toRat R hR0 hx hy n
+  have h_xy_nn : 0 ≤ |x.toRat - y.toRat| := abs_nonneg _
+  have h_R_pow_le_one : R ^ (n - 1) ≤ 1 :=
+    Tau.Boundary.Bridge.rat_pow_le_one₀ hR0 hR1 (n - 1)
+  have h_R_pow_nn : 0 ≤ R ^ (n - 1) := pow_nonneg hR0 _
+  have h_n_nn : (0 : Rat) ≤ (n : Rat) := by exact_mod_cast Nat.zero_le n
+  -- |x^n - y^n| ≤ n · R^(n-1) · |x-y| ≤ n · 1 · |x-y| = n · |x-y|.
+  -- So |x^n - y^n| / n! ≤ n · |x-y| / n! = |x-y| / (n-1)! (since n / n! = 1/(n-1)!).
+  -- (n-1)! ≥ 2^(n-2) for n ≥ 2 (factorial_ge_two_pow on n-1 with hk = n-1 ≥ 1).
+  -- For n = 1, (n-1)! = 1, RHS bound is |x-y| · 2 = |x-y|·4/2 = |x-y|·4/2^1.  ✓.
+  -- For n ≥ 2, /(n-1)! ≤ /2^(n-2) = 4/2^n.  So bound is |x-y| · 4/2^n.
+  rcases Nat.eq_or_lt_of_le hn with hn1 | hn2
+  · -- n = 1: factorial 1 = 1.
+    have h_n_eq : n = 1 := hn1.symm
+    subst h_n_eq
+    -- Goal: |x^1 - y^1| / 1! ≤ |x - y| · 4 / 2^1
+    -- = |x - y| / 1 ≤ |x - y| · 2.
+    have h_fac1 : (Nat.factorial 1 : Rat) = 1 := by simp [Nat.factorial]
+    rw [h_fac1]
+    have h_pow1 : (2 : Rat) ^ 1 = 2 := by norm_num
+    rw [h_pow1]
+    -- |x - y| / 1 ≤ |x - y| · 4 / 2 = 2 · |x - y|.
+    have : x.toRat ^ 1 - y.toRat ^ 1 = x.toRat - y.toRat := by ring
+    rw [this]
+    have h_2_pos : (0 : Rat) < 2 := by norm_num
+    rw [div_le_div_iff₀ (by norm_num : (0 : Rat) < 1) h_2_pos]
+    -- |x - y| · 2 ≤ |x - y| · 4 · 1
+    linarith
+  · -- n ≥ 2.
+    have hn_ge_2 : 2 ≤ n := by omega
+    have h_n_minus_1_ge_1 : 1 ≤ n - 1 := by omega
+    -- Use h_pow_diff: |x^n - y^n| ≤ n · R^(n-1) · |x-y| ≤ n · |x-y|.
+    have h_pow_le_n : |x.toRat ^ n - y.toRat ^ n| ≤ (n : Rat) * |x.toRat - y.toRat| := by
+      have h_step : (n : Rat) * R ^ (n - 1) * |x.toRat - y.toRat|
+                      ≤ (n : Rat) * 1 * |x.toRat - y.toRat| := by
+        apply mul_le_mul_of_nonneg_right
+        apply mul_le_mul_of_nonneg_left h_R_pow_le_one h_n_nn
+        exact h_xy_nn
+      have h_simplify : (n : Rat) * 1 * |x.toRat - y.toRat| = (n : Rat) * |x.toRat - y.toRat| := by ring
+      linarith
+    -- Goal: |x^n - y^n| / n! ≤ |x - y| · 4 / 2^n.
+    -- Use n! = n · (n-1)!.
+    have h_fac_split : (Nat.factorial n : Rat) = (n : Rat) * (Nat.factorial (n - 1) : Rat) := by
+      have h_n_eq : n = (n - 1) + 1 := by omega
+      have h_fac_succ : Nat.factorial n = (n - 1 + 1) * Nat.factorial (n - 1) := by
+        conv_lhs => rw [h_n_eq]
+        rfl
+      rw [h_fac_succ]
+      have h_cast : (((n - 1 + 1) * Nat.factorial (n - 1) : Nat) : Rat)
+                  = (n : Rat) * (Nat.factorial (n - 1) : Rat) := by
+        have h_n_minus_1_plus_1_nat : (n - 1) + 1 = n := by omega
+        rw [show ((n - 1 + 1) * Nat.factorial (n - 1) : Nat)
+              = n * Nat.factorial (n - 1) by rw [h_n_minus_1_plus_1_nat]]
+        push_cast; ring
+      exact h_cast
+    -- (n-1)! ≥ 2^(n-2)
+    have h_fac_ge : (2 : Rat) ^ (n - 2) ≤ (Nat.factorial (n - 1) : Rat) := by
+      have h_n_minus_2_eq : n - 2 = (n - 1) - 1 := by omega
+      rw [h_n_minus_2_eq]
+      have h1 : ((2 ^ ((n - 1) - 1) : Nat) : Rat) ≤ (Nat.factorial (n - 1) : Rat) := by
+        exact_mod_cast Nat.factorial_ge_two_pow (n - 1) h_n_minus_1_ge_1
+      have h2 : ((2 ^ ((n - 1) - 1) : Nat) : Rat) = (2 : Rat) ^ ((n - 1) - 1) := by
+        push_cast; ring
+      linarith
+    have h_n_pos : (0 : Rat) < (n : Rat) := by exact_mod_cast Nat.lt_of_lt_of_le Nat.zero_lt_one hn
+    have h_fac_n_minus_1_pos : (0 : Rat) < (Nat.factorial (n - 1) : Rat) := by
+      have := Nat.factorial_pos (n - 1); exact_mod_cast this
+    have h_pow_n_minus_2_pos : (0 : Rat) < (2 : Rat) ^ (n - 2) := by positivity
+    have h_pow_n_pos : (0 : Rat) < (2 : Rat) ^ n := by positivity
+    -- |x^n - y^n| / n! ≤ n · |x-y| / (n · (n-1)!) = |x-y| / (n-1)! ≤ |x-y| / 2^(n-2)
+    -- Now |x-y| / 2^(n-2) = |x-y| · 4 / 2^n.
+    -- So target: |x^n - y^n| / n! ≤ |x-y| · 4 / 2^n.
+    -- Step 1: |x^n - y^n| / n! ≤ n · |x-y| / n!.
+    have h_step1 : |x.toRat ^ n - y.toRat ^ n| / (Nat.factorial n : Rat)
+                    ≤ (n : Rat) * |x.toRat - y.toRat| / (Nat.factorial n : Rat) := by
+      apply div_le_div_of_nonneg_right h_pow_le_n
+      exact le_of_lt h_fac_pos
+    -- Step 2: n · |x-y| / (n · (n-1)!) = |x-y| / (n-1)!.
+    have h_step2 : (n : Rat) * |x.toRat - y.toRat| / (Nat.factorial n : Rat)
+                    = |x.toRat - y.toRat| / (Nat.factorial (n - 1) : Rat) := by
+      rw [h_fac_split]
+      field_simp
+    -- Step 3: |x-y| / (n-1)! ≤ |x-y| / 2^(n-2).
+    have h_step3 : |x.toRat - y.toRat| / (Nat.factorial (n - 1) : Rat)
+                    ≤ |x.toRat - y.toRat| / (2 : Rat) ^ (n - 2) := by
+      rw [div_le_div_iff₀ h_fac_n_minus_1_pos h_pow_n_minus_2_pos]
+      have h_xy_nn' : 0 ≤ |x.toRat - y.toRat| := h_xy_nn
+      nlinarith [h_xy_nn', h_fac_ge, h_pow_n_minus_2_pos, h_fac_n_minus_1_pos]
+    -- Step 4: |x-y| / 2^(n-2) = |x-y| · 4 / 2^n.
+    have h_step4 : |x.toRat - y.toRat| / (2 : Rat) ^ (n - 2)
+                    = |x.toRat - y.toRat| * 4 / (2 : Rat) ^ n := by
+      have h_pow_eq : (2 : Rat) ^ n = (2 : Rat) ^ (n - 2) * 4 := by
+        have h_n_eq : n = (n - 2) + 2 := by omega
+        conv_lhs => rw [h_n_eq]
+        rw [pow_add]
+        norm_num
+      rw [h_pow_eq]
+      field_simp
+    linarith
+
+/-- **Exp partial-sum difference bound.**
+
+    For Rats `x, y, R` with `0 ≤ R`, `R ≤ 1`, `|x| ≤ R`, `|y| ≤ R`:
+        `|exp_partial x n − exp_partial y n| ≤ 8 · |x − y|` for all `n`.
+
+    Proof by induction on `n`, with strengthened IH
+    `|...| ≤ |x - y| · 8 · (1 - 1/2^n)`.  Per-step at index `n`
+    contributes `≤ |x - y| · 4/2^n` (by `exp_term_diff_abs_le`), and
+    `8·(1 - 1/2^n) + 4/2^n = 8 - 4/2^n ≥ 8·(1 - 1/2^(n+1))`. -/
+private theorem exp_partial_diff_abs_le (x y : TauRat) (R : Rat)
+    (hR0 : 0 ≤ R) (hR1 : R ≤ 1)
+    (hx : |x.toRat| ≤ R) (hy : |y.toRat| ≤ R) (n : Nat) :
+    |(TauRat.exp_partial x n).toRat - (TauRat.exp_partial y n).toRat|
+      ≤ 8 * |x.toRat - y.toRat| := by
+  have h_xy_nn : 0 ≤ |x.toRat - y.toRat| := abs_nonneg _
+  -- Strengthened IH:  ≤ |x-y| · 8 · (1 - 1/2^n)
+  have h_strong : ∀ n,
+      |(TauRat.exp_partial x n).toRat - (TauRat.exp_partial y n).toRat|
+        ≤ |x.toRat - y.toRat| * (8 - 8 / (2 : Rat) ^ n) := by
+    intro n
+    induction n with
+    | zero =>
+      show |(TauRat.exp_partial x 0).toRat - (TauRat.exp_partial y 0).toRat|
+            ≤ |x.toRat - y.toRat| * (8 - 8 / (2 : Rat) ^ 0)
+      rw [TauRat.exp_partial_zero, TauRat.exp_partial_zero, toRat_zero]
+      simp
+    | succ n ih =>
+      rw [TauRat.exp_partial_succ, TauRat.exp_partial_succ, toRat_add, toRat_add]
+      have h_split : (TauRat.exp_partial x n).toRat + (TauRat.exp_term x n).toRat
+                      - ((TauRat.exp_partial y n).toRat + (TauRat.exp_term y n).toRat)
+          = ((TauRat.exp_partial x n).toRat - (TauRat.exp_partial y n).toRat)
+            + ((TauRat.exp_term x n).toRat - (TauRat.exp_term y n).toRat) := by ring
+      rw [h_split]
+      have h_tri := abs_add_le
+        ((TauRat.exp_partial x n).toRat - (TauRat.exp_partial y n).toRat)
+        ((TauRat.exp_term x n).toRat - (TauRat.exp_term y n).toRat)
+      -- Per-term bound at index n.
+      have h_term_diff :
+          |(TauRat.exp_term x n).toRat - (TauRat.exp_term y n).toRat|
+            ≤ |x.toRat - y.toRat| * 4 / (2 : Rat) ^ n := by
+        rcases Nat.eq_zero_or_pos n with hn0 | hn1
+        · subst hn0
+          rw [exp_term_toRat, exp_term_toRat, TauRat.pow_zero, TauRat.pow_zero, toRat_one]
+          have h_eq : (1 : Rat) / (Nat.factorial 0 : Rat) - 1 / (Nat.factorial 0 : Rat) = 0 := by
+            simp [Nat.factorial]
+          rw [h_eq, abs_zero]
+          apply div_nonneg
+          · exact mul_nonneg h_xy_nn (by norm_num)
+          · positivity
+        · exact exp_term_diff_abs_le x y R hR0 hR1 hx hy n hn1
+      have h_pow_pos_n : (0 : Rat) < (2 : Rat) ^ n := by positivity
+      have h_pow_pos_n1 : (0 : Rat) < (2 : Rat) ^ (n + 1) := by positivity
+      have h_pow_succ : (2 : Rat) ^ (n + 1) = 2 * (2 : Rat) ^ n := by ring
+      -- Algebraic combine: ih + h_term_diff ≤ target.
+      -- target_{n+1} - ih = |x-y| · (8 - 8/2^(n+1)) - |x-y| · (8 - 8/2^n)
+      --                  = |x-y| · (8/2^n - 8/2^(n+1))
+      --                  = |x-y| · (8/2^n - 4/2^n)
+      --                  = |x-y| · 4/2^n.
+      -- So we need term_diff ≤ |x-y| · 4/2^n.  ✓.
+      have h_target_diff :
+          |x.toRat - y.toRat| * (8 - 8 / (2 : Rat) ^ (n + 1))
+            - |x.toRat - y.toRat| * (8 - 8 / (2 : Rat) ^ n)
+            = |x.toRat - y.toRat| * 4 / (2 : Rat) ^ n := by
+        rw [h_pow_succ]
+        field_simp
+        ring
+      linarith
+  -- Conclude: 8 - 8/2^n ≤ 8.
+  have h_main := h_strong n
+  have h_pow_pos : (0 : Rat) < (2 : Rat) ^ n := by positivity
+  have h_decr_nn : (0 : Rat) ≤ 8 / (2 : Rat) ^ n :=
+    div_nonneg (by norm_num) (le_of_lt h_pow_pos)
+  have h_le_8 : (8 : Rat) - 8 / (2 : Rat) ^ n ≤ 8 := by linarith
+  have h_xy_mul : |x.toRat - y.toRat| * ((8 : Rat) - 8 / (2 : Rat) ^ n)
+                ≤ |x.toRat - y.toRat| * 8 :=
+    mul_le_mul_of_nonneg_left h_le_8 h_xy_nn
+  linarith [h_main, h_xy_mul]
+
+/-- **`exp` respects Cauchy equivalence on bounded inputs.**
+
+    For `R ≤ 1` and `x, y : TauReal` both `BoundedBy R`, if `equiv x y`
+    then `equiv (exp x hx) (exp y hy)`.
+
+    Proof strategy: refine the input modulus `μ` at level `8·(k+1) − 1`,
+    so past the refined modulus we have `|x.approx n − y.approx n| < 1/(8(k+1))`.
+    Then `|exp_partial(x.approx n) n − exp_partial(y.approx n) n| ≤
+        8 · |x.approx n − y.approx n| < 8 · 1/(8(k+1)) = 1/(k+1)`. -/
+theorem TauReal.exp_congr (x y : TauReal) (R : Rat)
+    (hR0 : 0 ≤ R) (hR1 : R ≤ 1)
+    (hx : TauReal.BoundedBy x R) (hy : TauReal.BoundedBy y R)
+    (h_equiv : TauReal.equiv x y) :
+    TauReal.equiv (TauReal.exp x) (TauReal.exp y) := by
+  obtain ⟨μ, h_mod⟩ := h_equiv
+  refine ⟨fun k => μ (8 * (k + 1) - 1), fun k n hn => ?_⟩
+  have h_base := h_mod (8 * (k + 1) - 1) n hn
+  unfold TauRat.lt at h_base ⊢
+  rw [TauRat.toRat_abs, toRat_sub] at h_base
+  rw [TauRat.toRat_abs, toRat_sub]
+  rw [TauRat.ofNatRecip_toRat] at h_base ⊢
+  show |((TauReal.exp x).approx n).toRat - ((TauReal.exp y).approx n).toRat|
+        < 1 / ((k : Rat) + 1)
+  show |(TauRat.exp_partial (x.approx n) n).toRat
+        - (TauRat.exp_partial (y.approx n) n).toRat|
+        < 1 / ((k : Rat) + 1)
+  have h_diff_bound :=
+    exp_partial_diff_abs_le (x.approx n) (y.approx n) R hR0 hR1 (hx n) (hy n) n
+  -- h_diff_bound : |...| ≤ 8 * |x.approx n .toRat - y.approx n .toRat|
+  have h_refined_eq :
+      (1 : Rat) / ((8 * (k + 1) - 1 : Nat) + 1) = 1 / (8 * ((k : Rat) + 1)) := by
+    have h_nat_eq : (8 * (k + 1) - 1) + 1 = 8 * (k + 1) := by omega
+    have h_cast : ((8 * (k + 1) - 1 : Nat) + 1 : Rat) = 8 * ((k : Rat) + 1) := by
+      rw [show ((8 * (k + 1) - 1 : Nat) + 1 : Rat)
+            = ((8 * (k + 1) - 1 + 1 : Nat) : Rat) by push_cast; ring]
+      rw [h_nat_eq]
+      push_cast; ring
+    rw [h_cast]
+  rw [h_refined_eq] at h_base
+  have h_k1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  have h_8k1_pos : (0 : Rat) < 8 * ((k : Rat) + 1) := by linarith
+  have h_step1 :
+      8 * |(x.approx n).toRat - (y.approx n).toRat|
+        < 8 * (1 / (8 * ((k : Rat) + 1))) := by
+    have : (0 : Rat) < 8 := by norm_num
+    exact mul_lt_mul_of_pos_left h_base this
+  have h_step2 : 8 * (1 / (8 * ((k : Rat) + 1))) = 1 / ((k : Rat) + 1) := by
+    field_simp
+  linarith
+
+-- ============================================================
+-- PART 6.12: EXP NEGATION (Wave R11-1)
+--
+-- `exp(-x) ≡ 1/exp(x)` via the chain
+--   exp(-x) ≡ exp(x).inv · (exp(x) · exp(-x))
+--          ≡ exp(x).inv · exp(x + -x)         [exp_add reverse]
+--          ≡ exp(x).inv · exp(0)              [exp_congr on x + -x ≡ 0]
+--          ≡ exp(x).inv · 1                   [exp_zero]
+--          ≡ exp(x).inv.
+-- For positivity (BoundedAwayFromZero) of exp(x), need R ≤ 1/4.
+-- ============================================================
+
+/-- **`exp(-x) ≡ 1/exp(x)`** for `x` BoundedBy `R ≤ 1/4`.
+
+    The R ≤ 1/4 bound comes from `exp_pos_of_quarter`, which gives the
+    `BoundedAwayFromZero` witness needed by `mul_inv_cancel`. -/
+theorem TauReal.exp_neg (x : TauReal) (R : Rat)
+    (hR0 : 0 ≤ R) (hR4 : R ≤ 1 / 4)
+    (hx : TauReal.BoundedBy x R) :
+    TauReal.equiv (TauReal.exp x.negate) ((TauReal.exp x).inv) := by
+  -- Step 1: deduce -x is BoundedBy R (since |-a| = |a|).
+  have hnx : TauReal.BoundedBy x.negate R := by
+    intro n
+    show |(x.negate.approx n).toRat| ≤ R
+    show |(TauRat.negate (x.approx n)).toRat| ≤ R
+    rw [toRat_negate, abs_neg]
+    exact hx n
+  have hR1 : R ≤ 1 := by linarith
+  -- Step 2: BoundedAwayFromZero for exp(x).  Use exp_pos_of_quarter:
+  --   exp(x) > 0 with witness gap 1/3 past index 1.  So |exp(x).approx n| > 1/3,
+  --   i.e. > 1/(2+1).  Take k = 2, N = 1 in the BoundedAwayFromZero predicate.
+  have h_exp_pos := TauReal.exp_pos_of_quarter x R hR0 hR4 hx
+  have h_exp_baf : (TauReal.exp x).BoundedAwayFromZero := by
+    obtain ⟨k₀, N₀, h_gap⟩ := h_exp_pos
+    refine ⟨k₀, max N₀ 1, fun n hn => ?_⟩
+    have hN : N₀ ≤ n := le_of_max_le_left hn
+    have h := h_gap n hN
+    -- h : (zero.approx n .toRat + 1/(k₀+1)) < (exp x).approx n .toRat
+    -- Want: 1/(k₀+1) < |(exp x).approx n .toRat|
+    unfold TauRat.lt at h ⊢
+    rw [TauRat.ofNatRecip_toRat, TauRat.toRat_abs]
+    rw [toRat_add, TauRat.ofNatRecip_toRat] at h
+    -- (zero.approx n).toRat = 0
+    have h_zero : (TauReal.zero.approx n).toRat = 0 := by
+      show (TauRat.zero).toRat = 0; rw [toRat_zero]
+    rw [h_zero] at h
+    -- h : 0 + 1/(k₀+1) < (exp x).approx n .toRat, so the value is positive.
+    have h_pos : 0 < ((TauReal.exp x).approx n).toRat := by
+      have h_recip_pos : (0 : Rat) < 1 / ((k₀ : Rat) + 1) := by
+        have : (0 : Rat) < (k₀ : Rat) + 1 := by
+          have : (0 : Rat) ≤ (k₀ : Rat) := by exact_mod_cast Nat.zero_le k₀
+          linarith
+        exact div_pos (by norm_num) this
+      linarith
+    rw [abs_of_pos h_pos]
+    linarith
+  -- Step 3: use exp_add (with both BoundedBy R), then exp_congr to fold x + -x → 0.
+  have h_exp_add :=
+    TauReal.exp_add x x.negate R hR0 hR1 hx hnx
+  -- h_exp_add : equiv (exp(x + -x)) (exp(x) · exp(-x))
+  -- Step 4: x + -x ≡ 0 (kernel ring axiom).
+  have h_add_neg_zero := taureal_add_negate x
+  -- h_add_neg_zero : equiv (x + -x) 0
+  -- Step 5: exp_congr on x + -x and 0 (need BoundedBy R for both).
+  have h_xnx_bounded : TauReal.BoundedBy (x.add x.negate) R := by
+    -- |(x + -x).approx n .toRat| = |x.toRat + -x.toRat| = |0| = 0 ≤ R.
+    intro n
+    show |((x.add x.negate).approx n).toRat| ≤ R
+    show |((x.approx n).add (x.negate.approx n)).toRat| ≤ R
+    rw [toRat_add]
+    show |((x.approx n).toRat + (x.negate.approx n).toRat)| ≤ R
+    show |((x.approx n).toRat + (TauRat.negate (x.approx n)).toRat)| ≤ R
+    rw [toRat_negate]
+    have h_zero : (x.approx n).toRat + -((x.approx n).toRat) = 0 := by ring
+    rw [h_zero, abs_zero]
+    exact hR0
+  have h_zero_bounded : TauReal.BoundedBy TauReal.zero R := by
+    intro n
+    show |(TauReal.zero.approx n).toRat| ≤ R
+    show |(TauRat.zero).toRat| ≤ R
+    rw [toRat_zero, abs_zero]
+    exact hR0
+  have h_exp_xnx_to_exp_zero :=
+    TauReal.exp_congr (x.add x.negate) TauReal.zero R hR0 hR1
+      h_xnx_bounded h_zero_bounded h_add_neg_zero
+  -- h_exp_xnx_to_exp_zero : equiv (exp(x + -x)) (exp 0)
+  -- Step 6: exp(0) ≡ 1 (existing).
+  have h_exp_zero := TauReal.exp_zero
+  -- Combine: exp(x) · exp(-x) ≡ exp(x + -x) ≡ exp(0) ≡ 1.
+  have h_prod_eq_one :
+      TauReal.equiv ((TauReal.exp x).mul (TauReal.exp x.negate)) TauReal.one := by
+    refine TauReal.equiv_trans (TauReal.equiv_symm h_exp_add) ?_
+    exact TauReal.equiv_trans h_exp_xnx_to_exp_zero h_exp_zero
+  -- Step 7: chain to exp(-x) ≡ exp(x).inv.
+  -- exp(-x) ≡ 1 · exp(-x)  (one_mul, sym)
+  --        ≡ (exp(x).inv · exp(x)) · exp(-x)  (inv_mul_cancel, sym)
+  --        ≡ exp(x).inv · (exp(x) · exp(-x))  (assoc)
+  --        ≡ exp(x).inv · 1   (mul_resp_equiv with h_prod_eq_one and exp(x).inv bounded)
+  --        ≡ exp(x).inv  (mul_one)
+  -- For "≡ exp(x).inv · 1" we use mul_respects_equiv on exp(x).inv · _.
+  -- Need exp(x).inv to be bounded.  Since exp(x) ≥ 1/2 past index 1, exp(x).inv ≤ 2.
+  have h_inv_bound : ∀ n,
+      ((TauReal.exp x).inv.approx n).abs.toRat ≤ (2 : Nat) := by
+    intro n
+    -- Bound exp(x).inv at every n.
+    by_cases h_nz : ((TauReal.exp x).approx n).is_nonzero
+    · -- nonzero branch: exp(x).inv = TauRat.inv (exp(x).approx n).
+      have h_inv_eq : (TauReal.exp x).inv.approx n = TauRat.inv ((TauReal.exp x).approx n) h_nz := by
+        show (if h : ((TauReal.exp x).approx n).is_nonzero
+              then TauRat.inv ((TauReal.exp x).approx n) h
+              else TauRat.one) = TauRat.inv ((TauReal.exp x).approx n) h_nz
+        rw [dif_pos h_nz]
+      rw [h_inv_eq]
+      -- |exp_partial(x.approx n) n .inv| = 1 / |exp_partial(x.approx n) n|
+      -- For n ≥ 1, exp_partial ≥ 1/2, so |inv| ≤ 2.  For n = 0, exp_partial = 0, but h_nz.
+      rw [TauRat.toRat_abs, toRat_inv]
+      rcases Nat.eq_zero_or_pos n with hn0 | hn1
+      · -- n = 0: (exp x).approx 0 = exp_partial (x.approx 0) 0 = sum 0 = 0.
+        --  But h_nz says it's nonzero — that's actually a contradiction at n=0.
+        --  exp_partial x 0 = TauRat.zero by exp_partial_zero, and TauRat.zero is NOT is_nonzero.
+        subst hn0
+        exfalso
+        apply (TauRat.is_nonzero_iff_toRat_ne_zero _).mp h_nz
+        show (TauRat.exp_partial (x.approx 0) 0).toRat = 0
+        rw [TauRat.exp_partial_zero, toRat_zero]
+      · -- n ≥ 1: use exp_partial_pos_of_quarter to get exp_partial ≥ 1/2.
+        have h_lb := exp_partial_pos_of_quarter (x.approx n) R hR0 hR4 (hx n) n hn1
+        -- h_lb : 1/2 ≤ (exp_partial (x.approx n) n).toRat
+        have h_val_pos : 0 < ((TauReal.exp x).approx n).toRat := by
+          show 0 < (TauRat.exp_partial (x.approx n) n).toRat; linarith
+        have h_inv_pos : 0 < ((TauReal.exp x).approx n).toRat⁻¹ := inv_pos.mpr h_val_pos
+        rw [abs_of_pos h_inv_pos]
+        -- 1 / value ≤ 2 since value ≥ 1/2.
+        have h_two_nat_eq : (((2 : Nat) : Rat)) = 2 := by norm_num
+        rw [h_two_nat_eq]
+        rw [show ((TauReal.exp x).approx n).toRat⁻¹
+              = 1 / ((TauReal.exp x).approx n).toRat from by rw [one_div]]
+        rw [div_le_iff₀ h_val_pos]
+        -- Goal: 1 ≤ 2 · value, since value ≥ 1/2.
+        show (1 : Rat) ≤ 2 * (TauRat.exp_partial (x.approx n) n).toRat
+        linarith
+    · -- nonzero-fail branch: exp(x).inv = TauRat.one, abs.toRat = 1 ≤ 2.
+      have h_inv_eq : (TauReal.exp x).inv.approx n = TauRat.one := by
+        show (if h : ((TauReal.exp x).approx n).is_nonzero
+              then TauRat.inv ((TauReal.exp x).approx n) h
+              else TauRat.one) = TauRat.one
+        rw [dif_neg h_nz]
+      rw [h_inv_eq]
+      show (TauRat.one).abs.toRat ≤ (2 : Nat)
+      rw [TauRat.toRat_abs, toRat_one, abs_one]; norm_num
+  -- Now apply mul_respects_equiv_right_of_bound to substitute the right side.
+  -- Goal: equiv (exp(x).inv · (exp(x) · exp(-x))) (exp(x).inv · 1)
+  -- Equivalent via commutativity to: equiv ((exp(x) · exp(-x)) · exp(x).inv) (1 · exp(x).inv)
+  have h_substituted_swap :
+      TauReal.equiv (((TauReal.exp x).mul (TauReal.exp x.negate)).mul (TauReal.exp x).inv)
+                     (TauReal.one.mul (TauReal.exp x).inv) :=
+    TauReal.mul_respects_equiv_right_of_bound _ _ _ 2 (by norm_num) h_inv_bound h_prod_eq_one
+  -- Build the chain:
+  -- exp(-x) ≡ 1 · exp(-x)   [taureal_one_mul, sym]
+  have step1 : TauReal.equiv (TauReal.exp x.negate) (TauReal.one.mul (TauReal.exp x.negate)) :=
+    TauReal.equiv_symm (taureal_one_mul (TauReal.exp x.negate))
+  -- 1 ≡ exp(x).inv · exp(x)
+  have step2_inner : TauReal.equiv ((TauReal.exp x).inv.mul (TauReal.exp x)) TauReal.one :=
+    TauReal.inv_mul_cancel (TauReal.exp x) h_exp_baf
+  -- 1 · exp(-x) ≡ (exp(x).inv · exp(x)) · exp(-x)
+  -- Apply mul_respects_equiv_right_of_bound with c = exp(-x), need exp(-x) bounded.
+  have h_expnx_bound : ∀ n, ((TauReal.exp x.negate).approx n).abs.toRat ≤ (3 : Nat) := by
+    intro n
+    -- Convert .abs.toRat → |.toRat| via TauRat.toRat_abs.
+    rw [TauRat.toRat_abs]
+    have h_two_nat : ((3 : Nat) : Rat) = 3 := by norm_num
+    rw [h_two_nat]
+    -- Goal now: |((TauReal.exp x.negate).approx n).toRat| ≤ 3
+    -- Unfold (TauReal.exp x.negate).approx n = exp_partial (x.negate.approx n) n.
+    show |(TauRat.exp_partial (x.negate.approx n) n).toRat| ≤ 3
+    -- And x.negate.approx n = TauRat.negate (x.approx n).
+    show |(TauRat.exp_partial (TauRat.negate (x.approx n)) n).toRat| ≤ 3
+    rcases Nat.eq_zero_or_pos n with hn0 | hn1
+    · subst hn0; rw [TauRat.exp_partial_zero, toRat_zero, abs_zero]; norm_num
+    · -- n ≥ 1: use exp_partial bounds with -x.
+      have h_neg_bound : |(TauRat.negate (x.approx n)).toRat| ≤ R := by
+        rw [toRat_negate, abs_neg]; exact hx n
+      rcases Nat.eq_zero_or_pos (n - 1) with h_n_minus_one | _
+      · -- n = 1: exp_partial _ 1 = 1.
+        have h_n_eq_1 : n = 1 := by omega
+        subst h_n_eq_1
+        show |(TauRat.exp_partial (TauRat.negate (x.approx 1)) 1).toRat| ≤ 3
+        rw [show (TauRat.exp_partial (TauRat.negate (x.approx 1)) 1).toRat = 1 from by
+            show (TauRat.sum (TauRat.exp_term _) 1).toRat = 1
+            rw [TauRat.sum_succ, TauRat.sum_zero, toRat_add, toRat_zero,
+                exp_term_toRat, TauRat.pow_zero, toRat_one]
+            simp [Nat.factorial]]
+        rw [abs_one]; norm_num
+      · -- n ≥ 2: use both upper and lower bounds.
+        have hn2 : 2 ≤ n := by omega
+        have h_lb_neg := exp_partial_ge_one_plus_x_sub_R (TauRat.negate (x.approx n)) R hR0 hR1 h_neg_bound n hn2
+        have h_ub_neg := exp_partial_le_one_plus_x_add_R (TauRat.negate (x.approx n)) R hR0 hR1 h_neg_bound n hn2
+        rw [toRat_negate] at h_lb_neg h_ub_neg
+        have hxn_R : -R ≤ (x.approx n).toRat ∧ (x.approx n).toRat ≤ R := by
+          have h_abs := hx n
+          exact ⟨(abs_le.mp h_abs).1, (abs_le.mp h_abs).2⟩
+        have h_pos : 0 < (TauRat.exp_partial (TauRat.negate (x.approx n)) n).toRat := by
+          have : 1 - 2 * R ≤ (TauRat.exp_partial (TauRat.negate (x.approx n)) n).toRat := by
+            linarith [h_lb_neg, hxn_R.2]
+          linarith
+        rw [abs_of_pos h_pos]
+        linarith [h_ub_neg, hxn_R.1]
+  have step3 :
+      TauReal.equiv (TauReal.one.mul (TauReal.exp x.negate))
+                    (((TauReal.exp x).inv.mul (TauReal.exp x)).mul (TauReal.exp x.negate)) := by
+    -- Apply mul_resp_equiv_right with substituting 1 → exp(x).inv · exp(x), c = exp(-x).
+    -- But mul_resp expects equiv a b first.  Actually we want
+    --   substitute LEFT factor: 1 → exp(x).inv · exp(x).
+    -- mul_respects_equiv_right_of_bound (a b c : TauReal) substitutes a → b on the left.
+    refine TauReal.mul_respects_equiv_right_of_bound _ _ _ 3 (by norm_num) h_expnx_bound ?_
+    exact TauReal.equiv_symm step2_inner
+  -- assoc: (exp(x).inv · exp(x)) · exp(-x) ≡ exp(x).inv · (exp(x) · exp(-x))
+  have step4 :
+      TauReal.equiv (((TauReal.exp x).inv.mul (TauReal.exp x)).mul (TauReal.exp x.negate))
+                    ((TauReal.exp x).inv.mul ((TauReal.exp x).mul (TauReal.exp x.negate))) :=
+    taureal_mul_assoc _ _ _
+  -- Use h_substituted_swap (already built): we have equiv on the swap form, need to rebuild.
+  -- Actually the swap form is: ((exp(x) · exp(-x)) · exp(x).inv) ≡ (1 · exp(x).inv).
+  -- Convert using commutativity.
+  have step5 :
+      TauReal.equiv ((TauReal.exp x).inv.mul ((TauReal.exp x).mul (TauReal.exp x.negate)))
+                    ((TauReal.exp x).inv.mul TauReal.one) := by
+    -- Need: equiv a · b a · c via commutativity to b · a c · a, apply h_substituted_swap, swap back.
+    -- Or rebuild via mul_respects_equiv with the existing inv-bound.
+    -- A cleaner route: chain through commutativity.
+    -- exp(x).inv · (exp(x) · exp(-x)) ≡ (exp(x) · exp(-x)) · exp(x).inv (comm)
+    -- (exp(x) · exp(-x)) · exp(x).inv ≡ 1 · exp(x).inv  (h_substituted_swap)
+    -- 1 · exp(x).inv ≡ exp(x).inv · 1 (comm)
+    refine TauReal.equiv_trans (taureal_mul_comm _ _) ?_
+    refine TauReal.equiv_trans h_substituted_swap ?_
+    exact taureal_mul_comm _ _
+  -- exp(x).inv · 1 ≡ exp(x).inv (mul_one)
+  have step6 : TauReal.equiv ((TauReal.exp x).inv.mul TauReal.one) (TauReal.exp x).inv :=
+    taureal_mul_one (TauReal.exp x).inv
+  -- Chain: exp(-x) → 1 · exp(-x) → (inv · exp(x)) · exp(-x) → inv · (exp(x) · exp(-x)) → inv · 1 → inv.
+  exact TauReal.equiv_trans step1
+        (TauReal.equiv_trans step3
+          (TauReal.equiv_trans step4
+            (TauReal.equiv_trans step5 step6)))
 
 -- ============================================================
 -- PART 7: SMOKE TESTS
