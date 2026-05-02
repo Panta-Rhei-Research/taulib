@@ -486,6 +486,169 @@ private theorem nat_one_le_endpoint_product
   nlinarith [mul_nonneg (by linarith : (0 : Int) ≤ (i : Int) - 1)
                         (by linarith : (0 : Int) ≤ ((n : Int) - 1) - (i : Int))]
 
+/-- **Alternating-Mercator Cauchy-product bound (Wave R12-1b headline).**
+
+    Tighter analogue of `cauchy_product_bound` for series whose `i = 0`
+    coefficient vanishes and whose nonzero terms decay like `C/(i·2^i)`
+    (the alternating-Mercator shape, e.g. `log_term u`).
+
+    The convolution-gap bound is `4·C²/2^n` — pure exponential decay,
+    no polynomial-in-n factor (the polynomial cancels because Mercator's
+    `1/i` weights AM-GM-cancel against the row count via the endpoint
+    bound `i·(n-i) ≥ n-1`). Used by Wave R12-2 to prove the
+    `exp ∘ log = id` round-trip for `|u| ≤ 1/2`. -/
+theorem TauRat.alternating_mercator_cauchy_product_bound
+    (a b : Nat → TauRat) (C : Rat) (hC : 0 < C)
+    (h_a0 : (a 0).toRat = 0)
+    (h_a : ∀ i, 1 ≤ i → |(a i).toRat| ≤ C / ((i : Rat) * (2 : Rat) ^ i))
+    (h_b : ∀ j, 1 ≤ j → |(b j).toRat| ≤ C / ((j : Rat) * (2 : Rat) ^ j))
+    (n : Nat) (hn : 2 ≤ n) :
+    |(TauRat.sum a n).toRat * (TauRat.sum b n).toRat
+       - (TauRat.cauchyPStar a b n).toRat|
+      ≤ 4 * C ^ 2 / (2 : Rat) ^ n := by
+  -- (1) Row identity (same as cauchy_product_bound)
+  have h_row_id :
+      (TauRat.sum a n).toRat * (TauRat.sum b n).toRat
+        - (TauRat.cauchyPStar a b n).toRat =
+      ∑ i ∈ Finset.range n,
+        (a i).toRat * ((TauRat.sum b n).toRat - (TauRat.sum b (n - i)).toRat) := by
+    rw [cauchyPStar_toRat_eq_row_sums, sum_toRat_eq_finset,
+        rat_finset_sum_mul n (fun i => (a i).toRat) (TauRat.sum b n).toRat]
+    simp_rw [mul_sub, ← Finset.sum_sub_distrib]
+  rw [h_row_id]
+  -- (2) Triangle inequality
+  have h_tri := rat_abs_finset_sum_le
+    (fun i => (a i).toRat * ((TauRat.sum b n).toRat - (TauRat.sum b (n - i)).toRat)) n
+  refine h_tri.trans ?_
+  simp_rw [abs_mul]
+  -- (3a) i = 0 row: vanishes via h_a0
+  have h_zero_row :
+      |(a 0).toRat| * |(TauRat.sum b n).toRat - (TauRat.sum b (n - 0)).toRat|
+        = 0 := by
+    rw [h_a0, abs_zero, zero_mul]
+  -- (3b) Per-row bound for 1 ≤ i ≤ n-1: ≤ 2C²/((n-1)·2^n)
+  -- (n - 1) is positive since hn : 2 ≤ n.
+  have hn1 : 1 ≤ n - 1 := by omega
+  have h_n1_pos : (0 : Rat) < ((n - 1 : Nat) : Rat) := by
+    exact_mod_cast hn1
+  have h_pow_n_pos : (0 : Rat) < (2 : Rat) ^ n := by positivity
+  have hC_nn : (0 : Rat) ≤ C := hC.le
+  have h_row_bound : ∀ i ∈ Finset.Ico 1 n,
+      |(a i).toRat| * |(TauRat.sum b n).toRat - (TauRat.sum b (n - i)).toRat|
+      ≤ 2 * C ^ 2 / (((n - 1 : Nat) : Rat) * (2 : Rat) ^ n) := by
+    intro i hi
+    have hi_lo : 1 ≤ i := (Finset.mem_Ico.mp hi).1
+    have hi_lt : i < n := (Finset.mem_Ico.mp hi).2
+    have hi_hi : i ≤ n - 1 := by omega
+    have hni_lo : 1 ≤ n - i := by omega
+    -- Inner sum: |sumFromTo b (n-i) n| ≤ 2C/((n-i)·2^(n-i)) via ratMercatorTail_le
+    have h_sft_eq :
+        (TauRat.sum b n).toRat - (TauRat.sum b (n - i)).toRat =
+        (TauRat.sumFromTo b (n - i) n).toRat :=
+      TauRat.sum_sub_toRat_eq_sumFromTo b (n - i) n (by omega)
+    rw [h_sft_eq]
+    have h_abs_sft : |(TauRat.sumFromTo b (n - i) n).toRat|
+        ≤ (TauRat.sumFromTo (fun k => (b k).abs) (n - i) n).toRat :=
+      TauRat.sumFromTo_abs_le b (n - i) n
+    have h_upper : (n - i) + i = n := by omega
+    have h_finset_eq :
+        (TauRat.sumFromTo (fun k => (b k).abs) (n - i) n).toRat
+          = ∑ j ∈ Finset.range i, |(b ((n - i) + j)).toRat| := by
+      have := sumFromTo_abs_toRat_eq_finset b (n - i) i
+      rw [h_upper] at this
+      exact this
+    rw [h_finset_eq] at h_abs_sft
+    -- Per-term bound: |b((n-i)+j)| ≤ C/((n-i+j)·2^(n-i+j)) for j ∈ range i
+    -- (since n-i ≥ 1, so (n-i)+j ≥ 1)
+    have h_bj_bound : ∀ j ∈ Finset.range i,
+        |(b ((n - i) + j)).toRat|
+          ≤ C / ((((n - i) + j : Nat) : Rat) * (2 : Rat) ^ ((n - i) + j)) := by
+      intro j _
+      exact h_b ((n - i) + j) (by omega)
+    have h_sum_le := Finset.sum_le_sum h_bj_bound
+    -- Mercator tail: sum ≤ 2C/((n-i)·2^(n-i))
+    have h_mercator := ratMercatorTail_le C hC_nn (n - i) hni_lo i
+    have h_tail : (∑ j ∈ Finset.range i, |(b ((n - i) + j)).toRat|)
+        ≤ 2 * C / (((n - i : Nat) : Rat) * (2 : Rat) ^ (n - i)) :=
+      h_sum_le.trans h_mercator
+    have h_inner_bound : |(TauRat.sumFromTo b (n - i) n).toRat|
+        ≤ 2 * C / (((n - i : Nat) : Rat) * (2 : Rat) ^ (n - i)) :=
+      h_abs_sft.trans h_tail
+    -- Outer: |a i| ≤ C/(i·2^i)
+    have h_ai := h_a i hi_lo
+    -- Combine: (C/(i·2^i)) · (2C/((n-i)·2^(n-i))) = 2C²/(i·(n-i)·2^n)
+    have h_abs_nn : (0 : Rat) ≤ |(TauRat.sumFromTo b (n - i) n).toRat| :=
+      _root_.abs_nonneg _
+    have hi_pos : (0 : Rat) < (i : Rat) := by exact_mod_cast hi_lo
+    have hni_pos : (0 : Rat) < ((n - i : Nat) : Rat) := by exact_mod_cast hni_lo
+    have h_pow_i_pos : (0 : Rat) < (2 : Rat) ^ i := by positivity
+    have h_pow_ni_pos : (0 : Rat) < (2 : Rat) ^ (n - i) := by positivity
+    have h_outer_nn : (0 : Rat) ≤ C / ((i : Rat) * (2 : Rat) ^ i) := by positivity
+    have h_combined : |(a i).toRat| * |(TauRat.sumFromTo b (n - i) n).toRat|
+          ≤ (C / ((i : Rat) * (2 : Rat) ^ i))
+              * (2 * C / (((n - i : Nat) : Rat) * (2 : Rat) ^ (n - i))) :=
+      mul_le_mul h_ai h_inner_bound h_abs_nn h_outer_nn
+    refine h_combined.trans ?_
+    -- Algebraic simplification: (C/(i·2^i)) · (2C/((n-i)·2^(n-i)))
+    --                         = 2C²/((i·(n-i))·2^n)
+    have h_pow_split : (2 : Rat) ^ n = (2 : Rat) ^ i * (2 : Rat) ^ (n - i) := by
+      rw [← pow_add]; congr 1; omega
+    have h_num_eq : (C / ((i : Rat) * (2 : Rat) ^ i))
+                  * (2 * C / (((n - i : Nat) : Rat) * (2 : Rat) ^ (n - i)))
+                = 2 * C ^ 2
+                  / (((i : Rat) * ((n - i : Nat) : Rat)) * (2 : Rat) ^ n) := by
+      rw [h_pow_split]
+      field_simp
+    rw [h_num_eq]
+    -- Final monotonicity: 2C²/((i·(n-i))·2^n) ≤ 2C²/((n-1)·2^n)
+    -- via (n-1) ≤ i·(n-i), both denominators positive
+    have h_endpoint : (n - 1 : Nat) ≤ i * (n - i) :=
+      nat_one_le_endpoint_product hi_lo hi_hi hn
+    have h_endpoint_R : ((n - 1 : Nat) : Rat) ≤ (i : Rat) * ((n - i : Nat) : Rat) := by
+      have h_cast : ((i * (n - i) : Nat) : Rat) = (i : Rat) * ((n - i : Nat) : Rat) := by
+        push_cast; ring
+      rw [← h_cast]; exact_mod_cast h_endpoint
+    have h_2C2_nn : (0 : Rat) ≤ 2 * C ^ 2 := by positivity
+    have h_lhs_denom_pos : (0 : Rat) <
+        ((i : Rat) * ((n - i : Nat) : Rat)) * (2 : Rat) ^ n := by positivity
+    have h_rhs_denom_pos : (0 : Rat) <
+        ((n - 1 : Nat) : Rat) * (2 : Rat) ^ n := by positivity
+    have h_denom_le : ((n - 1 : Nat) : Rat) * (2 : Rat) ^ n
+                       ≤ ((i : Rat) * ((n - i : Nat) : Rat)) * (2 : Rat) ^ n :=
+      mul_le_mul_of_nonneg_right h_endpoint_R h_pow_n_pos.le
+    exact div_le_div_of_nonneg_left h_2C2_nn h_rhs_denom_pos h_denom_le
+  -- (4) Sum split: range n = insert 0 (Ico 1 n)
+  have h_n_split : Finset.range n = insert 0 (Finset.Ico 1 n) := by
+    ext k
+    simp only [Finset.mem_range, Finset.mem_insert, Finset.mem_Ico]
+    omega
+  have h_zero_not_mem : (0 : Nat) ∉ Finset.Ico 1 n := by
+    simp [Finset.mem_Ico]
+  rw [h_n_split, Finset.sum_insert h_zero_not_mem]
+  -- The (i=0) summand `|a 0| * |...|` equals 0 by h_zero_row
+  have h_zero_row' :
+      |(a 0).toRat| * |(TauRat.sum b n).toRat - (TauRat.sum b (n - 0)).toRat|
+        = 0 := h_zero_row
+  rw [h_zero_row', zero_add]
+  -- Now bound the Ico 1 n sum
+  have h_sum_ico := Finset.sum_le_sum h_row_bound
+  refine h_sum_ico.trans ?_
+  -- Sum of (n-1) constant terms each ≤ 2C²/((n-1)·2^n) = 2C²/2^n
+  rw [Finset.sum_const]
+  have h_card : (Finset.Ico 1 n).card = n - 1 := by
+    rw [Nat.card_Ico]
+  rw [h_card, nsmul_eq_mul]
+  -- (n-1 : Rat) · (2C²/((n-1)·2^n)) = 2C²/2^n
+  have h_simp : ((n - 1 : Nat) : Rat) * (2 * C ^ 2
+                  / (((n - 1 : Nat) : Rat) * (2 : Rat) ^ n))
+                = 2 * C ^ 2 / (2 : Rat) ^ n := by
+    field_simp
+  rw [h_simp]
+  -- 2C²/2^n ≤ 4C²/2^n via 2 ≤ 4
+  have h_C2_nn : (0 : Rat) ≤ C ^ 2 := by positivity
+  rw [div_le_div_iff_of_pos_right h_pow_n_pos]
+  linarith [h_C2_nn]
+
 end CauchyConvolution
 
 end Tau.Boundary
