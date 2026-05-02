@@ -8,7 +8,7 @@
 {%- assign release_metric = site.data.release.current.metrics | where: "id", include.id | first -%}
 {%- if release_metric -%}
   {%- if include.unit -%}
-    {{- release_metric.display_value -}} {{ release_metric.unit -}}
+    {{- release_metric.display_value }} {{ release_metric.unit -}}
   {%- else -%}
     {{- release_metric.display_value -}}
   {%- endif -%}
