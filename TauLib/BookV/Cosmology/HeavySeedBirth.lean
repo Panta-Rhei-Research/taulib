@@ -838,15 +838,14 @@ theorem t_lrd_1_upper_cutoff_tau_real_witnessed :
     upper_cutoff_statement.is_tau_distinctive = true ∧
     |((f_iota_TauReal.approx 1).toRat) - (2773 : Rat) / 10000| ≤ 1 / 5 := by
   refine ⟨rfl, upper_cutoff_statement.width_within_n15_prior, rfl, ?_⟩
-  -- TODO(Wave R13+ continuation): replace this `native_decide` with a derivation
-  -- from `f_iota_TauReal_approx_uniform_convergence` (Wave R10-2 uniform Cauchy
-  -- bound) instantiated at k = 4 (giving 1/5 tolerance). The numerical fact
-  -- discharged here (|48/121 - 2773/10000| = 144467/1210000 ≈ 0.1194 ≤ 1/5)
-  -- is identical to the now-deprecated `f_iota_TauReal_approx_within_rat_bound`
-  -- above; both reduce to the same Rat-arithmetic computation. Replacing this
-  -- single remaining `native_decide` requires an `f_iota_TauReal.IsCauchy`
-  -- → concrete-N witness lemma that is itself ~30-50 lines of helper work,
-  -- itemised separately for follow-up.
+  -- TODO(Wave R14-E follow-up): replace this `native_decide` with kernel-checked
+  -- reduction. Wave R14-E attempted the obvious route (`decide` + `norm_num`)
+  -- but the kernel does not reduce `(f_iota_TauReal.approx 1).toRat` to `48/121`
+  -- via definitional equality — only the native compiler does the deep reduction.
+  -- A manual unfolding script (~50 lines: unfold `f_iota_TauReal`,
+  -- `iota_tau_TauReal`, `TauReal.sqrt` Newton step, `TauReal.mul.approx`, then
+  -- `simp` on the resulting Rat expression) is required for a fully
+  -- kernel-checked discharge. Itemised for follow-up.
   native_decide
 
 -- ============================================================
