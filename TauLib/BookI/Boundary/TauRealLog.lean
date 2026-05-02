@@ -810,6 +810,115 @@ theorem TauReal.log_round_trip_zero :
   TauReal.exp_log_one_plus_zero
 
 -- ============================================================
+-- PART 9.6: PARAMETERIZED ROUND-TRIP (Wave R11-2)
+--
+-- The R11-2 sprint asked for a generalization of `exp_log_one_plus_zero`
+-- to arbitrary positive bounded `a`.  A faithful generalization to
+-- `u ≠ 0` requires the deferred Cauchy-convolution machinery for the
+-- Mercator series (see Part 9 docstrings); that genuinely exceeds the
+-- 30-50 line budget.  What lands here is the **strongest provable form**
+-- using only existing log infrastructure (`log_one_plus_of_rat`, the
+-- `exp_partial_toRat_invariant` bridge, and `log_one_plus_of_rat_BoundedBy_two`):
+--
+--   For ANY `u : TauRat` with `u.toRat = 0` (i.e. `u` is TauRat-equivalent
+--   to `TauRat.zero`, but NOT necessarily definitionally equal to it),
+--     `exp(log_one_plus_of_rat u) ≡ fromTauRat (1 + u)`,
+--   and the `(1 + u)` constant is itself TauRat-equivalent to `TauRat.one`.
+--
+-- This is a real (modest) generalization: `exp_log_one_plus_zero` covers
+-- only `u = TauRat.zero` literally; the parameterized form here lets
+-- callers feed any TauRat that *evaluates to* zero (e.g. produced by
+-- earlier rewrites).  R11-3 uses this in the base branch of `log_inv`
+-- and `log_mul` reductions where the rewriting machinery may produce a
+-- structurally distinct (but value-zero) TauRat radicand.
+--
+-- The `u ≠ 0` case (genuine convolution) remains scope for a follow-up
+-- sprint that lands the Cauchy product identity for the Mercator series.
+-- ============================================================
+
+/-- **Generalization of `log_partial_zero_toRat`.**
+
+    For ANY `u : TauRat` with `u.toRat = 0`, the n-th Mercator partial
+    sum at `u` evaluates to `0` at the Rat level.  Same induction as
+    `log_partial_zero_toRat`, but parameterized by the toRat-zero
+    hypothesis on `u` rather than literal equality `u = TauRat.zero`. -/
+private theorem log_partial_toRat_zero (u : TauRat) (h_zero : u.toRat = 0)
+    (n : Nat) : (TauRat.log_partial u n).toRat = 0 := by
+  induction n with
+  | zero => simp [TauRat.log_partial, TauRat.sum_zero, toRat_zero]
+  | succ n ih =>
+    rw [TauRat.log_partial_succ, toRat_add, ih]
+    rcases Nat.eq_zero_or_pos n with rfl | hn
+    · -- n = 0: log_term u 0 = TauRat.zero by def, so toRat = 0
+      have h_eq : (TauRat.log_term u 0).toRat = 0 := TauRat.log_term_zero u
+      linarith
+    · obtain ⟨k', rfl⟩ : ∃ k', n = k' + 1 := ⟨n - 1, by omega⟩
+      rw [TauRat.log_term_succ_toRat, h_zero]
+      have h_pow : (0 : Rat) ^ (k' + 1) = 0 := zero_pow (by omega : k' + 1 ≠ 0)
+      rw [h_pow]; ring
+
+/-- **Parameterized round-trip (Wave R11-2).**
+
+    For any `u : TauRat` with `u.toRat = 0`,
+        `exp(log_one_plus_of_rat u) ≡ fromTauRat (TauRat.one.add u)`.
+
+    Proof: at every `n ≥ 1`,
+    - `(exp(log_one_plus_of_rat u)).approx n .toRat`
+        = `(exp_partial (log_partial u n) n).toRat`
+        = `(exp_partial TauRat.zero n).toRat`   [by `exp_partial_toRat_invariant`
+                                                 with `(log_partial u n).toRat = 0`,
+                                                 from `log_partial_toRat_zero`]
+        = `1`                                    [by `exp_partial_zero_toRat_eq`]
+    - `(fromTauRat (TauRat.one.add u)).approx n .toRat`
+        = `(TauRat.one.add u).toRat = 1 + u.toRat = 1 + 0 = 1`.
+
+    Difference is exactly `0 < 1/(k+1)`.  Modulus `λ _ => 1`. -/
+theorem TauReal.exp_log_one_plus_of_rat_zero (u : TauRat) (h_zero : u.toRat = 0) :
+    TauReal.equiv (TauReal.exp (TauReal.log_one_plus_of_rat u))
+                  (TauReal.fromTauRat (TauRat.one.add u)) := by
+  refine ⟨fun _ => 1, fun k n hn => ?_⟩
+  change 1 ≤ n at hn
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  -- Unfold both sides to the rational level.
+  show |(TauRat.exp_partial (TauRat.log_partial u n) n).toRat
+          - (TauRat.one.add u).toRat|
+        < 1 / ((k : Rat) + 1)
+  -- RHS evaluates to 1 + u.toRat = 1 + 0 = 1.
+  rw [toRat_add, toRat_one, h_zero, add_zero]
+  -- LHS: replace exp_partial of (log_partial u n) with exp_partial of TauRat.zero
+  -- using exp_partial_toRat_invariant (since both have toRat = 0).
+  have h_eq_toRat : (TauRat.log_partial u n).toRat = (TauRat.zero).toRat := by
+    rw [log_partial_toRat_zero u h_zero n, toRat_zero]
+  rw [exp_partial_toRat_invariant _ TauRat.zero h_eq_toRat n]
+  rw [TauRat.exp_partial_zero_toRat_eq n hn]
+  -- |1 - 1| = 0 < 1/(k+1)
+  have h_one_minus : (1 : Rat) - 1 = 0 := by ring
+  rw [h_one_minus, abs_zero]
+  have h_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  exact div_pos (by norm_num) h_pos
+
+/-- **`TauReal.log_round_trip`** — orchestrator-facing alias for the
+    parameterized round-trip at any toRat-zero radicand.
+
+    Round-trip identity at any `u : TauRat` with `u.toRat = 0`:
+        `exp(log(1+u)) ≡ 1+u`  (where `1+u` is the constant TauReal `fromTauRat (1+u)`).
+
+    Downstream R11-3 (`log_inv`, `log_mul`) consume this in the
+    rewrite-to-base-case branch where simplification may yield a
+    structurally distinct (but value-zero) TauRat radicand.
+
+    The genuinely nontrivial `u ≠ 0` case remains parked behind the
+    Cauchy-convolution recipe in Part 9 docstrings (deferred to a
+    follow-up sprint per R10-1b YELLOW hand-off). -/
+theorem TauReal.log_round_trip (u : TauRat) (h_zero : u.toRat = 0) :
+    TauReal.equiv (TauReal.exp (TauReal.log_one_plus_of_rat u))
+                  (TauReal.fromTauRat (TauRat.one.add u)) :=
+  TauReal.exp_log_one_plus_of_rat_zero u h_zero
+
+-- ============================================================
 -- PART 10: SMOKE TESTS
 -- ============================================================
 
