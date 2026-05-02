@@ -465,9 +465,26 @@ private theorem ratMercatorTail_le
   rw [h_eq]
   exact mul_le_mul_of_nonneg_left h_geom (by positivity)
 
--- (Endpoint-product bound `i·(n-i) ≥ n-1` for i ∈ [1, n-1], n ≥ 2:
--- deferred to the headline theorem, where it can be inlined with Int-lift +
--- nlinarith after the proof's specific Nat hypotheses are in scope.)
+/-- Endpoint-product bound: `i·(n-i) ≥ n-1` for `i ∈ [1, n-1], n ≥ 2`.
+    Concavity of `i ↦ i·(n-i)` on `[1, n-1]`; minimum value `n-1` at endpoints.
+    Proof: lift both sides to `Int` via `zify` with the hypotheses making
+    `Nat.cast_sub` rewrites unambiguous, then close with `nlinarith` on the
+    factored form `(i-1)·(n-1-i) ≥ 0` (both factors nonneg in the regime). -/
+private theorem nat_one_le_endpoint_product
+    {i n : Nat} (hi_lo : 1 ≤ i) (hi_hi : i ≤ n - 1) (hn : 2 ≤ n) :
+    n - 1 ≤ i * (n - i) := by
+  have hi_le_n : i ≤ n := by omega
+  have h_n_pos : 1 ≤ n := by omega
+  have hni_pos : 1 ≤ n - i := by omega
+  zify [hi_le_n, h_n_pos]
+  -- Goal: ((n : Int) - 1) ≤ (i : Int) * ((n : Int) - (i : Int))
+  -- Use (i - 1) * ((n - 1) - i) ≥ 0 to derive (since i ≥ 1 and i ≤ n-1)
+  have hi_int : (1 : Int) ≤ (i : Int) := by exact_mod_cast hi_lo
+  have hi_hi_int : (i : Int) ≤ ((n : Int) - 1) := by
+    have h_eq : ((n - 1 : Nat) : Int) = (n : Int) - 1 := by omega
+    rw [← h_eq]; exact_mod_cast hi_hi
+  nlinarith [mul_nonneg (by linarith : (0 : Int) ≤ (i : Int) - 1)
+                        (by linarith : (0 : Int) ≤ ((n : Int) - 1) - (i : Int))]
 
 end CauchyConvolution
 
