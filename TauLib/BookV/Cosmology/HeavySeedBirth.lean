@@ -1236,15 +1236,33 @@ def t_lrd_1_witness : VTLRD1Main where
       2017);
     - Halo spin-parameter log-normal hypothesis (Bullock 2001).
 
-    Scope: τ-effective. Status: SKELETON (sub-theorem witnesses
-    encoded as structural identities on `Nat`-scaled carriers;
+    Scope: τ-effective. Status: SKELETON-with-B-substantiated
+    (sub-theorem witnesses encoded as structural identities on
+    `Nat`-scaled carriers, plus sub-claim B numerically witnessed
+    at TauReal level via `f_iota_TauReal_approx_uniform_convergence`;
     the physics derivation chains live in the
     `TODO(V.T-LRD-1 wave)` markers attached to each sub-theorem
     and in research-notes/V-T-LRD-1-derivation.md).
 
     Trust budget impact: NONE (no new custom axioms; all
-    sub-theorem proofs are `rfl`/`omega` on structural
-    identities). -/
+    sub-theorem proofs are `rfl`/`omega` on structural identities,
+    or — for sub-claim B — `f_iota_TauReal_approx_uniform_convergence`
+    via `f_iota_TauReal.IsCauchy`).
+
+    **Wave R10 + Wave R11 sub-claim status table (2026-05-02):**
+
+    | Sub-claim | Carrier (Nat) | Substantiation | Wave |
+    |-----------|---------------|----------------|------|
+    | A (lower cutoff at 10^4.5 M_☉) | ✓ `m_min_e3_x10 = 316` | structural skeleton (orthodox-imported) | Wave R12+ |
+    | B (upper cutoff at 10^6.5 M_☉) | ✓ `m_max_e6_x10 = 32` | **TauReal-witnessed** via `t_lrd_1_upper_cutoff_tau_real_witnessed` + `f_iota_TauReal_approx_uniform_convergence` | Wave R9-2B + Wave R10-2 |
+    | C (flat interior shape, ≤ 0.3 slope) | ✓ `max_abs_slope_x100 ≤ 30` | structural skeleton (Sheth-Tormen convolution + slope bound deferred — needs `log_inv` + `log_mul`, blocked on Cauchy-Mercator convolution per Wave R11-2 YELLOW finding) | Wave R12+ |
+    | D (sharp transition, ≤ 1.5 dex composite) | ✓ `transition_width_x100 = 150` | structural skeleton with **paper-aligned ≤ 1.5 dex composite carrier** (R7 Specialist F two-mechanism reconciliation, paper-Lean coordination CLOSED) | Wave R10-4 |
+
+    **Wave R11 closure context:**
+    - R11-1 landed `exp_congr` + `exp_neg` (TauRealExp.lean — Lipschitz continuity through equiv + multiplicative inverse). PR #91, commit `2eba1f6`.
+    - R11-2 YELLOW: tightened `log_one_plus_of_rat_BoundedBy_one` + parameterized `log_round_trip` at `u.toRat = 0`. PR #92, commit `a001c9d`. General `log_round_trip` for u ≠ 0 requires Cauchy-Mercator convolution (~300-500 lines), deferred to Wave R12.
+    - R11-3 (general `log_inv` + `log_mul`) BLOCKED on R11-2's Cauchy-Mercator wall; deferred to Wave R12.
+    - This docstring annotation is R11-4 — **documentation-only ROOT V.T-LRD-1 substantiation status**, no new theorem (per pre-registered R4 risk-gate fallback to avoid over-claiming with C/A still skeletons). -/
 theorem t_lrd_1_main :
     t_lrd_1_witness.lower.m_min_e3_x10 = 316 ∧
     t_lrd_1_witness.upper.m_max_e6_x10 = 32 ∧
