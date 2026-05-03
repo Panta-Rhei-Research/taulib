@@ -4,12 +4,37 @@ import TauLib.BookI.Boundary.SplitComplex
 /-!
 # TauLib.BookI.Boundary.Iota
 
-The master constant iota_tau and the B/C ratio convergence framework.
+The master constant iota_tau in its **fiat decimal form** —
+the Nat-decidable witness representation used by ~35 BookIV/V/Tour
+files for `decide` / `native_decide` physics-calibration checks.
+
+## Two coexisting representations of iota_tau
+
+Wave 4 of the TauReal infrastructure refactor (`TauRealIotaTau.lean`)
+shipped a **structural** form `TauReal.iota_tau := 2 / (TauReal.pi + TauReal.e)`
+with the defining identity `TauReal.iota_tau_mul_pi_plus_e_eq_two`
+fully proven. The B1.0a callsite audit at
+`atlas/audits/taulib/2026-05-03-iota-tau-callsite-audit.md` confirms
+that **the two forms coexist as a documented dual-representation
+pattern**, not a fiat-to-replace-with-structural migration:
+
+| Form | Type | Use case | Module |
+|---|---|---|---|
+| `iota_tau_numer / iota_tau_denom` (this module) | `Nat / Nat` | Nat-decidable finite-witness checks for physics calibrations (162 callsites across 35 files) | this file |
+| `TauReal.iota_tau` | `TauReal` | Theorem-cited identities; the Cauchy-completion class | `TauRealIotaTau.lean` |
+| `iota_tau_float` (this module) | `Float` | `#eval` demonstrations | this file |
+
+The fiat decimal `0.341304` is a **6-decimal truncation** of the true
+ι_τ = 2/(π+e) = 0.341304238875… (numerical error < 3 × 10⁻⁷).
+A formal numerical-bridge theorem
+(`TauReal.iota_tau_numerical_bridge`) is the Phase 4 / B1.0b
+deliverable in `TauRealIotaTau.lean`.
 
 ## Registry Cross-References
 
-- [I.D01] Master Constant — `iota_tau_numer`, `iota_tau_denom`, `iota_tau_float`
-- [I.D28] Boundary Local Ring — B/C ratio, `bc_ratio`
+- [I.D01]    Master Constant — `iota_tau_numer`, `iota_tau_denom`, `iota_tau_float` (this module, fiat form)
+- [I.D-IotaTau-Structural] `TauReal.iota_tau` (TauRealIotaTau.lean, structural form)
+- [I.D28]    Boundary Local Ring — B/C ratio, `bc_ratio`
 
 ## Ground Truth Sources
 - chunk_0015_M000074: iota_tau = 2/(pi + e), foundational constant
@@ -25,8 +50,9 @@ ratio of B-dominant to C-dominant primes. This module provides:
 3. **Convergence axiom stub**: the B/C ratio converges to iota_tau
    (the formal proof requires analytic number theory beyond current scope)
 
-The constant iota_tau is NOT defined as a real number (TauReal is deferred to
-Book II). Instead we work with the rational approximation and Float evaluation.
+For the **structural** Cauchy-completion form of iota_tau (used by
+theorem-cited identities rather than Nat-decidable witnesses), see
+`TauLib/BookI/Boundary/TauRealIotaTau.lean`.
 -/
 
 namespace Tau.Boundary
@@ -37,10 +63,17 @@ open Tau.Denotation Tau.Polarity
 -- MASTER CONSTANT: RATIONAL APPROXIMATION
 -- ============================================================
 
-/-- Numerator of iota_tau rational approximation (6 decimal places). -/
+/-- Numerator of iota_tau rational approximation (6 decimal places).
+
+    See `TauReal.iota_tau` in `TauRealIotaTau.lean` for the structural
+    Cauchy-completion form. The numerical-bridge theorem
+    `TauReal.iota_tau_numerical_bridge` (Phase 4 / B1.0b) formally
+    documents that this fiat decimal is within < 3 × 10⁻⁷ of the
+    structural form. -/
 def iota_tau_numer : Nat := 341304
 
-/-- Denominator of iota_tau rational approximation. -/
+/-- Denominator of iota_tau rational approximation. See `iota_tau_numer`
+    docstring for the cross-reference to the structural form. -/
 def iota_tau_denom : Nat := 1000000
 
 /-- iota_tau denominator is positive. -/
