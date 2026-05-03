@@ -250,6 +250,116 @@ theorem cylinder_isOpen_in_metric_topology (k c : TauIdx) :
     rw [← hy]
     exact metric_ball_subset_cylinder hk_pos y
 
+-- ============================================================
+-- PART 5 (B1.4c.3b): Reverse direction — metric balls are cylinder-open
+-- ============================================================
+
+/-- **Every metric ball is open in the cylinder topology**.
+
+    This is the **reverse direction** of the topology agreement.
+    Combined with B1.4c.3a's `cylinder_isOpen_in_metric_topology`,
+    this lemma establishes that the cylinder topology and the metric
+    topology coincide on `TauProfinite`.
+
+    **Proof strategy**: for each `y ∈ Metric.ball x ε`, set
+    `δ := ε - dist y x > 0`. By the Archimedean property
+    (`pow_unbounded_of_one_lt`), find `k ≥ 1` with `1/2^k < δ`. Then
+    `V := cylinder 0 (y.proj 0) ∩ cylinder k (y.proj k)` is a
+    cylinder-open neighborhood of `y` (intersection of two basic
+    opens), and by B1.4c.2's `cylinder_inter_subset_ball` plus the
+    triangle inequality, `V ⊆ Metric.ball x ε`. -/
+theorem metric_ball_isOpen_in_cylinder_topology (x : TauProfinite) (ε : ℝ) :
+    @IsOpen TauProfinite TauProfinite.instTopologicalSpace
+      (Metric.ball x ε) := by
+  rw [@isOpen_iff_forall_mem_open TauProfinite TauProfinite.instTopologicalSpace]
+  intro y hy
+  rw [Metric.mem_ball] at hy
+  -- hy : dist y x < ε
+  set δ : ℝ := ε - dist y x with hδ_def
+  have hδ_pos : 0 < δ := by simp [δ]; linarith
+  -- Archimedean: find k₀ with 1/δ < 2^k₀
+  obtain ⟨k₀, hk₀⟩ := pow_unbounded_of_one_lt (1 / δ) (by norm_num : (1 : ℝ) < 2)
+  -- Take k := max 1 k₀ to ensure k ≥ 1 (needed for cylinder_inter_subset_ball)
+  let k : ℕ := max 1 k₀
+  have hk_pos : 1 ≤ k := le_max_left _ _
+  have hk_ge_k₀ : k₀ ≤ k := le_max_right _ _
+  have h_pow_pos : (0 : ℝ) < 2 ^ k := by positivity
+  have h_pow_le : (2 : ℝ) ^ k₀ ≤ 2 ^ k := by
+    apply pow_le_pow_right₀ (by norm_num : (1 : ℝ) ≤ 2) hk_ge_k₀
+  have h_inv : (1 : ℝ) / 2 ^ k < δ := by
+    have h1 : (1 : ℝ) / δ < 2 ^ k := lt_of_lt_of_le hk₀ h_pow_le
+    rw [div_lt_iff₀ h_pow_pos]
+    rw [div_lt_iff₀ hδ_pos] at h1
+    linarith
+  -- The cylinder neighborhood
+  refine ⟨cylinder 0 (y.proj 0) ∩ cylinder k (y.proj k), ?_, ?_, ?_⟩
+  · -- V ⊆ Metric.ball x ε
+    intro z hz
+    have hz_in_ball : z ∈ Metric.ball y ((1 : ℝ) / 2 ^ k) :=
+      cylinder_inter_subset_ball hk_pos y hz
+    rw [Metric.mem_ball] at hz_in_ball
+    rw [Metric.mem_ball]
+    -- dist z x ≤ dist z y + dist y x < 1/2^k + dist y x < δ + dist y x = ε
+    have h_tri : dist z x ≤ dist z y + dist y x := dist_triangle z y x
+    linarith
+  · -- V is open in cylinder topology (intersection of two cylinders)
+    exact (isOpen_cylinder 0 (y.proj 0)).inter (isOpen_cylinder k (y.proj k))
+  · -- y ∈ V (trivially)
+    refine ⟨?_, ?_⟩
+    · rw [mem_cylinder]
+    · rw [mem_cylinder]
+
+-- ============================================================
+-- PART 6 (B1.4c.3): Full topology equality
+-- ============================================================
+
+/-- **The cylinder topology equals the metric topology on `TauProfinite`**.
+
+    This is the **culmination** of B1.4b + B1.4c.1+2 + B1.4c.3a+3b:
+    the inverse-limit cylinder topology (Wave 50,
+    `TopologicalSpace.generateFrom cylinderBasis`) and the
+    canonical-ultrametric metric topology (B1.4,
+    `MetricSpace.toUniformSpace.toTopologicalSpace`) coincide on
+    `TauProfinite`.
+
+    **Manuscript context**: per `book-02/part02/ch10-ultrametric-depth.tex`
+    Prop II.P04 (ll. 302-321), the cylinder and metric descriptions
+    are TWO CHARACTERIZATIONS OF ONE TOPOLOGY (cylinders ARE balls:
+    `C_k(x) = closed-ball(x, 2^(-k)) = open-ball(x, 2^(-(k-1)))`).
+    This theorem makes that identification formal. The shorter proof
+    via Theorem II.T10 (Topology Uniqueness) requires
+    `CompactSpace TauProfinite`, which is queued as **B1.5c.6** —
+    we will revisit Path B as a cross-check theorem after that lands.
+
+    **Proof**: by `TopologicalSpace.ext_iff_isOpen` (or `le_antisymm`),
+    using B1.4c.3a (cylinder topology ≤ metric topology — every
+    cylinder is metric-open) and B1.4c.3b (metric topology ≤ cylinder
+    topology — every metric ball is cylinder-open). The metric
+    topology is `generateFrom { Metric.ball x ε | x, ε }` (basic
+    opens are balls), so showing every cylinder is metric-open and
+    every metric ball is cylinder-open establishes equality at the
+    basis level. -/
+theorem cylinder_topology_eq_metric_topology :
+    (TauProfinite.instTopologicalSpace : TopologicalSpace TauProfinite) =
+      TauProfinite.instMetricSpace.toPseudoMetricSpace.toUniformSpace.toTopologicalSpace := by
+  apply le_antisymm
+  · -- cylinder ≤ metric: every metric-open set is cylinder-open
+    -- (Mathlib convention: t₁ ≤ t₂ means every t₂-open is t₁-open, i.e., t₁ is finer)
+    intro U hU_metric
+    rw [@isOpen_iff_forall_mem_open TauProfinite TauProfinite.instTopologicalSpace]
+    intro y hy
+    rw [@Metric.isOpen_iff TauProfinite TauProfinite.instMetricSpace.toPseudoMetricSpace] at hU_metric
+    obtain ⟨ε, hε_pos, hball_sub⟩ := hU_metric y hy
+    refine ⟨Metric.ball y ε, hball_sub, ?_, Metric.mem_ball_self hε_pos⟩
+    exact metric_ball_isOpen_in_cylinder_topology y ε
+  · -- metric ≤ cylinder: every cylinder-open set is metric-open
+    -- The cylinder topology is generated by cylinderBasis (Wave 50 definition)
+    rw [show (TauProfinite.instTopologicalSpace : TopologicalSpace TauProfinite) =
+        TopologicalSpace.generateFrom cylinderBasis from rfl]
+    rw [TopologicalSpace.le_generateFrom_iff_subset_isOpen]
+    rintro S ⟨k, c, rfl⟩
+    exact cylinder_isOpen_in_metric_topology k c
+
 end TauProfinite
 
 end Tau.Boundary
