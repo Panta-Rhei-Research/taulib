@@ -1,8 +1,47 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.4b + B1.4.5 spec + B1.5a/b substrate landed; B1.4c + B1.5c queued — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0i status update (2026-05-05)
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.4b/B1.4c.1+2 + B1.4.5 spec + B1.5a/b/c.1 substrate landed; B1.4c.3+ + B1.5c.1b+ queued — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0j status update (2026-05-05)
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-05 update (B1.4c.1+2 + B1.5c.1 substrate landed):**
+> Two more sub-PRs landed on origin/main today, continuing the
+> strict-discipline incremental progression:
+>
+> - **B1.4c.1+2** (TauLib PR #121 → `eacf615`): completes the
+>   bidirectional cylinder-ball correspondence via
+>   `metric_ball_one_subset_cylinder_zero` (depth-0 forward) +
+>   `cylinder_inter_subset_ball` (the reverse direction:
+>   `cylinder 0 (x.proj 0) ∩ cylinder k (x.proj k) ⊆ Metric.ball x (1/2^k)`).
+>   ~97 LOC, 2 named theorems.
+>
+> - **B1.5c.1** (TauLib PR #123 → `3a4c1da`): named anchor for the
+>   Finset-indexed cylinder partition —
+>   `validSubcylinderCenters k c : Finset TauIdx` enumerates
+>   stage-(k+1) refining centers, plus `validSubcylinderCenters_mod`
+>   (coherence with parent: `c' % primorial k = c`). ~110 LOC,
+>   1 def + 1 named theorem.
+>
+> **Strict-discipline observations from this session**:
+> - The CI `--expected-sorry 0` correctly blocked an exploratory
+>   sorry write during B1.5c.1 setup.
+> - The companion upper-bound lemma `validSubcylinderCenters_lt`
+>   was attempted but hit repeated tactic-elaboration issues
+>   (`ring` failed on `Nat`; `linarith`/`trans_le` couldn't unify
+>   multiplication terms). Honestly queued as B1.5c.1b.
+> - Same pattern: ship what builds 0-sorry; queue the rest.
+>
+> **B1.4c.3+ queued**: the topology equality lemma
+> (`cylinder_topology_eq_metric_topology`) + the
+> `MetricSpace.replaceTopology`-wrapped instance. The bidirectional
+> correspondence (B1.4b + B1.4c.1+2) is the substrate; lifting to
+> topology equality + applying `replaceTopology` is the work.
+>
+> **B1.5c.1b+ queued**: upper-bound lemma + partition equality +
+> n-ary pigeonhole + recursive Classical.choose chain + limit
+> extraction + Alexander subbasis assembly. All needed for the
+> full `CompactSpace TauProfinite` instance. Substantial focused
+> follow-up work, multi-iteration.
 
 > **2026-05-05 update (B1.4b forward topology-agreement substrate
 > landed):** TauLib PR #119 (commit `55ef51f`) ships the **forward
