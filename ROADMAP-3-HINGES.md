@@ -1,13 +1,24 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed (B1.0 + B1.1) — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0b status update (2026-05-03)
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0c status update (2026-05-03)
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
 
-> **2026-05-03 update:** Phase 0 is closed via Workstream B1.0a + B1.0b
-> (callsite audit + asymptotic Cauchy-stability bridge), and Phase 4
-> via Workstream B1.1 (concrete-K numerical certificate at K=50,
-> ε=1/1000). See §4 status block + the B1 dossier
+> **2026-05-03 update:** Five Workstream B1 waves landed today on
+> origin/main:
+> - **B1.0a + B1.0b** (Phase 0): callsite audit + asymptotic
+>   Cauchy-stability bridge (`TauReal.iota_tau_isCauchy`).
+> - **B1.1** (Phase 4): concrete-K numerical certificate at K=50,
+>   ε=1/1000 (`TauReal.iota_tau_numerical_certificate`).
+> - **B1.2** (Phase 2A partial): hyperfactorization (B,C,D)
+>   ∃!-form conditional uniqueness
+>   (`hyperfactorization_uniqueness_BCD`). A-uniqueness queued as B1.2c.
+> - **B1.3** (Phase 2B partial): prime polarity Prop-level dichotomy +
+>   Bool↔Prop bridges (6 theorems in new `LegendreClassifier.lean`).
+>   Full Dirichlet density `1/2` queued as B1.3c (requires Mathlib
+>   analytic-NT bridge).
+>
+> See §4 status block + the B1 dossier
 > [`atlas/audits/taulib/2026-05-03-foundations-bridges-state-of-the-union.md`](https://github.com/Panta-Rhei-Research/atlas/blob/main/audits/taulib/2026-05-03-foundations-bridges-state-of-the-union.md)
 > for the current state and the proposed 9-wave continuation.
 
@@ -337,16 +348,42 @@ Build once, reuse three times:
 Each phase delivers the Prop-level theorems replacing the current
 Boolean verifiers.
 
+> **Status update (2026-05-03, Workstream B1):**
+> Phase 2A and Phase 2B are **partially closed** via B1.2 + B1.3
+> respectively (see header status block + the B1 atlas dossier).
+>
+> - **B1.2** ✓ — TauLib PR #108 (commit `512bf66`):
+>   `hyperfactorization_uniqueness_BCD : ∃! bcd, IsHyperfactWitness x a bcd.1 bcd.2.1 bcd.2.2 v`
+>   in `BookI/Coordinates/HyperfactProp.lean`. Closes the
+>   **conditional uniqueness** half of paper I.T04 — given
+>   `(x, a, v)` is fixed, `(B, C, D)` is uniquely determined.
+> - **B1.3** ✓ — TauLib PR #107 (commit `bbef12e`): new
+>   `BookI/Polarity/LegendreClassifier.lean` with 6 named theorems
+>   (Prop-level dichotomy `prime_polarity_dichotomy` + Bool↔Prop
+>   bridges `partition_check_iff` / `b_class_witness_iff` /
+>   `c_class_witness_iff` + disjointness + exhaustiveness).
+> - **B1.2c** queued — A-uniqueness (proving `A` = `largest_prime_divisor x`)
+>   requires interaction with `largest_prime_divisor`, ~150-300 LOC.
+>   Not currently blocking any consumer — Wave 6's `IsHyperfactWitness`
+>   already pins (A, V) pre-condition for all uses.
+> - **B1.3c** queued — full Dirichlet density `1/2` theorem
+>   (`b_density_one_half`) requires Mathlib analytic-NT bridge;
+>   policy decision pending per dossier §4.5 + §B1.4.
+
 **Phase 2A — Hyperfactorization** (~500-700 lines):
 - `theorem hyperfactorization : ∀ x ≥ 2, ∃! abcd, ValidABCD x abcd`
 - Uses existing `no_tie` + `Descent` + strong induction
 - Deliverable module: `BookI/Coordinates/Hyperfact.lean` upgrade
+- **2026-05-03 status**: B1.2 (above) closes the conditional-on-(A,V)
+  half; full unconditional `∃! abcd` queued as B1.2c.
 
 **Phase 2B — Prime Polarity Route B** (~500-600 lines):
 - New `BookI/Polarity/LegendreClassifier.lean` (mod-8 classifier)
 - Dichotomy theorem (Prop-level, replacing `partition_check` Bool)
 - Density theorem (partial — density = 1/2 via Dirichlet-in-AP from
   mathlib; density→ι_τ identification deferred to Phase 3)
+- **2026-05-03 status**: B1.3 (above) closes the dichotomy +
+  Bool↔Prop bridge half; full Dirichlet density queued as B1.3c.
 
 **Phase 2C — iota-tau Steps 1-10** (~1280 lines):
 - Crossing-point defect germ construction (Steps 4-5)
