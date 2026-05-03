@@ -1,8 +1,14 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Strategic planning phase
-**Version:** v1.0 (2026-04-21)
+**Status:** Phase 0 (ι_τ structural) closed — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0a status update (2026-05-03)
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-03 update:** Phase 0 is closed via Workstream B1.0a + B1.0b
+> (callsite audit + asymptotic Cauchy-stability bridge). See §4 status
+> block + the B1 dossier
+> [`atlas/audits/taulib/2026-05-03-foundations-bridges-state-of-the-union.md`](https://github.com/Panta-Rhei-Research/atlas/blob/main/audits/taulib/2026-05-03-foundations-bridges-state-of-the-union.md)
+> for the current state and the proposed 9-wave continuation.
 
 ---
 
@@ -125,6 +131,43 @@ breaks a potential circular dependency.
 ---
 
 ## 4. Phase 0 — Detailed Plan (based on TauReal audit)
+
+> **Status update (2026-05-03, Workstream B1):**
+> Phase 0 is **closed in two halves** — see
+> [`atlas/audits/taulib/2026-05-03-foundations-bridges-state-of-the-union.md`](https://github.com/Panta-Rhei-Research/atlas/blob/main/audits/taulib/2026-05-03-foundations-bridges-state-of-the-union.md)
+> and the B1 atlas dossier.
+>
+> - **B1.0a** ✓ — Callsite audit + dual-representation pattern documented.
+>   Atlas: [`audits/taulib/2026-05-03-iota-tau-callsite-audit.md`](https://github.com/Panta-Rhei-Research/atlas/blob/main/audits/taulib/2026-05-03-iota-tau-callsite-audit.md).
+>   TauLib PR #103 (commit `8bd68ce`) — docstring enrichment on
+>   `Iota.lean` ↔ `TauRealIotaTau.lean` documenting that the **fiat**
+>   form (`iota_tau_numer/iota_tau_denom`, 162 callsites) and the
+>   **structural** form (`TauReal.iota_tau := 2/(π+e)`) coexist by
+>   design — not a fiat-to-replace migration.
+> - **B1.0b** ✓ — Asymptotic bridge theorem
+>   `TauReal.iota_tau_isCauchy` (TauLib PR #104) certifying that
+>   the structural form is a well-defined element of the TauReal
+>   Cauchy completion. Pure composition of existing IsCauchy
+>   infrastructure (`IsCauchy_mul`, `IsCauchy_inv`, `IsCauchy_add`,
+>   `pi_isCauchy`, `e_isCauchy`, `pi_plus_e_boundedAwayFromZero`).
+>   No partial-sum evaluation; no new sorry / axioms.
+> - **B1.0c** queued (opt-in) — Tighten the bridge to a concrete
+>   numerical bound `|iota_tau − 341304/1000000| < 3 × 10⁻⁷` via
+>   direct partial-sum evaluation. Requires K ≥ 30 000 Leibniz pairs
+>   for π's convergence rate (or an accelerated π series). **Not
+>   currently blocking** any downstream consumer — per the B1.0a
+>   audit, all 162 `decide`/`native_decide` callsites use the fiat
+>   `Nat/Nat` directly. Pick up only when a downstream theorem
+>   actually needs the tighter formal bound.
+>
+> The structural `TauReal.pi`, `TauReal.e`, `TauReal.iota_tau`
+> definitions and the defining identity
+> `iota_tau · (π+e) ≡ 2` (`TauReal.iota_tau_mul_pi_plus_e_eq_two`)
+> were all delivered in Waves 3b/3c/3d/4 of the TauReal infrastructure
+> refactor (origin/main, pre-B1.0). The detailed P0.1–P0.4 sub-task
+> structure below was the v1.0 strategic plan; the actual landings
+> took a slightly different shape (Cauchy machinery instead of
+> direct-sequence avoidance), but achieve the same end state.
 
 ### 4.1 Goal
 
