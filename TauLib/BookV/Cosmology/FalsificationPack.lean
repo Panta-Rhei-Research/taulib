@@ -286,6 +286,66 @@ def pred_no_transplanckian : TestablePrediction where
   currently_testable := false
 
 -- ============================================================
+-- WAVE R15 N15 ENTRIES — V.T90 + V.T-EHT (DUAL ANGULAR FALSIFIER)
+-- ============================================================
+-- TestablePrediction instances. The N16 + N17 ledger entries in
+-- corpus/registry/ are the canonical source; these are the Lean
+-- companions that bind to the new theorems in JetCollimation.lean.
+
+/-- N16 (Q8): Sgr A* outflow opening half-angle ≤ 20° (V.T90 application).
+
+    V.T90 Jet Collimation Theorem topological upper bound:
+      θ_jet ≤ arcsin(ι_τ) ≈ 19.96°
+
+    Anchor paper: Yusef-Zadeh et al. 2023, ApJL 949:L31, reports
+    nominal half-opening angle θ ≈ 20° for Sgr A*'s degree-scale
+    in-plane outflow. Sits at the τ-framework's topological ceiling.
+
+    Caveats per Wave R15 Specialist α (1.5/5 observational rating):
+    (i) the 20° is a NOMINAL model-fit value adopted in §4.3 to close
+    ram-pressure balance, not a directly imaged opening angle;
+    (ii) bar-orbit alternative (Wallace+2022) not defeated by the
+    paper, only dismissed by scale-extrapolation;
+    (iii) Sgr A* exhibits TWO distinct outflow geometries (in-plane
+    vs vertical bipolar bubbles), τ-framework needs to specify
+    which V.T90 applies to. -/
+def pred_sgra_outflow_angle : TestablePrediction where
+  name := "Q8 (N16): Sgr A* outflow opening half-angle <= 20° (V.T90)"
+  level := .Quantitative
+  description :=
+    "V.T90 Jet Collimation: theta_jet <= arcsin(iota_tau) ~ 19.96°. " ++
+    "Falsifier: outflow opening half-angle measured > 25° at jet base " ++
+    "refutes V.T110 + topological bound."
+  status := "Currently testable: VLBI/MeerKAT measurements ongoing."
+  currently_testable := true
+
+/-- N17 (Q9): EHT inner shadow at viewing inclinations ι ∈ [30°, 50°]
+    (V.T-EHT application).
+
+    V.T-EHT predicts: at ι < ι_crit = arccos(ι_τ) ≈ 70.04° from polar
+    axis, a SECOND smaller dark region appears at the center of the
+    bright photon ring. No analogue in S² (Schwarzschild/Kerr).
+
+    M87* (i ~17°) and Sgr A* (i ~30°) both within visible regime per
+    V.T-EHT. Currently UNADDRESSED in published EHT analyses (Chael+2021
+    inner shadow is topologically distinct Kerr+MAD-disk feature).
+    Distinguishable from Chael via inclination dependence: V.T-EHT has
+    sharp cutoff at ι > 70°; Chael has eccentricity that grows with ι.
+
+    ngEHT Phase 2 (early 2030s) is threshold instrument for definitive
+    discrimination. Re-imaging of existing EHT data with inner-shadow
+    methodology (Chael+2021 framework) provides first-pass test. -/
+def pred_eht_inner_shadow : TestablePrediction where
+  name := "Q9 (N17): EHT inner shadow at iota in [30°, 50°] (V.T-EHT)"
+  level := .Quantitative
+  description :=
+    "V.T-EHT: inner shadow visible for iota < arccos(iota_tau) ~ 70°. " ++
+    "Falsifier: high-quality EHT image at iota in [30°, 50°] showing NO " ++
+    "inner shadow refutes V.T95 + V.T110."
+  status := "Testable with EHT 2024+ runs (M87*, Sgr A*) at deeper depth."
+  currently_testable := true
+
+-- ============================================================
 -- ASSEMBLED FALSIFICATION PACKAGE
 -- ============================================================
 
@@ -295,7 +355,8 @@ def falsification_package : FalsificationLevels where
                  pred_cgw_equals_c, pred_no_gw_echoes]
   quantitative := [pred_electron_mass, pred_grav_constant, pred_tensor_scalar,
                    pred_lrd_lower_cutoff, pred_lrd_upper_cutoff,
-                   pred_lrd_flat_shape, pred_lrd_sharp_transition]
+                   pred_lrd_flat_shape, pred_lrd_sharp_transition,
+                   pred_sgra_outflow_angle, pred_eht_inner_shadow]
   frontier := [pred_torus_shadow, pred_discreteness, pred_no_transplanckian]
   has_structural := by native_decide
   has_quantitative := by native_decide
@@ -305,20 +366,20 @@ def falsification_package : FalsificationLevels where
 theorem structural_count :
     falsification_package.structural.length = 4 := by native_decide
 
-/-- 7 quantitative predictions (3 prior + 4 V.T-LRD-1 sub-theorems
-    from Wave R7 N15 entries). -/
+/-- 9 quantitative predictions (3 prior + 4 V.T-LRD-1 sub-theorems
+    from Wave R7 N15 entries + 2 V.T90/V.T-EHT entries from Wave R15). -/
 theorem quantitative_count :
-    falsification_package.quantitative.length = 7 := by native_decide
+    falsification_package.quantitative.length = 9 := by native_decide
 
 /-- 3 frontier predictions. -/
 theorem frontier_count :
     falsification_package.frontier.length = 3 := by native_decide
 
-/-- Total: 14 testable predictions (4 + 7 + 3). -/
+/-- Total: 16 testable predictions (4 + 9 + 3). -/
 theorem total_predictions :
     falsification_package.structural.length +
     falsification_package.quantitative.length +
-    falsification_package.frontier.length = 14 := by native_decide
+    falsification_package.frontier.length = 16 := by native_decide
 
 -- ============================================================
 -- SCOPE NOTE: CMB PREDICTIONS [V.R243]
