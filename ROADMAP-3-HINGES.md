@@ -1,8 +1,32 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4 MetricSpace landed; B1.4.5 compactness spec landed; B1.5 will follow τ-native pigeonhole — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0f status update (2026-05-05)
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4 MetricSpace + B1.4.5 spec + B1.5a substrate landed; B1.5b queued — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0g status update (2026-05-05)
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-05 update (B1.5a substrate scaffolding landed):** TauLib
+> module `BookI/Boundary/Bridge/TauProfiniteCompactness.lean` ships
+> the named substrate for the τ-native König-like pigeonhole proof
+> of `CompactSpace TauProfinite`:
+> - `FinitelyCoverable` predicate — the contradiction lever the
+>   pigeonhole proof propagates through the chain.
+> - `not_finitelyCoverable_of_union` — the binary pigeonhole helper
+>   (if `S ∪ T` not finitely coverable, then `S` or `T` is not).
+> - `univ_subset_iUnion_cylinder` — the depth-`k` cylinder cover of
+>   `Set.univ` that the proof refines.
+> - 4 supporting lemmas (`finitelyCoverable_empty`,
+>   `finitelyCoverable_of_subset`, two `_of_union_left/right`).
+> - All proofs land **0 sorry** (the strict CI invariant correctly
+>   rejected an earlier scaffolding attempt that included a
+>   placeholder `sorry`).
+>
+> **B1.5b queued**: the full `CompactSpace TauProfinite` instance
+> via the recursive `Classical.choose` chain of non-coverable
+> subcylinders + tower-coherence + limit-point extraction
+> (Steps 3-6 of Remark `[II.R01]`). Estimated ~200-300 LOC of
+> careful Lean — better as a focused dedicated wave than a rushed
+> single-PR push. The B1.5a substrate provides all the named anchors
+> B1.5b will compose.
 
 > **2026-05-05 update (B1.4.5 canonical compactness spec landed):**
 > Atlas dossier
