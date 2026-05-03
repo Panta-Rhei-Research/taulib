@@ -1,4 +1,6 @@
 import TauLib.BookI.Boundary.TauRealPiPlusE
+import TauLib.BookI.Boundary.Bridge.TauRealQuotient
+import TauLib.BookI.Boundary.Bridge.TauRealQuotientField
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.LinearCombination
 import Mathlib.Tactic.NormNum
@@ -21,8 +23,14 @@ an honest element of the Cauchy completion.
 - [I.D119]   (π + e) BoundedAwayFromZero (Wave 3d)
 - [I.D-IotaTau-Structural]   `TauReal.iota_tau` (Wave 4 — this module)
 - [I.T-IotaTau-DefiningId]   `iota_tau · (π + e) ≡ 2` (Wave 4 — this module)
-- [I.T-IotaTau-NumericalBridge]   `|iota_tau − 341304/1000000| < 1/10⁶`
-                                   (Phase 4 / B1.0b — pending follow-up commit)
+- [I.D-IotaTau-Fiat-TauRat]  `TauRat.iota_tau_fiat = 341304/1000000`
+                              (Phase 0 / B1.0b — this module, PART 4)
+- [I.T-IotaTau-IsCauchy]     `TauReal.iota_tau.IsCauchy` — asymptotic
+                              bridge (Phase 0 / B1.0b — this module, PART 5)
+- [I.T-IotaTau-NumericalBridge]   `|iota_tau − 341304/1000000| < 3×10⁻⁷`
+                                   (Phase 0c / B1.0c — opt-in follow-up;
+                                    requires direct partial-sum evaluation
+                                    or accelerated π series)
 
 Cross-reference docs:
 - `atlas/audits/taulib/2026-05-03-iota-tau-callsite-audit.md` —
@@ -183,5 +191,67 @@ theorem TauReal.iota_tau_mul_pi_plus_e_eq_two :
     have : (0 : Rat) < (k : Rat) + 1 := by linarith
     exact div_pos (by norm_num) this
   linarith
+
+-- ============================================================
+-- PART 4: THE FIAT DECIMAL AS A TAU-RAT
+-- ============================================================
+
+/-- The fiat decimal `341304/1000000` as a TauRat — the 6-decimal
+    truncation of the true `ι_τ = 2/(π+e) = 0.341304238875…` used by
+    the 162 Nat-decidable physics-calibration callsites in
+    `BookI/Boundary/Iota.lean` and 35 BookIV/V/Tour modules.
+
+    The numerical gap |true − fiat| is `≈ 2.4 × 10⁻⁷`. See
+    `atlas/audits/taulib/2026-05-03-iota-tau-callsite-audit.md` for
+    the dual-representation rationale. Formal certification of the
+    `< 3 × 10⁻⁷` numerical bound is the B1.0c follow-up (requires
+    direct partial-sum evaluation or accelerated π series). -/
+def TauRat.iota_tau_fiat : TauRat :=
+  ⟨⟨341304, 0⟩, 1000000, by norm_num⟩
+
+-- ============================================================
+-- PART 5: ASYMPTOTIC BRIDGE  —  STRUCTURAL ι_τ IS CAUCHY-STABLE
+-- ============================================================
+
+/-- **Asymptotic numerical bridge.** The structural `TauReal.iota_tau`
+    approximation sequence is Cauchy-stable: for every precision `k`,
+    all sufficiently-late approximations differ from each other by
+    less than `1/(k+1)` (in `TauRat.lt`).
+
+    This certifies that `iota_tau` is a well-defined element of the
+    TauReal Cauchy completion (not just a notational composition of
+    `div`, `mul`, `inv`, `add`).
+
+    **Bridge to the fiat `341304/1000000`** (in `Iota.lean`): the
+    structural form converges to the true value
+    `ι_τ = 2/(π+e) = 0.341304238875…`, which lies within `~2.4 × 10⁻⁷`
+    of the fiat 6-decimal truncation (audit-documented classical
+    fact). Hence for any ε > 2.4×10⁻⁷, the structural approximations
+    are eventually within ε of the fiat decimal — formal certification
+    of the 2.4×10⁻⁷ bound is the B1.0c numerical-evaluation follow-up;
+    this theorem certifies the Cauchy-stability ground on which that
+    follow-up will sit.
+
+    **Proof**: composition. `TauReal.iota_tau = div two (π + e)`
+    `= mul two (inv (π + e))`. Each constituent is Cauchy:
+    `two` is constant (Cauchy with modulus `λ _ => 0`),
+    `pi`/`e` Cauchy via `pi_isCauchy`/`e_isCauchy`,
+    `add` preserves Cauchy via `IsCauchy_add`,
+    `inv` preserves Cauchy under `BoundedAwayFromZero`
+    (witnessed by `pi_plus_e_boundedAwayFromZero`),
+    `mul` preserves Cauchy via `IsCauchy_mul`. -/
+theorem TauReal.iota_tau_isCauchy : TauReal.iota_tau.IsCauchy := by
+  show (TauReal.two.mul (TauReal.pi.add TauReal.e).inv).IsCauchy
+  apply TauReal.IsCauchy_mul
+  · -- TauReal.two is the constant sequence at TauRat 2 — trivially Cauchy.
+    refine ⟨fun _ => 0, fun k _ _ _ _ => ?_⟩
+    unfold TauRat.lt
+    rw [TauRat.toRat_abs, toRat_sub]
+    rw [TauReal.two_approx_toRat, TauReal.two_approx_toRat]
+    simp
+    exact TauRat.ofNatRecip_pos k
+  · apply TauReal.IsCauchy_inv
+    · exact TauReal.IsCauchy_add _ _ TauReal.pi_isCauchy TauReal.e_isCauchy
+    · exact TauReal.pi_plus_e_boundedAwayFromZero
 
 end Tau.Boundary
