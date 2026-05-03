@@ -222,6 +222,174 @@ theorem chain_compat_succ {ι : Type*} {U : ι → Set TauProfinite}
   let result := pigeonhole_step (Nat.succ_pos k) prev.c_lt prev.no_finite
   exact validSubcylinderCenters_mod prev.c_lt result.choose_spec.1
 
+/-- **Chain coherence at successive depths (l ≥ 1)**: the
+    successor-step coherence
+    `(chain (l+1)).c % primorial l = (chain l).c`
+    for any `l ≥ 1`. Decomposes via cases on `l`:
+    - `l = 0`: vacuous (`hl : 1 ≤ 0` impossible)
+    - `l = l' + 1`: directly `chain_compat_succ`. -/
+theorem chain_compat_step {ι : Type*} {U : ι → Set TauProfinite}
+    (h_base : ¬ ∃ s : Finset ι,
+      (Set.univ : Set TauProfinite) ⊆ ⋃ i ∈ s, U i)
+    (l : ℕ) (hl : 1 ≤ l) :
+    (chain h_base (l + 1)).c % primorial l = (chain h_base l).c := by
+  cases l with
+  | zero => omega
+  | succ l' => exact chain_compat_succ h_base l'
+
+-- ============================================================
+-- PART 4 (B1.5c.5): Generalized chain coherence + limit extraction
+-- ============================================================
+
+/-- **Generalized chain coherence**: for `1 ≤ k ≤ l`,
+    `(chain l).c % primorial k = (chain k).c`. Proof by induction
+    on `l ≥ k` using `chain_compat_step` + `Nat.mod_mod_of_dvd`
+    (with `primorial k ∣ primorial l`). -/
+theorem chain_compat_general {ι : Type*} {U : ι → Set TauProfinite}
+    (h_base : ¬ ∃ s : Finset ι,
+      (Set.univ : Set TauProfinite) ⊆ ⋃ i ∈ s, U i)
+    (k l : ℕ) (hk : 1 ≤ k) (hkl : k ≤ l) :
+    (chain h_base l).c % primorial k = (chain h_base k).c := by
+  induction l, hkl using Nat.le_induction with
+  | base =>
+    -- l = k case: (chain k).c % primorial k = (chain k).c
+    exact Nat.mod_eq_of_lt (chain h_base k).c_lt
+  | succ l hkl ih =>
+    -- ih : (chain l).c % primorial k = (chain k).c
+    -- chain_compat_step (with hl : 1 ≤ l from hk ≤ hkl):
+    --   (chain (l+1)).c % primorial l = (chain l).c
+    have hl : 1 ≤ l := le_trans hk hkl
+    have h_step : (chain h_base (l + 1)).c % primorial l = (chain h_base l).c :=
+      chain_compat_step h_base l hl
+    -- primorial k ∣ primorial l (since k ≤ l)
+    have h_dvd : primorial k ∣ primorial l := primorial_dvd hkl
+    -- Nat.mod_mod_of_dvd : c ∣ b → a % b % c = a % c
+    have h_mod : (chain h_base (l + 1)).c % primorial l % primorial k =
+                 (chain h_base (l + 1)).c % primorial k :=
+      Nat.mod_mod_of_dvd _ h_dvd
+    rw [h_step] at h_mod
+    -- h_mod : (chain l).c % primorial k = (chain (l+1)).c % primorial k
+    rw [← h_mod]
+    exact ih
+
+/-- **Chain limit element**: the chain `(c_k)_{k≥0}` assembles into
+    an `OmegaInverseLimit`, hence a `TauProfinite` element `x*`
+    with `x*.proj k = c_k` for every `k`.
+
+    Uses the generalized chain coherence (`chain_compat_general`)
+    for the `compat` field; the `coeff_zero` field follows
+    definitionally from `chainBase.c = 0`. -/
+noncomputable def chainLimit {ι : Type*} {U : ι → Set TauProfinite}
+    (h_base : ¬ ∃ s : Finset ι,
+      (Set.univ : Set TauProfinite) ⊆ ⋃ i ∈ s, U i) :
+    OmegaInverseLimit where
+  coeff := fun k => (chain h_base k).c
+  coeff_zero := by show (chain h_base 0).c = 0; rfl
+  compat := chain_compat_general h_base
+
+/-- **Chain limit as a TauProfinite element**. -/
+noncomputable def chainLimitTauProfinite {ι : Type*} {U : ι → Set TauProfinite}
+    (h_base : ¬ ∃ s : Finset ι,
+      (Set.univ : Set TauProfinite) ⊆ ⋃ i ∈ s, U i) :
+    TauProfinite :=
+  { toLimit := chainLimit h_base }
+
+/-- **Verification handle**: the chain limit's projection at depth `k`
+    is the chain center at depth `k`. By definition of `chainLimit`. -/
+theorem chainLimit_proj {ι : Type*} {U : ι → Set TauProfinite}
+    (h_base : ¬ ∃ s : Finset ι,
+      (Set.univ : Set TauProfinite) ⊆ ⋃ i ∈ s, U i)
+    (k : ℕ) :
+    (chainLimitTauProfinite h_base).proj k = (chain h_base k).c := rfl
+
+-- ============================================================
+-- PART 5 (B1.5c.6): CompactSpace TauProfinite via Alexander
+-- ============================================================
+
+/-- **`CompactSpace TauProfinite`** (B1.5c.6 — manuscript Theorem
+    II.T07: τ³ is compact).
+
+    **Proof via Alexander's subbasis theorem
+    (`compactSpace_generateFrom`)**: it suffices to show every cover
+    by basic-open cylinders admits a finite subcover. Suppose not;
+    by König-style chain construction (B1.5c.4) build a coherent
+    descending chain of cylinders, each without a finite subcover.
+    The chain assembles into a `TauProfinite` limit element `x*`
+    (B1.5c.5). Since the cover is exhaustive, `x* ∈ V` for some
+    cylinder `V = cylinder n c_U` in the cover. By the chain's
+    projection identity, `cylinder n (chain n).c = V`, so `{V}` is
+    a finite subcover of `cylinder n (chain n).c` —
+    contradicting the chain's invariant. -/
+noncomputable instance : CompactSpace TauProfinite := by
+  classical
+  apply compactSpace_generateFrom (rfl : TauProfinite.instTopologicalSpace =
+    TopologicalSpace.generateFrom cylinderBasis)
+  intro P hP_sub h_cover
+  -- P ⊆ cylinderBasis, ⋃₀ P = univ; want ∃ Q ⊆ P, Q.Finite ∧ ⋃₀ Q = univ
+  by_contra h_no_finite_subcover
+  push_neg at h_no_finite_subcover
+  -- h_no_finite_subcover : ∀ Q ⊆ P, Q.Finite → ⋃₀ Q ≠ univ
+  -- Convert P to indexed form: ι := P, U : P → Set TauProfinite, U ⟨V, hV⟩ := V
+  let ι := P
+  let U : ι → Set TauProfinite := fun p => p.val
+  -- Translate "no finite subcover" into our form
+  have h_base : ¬ ∃ s : Finset ι,
+      (Set.univ : Set TauProfinite) ⊆ ⋃ i ∈ s, U i := by
+    intro ⟨s, hs⟩
+    -- s : Finset ι (where ι := P), so s.image Subtype.val : Finset (Set TauProfinite) ⊆ P
+    apply h_no_finite_subcover (SetLike.coe (s.image Subtype.val))
+    · -- (s.image Subtype.val).toSet ⊆ P
+      intro V hV
+      simp only [Finset.coe_image, Set.mem_image, Finset.mem_coe] at hV
+      obtain ⟨p, _, hp_eq⟩ := hV
+      rw [← hp_eq]
+      exact p.prop
+    · exact (Finset.finite_toSet _)
+    · -- ⋃₀ (s.image Subtype.val).toSet = univ
+      ext x
+      simp only [Set.mem_sUnion, Finset.coe_image, Set.mem_image,
+        Finset.mem_coe, Set.mem_univ, iff_true]
+      have hx : x ∈ (Set.univ : Set TauProfinite) := Set.mem_univ x
+      have hx_in_iUnion := hs hx
+      simp only [Set.mem_iUnion, exists_prop] at hx_in_iUnion
+      obtain ⟨i, hi_mem, hi⟩ := hx_in_iUnion
+      refine ⟨i.val, ⟨i, hi_mem, rfl⟩, hi⟩
+  -- Build the König chain
+  let chn := chain h_base
+  -- Build the limit element
+  let xStar := chainLimitTauProfinite h_base
+  -- xStar ∈ univ ⊆ ⋃₀ P, so xStar ∈ V for some V ∈ P
+  have hxStar_univ : xStar ∈ (Set.univ : Set TauProfinite) := Set.mem_univ _
+  rw [← h_cover] at hxStar_univ
+  obtain ⟨V, hV_mem_P, hxStar_V⟩ := hxStar_univ
+  -- V ∈ P ⊆ cylinderBasis, so V is some cylinder n c_U
+  have hV_basis : V ∈ cylinderBasis := hP_sub hV_mem_P
+  obtain ⟨n, c_U, hV_eq⟩ := hV_basis
+  -- xStar ∈ V = cylinder n c_U, so xStar.proj n = c_U
+  rw [hV_eq] at hxStar_V
+  rw [mem_cylinder] at hxStar_V
+  -- hxStar_V : xStar.proj n = c_U
+  -- chainLimit_proj : xStar.proj n = (chn n).c
+  have h_proj : xStar.proj n = (chn n).c := chainLimit_proj h_base n
+  -- So (chn n).c = c_U, hence cylinder n (chn n).c = V
+  have h_chn_eq : (chn n).c = c_U := h_proj.symm.trans hxStar_V
+  -- Construct the singleton finite subcover {⟨V, hV_mem_P⟩} of cylinder n (chn n).c
+  apply (chn n).no_finite
+  refine ⟨{⟨V, hV_mem_P⟩}, ?_⟩
+  intro x hx
+  rw [mem_cylinder] at hx
+  -- hx : x.proj n = (chn n).c = c_U
+  rw [h_chn_eq] at hx
+  -- hx : x.proj n = c_U
+  -- Goal: x ∈ ⋃ i ∈ {⟨V, hV_mem_P⟩}, U i
+  simp only [Set.mem_iUnion, exists_prop, Finset.mem_singleton]
+  refine ⟨⟨V, hV_mem_P⟩, rfl, ?_⟩
+  -- Goal: x ∈ U ⟨V, hV_mem_P⟩ = V = cylinder n c_U
+  show x ∈ V
+  rw [hV_eq]
+  rw [mem_cylinder]
+  exact hx
+
 end TauProfinite
 
 end Tau.Boundary
