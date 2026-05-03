@@ -145,6 +145,90 @@ theorem validSubcylinderCenters_lt {k c c' : TauIdx}
     _ ≤ nth_prime (k + 1) * primorial k :=
         Nat.mul_le_mul_right _ hi_mem
 
+-- ============================================================
+-- PART 2 (B1.5c.2): Finset partition equality
+-- ============================================================
+
+/-- **Helper**: every projection lands below `primorial k`.
+
+    Follows from `proj_mod_primorial x hk (le_refl k) : x.proj k %
+    primorial k = x.proj k` plus `Nat.mod_lt`. The `1 ≤ k`
+    precondition is inherited from `proj_mod_primorial`. -/
+theorem proj_lt_primorial (x : TauProfinite) {k : TauIdx} (hk : 1 ≤ k) :
+    x.proj k < primorial k := by
+  have h1 : x.proj k % primorial k = x.proj k :=
+    proj_mod_primorial x hk (le_refl k)
+  have h2 : x.proj k % primorial k < primorial k :=
+    Nat.mod_lt _ (primorial_pos _)
+  rw [h1] at h2
+  exact h2
+
+/-- **B1.5c.2 — Finset partition equality**: every depth-k cylinder
+    equals the union of depth-(k+1) refining cylinders indexed by
+    the `validSubcylinderCenters` Finset.
+
+    This is the **finite, Finset-indexed refactor** of B1.5b's
+    `cylinder_eq_iUnion_subcylinders` (which uses an uncountable
+    `TauProfinite`-subtype indexing). The Finset indexing makes the
+    n-ary pigeonhole step (B1.5c.3) directly applicable.
+
+    **Proof structure**:
+    - (⊆) Take `y ∈ cylinder k c`. Witness `c' = y.proj (k+1)`.
+      Show `c' ∈ validSubcylinderCenters k c` by writing
+      `c' = c + (c' / primorial k) * primorial k` (using
+      `c' % primorial k = y.proj k = c` from compat) and noting
+      `c' / primorial k < nth_prime (k+1)` (from
+      `c' < primorial (k+1) = nth_prime (k+1) * primorial k`).
+    - (⊇) Take `y ∈ cylinder (k+1) c'` for some `c'` with
+      `c' % primorial k = c` (from `validSubcylinderCenters_mod`).
+      Conclude `y.proj k = c` via compat. -/
+theorem cylinder_eq_finset_iUnion_subcylinders {k c : TauIdx}
+    (hk : 1 ≤ k) (hc : c < primorial k) :
+    cylinder k c = ⋃ c' ∈ validSubcylinderCenters k c, cylinder (k + 1) c' := by
+  ext y
+  simp only [Set.mem_iUnion, mem_cylinder, exists_prop]
+  constructor
+  · intro hy
+    -- hy : y.proj k = c
+    refine ⟨y.proj (k + 1), ?_, rfl⟩
+    -- Goal: y.proj (k + 1) ∈ validSubcylinderCenters k c
+    unfold validSubcylinderCenters
+    rw [Finset.mem_image]
+    refine ⟨y.proj (k + 1) / primorial k, ?_, ?_⟩
+    · -- y.proj (k + 1) / primorial k ∈ Finset.range (nth_prime (k+1))
+      rw [Finset.mem_range]
+      have h_lt : y.proj (k + 1) < primorial (k + 1) :=
+        proj_lt_primorial y (Nat.succ_le_succ (Nat.zero_le _))
+      have h_pos : 0 < primorial k := primorial_pos _
+      -- y.proj (k+1) < primorial (k+1) = nth_prime (k+1) * primorial k
+      -- ⟹ y.proj (k+1) / primorial k < nth_prime (k+1)
+      rw [Nat.div_lt_iff_lt_mul h_pos]
+      -- Goal: y.proj (k+1) < nth_prime (k+1) * primorial k
+      -- = primorial (k+1)
+      exact h_lt
+    · -- Goal: c + (y.proj (k+1) / primorial k) * primorial k = y.proj (k+1)
+      have h_compat : y.proj (k + 1) % primorial k = y.proj k :=
+        proj_mod_primorial y hk (Nat.le_succ k)
+      rw [hy] at h_compat
+      -- h_compat : y.proj (k+1) % primorial k = c
+      have h_div := Nat.div_add_mod (y.proj (k + 1)) (primorial k)
+      -- h_div : primorial k * (y.proj (k+1) / primorial k) + y.proj (k+1) % primorial k = y.proj (k+1)
+      rw [h_compat] at h_div
+      rw [Nat.mul_comm] at h_div
+      -- h_div : (y.proj (k+1) / primorial k) * primorial k + c = y.proj (k+1)
+      -- Goal: c + (y.proj (k+1) / primorial k) * primorial k = y.proj (k+1)
+      rw [Nat.add_comm]
+      exact h_div
+  · intro ⟨c', hc'_mem, hyc'⟩
+    -- hc'_mem : c' ∈ validSubcylinderCenters k c
+    -- hyc' : y.proj (k + 1) = c'
+    have h_mod : c' % primorial k = c := validSubcylinderCenters_mod hc hc'_mem
+    have h_compat : y.proj (k + 1) % primorial k = y.proj k :=
+      proj_mod_primorial y hk (Nat.le_succ k)
+    rw [hyc'] at h_compat
+    rw [h_mod] at h_compat
+    exact h_compat.symm
+
 end TauProfinite
 
 end Tau.Boundary
