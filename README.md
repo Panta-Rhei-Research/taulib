@@ -23,9 +23,12 @@ TauLib belongs to the **Verify** and **Corpus** sides of the public research sys
 For full context, use:
 
 - Research observatory: https://panta-rhei.site
+- Public research observatory blueprint: https://panta-rhei.site/publications/white-papers/building-a-public-research-observatory/
 - Corpus Construction Spine: https://panta-rhei.site/corpus/construction-spine/
 - Verify / TauLib: https://panta-rhei.site/verify/taulib/
 - Release Manifest: https://panta-rhei.site/verify/release-manifest/
+
+The observatory blueprint gives TauLib its public context as one formalization surface inside the larger inspection architecture. It does not imply that TauLib validates empirical claims, bridge adequacy, or external scientific acceptance.
 
 ## Engagement without endorsement
 
