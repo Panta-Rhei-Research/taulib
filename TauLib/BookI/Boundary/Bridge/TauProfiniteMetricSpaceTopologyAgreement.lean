@@ -212,6 +212,44 @@ theorem cylinder_inter_subset_ball {k : ℕ} (_hk : 1 ≤ k) (x : TauProfinite) 
     push_cast
     positivity
 
+-- ============================================================
+-- PART 4 (B1.4c.3a): Forward direction — cylinders are metric-open
+-- ============================================================
+
+/-- **Every cylinder is open in the metric topology**.
+
+    This is the **forward direction** of the topology agreement.
+    Combined with B1.4b's `metric_ball_subset_cylinder` (and
+    B1.4c.1's `metric_ball_one_subset_cylinder_zero`), this lemma
+    shows the cylinder topology is contained in the metric topology
+    (every cylinder-open is metric-open).
+
+    The reverse direction (every metric ball is open in cylinder
+    topology, requiring an Archimedean argument to find `k` with
+    `1/2^k < ε`) and the final `MetricSpace.replaceTopology`
+    instance application are queued as **B1.4c.3b + B1.4c.4**.
+
+    **Proof**: split on whether `k = 0` or `k ≥ 1`. Use the
+    appropriate subset lemma (B1.4b or B1.4c.1) to find a metric
+    ball at each point of the cylinder. -/
+theorem cylinder_isOpen_in_metric_topology (k c : TauIdx) :
+    @IsOpen TauProfinite
+      TauProfinite.instMetricSpace.toPseudoMetricSpace.toUniformSpace.toTopologicalSpace
+      (cylinder k c) := by
+  rw [@Metric.isOpen_iff TauProfinite TauProfinite.instMetricSpace.toPseudoMetricSpace]
+  intro y hy
+  rw [mem_cylinder] at hy
+  rcases Nat.eq_zero_or_pos k with hk_zero | hk_pos
+  · -- k = 0 case: use B1.4c.1 with ε = 1
+    refine ⟨1, by norm_num, ?_⟩
+    subst hk_zero
+    rw [← hy]
+    exact metric_ball_one_subset_cylinder_zero y
+  · -- k ≥ 1 case: use B1.4b with ε = 1/2^k
+    refine ⟨(1 : ℝ) / 2 ^ k, by positivity, ?_⟩
+    rw [← hy]
+    exact metric_ball_subset_cylinder hk_pos y
+
 end TauProfinite
 
 end Tau.Boundary
