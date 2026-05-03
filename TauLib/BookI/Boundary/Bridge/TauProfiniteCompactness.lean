@@ -86,7 +86,7 @@ set_option autoImplicit false
 
 namespace Tau.Boundary
 
-open Tau.Denotation
+open Tau.Denotation Tau.Polarity
 
 namespace TauProfinite
 
@@ -210,6 +210,81 @@ theorem univ_subset_iUnion_cylinder (k : TauIdx) :
 @[simp] theorem self_mem_own_cylinder (x : TauProfinite) (k : TauIdx) :
     x ∈ cylinder k (x.proj k) := by
   rw [mem_cylinder]
+
+-- ============================================================
+-- PART 3: PROJ COMPATIBILITY + CYLINDER NESTING (B1.5b.1)
+-- ============================================================
+
+/-- **Projection compatibility** lifted from `OmegaInverseLimit.compat`:
+    for any `1 ≤ k ≤ l` and any `x : TauProfinite`,
+    `x.proj l % primorial k = x.proj k`.
+
+    This is the τ-native CRT-coherence property of every TauProfinite
+    element — the foundation for cylinder nesting and the pigeonhole
+    chain construction.
+
+    The `1 ≤ k` precondition is inherited from `OmegaInverseLimit`'s
+    constraint; depth 0 is unconstrained (and trivially `coeff 0 = 0`
+    since `primorial 0 = 1`). -/
+theorem proj_mod_primorial (x : TauProfinite) {k l : TauIdx}
+    (hk : 1 ≤ k) (hkl : k ≤ l) :
+    x.proj l % primorial k = x.proj k := by
+  unfold proj
+  exact x.toLimit.compat k l hk hkl
+
+/-- **Cylinder nesting**: any `cylinder (k+1) c'` whose center `c'`
+    satisfies the depth-k coherence `c' % primorial k = c` is a
+    subset of `cylinder k c` (for `1 ≤ k`).
+
+    This is the inclusion direction of the cylinder partition: deeper
+    cylinders refine shallower ones whenever the centers are coherent. -/
+theorem cylinder_subset_of_proj_mod_eq {k : TauIdx} (hk : 1 ≤ k)
+    {c c' : TauIdx} (h_coh : c' % primorial k = c) :
+    cylinder (k + 1) c' ⊆ cylinder k c := by
+  intro x hx
+  rw [mem_cylinder] at *
+  -- hx : x.proj (k+1) = c'
+  -- Goal: x.proj k = c
+  have h_compat : x.proj (k + 1) % primorial k = x.proj k :=
+    proj_mod_primorial x hk (Nat.le_succ k)
+  rw [hx] at h_compat
+  rw [← h_compat, h_coh]
+
+/-- **The cylinder partition** at depth `k+1`: every depth-`k`
+    cylinder `cylinder k c` is the union of the depth-`(k+1)`
+    cylinders `cylinder (k+1) c'` whose centers `c'` satisfy
+    the coherence condition `c' % primorial k = c`.
+
+    This is the **finite refinement structure** the König-like
+    pigeonhole proof iterates over. The set of valid `c'` values
+    is `{c, c + primorial k, c + 2 * primorial k, ..., c + (p_{k+1}-1) * primorial k}`
+    — a finite set with `nth_prime (k+1)` elements when bounded by
+    `primorial (k+1)`. For the partition lemma we only need the
+    set-equality, not the explicit enumeration. -/
+theorem cylinder_eq_iUnion_subcylinders {k : TauIdx} (hk : 1 ≤ k) (c : TauIdx) :
+    cylinder k c = ⋃ x : { x : TauProfinite // x ∈ cylinder k c },
+                     cylinder (k + 1) (x.val.proj (k + 1)) := by
+  ext y
+  constructor
+  · intro hy
+    refine Set.mem_iUnion.mpr ⟨⟨y, hy⟩, ?_⟩
+    rw [mem_cylinder]
+  · intro hy
+    obtain ⟨⟨z, hz⟩, hyz⟩ := Set.mem_iUnion.mp hy
+    rw [mem_cylinder] at hyz
+    -- hyz : y.proj (k+1) = z.proj (k+1)
+    -- hz : z ∈ cylinder k c, so z.proj k = c
+    -- Goal: y ∈ cylinder k c, i.e. y.proj k = c
+    rw [mem_cylinder] at hz ⊢
+    -- Use compatibility: y.proj (k+1) % primorial k = y.proj k
+    --                   z.proj (k+1) % primorial k = z.proj k
+    have h_y_compat : y.proj (k + 1) % primorial k = y.proj k :=
+      proj_mod_primorial y hk (Nat.le_succ k)
+    have h_z_compat : z.proj (k + 1) % primorial k = z.proj k :=
+      proj_mod_primorial z hk (Nat.le_succ k)
+    rw [hyz] at h_y_compat
+    rw [h_z_compat, hz] at h_y_compat
+    exact h_y_compat.symm
 
 end TauProfinite
 
