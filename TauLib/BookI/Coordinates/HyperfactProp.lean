@@ -1,4 +1,5 @@
 import TauLib.BookI.Coordinates.Hyperfact
+import Mathlib.Tactic.Linarith
 
 /-!
 # TauLib.BookI.Coordinates.HyperfactProp
@@ -15,6 +16,12 @@ Boolean `hyperfact_check` verifier in `Hyperfact.lean` to a proper
 - [I.T04] Hyperfactorization (Boolean verifier — `hyperfact_check`)
 - [I.T-H1-Witness] IsHyperfactWitness Prop predicate (this module)
 - [I.T-H1-Unique] Hyperfactorization (B,C) Uniqueness (this module)
+- [I.T-H1-UniqueExists]   `hyperfactorization_uniqueness_BCD` (∃!-form,
+                          B1.2 — this module, PART 5)
+- [I.T-H1-AUnique]        A is forced by ValidABCD (queued as B1.2c —
+                          requires interaction with `largest_prime_divisor`)
+- [I.T-H1-BoolPropBridge] `valid_abcd_check_iff_ValidABCD` (queued as
+                          B1.2c — clean Bool ↔ Prop unfold + decidability)
 
 ## Mathematical Content
 
@@ -133,5 +140,45 @@ theorem hyperfact_BCD_unique (x a v b₁ c₁ d₁ b₂ c₂ d₂ : TauIdx)
   have h₂' : IsHyperfactWitness x a b₁ c₁ d₂ v := by
     rw [h_b, h_c]; exact h₂
   exact hyperfact_D_unique_of_BC x a b₁ c₁ d₁ d₂ v h₁ h₂'
+
+-- ============================================================
+-- PART 5: ∃!-FORM CONDITIONAL UNIQUENESS THEOREM
+-- ============================================================
+
+/-- **∃!-form conditional uniqueness** (B1.2 deliverable).
+
+    Given a fixed `(x, a, v)` triple and any witness
+    `IsHyperfactWitness x a b c d v`, the `(B, C, D)` tuple is the
+    unique tuple producing such a witness.
+
+    This is the `∃!`-style packaging of `hyperfact_BCD_unique` (PART 4),
+    closing the **conditional** part of the Hyperfactorization
+    Uniqueness theorem `[I.T04]` — uniqueness given `(A, V)` is fixed.
+
+    The remaining piece for the full unconditional `∃! abcd, ValidABCD x abcd`
+    headline is **A-uniqueness** (that `A` is forced to be the largest
+    prime divisor of `x`); this requires interaction with
+    `largest_prime_divisor` and is queued as **B1.2c** in
+    `ROADMAP-3-HINGES.md`.
+
+    `D = X / tower_atom A B C` is forced by the multiplication identity
+    `tower_atom A B C · D = X` once `tower_atom` is positive (true
+    when A ≥ 1, via `tower_atom_pos`). -/
+theorem hyperfactorization_uniqueness_BCD (x a v b c d : TauIdx)
+    (h : IsHyperfactWitness x a b c d v) :
+    ∃! bcd : TauIdx × TauIdx × TauIdx,
+      IsHyperfactWitness x a bcd.1 bcd.2.1 bcd.2.2 v := by
+  refine ⟨(b, c, d), h, ?_⟩
+  rintro ⟨b', c', d'⟩ h'
+  obtain ⟨hb, hc, h_td⟩ := hyperfact_BCD_unique x a v b c d b' c' d' h h'
+  -- hb : b = b', hc : c = c', h_td : tower_atom a b c * d = tower_atom a b c * d'
+  -- Need: (b', c', d') = (b, c, d)
+  obtain ⟨⟨ha_ge_two, _, _, _, _⟩, _, _⟩ := h
+  have ha_pos : a ≥ 1 := Nat.le_of_succ_le ha_ge_two
+  have h_ta_pos : tower_atom a b c > 0 := tower_atom_pos a b c ha_pos
+  have hd_eq : d = d' := Nat.eq_of_mul_eq_mul_left h_ta_pos h_td
+  -- Combine into Prod equality: rewrite b'→b, c'→c, d'→d
+  show (b', c', d') = (b, c, d)
+  rw [← hb, ← hc, ← hd_eq]
 
 end Tau.Coordinates
