@@ -2,9 +2,38 @@
 
 TauLib is the public Lean 4 formalization repo of the Panta Rhei Research Program.
 
+The Panta Rhei Research Program is an independent open research program dedicated to building a coherent theory of reality. TauLib is the Lean 4 formalization surface of that program.
+
 This repository is the active contributor-facing source for Lean development: build files, source modules, guided tours, documentation generation, CI, and issue/PR review. The full research-program observatory lives at [panta-rhei.site](https://panta-rhei.site), while the dedicated Lean documentation site generated from this repo is [taulib.site](https://taulib.site).
 
+## Verification note
+
 TauLib verifies formal proof obligations where they are represented in Lean. It does not, by itself, establish empirical truth, bridge adequacy, semantic correspondence to prose, or external scientific acceptance. Current release metrics, trusted-base details, axiom/sorry status, and count reconciliation are published in the [Release Manifest](https://panta-rhei.site/verify/release-manifest/).
+
+The Release Manifest is authoritative for current metrics. Historical counts in this README are explanatory and should not be used as current release authority unless generated from the manifest.
+
+## Role in the public research system
+
+TauLib belongs to the **Verify** and **Corpus** sides of the public research system:
+
+- In **Corpus**, it is the Lean projection of parts of the Construction Spine.
+- In **Verify**, it checks formal proof obligations where they are represented in Lean.
+- It does not by itself settle empirical, bridge, semantic, interpretive, or external-review questions.
+
+For full context, use:
+
+- Research observatory: https://panta-rhei.site
+- Corpus Construction Spine: https://panta-rhei.site/corpus/construction-spine/
+- Verify / TauLib: https://panta-rhei.site/verify/taulib/
+- Release Manifest: https://panta-rhei.site/verify/release-manifest/
+
+## Engagement without endorsement
+
+We do not ask first for agreement.
+
+We ask for structured open-research engagement: careful reading, public questions, critique, reproducibility checks, domain review, correction, infrastructure contribution, and responsible communication.
+
+Participation does not imply endorsement of the framework. A reader may ask a question without accepting the theory. A reviewer may challenge a result without joining the program. A contributor may improve documentation, metadata, tooling, packaging, or formalization without endorsing any conclusion.
 
 ## Start Here
 
