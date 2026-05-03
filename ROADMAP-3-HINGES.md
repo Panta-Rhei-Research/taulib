@@ -1,8 +1,38 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.5 spec landed — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0d status update (2026-05-04)
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4 MetricSpace landed; B1.5 queued — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0e status update (2026-05-04)
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-04 update (B1.4 canonical MetricSpace landed):** TauLib
+> PR #112 (commit `a1f0a0d`) ships the canonical
+> `MetricSpace TauProfinite` instance in
+> `BookI/Boundary/Bridge/TauProfiniteMetricSpace.lean` (~280 LOC, 4
+> parts), anchored to `TauProfinite.ultrametricDistance` from
+> B1.3.5. The `dist` field is **definitionally equal** to
+> `ultrametricDistanceReal` (verifiable by `rfl`), satisfying the
+> dossier Part 7.1 verification handle.
+> - PART 2 ships the **first formal Lean proof of `[II.T05]`** —
+>   the ultrametric inequality
+>   `d(x, z) ≤ max(d(x, y), d(y, z))` — the manuscript ch10
+>   ll. 246-269 proof formalised via `Nat.find` reasoning on the
+>   disagreement set.
+> - This is the **strongest possible** Mathlib metric bridge: the
+>   metric is forced by `[II.T10]` Topology Uniqueness +
+>   `[II.T42]` Categoricity, not just "TauProfinite happens to be
+>   metrizable".
+> - **B1.4b queued**: formal topology-agreement proof via
+>   `MetricSpace.replaceTopology` — the metric topology and Wave 50's
+>   cylinder topology coincide as a mathematical fact, but Lean
+>   currently sees two independent `TopologicalSpace TauProfinite`
+>   instances. B1.4b would unify via `replaceTopology`. Not blocking
+>   any consumer.
+> - **B1.5 deferred**: `CompactSpace TauProfinite` via Tychonoff +
+>   `Profinite` categorical wrap was originally planned to land in
+>   parallel with B1.4 but requires substantive work
+>   (~200-400 LOC for the closed embedding into
+>   `(k : ℕ) → Fin (primorial k)`). Better suited to a dedicated
+>   follow-up wave. Not blocking B1.4's MetricSpace consumer.
 
 > **2026-05-04 update (B1.3.5 prep wave):** Canonical topology +
 > geometry **anchoring spec** landed for the upcoming B1.4 + B1.5
