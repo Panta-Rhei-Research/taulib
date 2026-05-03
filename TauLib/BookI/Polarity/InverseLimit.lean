@@ -85,6 +85,17 @@ open Tau.Denotation
 structure OmegaInverseLimit where
   /-- The k-th component: a residue mod the k-th primorial. -/
   coeff : TauIdx → TauIdx
+  /-- **Depth-0 sentinel**: `coeff 0 = 0` always. The TauIdx tower
+      is "natural numbers without zero" at the index level — depth
+      0 carries no structural content and is forced to a canonical
+      sentinel. This matches the canonical embedding
+      `nat_to_inverse_limit n` (where `coeff 0 = n % primorial 0 =
+      n % 1 = 0` always) and is required for compactness:
+      without this, the cover `{cylinder 0 c | c ∈ ℕ}` of
+      `TauProfinite` admits no finite subcover (counterexample:
+      take `x_n` with `x_n.coeff 0 = n`, all in different
+      `cylinder 0 n` cells). -/
+  coeff_zero : coeff 0 = 0
   /-- Compatibility: the (l)-th component reduces to the (k)-th
       under (mod primorial k), for every `1 ≤ k ≤ l`. -/
   compat : ∀ k l : TauIdx, 1 ≤ k → k ≤ l →
@@ -98,6 +109,13 @@ structure OmegaInverseLimit where
     number into the inverse-limit ω-tower. -/
 def nat_to_inverse_limit (n : TauIdx) : OmegaInverseLimit where
   coeff := fun k => reduce n k
+  coeff_zero := by
+    -- reduce n 0 = n % primorial 0 = n % 1 = 0
+    show reduce n 0 = 0
+    unfold reduce
+    show n % primorial 0 = 0
+    -- primorial 0 = 1; n % 1 = 0
+    simp [primorial, Nat.mod_one]
   compat := by
     intro k l hk hkl
     -- coeff l = reduce n l = n % primorial l
