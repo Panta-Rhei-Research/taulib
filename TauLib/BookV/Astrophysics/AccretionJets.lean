@@ -155,7 +155,14 @@ theorem eddington_sector_balance :
     The jet axes align with the lobe axes.
 
     This is a topological prediction: jets cannot be unipolar
-    or have more than two lobes in the τ-framework. -/
+    or have more than two lobes in the τ-framework.
+
+    **Wave R15 promotion (2026-05-03):** the quantitative bound
+    sin θ_jet ≤ ι_τ → θ_jet ≤ arcsin(ι_τ) ≈ 19.96° has been promoted
+    to a Nat-scaled Lean theorem `t_v_t90_jet_collimation_bound` in
+    `TauLib.BookV.Cosmology.JetCollimation`. This string-stub is
+    retained for backwards-compatibility; downstream consumption
+    should prefer the JetCollimation module. -/
 theorem bipolar_jet_theorem :
     "Jets are always bipolar: 2 lobes of L = S^1 v S^1" =
     "Jets are always bipolar: 2 lobes of L = S^1 v S^1" := rfl
@@ -404,7 +411,17 @@ theorem jet_helicity_conserved :
     "H_m(jet) is topologically fixed and conserved (frozen flux + Taylor)" := rfl
 
 /-- [V.T232] Jet Collimation from Hoop Stress: B_phi hoop stress gives
-    sin(θ_jet) ≤ B_z/B_phi = ι_τ, recovering the Jet Collimation Theorem. -/
+    sin(θ_jet) ≤ B_z/B_phi = ι_τ, recovering the Jet Collimation Theorem.
+
+    **Wave R15 promotion (2026-05-03):** the magnetic-hoop-stress bound
+    sin θ_jet ≤ B_z/B_φ ≈ ι_τ has been promoted to a Nat-scaled Lean
+    theorem `t_v_t232_magnetic_hoop_stress_bound` in
+    `TauLib.BookV.Cosmology.JetCollimation`. **Important framing note
+    per Wave R15 Specialist β:** V.T232 is NOT logically independent of
+    V.T90 — both share the V.T110 fibration premise via V.P156 (flux
+    conservation through major/minor cycles). Frame as
+    "magnetohydrodynamic corroboration sharing V.T110 topological
+    premise", not "independent derivation". -/
 theorem jet_collimation_from_hoop_stress :
     "sin(θ_jet) ≤ B_z/B_φ = ι_τ ≈ 0.341 → θ_jet ≤ 20°" =
     "sin(θ_jet) ≤ B_z/B_φ = ι_τ ≈ 0.341 → θ_jet ≤ 20°" := rfl
