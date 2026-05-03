@@ -1,8 +1,44 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4 MetricSpace + B1.4.5 spec + B1.5a/b substrate landed; B1.5c queued — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0h status update (2026-05-05)
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.4b + B1.4.5 spec + B1.5a/b substrate landed; B1.4c + B1.5c queued — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0i status update (2026-05-05)
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-05 update (B1.4b forward topology-agreement substrate
+> landed):** TauLib PR #119 (commit `55ef51f`) ships the **forward
+> direction** of the metric/cylinder topology agreement in
+> `BookI/Boundary/Bridge/TauProfiniteMetricSpaceTopologyAgreement.lean`
+> (~110 LOC, 1 named theorem):
+> - `metric_ball_subset_cylinder` — for `k ≥ 1` and any `x`,
+>   `Metric.ball x (1/2^k) ⊆ cylinder k (x.proj k)`. Proof traces
+>   through B1.4's `dist_eq_ultrametricDistanceReal` →
+>   B1.3.5's `ultrametricDistance` and `firstDisagreementDepth`,
+>   honoring the canonical-anchoring discipline.
+>
+> **B1.4c queued**: the **reverse direction**
+> (`cylinder ⊆ Metric.ball` for appropriate radius) and the full
+> `MetricSpace.replaceTopology`-wrapped instance. The reverse is
+> more involved because depth 0 needs special handling:
+> `OmegaInverseLimit.compat` only constrains depths `1 ≤ k ≤ l`,
+> so `cylinder k (x.proj k)` for `k ≥ 1` doesn't force depth-0
+> agreement. The actual correspondence is
+> `Metric.ball x (1/2^k) = cylinder 0 (x.proj 0) ∩ cylinder k (x.proj k)`,
+> not a direct cylinder equality. Documenting in the module
+> docstring + queueing as a focused follow-up wave. Not blocking
+> any consumer.
+>
+> **B1.5c queued (still)**: the full `CompactSpace TauProfinite`
+> instance via the recursive `Classical.choose` chain + Finset-indexed
+> partition + limit-point extraction + Alexander subbasis assembly
+> (Steps 3-6 of Remark `[II.R01]`). The Finset-indexed partition
+> alone requires substantial number-theoretic substrate work
+> (cylinder partition into `nth_prime (k+1)` subcylinders via
+> `primorial (k+1) / primorial k = nth_prime (k+1)`), and the
+> chain construction requires sigma-typed `Nat.rec` + `Classical.choose`
+> orchestration. Estimated total ~300-500 LOC of careful Lean —
+> better as a dedicated multi-iteration wave with no time pressure.
+> The strict discipline (no temporary sorrys) means we ship what
+> builds 0-sorry today and queue the rest honestly.
 
 > **2026-05-05 update (B1.5b PART 3 substrate landed):** TauLib
 > module `BookI/Boundary/Bridge/TauProfiniteCompactness.lean` ships
