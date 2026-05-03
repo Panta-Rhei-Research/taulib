@@ -1,8 +1,104 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; **Workstream B1 COMPLETE** ✅ — B1.4c (full topology equality + canonical MetricSpace + instance migration + II.T10 cross-check) + B1.5c (full CompactSpace TauProfinite via König chain + Alexander) — manuscript II.T07 (τ³ compact) + II.T10 (Topology Uniqueness) FORMALLY VERIFIED in Lean 4
-**Version:** v1.0 (2026-04-21); v1.0n status update (2026-05-04) — Workstream B1 COMPLETE 🎉
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; **Workstream B1 COMPLETE** ✅ — B1.4c (full topology equality + canonical MetricSpace + instance migration + II.T10 cross-check) + B1.5c (full CompactSpace TauProfinite via König chain + Alexander) — manuscript II.T07 (τ³ compact) + II.T10 (Topology Uniqueness) FORMALLY VERIFIED in Lean 4. **Workstream B2.alg OPEN** — algebraic-completion bridge: W4 (`TauAlgComplex` = τ-native ℚ̄) shipped 🚀
+**Version:** v1.0 (2026-04-21); v2.0a status update (2026-05-04) — Workstream B2.alg opened with W4
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-04 update v2.0a (Workstream B2.alg OPENED — W4
+> TauAlgComplex landed 🚀):**
+>
+> **The "lap of honor" sprint after B1 completion**: extend the
+> τ-framework's bridge layer **into the algebraic numbers**.
+>
+> **Strategic motivation** (per
+> `atlas/insights/2026-04-29-constructive-real-cardinality-boundary.md`):
+> the Cauchy completion of ℚ blocks at `LinearOrderedField`
+> (Markov-principle wall, Wave 41), but the **algebraic completion**
+> is constructively tractable — algebraic numbers are countable
+> (countable union of finite root sets per polynomial). The
+> algebraic-completion tier sits **strictly between ℚ and ℂ** and
+> is the largest constructively-clean scalar extension.
+>
+> ## What landed today (W4)
+>
+> - **W4 — `TauAlgComplex`** (TauLib PR #139 → admin-merge pending):
+>   the τ-native algebraic complex numbers (ℚ̄), defined as
+>   `AlgebraicClosure TauRatQ`. Inherits **`Field`**, **`Algebra
+>   TauRatQ`**, **`Algebra.IsAlgebraic`**, and **`IsAlgClosed`**
+>   from Mathlib's canonical construction. Four `noncomputable
+>   example` declarations serve as machine-checked verification
+>   handles. Build cost: 2553 jobs (+786 from FieldTheory.AlgebraicClosure
+>   imports), 0 errors, 0 sorry, axioms=3 unchanged.
+>
+> ## Workstream B2.alg structure (per the approved plan)
+>
+> | Wave | Status | Content |
+> |------|--------|---------|
+> | W1 | **BLOCKED** | `Algebra TauRatQ TauRealQ` algebra tower |
+> | W2 | **BLOCKED** | `TauAlgReal` (algebraic reals as IntermediateField in TauRealQ) |
+> | W3 | **BLOCKED** | Bridge `TauAlgReal ≃ algebraicClosure ℚ ℝ` |
+> | **W4** | **✅ SHIPPED** | `TauAlgComplex` = τ-native ℚ̄ |
+> | W5 | **QUEUED** | Bridge `TauAlgComplex ≃ₐ[TauRatQ] AlgebraicClosure ℚ` via `IsAlgClosure.equiv` |
+>
+> ## ⚠️ W1 + W2 + W3 BLOCKED on namespace tech debt
+>
+> While attempting W1 (the `Algebra TauRatQ TauRealQ` algebra
+> tower), discovered a **pre-existing namespace collision**:
+> both `TauLib/BookI/Boundary/Bridge/TauRatQuotient.lean` (line
+> 186) and `TauLib/BookI/Boundary/TauRatInv.lean` (line 93)
+> define `Tau.Boundary.toRat_inv` in the same namespace:
+>
+> - `TauRatInv.toRat_inv (q : TauRat) (h : q.is_nonzero) : ...`
+>   (conditional form, original)
+> - `TauRatQuotient.toRat_inv (q : TauRat) : ...` (unconditional
+>   form, total — handles 0 → 0 case)
+>
+> No existing TauLib module imports BOTH (verified via grep).
+> W1 is the first module to need the combination (TauRatQuotient
+> for `ringEquivRat`, TauRealQuotientField for `Field TauRealQ`
+> which transitively pulls TauRatInv via TauRealInv). Hence the
+> conflict surfaced for the first time today.
+>
+> **Resolution path** (queued as a focused tech-debt PR, B2.alg.W0):
+> rename `TauRatQuotient.toRat_inv` to `toRat_inv_total` (or
+> similar) to disambiguate. Single-file rename + one internal
+> reference update at line 254. Once landed, W1 → W2 → W3 unblock
+> sequentially.
+>
+> **Strict-discipline note**: per the discipline of "respect
+> pre-existing structures", the rename was NOT applied as part of
+> W1 itself; flagged here as a separate sub-PR (B2.alg.W0) for
+> user authorization before touching foundational Wave 40 code.
+>
+> ## What W4 unlocks (without W1+W2+W3)
+>
+> - `TauAlgComplex` is fully usable as the τ-native algebraic
+>   closure of ℚ — a `Field` + `IsAlgClosed` carrier
+> - Polynomial roots, splitting fields, number-theoretic
+>   constructions over `TauRatQ` can immediately use
+>   `TauAlgComplex` as their target
+> - The pattern for future algebraic-extension waves (number
+>   fields, cyclotomic extensions, Galois groups) is established
+>
+> ## What W5 will add (queued)
+>
+> The canonical-anchoring verification handle:
+> `TauAlgComplex ≃ₐ[TauRatQ] AlgebraicClosure ℚ`. Constructed via
+> `IsAlgClosure.equiv` once we set up `Algebra TauRatQ
+> (AlgebraicClosure ℚ)` via the existing `TauRatQ ≃+* ℚ` bridge.
+>
+> ## Future opportunities (post-B2.alg)
+>
+> - **B2.alg.5** (real algebraics via algebraicClosure ℚ ℝ):
+>   ship `TauAlgReal` directly via Mathlib's
+>   `algebraicClosure ℚ ℝ` (sidestepping the W1 algebra-tower
+>   block), with the bridge `TauAlgReal ≃ₐ[TauRatQ] algebraicClosure
+>   ℚ ℝ` derived from the `TauRatQ ≃+* ℚ` Wave 40 bridge alone
+> - Number-theoretic extensions, Galois groups, cyclotomic
+>   constructions — all now have `TauAlgComplex` as the natural
+>   ambient algebraic-closure target
+
+> **2026-05-04 update v1.0n (Workstream B1 COMPLETE 🎉):**
 
 > **2026-05-04 update v1.0n (Workstream B1 COMPLETE 🎉):**
 >
