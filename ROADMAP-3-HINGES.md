@@ -1,8 +1,60 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.4b/B1.4c (full) + B1.4.5 spec + B1.5a/b/c.1 substrate landed; B1.4c.5 + B1.5c.1b+ queued — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0k status update (2026-05-05) — B1.4c topology equality + canonical MetricSpace landed
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.4b/B1.4c (full + instance migration) + B1.4.5 spec + B1.5a/b/c.1 substrate landed; B1.4c.5b + B1.5c.1b+ queued — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0l status update (2026-05-05) — B1.4c.5 instance migration landed
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-05 update v1.0l (B1.4c.5 — instance migration landed):**
+> One more sub-PR landed on origin/main today, completing the
+> MetricSpace instance unification:
+>
+> - **B1.4c.5** (TauLib PR #128 → `e6782d2`): instance migration
+>   eliminating the MetricSpace diamond. Modifies
+>   `TauProfiniteMetricSpaceCanonical.lean` (~10-line change):
+>
+>   ```lean
+>   attribute [-instance] TauProfinite.instMetricSpace
+>
+>   noncomputable instance instMetricSpaceCanonical : MetricSpace TauProfinite :=
+>     TauProfinite.instMetricSpace.replaceTopology
+>       cylinder_topology_eq_metric_topology
+>   ```
+>
+>   B1.4's `instMetricSpace` (with auto-derived TopologicalSpace) is
+>   removed from the global instance pool but remains a callable
+>   named `def`. The canonical version (with topology component
+>   definitionally equal to Wave 50's cylinder topology via
+>   `replaceTopology`) is now the **official** `MetricSpace
+>   TauProfinite` instance. **Result**: a single, unambiguous
+>   instance with NO diamond.
+>
+>   **Backward compatibility preserved**: code that explicitly
+>   references `TauProfinite.instMetricSpace` (e.g., the
+>   `cylinder_topology_eq_metric_topology` theorem statement, the
+>   canonical instance's `replaceTopology` call itself) continues
+>   to work. Only typeclass resolution is redirected.
+>
+>   **Verification handle 7.1 preserved**: `dist x y =
+>   ultrametricDistanceReal x y` still holds by `rfl` (the
+>   `instMetricSpaceCanonical_dist` theorem confirms — unchanged).
+>
+> **Audit findings** (Phase 1 exploration before migration):
+> - Zero direct references to `TauProfinite.instMetricSpace` by name
+>   across TauLib code → migration risk LOW.
+> - Implicit consumers via `[MetricSpace TauProfinite]` typeclass
+>   resolution (Separation, Compactness, etc.) now see the canonical
+>   instance — full library builds cleanly (1765 jobs, 0 errors).
+>
+> **B1.4c.5b status**: explicitly QUEUED (per user decision in
+> session). The cross-check proof of
+> `cylinder_topology_eq_metric_topology` via Theorem **II.T10**
+> uniqueness ("compact-Hausdorff bijection is a homeomorphism")
+> remains BLOCKED on `CompactSpace TauProfinite` (queued as B1.5b/c,
+> ~300-500 LOC of multi-iteration substrate work). T2Space +
+> TotallyDisconnectedSpace already shipped (Wave 51); Mathlib
+> homeomorphism lemma `isHomeomorph_iff_continuous_bijective`
+> available; only `CompactSpace` is missing. When unblocked,
+> B1.4c.5b is ~30 LOC of assembly.
 
 > **2026-05-05 update v1.0k (B1.4c.3a+3b+3+4 — full topology
 > equality + canonical instance landed):**
