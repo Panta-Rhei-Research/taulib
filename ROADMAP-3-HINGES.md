@@ -1,8 +1,34 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4 MetricSpace + B1.4.5 spec + B1.5a substrate landed; B1.5b queued — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0g status update (2026-05-05)
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4 MetricSpace + B1.4.5 spec + B1.5a/b substrate landed; B1.5c queued — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0h status update (2026-05-05)
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-05 update (B1.5b PART 3 substrate landed):** TauLib
+> module `BookI/Boundary/Bridge/TauProfiniteCompactness.lean` ships
+> the **PART 3 substrate** for the τ-native pigeonhole proof:
+> - `proj_mod_primorial` — projection compatibility lifted from
+>   `OmegaInverseLimit.compat`, the foundation for cylinder nesting
+>   and chain coherence.
+> - `cylinder_subset_of_proj_mod_eq` — cylinder nesting (depth-(k+1)
+>   subcylinder ⊆ depth-k parent when centers are coherent).
+> - `cylinder_eq_iUnion_subcylinders` — the cylinder partition
+>   (every depth-k cylinder = union of depth-(k+1) subcylinders),
+>   currently parameterized by a `TauProfinite`-subtype indexing.
+>
+> **B1.5c queued**: the full `CompactSpace TauProfinite` instance
+> via the recursive chain construction + limit-point extraction +
+> Alexander subbasis assembly (Steps 3-6 of Remark `[II.R01]`).
+> Implementing this requires:
+> 1. Refactoring the partition lemma to a **finite** `Finset`-indexed
+>    form (so n-ary pigeonhole has a concrete finite index set).
+> 2. The recursive `Classical.choose` chain construction (~100-200
+>    LOC).
+> 3. The limit-point extraction via `OmegaInverseLimit.mk`.
+> 4. The Alexander subbasis orchestration via `isCompact_generateFrom`.
+>
+> Per the strict discipline, B1.5b ships only the parts that build
+> 0-sorry today; the chain construction is a focused B1.5c follow-up.
 
 > **2026-05-05 update (B1.5a substrate scaffolding landed):** TauLib
 > module `BookI/Boundary/Bridge/TauProfiniteCompactness.lean` ships
