@@ -182,8 +182,22 @@ def TauRat.inv (q : TauRat) : TauRat :=
     -- pos = neg, so q.toInt = 0 → q ≈ 0; return 0 (Mathlib convention)
     TauRat.zero
 
-/-- toRat of inv: `(q.inv).toRat = (q.toRat)⁻¹`. -/
-theorem toRat_inv (q : TauRat) : q.inv.toRat = q.toRat⁻¹ := by
+/-- toRat of inv (unconditional/total form): `(q.inv).toRat =
+    (q.toRat)⁻¹`. The TauRat.inv definition handles the `q ≈ 0`
+    case via the Mathlib convention `0⁻¹ = 0`, so no
+    `q.is_nonzero` hypothesis is required.
+
+    Renamed from `toRat_inv` to `toRat_inv_total` (2026-05-04,
+    B2.alg.W0) to disambiguate from
+    `TauLib.BookI.Boundary.TauRatInv.toRat_inv` which has the
+    same name in `Tau.Boundary` namespace but the conditional
+    signature `(q : TauRat) (h : q.is_nonzero) → ...`. The two
+    coexist under different names; this rename unblocks any
+    module that needs to import both `TauRatQuotient.lean` AND
+    something that transitively imports `TauRatInv.lean` (e.g.,
+    `TauRealQuotientField.lean`), required by the B2.alg.W1
+    algebra-tower workstream. -/
+theorem toRat_inv_total (q : TauRat) : q.inv.toRat = q.toRat⁻¹ := by
   unfold TauRat.inv
   by_cases hgt : q.num.pos > q.num.neg
   · -- positive case: q > 0
@@ -238,7 +252,7 @@ theorem toRat_inv (q : TauRat) : q.inv.toRat = q.toRat⁻¹ := by
 theorem TauRat.inv_respects_equiv (a₁ a₂ : TauRat) (h : TauRat.equiv a₁ a₂) :
     TauRat.equiv a₁.inv a₂.inv := by
   rw [equiv_iff_toRat_eq] at h ⊢
-  rw [toRat_inv, toRat_inv, h]
+  rw [toRat_inv_total, toRat_inv_total, h]
 
 def TauRatQ.inv : TauRatQ → TauRatQ :=
   Quotient.lift (fun a => a.inv.toQ)
@@ -251,7 +265,7 @@ def TauRatQ.inv : TauRatQ → TauRatQ :=
     (TauRatQ.inv x).toRat = x.toRat⁻¹ := by
   refine Quotient.inductionOn x (fun a => ?_)
   show a.inv.toRat = (a.toRat)⁻¹
-  exact Tau.Boundary.toRat_inv a
+  exact Tau.Boundary.toRat_inv_total a
 
 -- ============================================================
 -- PART 6: Bare typeclass instances (for nsmulRec / zsmulRec)
