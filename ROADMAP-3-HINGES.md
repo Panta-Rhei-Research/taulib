@@ -1,10 +1,30 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0c status update (2026-05-03)
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.5 spec landed — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0d status update (2026-05-04)
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
 
-> **2026-05-03 update:** Five Workstream B1 waves landed today on
+> **2026-05-04 update (B1.3.5 prep wave):** Canonical topology +
+> geometry **anchoring spec** landed for the upcoming B1.4 + B1.5
+> waves:
+> - New atlas dossier
+>   [`audits/taulib/2026-05-04-canonical-topology-geometry-spec.md`](https://github.com/Panta-Rhei-Research/atlas/blob/main/audits/taulib/2026-05-04-canonical-topology-geometry-spec.md)
+>   extracts the canonical ultrametric topology (Book II Part 03 +
+>   Topology Uniqueness Theorem `[II.T10]`) and the canonical Tarski
+>   geometry (Book II Part 04 + Categoricity Theorem `[II.T42]`) from
+>   the monograph manuscript sources, and pins them as the binding
+>   anchoring spec for B1.4 / B1.5 / future Mathlib geometry bridges.
+> - New TauLib module
+>   `BookI/Boundary/Bridge/TauProfiniteUltrametric.lean` ships the
+>   named anchor functions: `firstDisagreementDepth` (the canonical δ
+>   per `[II.D12]`) and `ultrametricDistance` (= 2^(-δ) per `[II.D13]`).
+>   B1.4's `MetricSpace TauProfinite` instance must wrap these.
+> - Anti-spec (Part 6 of dossier): no boundary scalar readouts
+>   (`OrthodoxBridge`), no defect-germ readouts
+>   (`DefectInverseSystem`), no Cauchy-completion approximation
+>   depths, no discrete metric, no boundary-conformal metrics.
+>
+> **2026-05-03 update:** Five Workstream B1 waves landed yesterday on
 > origin/main:
 > - **B1.0a + B1.0b** (Phase 0): callsite audit + asymptotic
 >   Cauchy-stability bridge (`TauReal.iota_tau_isCauchy`).
