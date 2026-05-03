@@ -83,8 +83,40 @@ open Tau.Denotation
 
 namespace TauProfinite
 
-/-- **Canonical `MetricSpace TauProfinite`**, with topology component
-    definitionally equal to Wave 50's cylinder topology
+-- ============================================================
+-- B1.4c.5: Instance migration — eliminate the diamond
+-- ============================================================
+--
+-- B1.4's `TauProfinite.instMetricSpace` (in
+-- `TauProfiniteMetricSpace.lean`) is the original MetricSpace
+-- declaration with an auto-generated TopologicalSpace component
+-- distinct from Wave 50's cylinder topology. With the topology
+-- equality now formally proven (B1.4c.3), we can eliminate the
+-- instance diamond by:
+--
+-- 1. Removing B1.4's `instMetricSpace` from the global instance
+--    pool (it remains a named `noncomputable def`, callable
+--    explicitly, but no longer participates in typeclass
+--    resolution).
+-- 2. Promoting `instMetricSpaceCanonical` (this module) from
+--    `noncomputable def` to a real `noncomputable instance`.
+--
+-- Result: a single, unambiguous `MetricSpace TauProfinite`
+-- instance whose underlying `TopologicalSpace` component is
+-- definitionally Wave 50's cylinder topology — no diamond.
+--
+-- Downstream code that explicitly references
+-- `TauProfinite.instMetricSpace` (e.g., the
+-- `cylinder_topology_eq_metric_topology` theorem statement, this
+-- module's `replaceTopology` call, etc.) continues to work
+-- because the name is still bound; only typeclass resolution is
+-- redirected.
+
+attribute [-instance] TauProfinite.instMetricSpace
+
+/-- **Canonical `MetricSpace TauProfinite`** — the official
+    instance, with topology component definitionally equal to
+    Wave 50's cylinder topology
     (`TauProfinite.instTopologicalSpace`).
 
     This is the `MetricSpace.replaceTopology`-wrapped version of
@@ -97,14 +129,17 @@ namespace TauProfinite
     **Definitional equality preserved**: `dist` still equals
     `ultrametricDistanceReal` by `rfl` (B1.4 verification handle 7.1
     preserved), since `replaceTopology` only replaces the topology
-    component, not the distance function.
+    component, not the distance function. See
+    `instMetricSpaceCanonical_dist` below.
 
-    Shipped as a `noncomputable def` (not `instance`) to avoid
-    instance diamond with B1.4's existing `instMetricSpace`.
-    Downstream consumers wishing to use the canonical version can
-    invoke this explicitly. The instance migration is queued as
-    **B1.4c.5**. -/
-noncomputable def instMetricSpaceCanonical : MetricSpace TauProfinite :=
+    **Instance migration (B1.4c.5)**: this is now the **official**
+    `MetricSpace TauProfinite` instance. B1.4's
+    `TauProfinite.instMetricSpace` was demoted via
+    `attribute [-instance]` (above) to eliminate the instance
+    diamond. The original `instMetricSpace` remains a named
+    `noncomputable def` callable by explicit reference, but no
+    longer participates in typeclass resolution. -/
+noncomputable instance instMetricSpaceCanonical : MetricSpace TauProfinite :=
   TauProfinite.instMetricSpace.replaceTopology
     cylinder_topology_eq_metric_topology
 
