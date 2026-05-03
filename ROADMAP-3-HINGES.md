@@ -1,8 +1,70 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; **Workstream B1 COMPLETE** ✅ — B1.4c (full topology equality + canonical MetricSpace + instance migration + II.T10 cross-check) + B1.5c (full CompactSpace TauProfinite via König chain + Alexander) — manuscript II.T07 (τ³ compact) + II.T10 (Topology Uniqueness) FORMALLY VERIFIED in Lean 4. **Workstream B2.alg OPEN** — algebraic-completion bridge: W4 (`TauAlgComplex` = τ-native ℚ̄) shipped 🚀
-**Version:** v1.0 (2026-04-21); v2.0a status update (2026-05-04) — Workstream B2.alg opened with W4
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; **Workstream B1 COMPLETE** ✅ — B1.4c (full topology equality + canonical MetricSpace + instance migration + II.T10 cross-check) + B1.5c (full CompactSpace TauProfinite via König chain + Alexander) — manuscript II.T07 (τ³ compact) + II.T10 (Topology Uniqueness) FORMALLY VERIFIED in Lean 4. **Workstream B2.alg in progress** — W0 (namespace rename) + W4 (TauAlgComplex ℚ̄) + W1 (Algebra TauRatQ TauRealQ) + W2 (TauAlgReal real algebraics) all SHIPPED ✅; W3, W5 queued
+**Version:** v1.0 (2026-04-21); v2.0b status update (2026-05-04) — B2.alg W0+W1+W2 landed
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-04 update v2.0b (B2.alg W0 + W1 + W2 landed —
+> τ-native real algebraic numbers):**
+>
+> Three more sub-PRs landed today (after the W4 TauAlgComplex
+> opener), substantially extending the algebraic-completion
+> bridge:
+>
+> - **W0** (TauLib PR #141 → `38ad2d9`): namespace rename
+>   resolving the pre-existing `Tau.Boundary.toRat_inv` /
+>   `Tau.Boundary.TauRat.inv` collision between
+>   `TauRatQuotient.lean` and `TauRatInv.lean`. Renamed the
+>   (newer) unconditional Quotient versions to `_total` suffix,
+>   preserving the manuscript-aligned conditional originals.
+>   Single-file rename with internal-reference updates; no
+>   external TauLib breakage. **User-authorized refactor**.
+>
+> - **W1 + W2** (TauLib PR #142 → admin-merge pending):
+>   bundled two-wave shipping the τ-native real algebraic numbers:
+>   - **W1** (`TauRatRealAlgebraTower.lean`): `Algebra TauRatQ
+>     TauRealQ` instance via Mathlib's canonical `algebraMap ℚ
+>     TauRealQ` (auto-derived from Field + IsStrictOrderedRing
+>     → CharZero via `IsStrictOrderedRing.toCharZero`)
+>   - **W2** (`TauAlgReal.lean`): `TauAlgReal := algebraicClosure
+>     TauRatQ TauRealQ` as `IntermediateField`. Inherits Field
+>     + Algebra + IsAlgebraic from Mathlib's canonical
+>     `algebraicClosure F E` construction.
+>
+> ## Updated Workstream B2.alg structure
+>
+> | Wave | Status | Content |
+> |------|--------|---------|
+> | **W0** | **✅ SHIPPED** | Namespace rename (PR #141) |
+> | **W1** | **✅ SHIPPED** | `Algebra TauRatQ TauRealQ` (PR #142) |
+> | **W2** | **✅ SHIPPED** | `TauAlgReal` IntermediateField (PR #142) |
+> | W3 | QUEUED | Bridge `TauAlgReal ≃ algebraicClosure ℚ ℝ` (needs TauRealQ →+* ℝ Cauchy bridge first) |
+> | W3b | QUEUED | `LinearOrderedField TauAlgReal` (real-closed transport) |
+> | **W4** | **✅ SHIPPED** | `TauAlgComplex` = τ-native ℚ̄ (PR #139) |
+> | W5 | QUEUED | Bridge `TauAlgComplex ≃ₐ[TauRatQ] AlgebraicClosure ℚ` (needs IsScalarTower setup) |
+>
+> ## What this enables
+>
+> The τ-framework now reaches **two algebraic-completion
+> targets**:
+> - **`TauAlgComplex`** (W4): the τ-native algebraic complex
+>   numbers (ℚ̄), with `Field` + `IsAlgClosed`
+> - **`TauAlgReal`** (W2): the τ-native real algebraic numbers,
+>   with `Field` (sitting strictly between TauRatQ and TauRealQ)
+>
+> Both are constructively clean (countable extensions of ℚ),
+> sidestepping the Markov-principle wall that blocks full Cauchy
+> completion to ℝ.
+>
+> ## What's queued
+>
+> - **W3** + **W5** (canonical-anchoring verification handles
+>   to Mathlib's `algebraicClosure ℚ ℝ` and `AlgebraicClosure ℚ`):
+>   require additional substrate (TauRealQ →+* ℝ Cauchy bridge
+>   for W3; IsScalarTower setup for W5). Multi-iteration
+>   follow-up work; queued.
+> - **B2.alg.5** (LinearOrderedField TauAlgReal via Sturm
+>   sequences or transport): substantial; queued.
 
 > **2026-05-04 update v2.0a (Workstream B2.alg OPENED — W4
 > TauAlgComplex landed 🚀):**
