@@ -33,10 +33,15 @@ based ultrametric extension.
 ## Public API
 
 - `OmegaInverseLimit` — the structural type for an infinite coherent
-  tower.
+  tower. Carries three fields:
+  - `coeff : TauIdx → TauIdx` (the components)
+  - `coeff_zero : coeff 0 = 0` (depth-0 sentinel — see "Depth-0
+    sentinel" note below)
+  - `compat : ∀ k l, 1 ≤ k → k ≤ l → coeff l % primorial k = coeff k`
 
 - `nat_to_inverse_limit (n : TauIdx) : OmegaInverseLimit` — the
-  canonical embedding `n ↦ (n mod M_k)_{k ≥ 1}`.
+  canonical embedding `n ↦ (n mod M_k)_{k ≥ 1}`. Automatically
+  satisfies `coeff_zero` since `n % primorial 0 = n % 1 = 0`.
 
 - `OmegaInverseLimit.truncate (t : OmegaInverseLimit) (d : TauIdx)
   : OmegaTail` — restrict an inverse-limit tower to depth `d`.
@@ -47,6 +52,31 @@ based ultrametric extension.
 
 - `nat_to_inverse_limit_truncate_eq` — truncating the canonical
   embedding agrees with the canonical depth-d embedding `nat_to_tail`.
+
+## Depth-0 sentinel (added 2026-05-04, PR #133)
+
+The `coeff_zero : coeff 0 = 0` field encodes the manuscript
+convention that the **TauIdx tower is "natural numbers without
+zero"**: depth 0 carries no structural content and is forced to
+a canonical sentinel.
+
+**Why it's needed**: without this constraint, `TauProfinite`
+admits "spurious" non-canonical elements `{x_n | n ∈ ℕ}` with
+`x_n.coeff 0 = n`, `x_n.coeff k = 0` for `k ≥ 1`. These break
+compactness — the cover `{cylinder 0 c | c ∈ ℕ}` of TauProfinite
+admits no finite subcover. With `coeff_zero` enforced,
+`cylinder 0 0 = univ` (the whole space) and `cylinder 0 c = ∅`
+for `c ≠ 0`, eliminating the depth-0 obstruction.
+
+This matches the canonical embedding `nat_to_inverse_limit n`
+behavior (which always had `coeff 0 = 0` since
+`n % primorial 0 = n % 1 = 0`); making the convention explicit
+at the structure level eliminates non-canonical elements from
+the type.
+
+See `atlas/insights/2026-05-04-workstream-b1-completion-and-depth-zero-revelation.md`
+for the durable learning context (Insight 1: "The depth-0
+revelation").
 
 ## What this unlocks
 
@@ -77,11 +107,21 @@ open Tau.Denotation
 
 /-- **Inverse-limit ω-tower**: an infinite coherent tower of
     residues, one per depth `k ≥ 1`, with the reduction map
-    `(mod M_l) ↦ (mod M_k)` respected for every `k ≤ l`.
+    `(mod M_l) ↦ (mod M_k)` respected for every `1 ≤ k ≤ l`.
+
+    The structure carries three fields:
+    - `coeff k` for each depth `k : TauIdx`
+    - `coeff_zero : coeff 0 = 0` (the depth-0 sentinel — see PR
+      #133 for the structural rationale; the TauIdx tower is
+      "natural numbers without zero" at the index level)
+    - `compat` (the residue-reduction coherence for `1 ≤ k ≤ l`)
 
     This is the τ-native infinite-depth boundary object that
     Hinges 5–6 use as the target of pre-Yoneda collapse and
-    ω-germ stabilisation. -/
+    ω-germ stabilisation, AND the carrier underlying
+    `TauProfinite` (Wave 50 Bridge) — the depth-0 sentinel is
+    what makes `CompactSpace TauProfinite` (B1.5c.6, manuscript
+    II.T07) provable. -/
 structure OmegaInverseLimit where
   /-- The k-th component: a residue mod the k-th primorial. -/
   coeff : TauIdx → TauIdx
