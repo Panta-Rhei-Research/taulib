@@ -1,8 +1,90 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.4b/B1.4c (full + instance migration) + B1.4.5 spec + B1.5a/b/c.1 substrate landed; B1.4c.5b + B1.5c.1b+ queued — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0l status update (2026-05-05) — B1.4c.5 instance migration landed
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.4b/B1.4c (full + instance migration) + B1.4.5 spec + B1.5a/b/c.1+1b+2+3 substrate landed; **B1.5c.4-6 BLOCKED on structural depth-0 issue** (see v1.0m note); B1.4c.5b queued — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0m status update (2026-05-05) — B1.5c.1b+2+3 landed; structural depth-0 issue surfaced
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-05 update v1.0m (B1.5c.1b+2+3 landed; depth-0 structural
+> issue surfaced):**
+> Three more sub-PRs landed on origin/main today, advancing the
+> compactness substrate substantially:
+>
+> - **B1.5c.1b + B1.5c.2** (TauLib PR #130 → `b544e67`):
+>   - `validSubcylinderCenters_lt`: the queued upper-bound lemma
+>     (working `calc`-chain proof avoiding the prior tactic
+>     unification issues)
+>   - `cylinder_eq_finset_iUnion_subcylinders`: the **finite,
+>     Finset-indexed** partition equality (refactor of B1.5b's
+>     subtype-indexed version)
+>   - Helper `proj_lt_primorial` (every projection bounded by its
+>     stage's primorial, for k ≥ 1)
+>
+> - **B1.5c.3** (TauLib PR #131 → `d682ce0`):
+>   - `pigeonhole_step`: the inductive step — if `cylinder k c` has
+>     no finite subcover, then SOME refining `cylinder (k+1) c'`
+>     (with `c' ∈ validSubcylinderCenters k c`) also has no finite
+>     subcover. Proof via `Classical.choose` + `Finset.biUnion`
+>     witness-Finset assembly.
+>
+> Three substantive sub-PRs landed in this session, in addition to
+> B1.4c.5 + ROADMAP v1.0l (PRs #128, #129) earlier.
+>
+> ## ⚠️ Structural depth-0 issue surfaced
+>
+> While drafting B1.5c.4 (the recursive `Classical.choose` chain),
+> I discovered a structural issue that **blocks B1.5c.4-6 + B1.4c.5b
+> from proceeding without a resolution**:
+>
+> **Problem**: `OmegaInverseLimit.compat` requires `1 ≤ k ≤ l`,
+> leaving `coeff 0` UNCONSTRAINED. So `TauProfinite`-as-defined
+> contains elements `{x_n | n ∈ ℕ}` where each `x_n.coeff 0 = n`
+> and `x_n.coeff k = 0` for `k ≥ 1`. These are pairwise distinct,
+> live in different `cylinder 0 n`, and the cover
+> `{cylinder 0 n | n ∈ ℕ}` covers `TauProfinite` with **NO finite
+> subcover**.
+>
+> Therefore `TauProfinite` (as currently defined) is **NOT compact**
+> in the cylinder topology. The proposed `CompactSpace TauProfinite`
+> instance (B1.5c.6) cannot be proven against the current
+> definition.
+>
+> **Manuscript context**: per
+> `book-02/part01/ch06-tau3-fibration.tex` Def II.D07, τ³ is the
+> fibered product τ¹ ×_f T². Theorem II.T07 asserts τ³ is compact.
+> The Lean encoding via `OmegaInverseLimit` is intended to model
+> this, but the unconstrained `coeff 0` introduces "spurious"
+> non-canonical elements that break compactness. Per the canonical
+> embedding `nat_to_inverse_limit`, the IMAGE has `coeff 0 = 0`
+> always (since `n % primorial 0 = n % 1 = 0`).
+>
+> **Resolution paths** (require user decision):
+>
+> 1. **Constrain `coeff 0`** in the `OmegaInverseLimit` structure
+>    (add `coeff_zero : coeff 0 = 0` field). Cleanest mathematically
+>    but a breaking change requiring downstream consumer audit.
+>
+> 2. **Define a sub-structure** `TauProfinite₀ := {x : TauProfinite
+>    | x.proj 0 = 0}` and prove `CompactSpace TauProfinite₀`. Then
+>    the II.T10 cross-check applies to this canonical subspace.
+>
+> 3. **Coarsen the cylinder topology** to omit depth-0 cylinders
+>    from the basis (use only `{cylinder k c | k ≥ 1}`). Changes
+>    the topology — would need to revisit Wave 50/51 + B1.4c
+>    proofs.
+>
+> 4. **Quotient** `TauProfinite` by "differs only in `coeff 0`",
+>    making the canonical class the carrier of compactness.
+>
+> ## What's queued
+>
+> - **B1.4c.5b**: BLOCKED on B1.5c.6 (CompactSpace), itself blocked
+>   on the structural decision above.
+> - **B1.5c.4 + B1.5c.5 + B1.5c.6**: BLOCKED on the structural
+>   decision. The pigeonhole inductive step (B1.5c.3) is shipped,
+>   but the chain construction can't conclude in compactness without
+>   resolving the depth-0 issue.
+>
+> All other prior queued items (B1.4c.5b, etc.) remain queued.
 
 > **2026-05-05 update v1.0l (B1.4c.5 — instance migration landed):**
 > One more sub-PR landed on origin/main today, completing the
