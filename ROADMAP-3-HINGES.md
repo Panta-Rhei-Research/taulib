@@ -1,12 +1,13 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phase 0 (ι_τ structural) closed — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0a status update (2026-05-03)
+**Status:** Phases 0 & 4 closed (B1.0 + B1.1) — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0b status update (2026-05-03)
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
 
 > **2026-05-03 update:** Phase 0 is closed via Workstream B1.0a + B1.0b
-> (callsite audit + asymptotic Cauchy-stability bridge). See §4 status
-> block + the B1 dossier
+> (callsite audit + asymptotic Cauchy-stability bridge), and Phase 4
+> via Workstream B1.1 (concrete-K numerical certificate at K=50,
+> ε=1/1000). See §4 status block + the B1 dossier
 > [`atlas/audits/taulib/2026-05-03-foundations-bridges-state-of-the-union.md`](https://github.com/Panta-Rhei-Research/atlas/blob/main/audits/taulib/2026-05-03-foundations-bridges-state-of-the-union.md)
 > for the current state and the proposed 9-wave continuation.
 
@@ -151,14 +152,24 @@ breaks a potential circular dependency.
 >   infrastructure (`IsCauchy_mul`, `IsCauchy_inv`, `IsCauchy_add`,
 >   `pi_isCauchy`, `e_isCauchy`, `pi_plus_e_boundedAwayFromZero`).
 >   No partial-sum evaluation; no new sorry / axioms.
-> - **B1.0c** queued (opt-in) — Tighten the bridge to a concrete
->   numerical bound `|iota_tau − 341304/1000000| < 3 × 10⁻⁷` via
->   direct partial-sum evaluation. Requires K ≥ 30 000 Leibniz pairs
->   for π's convergence rate (or an accelerated π series). **Not
->   currently blocking** any downstream consumer — per the B1.0a
->   audit, all 162 `decide`/`native_decide` callsites use the fiat
->   `Nat/Nat` directly. Pick up only when a downstream theorem
->   actually needs the tighter formal bound.
+> - **B1.1** ✓ — Concrete-K numerical certificate
+>   `TauReal.iota_tau_numerical_certificate` (TauLib PR following
+>   B1.0b). At witness depth `K = 50`, the structural form is within
+>   `1/1000` of the fiat decimal — discharged via a single
+>   `native_decide` call on the unfolded `TauRat.lt` inequality
+>   (50 Leibniz-pair partial-sum terms in `pi_partial 50` + 50
+>   factorial terms in `e_partial 50`, composed through `mul`/`inv`/
+>   `add` and reduced at the C-compiled byte-code level).
+> - **B1.1c** queued (opt-in) — Tighten the certificate to either
+>   `|iota_tau.approx K − 341304/1000000| < 1/10⁶` (would need
+>   `K ≥ 30 000` for Leibniz pairs, stressing `native_decide`'s
+>   reduction budget) or to the dossier's original `1/10¹²` target
+>   (unreachable with Leibniz pairs; needs Machin / Wallis /
+>   Chudnovsky π series acceleration, ~200–500 LOC of new
+>   infrastructure). **Not currently blocking** any downstream
+>   consumer — per the B1.0a audit, all 162 `decide`/`native_decide`
+>   callsites use the fiat `Nat/Nat` directly. Pick up only when a
+>   downstream theorem actually needs the tighter formal bound.
 >
 > The structural `TauReal.pi`, `TauReal.e`, `TauReal.iota_tau`
 > definitions and the defining identity

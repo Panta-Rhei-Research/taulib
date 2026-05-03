@@ -27,10 +27,14 @@ an honest element of the Cauchy completion.
                               (Phase 0 / B1.0b — this module, PART 4)
 - [I.T-IotaTau-IsCauchy]     `TauReal.iota_tau.IsCauchy` — asymptotic
                               bridge (Phase 0 / B1.0b — this module, PART 5)
+- [I.T-IotaTau-Numerical-K50] `|iota_tau.approx 50 − 341304/1000000| < 1/1000`
+                              (Phase 4 / B1.1 — this module, PART 6;
+                              concrete-K certificate via `native_decide`)
 - [I.T-IotaTau-NumericalBridge]   `|iota_tau − 341304/1000000| < 3×10⁻⁷`
-                                   (Phase 0c / B1.0c — opt-in follow-up;
+                                   (Phase 0c / B1.1c — opt-in follow-up;
                                     requires direct partial-sum evaluation
-                                    or accelerated π series)
+                                    or accelerated π series; K ≥ 30 000
+                                    for Leibniz pairs)
 
 Cross-reference docs:
 - `atlas/audits/taulib/2026-05-03-iota-tau-callsite-audit.md` —
@@ -253,5 +257,47 @@ theorem TauReal.iota_tau_isCauchy : TauReal.iota_tau.IsCauchy := by
   · apply TauReal.IsCauchy_inv
     · exact TauReal.IsCauchy_add _ _ TauReal.pi_isCauchy TauReal.e_isCauchy
     · exact TauReal.pi_plus_e_boundedAwayFromZero
+
+-- ============================================================
+-- PART 6: NUMERICAL CERTIFICATE — CONCRETE-K BOUND AT K=50
+-- ============================================================
+
+/-- **Numerical certificate** (Phase 4 / B1.1).
+
+    At witness depth `K = 50`, the structural `iota_tau` approximation
+    is within `1/1000` of the fiat decimal `341304/1000000`. This
+    quantitatively certifies the structural-vs-fiat agreement at a
+    concrete index, complementing the asymptotic
+    `iota_tau_isCauchy` bridge (PART 5) which is index-free.
+
+    **Discharge**: `native_decide`. The kernel evaluates
+    `iota_tau.approx 50` to a concrete `TauRat` (50 Leibniz-pairs
+    terms in `pi_partial 50` + 50 factorial terms in `e_partial 50`,
+    composed through `mul`, `inv`, `add`), takes `.toRat`, subtracts
+    the fiat, takes `.abs`, and compares against `1/1000`. The
+    boolean reduction is checked at the C-compiled byte-code level.
+
+    **Witness-depth choice**. Convergence rate analysis (B1.0b
+    reconnaissance):
+    - `pi_partial K`: `≤ 1/(2K)` Leibniz-pairs error after K terms.
+    - `e_partial K`: `≤ 4/2^K` factorial error.
+    - At `K = 50`: π error `≤ 1/100`, e error `≤ 4/2^50 ≈ 4×10⁻¹⁵`.
+      Propagated `iota_tau` error `≈ 1/100 / (π+e)² × 2 ≈ 6×10⁻⁴`,
+      well inside `1/1000`. (Empirically verified by `#eval` before
+      committing this proof.)
+
+    **Tighter ε queued** (`B1.1c`): the dossier originally proposed
+    a `1/10¹²` numerical bound, but this is unreachable with Leibniz
+    pairs (would require `K ≥ 5×10¹¹`). The B1.1c follow-up — opt-in,
+    not currently blocking any consumer — would either bump K to
+    `~30 000` for `1/10⁶` precision (heavy `native_decide` budget),
+    or replace `pi_partial` with an accelerated series (Machin /
+    Wallis / Chudnovsky); see ROADMAP-3-HINGES.md §4 status block. -/
+theorem TauReal.iota_tau_numerical_certificate :
+    TauRat.lt
+      (((TauReal.iota_tau.approx 50).sub TauRat.iota_tau_fiat).abs)
+      (TauRat.ofNatRecip 999) := by
+  unfold TauRat.lt
+  native_decide
 
 end Tau.Boundary
