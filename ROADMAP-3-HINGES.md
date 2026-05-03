@@ -1,8 +1,93 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.4b/B1.4c (full + instance migration) + B1.4.5 spec + B1.5a/b/c.1+1b+2+3 substrate landed; **B1.5c.4-6 BLOCKED on structural depth-0 issue** (see v1.0m note); B1.4c.5b queued — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0m status update (2026-05-05) — B1.5c.1b+2+3 landed; structural depth-0 issue surfaced
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; **Workstream B1 COMPLETE** ✅ — B1.4c (full topology equality + canonical MetricSpace + instance migration + II.T10 cross-check) + B1.5c (full CompactSpace TauProfinite via König chain + Alexander) — manuscript II.T07 (τ³ compact) + II.T10 (Topology Uniqueness) FORMALLY VERIFIED in Lean 4
+**Version:** v1.0 (2026-04-21); v1.0n status update (2026-05-04) — Workstream B1 COMPLETE 🎉
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-04 update v1.0n (Workstream B1 COMPLETE 🎉):**
+>
+> The entire B1.4c + B1.5c workstream is now landed on origin/main.
+> **τ³ is formally compact + canonically anchored with dual-path
+> topology equality verification** in Lean 4.
+>
+> **Final session deliverables**:
+>
+> - **PR #133** (`fa4f0b0`): structural fix `coeff_zero` sentinel
+>   on `OmegaInverseLimit` (root-cause depth-0 fix). Unblocks the
+>   compactness workstream.
+>
+> - **B1.5c.4** (PR #134 → `9bf5861`): König chain construction
+>   substrate — `chain : (k : ℕ) → ChainElement U k` via
+>   `chainBase` + `chainStepZero` + `chainStepSucc`. Plus
+>   `univ_eq_cylinder_one_union`, `pigeonhole_step_zero`,
+>   `chain_compat_succ`. ~227 LOC.
+>
+> - **B1.5c.5 + B1.5c.6** (PR #135 → `f1e27ac`):
+>   - `chain_compat_general`: full coherence for `1 ≤ k ≤ l` via
+>     `Nat.le_induction` + `Nat.mod_mod_of_dvd` + `primorial_dvd`
+>   - `chainLimit`, `chainLimitTauProfinite`: assemble chain into
+>     TauProfinite element via `OmegaInverseLimit`
+>   - `chainLimit_proj` verification handle
+>   - **`instance : CompactSpace TauProfinite`** via Mathlib's
+>     `compactSpace_generateFrom` (Alexander's subbasis theorem)
+>     applied to `cylinderBasis`
+>   - **= manuscript Theorem II.T07 (τ³ is compact)** ✅
+>   ~168 LOC.
+>
+> - **B1.4c.5b** (PR #136 → `25854f7`): II.T10 Topology Uniqueness
+>   cross-check — new module `TauProfiniteTopologyUniqueness.lean`:
+>   - `id_continuous_cylinder_to_metric`
+>   - `idHomeoCylinderToMetric : Homeomorph (X, T_cyl) (X, T_met)`
+>     via Mathlib's `Continuous.homeoOfEquivCompactToT2`
+>   - `cylinder_topology_eq_metric_topology_via_uniqueness`:
+>     **second proof** of topology equality via the manuscript's
+>     II.T10 uniqueness path (compact-Hausdorff bijection is a
+>     homeomorphism)
+>   - **= manuscript Theorem II.T10 (Topology Uniqueness)** ✅
+>   ~159 LOC.
+>
+> **Dossier Part 7.2 verification handle ACHIEVED**: the canonical
+> anchoring is provably equivalent across two distinct proof paths
+> (bidirectional inclusion B1.4c.3 + uniqueness B1.4c.5b),
+> cross-validating the formalization's correctness.
+>
+> ## Complete B1.4c + B1.5c sub-PR sequence
+>
+> | Wave | Content | PR |
+> |------|---------|-----|
+> | B1.4 | MetricSpace TauProfinite (canonical-anchored) | (prior) |
+> | B1.4b | metric_ball ⊆ cylinder forward | #119 |
+> | B1.4c.1+2 | depth-0 + reverse direction (cyl ∩ cyl ⊆ ball) | #121 |
+> | B1.4c.3a | every cylinder is metric-open | #125 |
+> | B1.4c.3b+3+4 | reverse + full equality + canonical instance (def) | #126 |
+> | B1.4c.5 | instance migration (eliminate diamond) | #128 |
+> | Structural | coeff_zero sentinel (depth-0 fix) | #133 |
+> | B1.5b PART 3 | proj_mod_primorial substrate | (prior) |
+> | B1.5c.1 | validSubcylinderCenters Finset | #123 |
+> | B1.5c.1b+2 | upper bound + Finset partition equality | #130 |
+> | B1.5c.3 | n-ary pigeonhole step | #131 |
+> | B1.5c.4 | König chain construction | #134 |
+> | B1.5c.5+6 | limit + **CompactSpace TauProfinite** | #135 |
+> | **B1.4c.5b** | **II.T10 uniqueness cross-check** | **#136** |
+>
+> **Full library**: 1767 jobs, 0 errors, 0 sorry, axioms=3
+> (unchanged throughout). Strict-discipline 0-sorry policy upheld
+> across the entire workstream.
+>
+> ## Manuscript theorems formally verified ✅
+>
+> - **II.T07** (τ³ is compact) — via König chain + Alexander
+> - **II.T10** (Topology Uniqueness) — via compact-Hausdorff
+>   homeomorphism
+> - **II.D13** (canonical ultrametric distance) — anchored in B1.4
+> - **II.T05** (ultrametric inequality) — B1.4
+> - **II.D12** (first disagreement depth) — B1.3.5
+> - **II.D11** (cylinder clopen basis) — Wave 51
+> - **II.D10** (stage-k cylinder) — Wave 50
+> - **II.P03** (cylinder complement is finite union) — Wave 51
+> - **II.P04** (cylinders ARE balls) — formalized via topology
+>   equality at three levels: basic-set, full-topology, canonical
+>   instance, dual-proof-path
 
 > **2026-05-05 update v1.0m (B1.5c.1b+2+3 landed; depth-0 structural
 > issue surfaced):**
