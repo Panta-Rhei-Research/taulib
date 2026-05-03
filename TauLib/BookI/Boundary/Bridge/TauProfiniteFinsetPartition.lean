@@ -229,6 +229,65 @@ theorem cylinder_eq_finset_iUnion_subcylinders {k c : TauIdx}
     rw [h_mod] at h_compat
     exact h_compat.symm
 
+-- ============================================================
+-- PART 3 (B1.5c.3): n-ary pigeonhole step
+-- ============================================================
+
+/-- **B1.5c.3 — n-ary pigeonhole**: if `cylinder k c` (with
+    `c < primorial k`, `1 ≤ k`) has no finite subcover from a
+    given open cover `U : ι → Set TauProfinite`, then there
+    exists a stage-(k+1) refining cylinder
+    `cylinder (k+1) c'` (with `c' ∈ validSubcylinderCenters k c`)
+    that ALSO has no finite subcover.
+
+    This is the **inductive step** for the recursive
+    `Classical.choose` chain construction (B1.5c.4) toward
+    `CompactSpace TauProfinite`. The proof uses the Finset
+    partition equality (B1.5c.2) plus the pigeonhole principle:
+    a finite union of finitely-coverable sets is itself
+    finitely-coverable.
+
+    **Proof**: by contradiction. Assume every refining cylinder
+    has a finite subcover. Use `Classical.choose` to pick
+    witnesses `f c' hc' : Finset ι` for each `c' ∈
+    validSubcylinderCenters k c`. The union of all these
+    witnesses is itself a finite Finset (via `Finset.biUnion`)
+    that covers the entire `cylinder k c` (by partition equality),
+    contradicting the no-finite-subcover hypothesis. -/
+theorem pigeonhole_step {k c : TauIdx} (hk : 1 ≤ k) (hc : c < primorial k)
+    {ι : Type*} {U : ι → Set TauProfinite}
+    (h_no_finite : ¬ ∃ s : Finset ι, cylinder k c ⊆ ⋃ i ∈ s, U i) :
+    ∃ c' ∈ validSubcylinderCenters k c,
+      ¬ ∃ s : Finset ι, cylinder (k + 1) c' ⊆ ⋃ i ∈ s, U i := by
+  classical
+  by_contra h_all
+  push_neg at h_all
+  -- h_all : ∀ c' ∈ validSubcylinderCenters k c, ∃ s, cylinder (k+1) c' ⊆ ⋃ i ∈ s, U i
+  -- Pick witnesses via classical choice
+  choose f hf using h_all
+  -- f : (c' : TauIdx) → c' ∈ validSubcylinderCenters k c → Finset ι
+  -- hf : ∀ c' hc', cylinder (k+1) c' ⊆ ⋃ i ∈ f c' hc', U i
+  -- Build the unified Finset of witnesses
+  let s_total : Finset ι := (validSubcylinderCenters k c).attach.biUnion
+    (fun ⟨c', hc'⟩ => f c' hc')
+  apply h_no_finite
+  refine ⟨s_total, ?_⟩
+  -- Goal: cylinder k c ⊆ ⋃ i ∈ s_total, U i
+  rw [cylinder_eq_finset_iUnion_subcylinders hk hc]
+  intro y hy
+  -- hy : y ∈ ⋃ c' ∈ validSubcylinderCenters k c, cylinder (k+1) c'
+  simp only [Set.mem_iUnion, exists_prop] at hy
+  obtain ⟨c', hc', hyc'⟩ := hy
+  -- hyc' : y ∈ cylinder (k+1) c'
+  have hyU := hf c' hc' hyc'
+  -- hyU : y ∈ ⋃ i ∈ f c' hc', U i
+  simp only [Set.mem_iUnion, exists_prop] at hyU ⊢
+  obtain ⟨i, hi_mem, hyi⟩ := hyU
+  refine ⟨i, ?_, hyi⟩
+  -- Need: i ∈ s_total = (validSubcylinderCenters k c).attach.biUnion ...
+  rw [Finset.mem_biUnion]
+  exact ⟨⟨c', hc'⟩, Finset.mem_attach _ _, hi_mem⟩
+
 end TauProfinite
 
 end Tau.Boundary
