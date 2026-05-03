@@ -1,8 +1,81 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.4b/B1.4c.1+2 + B1.4.5 spec + B1.5a/b/c.1 substrate landed; B1.4c.3+ + B1.5c.1b+ queued — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0j status update (2026-05-05)
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4/B1.4b/B1.4c (full) + B1.4.5 spec + B1.5a/b/c.1 substrate landed; B1.4c.5 + B1.5c.1b+ queued — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0k status update (2026-05-05) — B1.4c topology equality + canonical MetricSpace landed
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-05 update v1.0k (B1.4c.3a+3b+3+4 — full topology
+> equality + canonical instance landed):**
+> Two more sub-PRs landed on origin/main today, completing the
+> entire B1.4c topology agreement workstream:
+>
+> - **B1.4c.3a** (TauLib PR #125 → `a494ab9`): forward direction —
+>   `cylinder_isOpen_in_metric_topology` (every cylinder is
+>   metric-open). ~38 LOC, 1 named theorem. Case-splits on `k = 0`
+>   vs `k ≥ 1` and applies B1.4b/B1.4c.1's subset lemma to find a
+>   metric ball at each cylinder point.
+>
+> - **B1.4c.3b + B1.4c.3 + B1.4c.4** (TauLib PR #126 → `c3882cf`):
+>   bundled three-wave completion of the topology agreement story:
+>
+>   - **B1.4c.3b**: reverse direction —
+>     `metric_ball_isOpen_in_cylinder_topology` (every metric ball
+>     is cylinder-open). Proof uses the **Archimedean property**
+>     (`pow_unbounded_of_one_lt`) to find `k ≥ 1` with `1/2^k <
+>     ε - dist y x`, then invokes B1.4c.2's `cylinder_inter_subset_ball`
+>     plus the triangle inequality. ~60 LOC.
+>
+>   - **B1.4c.3**: full topology equality —
+>     `cylinder_topology_eq_metric_topology` proves
+>     `TauProfinite.instTopologicalSpace = ...metric topology`.
+>     `le_antisymm` proof using B1.4c.3a + B1.4c.3b directly:
+>     - `cylinder ≤ metric` via `Metric.isOpen_iff` + B1.4c.3b
+>     - `metric ≤ cylinder` via
+>       `TopologicalSpace.le_generateFrom_iff_subset_isOpen`
+>       + B1.4c.3a
+>     ~50 LOC.
+>
+>   - **B1.4c.4** (new module
+>     `TauProfiniteMetricSpaceCanonical.lean`): canonical
+>     MetricSpace via `MetricSpace.replaceTopology` —
+>     `instMetricSpaceCanonical` whose auto-generated topology
+>     component is **definitionally** equal to Wave 50's cylinder
+>     topology. Verification handle preserved:
+>     `instMetricSpaceCanonical_dist : dist = ultrametricDistanceReal`
+>     by `rfl`. Shipped as `noncomputable def` (not `instance`) to
+>     avoid instance-resolution diamond with B1.4's existing
+>     `instMetricSpace`. ~121 LOC.
+>
+> **Manuscript context (Wave R7 research sprint)**: per
+> `book-02/part02/ch10-ultrametric-depth.tex` Prop II.P04
+> (ll. 302-321), cylinders ARE balls (`C_k(x) = closed-ball(x,
+> 2^(-k)) = open-ball(x, 2^(-(k-1)))`). The manuscript treats
+> cylinder + metric as ONE topology with two characterizations,
+> NOT as two separate topologies proven equal. B1.4c.3 + B1.4c.4
+> together make this identification formal at both the topology
+> level and the canonical-instance level.
+>
+> **B1.4c.5 queued**: the actual instance migration — replacing
+> B1.4's `instance` declaration with the canonical version.
+> Requires an audit of downstream `MetricSpace TauProfinite`
+> consumers to avoid breakage. Not blocking; can land whenever
+> downstream-audit work is convenient.
+>
+> **B1.4c.5b queued** (cross-check, post-B1.5c.6): when
+> `CompactSpace TauProfinite` lands, ship a SECOND proof of
+> topology equality via Theorem **II.T10** (Topology Uniqueness,
+> `book-02/part03/ch14-topology-invariant.tex` ll. 135-197) — the
+> slick `compact-Hausdorff bijection is homeomorphism` argument.
+> This would be a clean cross-check that the canonical anchoring
+> is correct (per dossier Part 7 verification handle 7.2:
+> provable equivalence).
+>
+> **B1.5c.1b+ queued (still)**: upper-bound lemma + partition
+> equality + n-ary pigeonhole + recursive Classical.choose chain
+> + limit extraction + Alexander subbasis assembly. All needed
+> for the full `CompactSpace TauProfinite` instance, which is
+> needed to unlock Path B (II.T10 uniqueness) for the topology
+> equality cross-check.
 
 > **2026-05-05 update (B1.4c.1+2 + B1.5c.1 substrate landed):**
 > Two more sub-PRs landed on origin/main today, continuing the
