@@ -110,18 +110,40 @@ theorem validSubcylinderCenters_mod {k c c' : TauIdx}
   -- Goal: (c + i * primorial k) % primorial k = c
   rw [Nat.add_mul_mod_self_right, Nat.mod_eq_of_lt hc]
 
-/-- **Queued for B1.5c.1b**: the `c' < primorial (k+1)` upper-bound
-    lemma. Proof requires multiplicative reasoning about
-    `primorial (k+1) = nth_prime (k+1) * primorial k` that hit
-    repeated tactic-elaboration issues during this session
-    (`ring` failed on `Nat`; `linarith`/`trans_le` couldn't unify
-    the multiplication terms). Better as a focused follow-up where
-    the proof can be debugged at length without rushed iteration.
+/-- **B1.5c.1b — upper bound**: every center `c'` in the Finset
+    satisfies `c' < primorial (k+1)` (when `c < primorial k`).
 
-    Not needed for the immediate B1.5c.2 (n-ary pigeonhole) since
-    that step uses the partition equality (which itself requires
-    membership facts but not the upper bound directly). -/
-example : True := trivial
+    **Proof**: every `c' ∈ validSubcylinderCenters k c` has the form
+    `c + i * primorial k` for some `i < nth_prime (k+1)`. Then:
+
+      c + i * primorial k
+        < primorial k + i * primorial k    [Nat.add_lt_add_right hc]
+        = (i + 1) * primorial k            [Nat.add_one_mul + comm]
+        ≤ nth_prime (k+1) * primorial k    [Nat.mul_le_mul_right + hi_mem]
+        = primorial (k+1)                  [by definition]
+
+    Combined with `validSubcylinderCenters_mod`, this confirms each
+    `c'` is a valid stage-(k+1) residue (well-typed and coherent
+    with the parent stage-k center). -/
+theorem validSubcylinderCenters_lt {k c c' : TauIdx}
+    (hc : c < primorial k)
+    (hc' : c' ∈ validSubcylinderCenters k c) :
+    c' < primorial (k + 1) := by
+  unfold validSubcylinderCenters at hc'
+  rw [Finset.mem_image] at hc'
+  obtain ⟨i, hi_mem, hi⟩ := hc'
+  rw [Finset.mem_range] at hi_mem
+  -- hi_mem : i < nth_prime (k + 1)
+  -- hi : c + i * primorial k = c'
+  rw [← hi]
+  -- Goal: c + i * primorial k < primorial (k + 1)
+  -- primorial (k+1) = nth_prime (k+1) * primorial k by definition
+  show c + i * primorial k < nth_prime (k + 1) * primorial k
+  calc c + i * primorial k
+      < primorial k + i * primorial k := Nat.add_lt_add_right hc _
+    _ = (i + 1) * primorial k := by rw [Nat.add_one_mul, Nat.add_comm]
+    _ ≤ nth_prime (k + 1) * primorial k :=
+        Nat.mul_le_mul_right _ hi_mem
 
 end TauProfinite
 
