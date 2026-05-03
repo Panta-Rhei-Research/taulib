@@ -1,8 +1,32 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4 MetricSpace landed; B1.5 queued — Workstream B1 in progress
-**Version:** v1.0 (2026-04-21); v1.0e status update (2026-05-04)
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; B1.4 MetricSpace landed; B1.4.5 compactness spec landed; B1.5 will follow τ-native pigeonhole — Workstream B1 in progress
+**Version:** v1.0 (2026-04-21); v1.0f status update (2026-05-05)
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-05 update (B1.4.5 canonical compactness spec landed):**
+> Atlas dossier
+> [`audits/taulib/2026-05-05-canonical-compactness-spec.md`](https://github.com/Panta-Rhei-Research/atlas/blob/main/audits/taulib/2026-05-05-canonical-compactness-spec.md)
+> (commit `92cb479`) extracts the canonical compactness construction
+> from Book II Part 03 ch13 (`[II.T07]` Compactness Theorem with both
+> Tychonoff primary and τ-native pigeonhole proofs from Remark
+> `[II.R01]`), Book II Part 09 ch52 (`[II.T42]` Categoricity step 3:
+> "K2 forces compactness"), and Book I axiom K2
+> (`ρ(ω) = ω`, the architectural anchor for inherent compactness).
+> - **B1.5 will follow Path B** (τ-native König-like pigeonhole proof
+>   per Remark `[II.R01]`) rather than classical Tychonoff via
+>   product embedding. Constructively cleaner (countable dependent
+>   choice only) and honors the canonical-anchoring discipline.
+> - Headline finding: τ³'s **global compactness is unusual** —
+>   most ultrametric spaces (`ℚ_p`, `ℤ_p`) are only locally compact.
+>   τ³ is globally compact because (a) the primorial tower (K1)
+>   gives finite-at-each-stage structure, and (b) ω (K2) is already
+>   in the domain — no external compactification needed. The
+>   manuscript calls this **inherent compactness**.
+> - The dossier ships 5-clause anti-spec (no Tychonoff-via-product,
+>   no external compactification, no boundary readouts, no
+>   LocallyCompact fallback, no SequentialCompact shortcut) and
+>   6-clause verification handles for the B1.5 PR.
 
 > **2026-05-04 update (B1.4 canonical MetricSpace landed):** TauLib
 > PR #112 (commit `a1f0a0d`) ships the canonical
