@@ -168,10 +168,17 @@ private theorem TauRatQ.lift_via_toRat (x y : TauRatQ)
 -- PART 5: Multiplicative inverse (Field-specific)
 -- ============================================================
 
-/-- TauRat-level multiplicative inverse. For nonzero `q : TauRat`,
-    swaps numerator and denominator with sign adjustment. For zero,
-    returns zero (Mathlib's standard convention `inv 0 = 0`). -/
-def TauRat.inv (q : TauRat) : TauRat :=
+/-- TauRat-level multiplicative inverse, **unconditional/total
+    form** (handles `q ≈ 0` via Mathlib convention `0⁻¹ = 0`).
+    For nonzero `q : TauRat`, swaps numerator and denominator with
+    sign adjustment. For zero, returns zero.
+
+    Renamed from `TauRat.inv` to `TauRat.inv_total` (B2.alg.W0,
+    2026-05-04) to disambiguate from
+    `TauLib.BookI.Boundary.TauRatInv.TauRat.inv` which has the
+    conditional signature `(q : TauRat) (h : q.is_nonzero) →
+    TauRat`. -/
+def TauRat.inv_total (q : TauRat) : TauRat :=
   if hgt : q.num.pos > q.num.neg then
     -- q.num.toInt > 0, so q > 0; inv = ⟨⟨den, 0⟩, pos-neg, _⟩
     ⟨⟨q.den, 0⟩, q.num.pos - q.num.neg, Nat.sub_pos_of_lt hgt⟩
@@ -182,9 +189,23 @@ def TauRat.inv (q : TauRat) : TauRat :=
     -- pos = neg, so q.toInt = 0 → q ≈ 0; return 0 (Mathlib convention)
     TauRat.zero
 
-/-- toRat of inv: `(q.inv).toRat = (q.toRat)⁻¹`. -/
-theorem toRat_inv (q : TauRat) : q.inv.toRat = q.toRat⁻¹ := by
-  unfold TauRat.inv
+/-- toRat of inv (unconditional/total form): `(q.inv).toRat =
+    (q.toRat)⁻¹`. The TauRat.inv definition handles the `q ≈ 0`
+    case via the Mathlib convention `0⁻¹ = 0`, so no
+    `q.is_nonzero` hypothesis is required.
+
+    Renamed from `toRat_inv` to `toRat_inv_total` (2026-05-04,
+    B2.alg.W0) to disambiguate from
+    `TauLib.BookI.Boundary.TauRatInv.toRat_inv` which has the
+    same name in `Tau.Boundary` namespace but the conditional
+    signature `(q : TauRat) (h : q.is_nonzero) → ...`. The two
+    coexist under different names; this rename unblocks any
+    module that needs to import both `TauRatQuotient.lean` AND
+    something that transitively imports `TauRatInv.lean` (e.g.,
+    `TauRealQuotientField.lean`), required by the B2.alg.W1
+    algebra-tower workstream. -/
+theorem toRat_inv_total (q : TauRat) : q.inv_total.toRat = q.toRat⁻¹ := by
+  unfold TauRat.inv_total
   by_cases hgt : q.num.pos > q.num.neg
   · -- positive case: q > 0
     simp only [hgt, ↓reduceDIte]
@@ -236,22 +257,22 @@ theorem toRat_inv (q : TauRat) : q.inv.toRat = q.toRat⁻¹ := by
       simp
 
 theorem TauRat.inv_respects_equiv (a₁ a₂ : TauRat) (h : TauRat.equiv a₁ a₂) :
-    TauRat.equiv a₁.inv a₂.inv := by
+    TauRat.equiv a₁.inv_total a₂.inv_total := by
   rw [equiv_iff_toRat_eq] at h ⊢
-  rw [toRat_inv, toRat_inv, h]
+  rw [toRat_inv_total, toRat_inv_total, h]
 
 def TauRatQ.inv : TauRatQ → TauRatQ :=
-  Quotient.lift (fun a => a.inv.toQ)
+  Quotient.lift (fun a => a.inv_total.toQ)
     (fun a b h => Quotient.sound (TauRat.inv_respects_equiv a b h))
 
 @[simp] theorem TauRatQ.inv_mk (a : TauRat) :
-    TauRatQ.inv a.toQ = a.inv.toQ := rfl
+    TauRatQ.inv a.toQ = a.inv_total.toQ := rfl
 
 @[simp] theorem TauRatQ.toRat_inv (x : TauRatQ) :
     (TauRatQ.inv x).toRat = x.toRat⁻¹ := by
   refine Quotient.inductionOn x (fun a => ?_)
-  show a.inv.toRat = (a.toRat)⁻¹
-  exact Tau.Boundary.toRat_inv a
+  show a.inv_total.toRat = (a.toRat)⁻¹
+  exact Tau.Boundary.toRat_inv_total a
 
 -- ============================================================
 -- PART 6: Bare typeclass instances (for nsmulRec / zsmulRec)
