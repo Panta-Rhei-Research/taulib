@@ -38,6 +38,16 @@ instance, completing the **τ-native compactness theorem** (manuscript
 - PR #133 — `OmegaInverseLimit.coeff_zero` constraint
 - Wave 50/51 — cylinder topology, T2Space
 - Mathlib — `compactSpace_generateFrom` (Alexander)
+
+## Atlas cross-references
+
+- `atlas/audits/taulib/2026-05-05-canonical-compactness-spec.md` —
+  the canonical-anchoring spec for `CompactSpace TauProfinite`
+- `atlas/insights/2026-05-04-workstream-b1-completion-and-depth-zero-revelation.md` —
+  durable learnings from the workstream completion (Insights 4
+  "König chain in Lean", 6 "Mathlib's compactSpace_generateFrom",
+  and 7 "session shape: one workstream, one day, ten PRs")
+- `ROADMAP-3-HINGES.md` v1.0n — workstream completion status
 -/
 
 set_option autoImplicit false

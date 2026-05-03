@@ -58,6 +58,17 @@ the formalization's correctness.
 - [I.T-B1.4c.5b-EqViaUniqueness]
                         Topology equality via II.T10 uniqueness
                         (this module)
+
+## Atlas cross-references
+
+- `atlas/audits/taulib/2026-05-04-canonical-topology-geometry-spec.md`
+  Part 7.2 — the dossier verification handle for "provable
+  equivalence across distinct proof paths" that this module
+  realizes
+- `atlas/insights/2026-05-04-workstream-b1-completion-and-depth-zero-revelation.md` —
+  durable learnings (Insight 3 "The dual-path verification handle"
+  and Insight 8 "Propositional proof irrelevance as a feature")
+- `ROADMAP-3-HINGES.md` v1.0n — workstream completion status
 -/
 
 set_option autoImplicit false
