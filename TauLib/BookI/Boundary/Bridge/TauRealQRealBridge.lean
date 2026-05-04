@@ -145,4 +145,65 @@ noncomputable def cauSeqQOfCauSeqTauRatQ
     (f : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) (n : ℕ) :
     (cauSeqQOfCauSeqTauRatQ f) n = (f n).toRat := rfl
 
+-- ============================================================
+-- Helper substrate (additional): toRat_symm round-trip + ringEquivRat
+-- ============================================================
+
+/-- **`ringEquivRat` round-trip the other way**: `(x).toRat`
+    composed with `ringEquivRat.symm` recovers `x`. Equivalent
+    statement to `RingEquiv.symm_apply_apply`. -/
+@[simp] theorem TauRatQ.symm_apply_toRat (x : TauRatQ) :
+    TauRatQ.ringEquivRat.symm x.toRat = x := by
+  rw [TauRatQ.toRat_eq_ringEquivRat]
+  exact RingEquiv.symm_apply_apply _ _
+
+-- ============================================================
+-- B2.alg / W3 Path B / Step 3b: per-rep backward CauSeq translation
+-- ============================================================
+
+/-- **Per-rep backward CauSeq translation** `CauSeq ℚ abs →
+    CauSeq TauRatQ abs`.
+
+    Pointwise: `n ↦ ringEquivRat.symm (g n)`. The inverse direction
+    of `cauSeqQOfCauSeqTauRatQ`. Uses the same order-preservation
+    machinery (Wave 44 `lt_iff`) translated through `ringEquivRat.symm`.
+
+    Strategy: given ε > 0 in TauRatQ, get the analogous ε.toRat > 0
+    in ℚ, apply `g.property` for the modulus, then translate the
+    bound back to TauRatQ via `lt_iff` + `toRat_abs` + `toRat_sub`
+    + `symm_toRat`. -/
+noncomputable def cauSeqTauRatQOfCauSeqQ
+    (g : CauSeq ℚ (abs : ℚ → ℚ)) :
+    CauSeq TauRatQ (abs : TauRatQ → TauRatQ) := by
+  refine ⟨fun n => TauRatQ.ringEquivRat.symm (g n), ?_⟩
+  intro ε hε_pos
+
+  -- Step 1: lift ε to ℚ via toRat (= ringEquivRat)
+  have hε'_pos : (0 : ℚ) < ε.toRat := by
+    rw [← TauRatQ.toRat_zero']
+    rw [← TauRatQ.lt_iff]
+    exact hε_pos
+
+  -- Step 2: apply IsCauSeq g at ε.toRat
+  obtain ⟨N, hN⟩ := g.property _ hε'_pos
+  refine ⟨N, ?_⟩
+  intro j hj
+
+  -- Step 3: translate the bound back
+  have h := hN j hj
+  -- h : |g j - g N| < ε.toRat in ℚ
+  -- Goal: abs (ringEquivRat.symm (g j) - ringEquivRat.symm (g N)) < ε in TauRatQ
+  rw [TauRatQ.lt_iff]
+  -- Goal: (abs (...)).toRat < ε.toRat
+  rw [TauRatQ.toRat_abs, TauRatQ.toRat_sub,
+      TauRatQ.symm_toRat, TauRatQ.symm_toRat]
+  -- Goal: |g j - g N| < ε.toRat
+  exact h
+
+/-- **Coercion handle**: the underlying function of
+    `cauSeqTauRatQOfCauSeqQ g` at `n` is `ringEquivRat.symm (g n)`. -/
+@[simp] theorem cauSeqTauRatQOfCauSeqQ_apply
+    (g : CauSeq ℚ (abs : ℚ → ℚ)) (n : ℕ) :
+    (cauSeqTauRatQOfCauSeqQ g) n = TauRatQ.ringEquivRat.symm (g n) := rfl
+
 end Tau.Boundary
