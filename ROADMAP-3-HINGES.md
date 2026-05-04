@@ -1,8 +1,73 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; **Workstream B1 COMPLETE** ✅ — B1.4c (full topology equality + canonical MetricSpace + instance migration + II.T10 cross-check) + B1.5c (full CompactSpace TauProfinite via König chain + Alexander) — manuscript II.T07 (τ³ compact) + II.T10 (Topology Uniqueness) FORMALLY VERIFIED in Lean 4. **Workstream B2.alg in progress** — W0 (namespace rename) + W4 (TauAlgComplex ℚ̄) + W1 (Algebra TauRatQ TauRealQ) + W2 (TauAlgReal real algebraics) all SHIPPED ✅; W3, W5 queued
-**Version:** v1.0 (2026-04-21); v2.0b status update (2026-05-04) — B2.alg W0+W1+W2 landed
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; **Workstream B1 COMPLETE** ✅. **Workstream B2.alg in progress** — W0 (namespace rename) + W1 (Algebra TauRatQ TauRealQ) + W2 (TauAlgReal real algebraics) + W4 (TauAlgComplex ℚ̄) + W5 (TauAlgComplex bridge to Mathlib's AlgebraicClosure ℚ) all SHIPPED ✅; W3, W3b queued. **Dossier Part 7.2 ACHIEVED for both topology equality AND TauAlgComplex** (dual-path verification handles for both canonical anchoring decisions)
+**Version:** v1.0 (2026-04-21); v2.0c status update (2026-05-04) — B2.alg W5 canonical bridge landed
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-04 update v2.0c (B2.alg W5 — canonical bridge for
+> TauAlgComplex landed):**
+>
+> **W5** (TauLib PR #144 → admin-merge pending) ships the
+> **canonical-anchoring verification handle** for `TauAlgComplex`:
+>
+> ```lean
+> noncomputable def tauAlgComplexEquivAlgClosureQ :
+>     TauAlgComplex ≃ₐ[TauRatQ] AlgebraicClosure ℚ :=
+>   IsAlgClosure.equiv TauRatQ TauAlgComplex (AlgebraicClosure ℚ)
+> ```
+>
+> The τ-native ℚ̄ is provably AlgEquiv to Mathlib's canonical
+> AlgebraicClosure ℚ. **Dossier Part 7.2 verification handle
+> ACHIEVED for TauAlgComplex** (analogous to B1.4c.5b's II.T10
+> cross-check for the topology equality).
+>
+> ## Cleaner-than-expected discovery
+>
+> Initially planned manual construction of `Algebra TauRatQ
+> (AlgebraicClosure ℚ)` + manual `IsScalarTower TauRatQ ℚ
+> (AlgebraicClosure ℚ)`. Discovered Mathlib's
+> `AlgebraicClosure.lean` (lines 138 + 141) already auto-derives
+> BOTH from any base `Algebra R k`. So we only define `Algebra
+> TauRatQ ℚ` (manual via `RingHom.toAlgebra
+> ringEquivRat.toRingHom`); Mathlib provides everything else
+> automatically. Manual construction would have created instance
+> diamonds.
+>
+> ## Algebraicity transports up the tower
+>
+> Via `Algebra.IsAlgebraic.trans` (transitivity from
+> `Mathlib/RingTheory/Algebraic/Integral.lean:323`):
+> 1. `Algebra.IsAlgebraic TauRatQ ℚ` — every q : ℚ algebraic
+>    via `isAlgebraic_algebraMap`
+> 2. `Algebra.IsAlgebraic ℚ (AlgebraicClosure ℚ)` — Mathlib auto
+> 3. ⟹ `Algebra.IsAlgebraic TauRatQ (AlgebraicClosure ℚ)`
+>
+> Then `IsAlgClosure TauRatQ (AlgebraicClosure ℚ)` synthesizes,
+> and `IsAlgClosure.equiv` ships the canonical AlgEquiv.
+>
+> ## Updated Workstream B2.alg structure
+>
+> | Wave | Status | Content |
+> |------|--------|---------|
+> | **W0** | **✅ SHIPPED** | Namespace rename (PR #141) |
+> | **W1** | **✅ SHIPPED** | `Algebra TauRatQ TauRealQ` (PR #142) |
+> | **W2** | **✅ SHIPPED** | `TauAlgReal` IntermediateField (PR #142) |
+> | W3 | QUEUED | Bridge `TauAlgReal ≃ algebraicClosure ℚ ℝ` (needs TauRealQ →+* ℝ Cauchy bridge first) |
+> | W3b | QUEUED | `LinearOrderedField TauAlgReal` (real-closed transport) |
+> | **W4** | **✅ SHIPPED** | `TauAlgComplex` = τ-native ℚ̄ (PR #139) |
+> | **W5** | **✅ SHIPPED** | `TauAlgComplex ≃ₐ[TauRatQ] AlgebraicClosure ℚ` bridge (PR #144) |
+>
+> ## Dossier Part 7.2 verification handles ACHIEVED ✅
+>
+> Both major canonical-anchoring decisions are now verified via
+> dual-path proofs:
+>
+> 1. **Topology equality** (B1.4c): bidirectional inclusion
+>    (B1.4c.3) + II.T10 uniqueness via Continuous.homeoOfEquivCompactToT2
+>    (B1.4c.5b)
+> 2. **TauAlgComplex = ℚ̄** (B2.alg.W4 + W5): τ-native
+>    AlgebraicClosure TauRatQ + canonical bridge to Mathlib's
+>    AlgebraicClosure ℚ via IsAlgClosure.equiv
 
 > **2026-05-04 update v2.0b (B2.alg W0 + W1 + W2 landed —
 > τ-native real algebraic numbers):**
