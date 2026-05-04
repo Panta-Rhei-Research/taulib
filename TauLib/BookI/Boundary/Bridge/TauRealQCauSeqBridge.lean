@@ -563,4 +563,46 @@ theorem cauchyTauRealOfCauSeq_respects_equiv
   -- Goal: |f n - g n| < 1/(k+1)
   exact h_bound
 
+-- ============================================================
+-- B2.alg / W3 Path B / Step 2-back-quotient: lift to TauRatQCauchy
+-- ============================================================
+
+/-- **Composition with `CauchyTauReal.toQ`**: package the
+    `CauchyTauReal` produced by `cauchyTauRealOfCauSeq` into a
+    `TauRealQ` value (the quotient).
+
+    Per-`CauSeq`-representative form of the backward map; the next
+    step lifts to `TauRatQCauchy` via `Quotient.lift`. -/
+noncomputable def tauRealQOfCauSeq
+    (f : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) : TauRealQ :=
+  (cauchyTauRealOfCauSeq f).toQ
+
+/-- **Composed map respects equivalence**: equivalent CauSeqs map
+    to the same `TauRealQ` class. Combines
+    `cauchyTauRealOfCauSeq_respects_equiv` (Step 2-back-equiv) with
+    `Quotient.sound`. -/
+theorem tauRealQOfCauSeq_respects_equiv
+    (f g : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) (h : f ≈ g) :
+    tauRealQOfCauSeq f = tauRealQOfCauSeq g := by
+  unfold tauRealQOfCauSeq
+  exact Quotient.sound (cauchyTauRealOfCauSeq_respects_equiv f g h)
+
+/-- **B2.alg / W3 Path B / Step 2-back-quotient — the lifted
+    backward map** `TauRatQCauchy → TauRealQ`.
+
+    Inverse-direction counterpart to `tauRealQToTauRatQCauchy` (PR
+    #153). Lifts `tauRealQOfCauSeq` (per-rep) to the `TauRatQCauchy`
+    quotient via `Quotient.lift`, using `tauRealQOfCauSeq_respects_equiv`
+    as the equivalence-respect witness. -/
+noncomputable def tauRatQCauchyToTauRealQ : TauRatQCauchy → TauRealQ :=
+  Quotient.lift tauRealQOfCauSeq tauRealQOfCauSeq_respects_equiv
+
+/-- **Verification handle**: the lifted map agrees with the
+    per-representative form on `CauSeq.Completion.mk` images. By
+    `Quotient.lift`'s defining equation. -/
+@[simp] theorem tauRatQCauchyToTauRealQ_mk
+    (f : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) :
+    tauRatQCauchyToTauRealQ (CauSeq.Completion.mk f) =
+    (cauchyTauRealOfCauSeq f).toQ := rfl
+
 end Tau.Boundary
