@@ -1,5 +1,7 @@
 import TauLib.BookI.Boundary.Bridge.TauRealQCauSeqBridge
 import Mathlib.Data.Real.Basic
+import Mathlib.Analysis.Real.Cardinality
+import Mathlib.SetTheory.Cardinal.Continuum
 
 /-!
 # TauLib.BookI.Boundary.Bridge.TauRealQRealBridge
@@ -587,5 +589,52 @@ theorem tauRealQRingEquivReal_symm_apply (r : ℝ) :
     tauRealQRingEquivReal.symm r =
     tauRatQCauchyToTauRealQ
       (cauchyQToTauRatQCauchy (Real.ringEquivCauchy r)) := rfl
+
+-- ============================================================
+-- B2.alg / W3 Path B / Cantor-transport: Uncountable TauRealQ
+-- ============================================================
+
+/-- **🎉 Cardinality of TauRealQ via the Path B bridge**:
+    `#TauRealQ = 𝔠 = 2^ℵ₀`.
+
+    Direct transport from Mathlib's `Cardinal.mk_real` through the
+    Path B FINAL KEYSTONE. The proof factors through the `RingEquiv`'s
+    underlying `Equiv`, applying `Equiv.cardinal_eq` and then
+    rewriting `#ℝ = 𝔠` via `Cardinal.mk_real`.
+
+    **Where Cantor's diagonal lives in this proof**: not directly!
+    The diagonal content is buried inside `Cardinal.mk_real`, which
+    in turn factors through `cantorFunction_injective` (the geometric-
+    series Cantor function `(ℕ → Bool) → ℝ`) at
+    `Mathlib/Analysis/Real/Cardinality.lean:185`. That injectivity
+    proof requires `LinearOrder ℝ` — the constructively-blocked piece
+    for TauRealQ-without-bridge. Path B's classical bridge transports
+    the result, side-stepping the Markov barrier.
+
+    See companion research note `cantor-bridge-categorical` for the
+    full structural analysis. -/
+theorem TauRealQ.mk_eq_continuum :
+    Cardinal.mk TauRealQ = Cardinal.continuum := by
+  rw [tauRealQRingEquivReal.toEquiv.cardinal_eq, Cardinal.mk_real]
+
+/-- **🎉 TauRealQ is uncountable** — Cantor's diagonal applied via
+    the Path B bridge.
+
+    The classical reading of TauRealQ (post-bridge, with Choice via
+    `Quotient.out`): `Uncountable TauRealQ` follows in three lines
+    from `TauRealQ.mk_eq_continuum` + `Cardinal.aleph0_lt_continuum`
+    + `Cardinal.aleph0_lt_mk_iff`.
+
+    **Companion to TauLib's existing CantorRefutation** (`BookI/Sets/
+    CantorRefutation.lean` registry [I.T35]): that result is the
+    *internal* (constructive, framework-internal) statement showing no
+    diagonal completes within Category τ alone. This theorem is the
+    *external* (classical, post-bridge) statement showing the carrier
+    type IS uncountable when transported into Mathlib's classical
+    universe. The two readings coexist via the Löwenheim-Skolem-like
+    framing developed in the companion research note. -/
+instance : Uncountable TauRealQ := by
+  rw [← Cardinal.aleph0_lt_mk_iff, TauRealQ.mk_eq_continuum]
+  exact Cardinal.aleph0_lt_continuum
 
 end Tau.Boundary
