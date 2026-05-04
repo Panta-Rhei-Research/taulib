@@ -497,4 +497,70 @@ noncomputable def cauchyTauRealOfCauSeq
 
   exact h_bound
 
+-- ============================================================
+-- B2.alg / W3 Path B / Step 2-back-equiv: backward respects ≈
+-- ============================================================
+
+/-- **Backward function respects equivalence**: if two `CauSeq` values
+    are equivalent (in Mathlib's `≈` sense, i.e., `LimZero (f - g)`),
+    then their backward images under `cauchyTauRealOfCauSeq` are
+    `CauchyTauReal`-equivalent.
+
+    Mirror of `cauSeqOfCauchyTauReal_respects_equiv` (forward
+    direction). Uses the same Archimedean + LimZero + abs/lt
+    translation chain, adapted for the `Quotient.out`-based
+    representative selection. -/
+theorem cauchyTauRealOfCauSeq_respects_equiv
+    (f g : CauSeq TauRatQ (abs : TauRatQ → TauRatQ))
+    (h : f ≈ g) :
+    CauchyTauReal.equiv
+      (cauchyTauRealOfCauSeq f) (cauchyTauRealOfCauSeq g) := by
+  -- CauchyTauReal.equiv unfolds to TauReal.equiv on .val parts
+  show TauReal.equiv (cauchyTauRealOfCauSeq f).val
+                     (cauchyTauRealOfCauSeq g).val
+
+  -- Step 1: positivity of 1/(k+1) in TauRatQ
+  have recip_pos : ∀ k : ℕ, (0 : TauRatQ) < (1 : TauRatQ) / ((k + 1 : ℕ) : TauRatQ) := by
+    intro k
+    apply div_pos one_pos
+    exact_mod_cast Nat.succ_pos k
+
+  -- Step 2: apply `f ≈ g` (= LimZero (f - g)) at ε_k = 1/(k+1)
+  refine ⟨fun k => Classical.choose (h _ (recip_pos k)), ?_⟩
+  intro k n hn
+
+  -- Step 3: LimZero bound at index n
+  have h_bound : abs ((f - g) n) < (1 : TauRatQ) / ((k + 1 : ℕ) : TauRatQ) :=
+    Classical.choose_spec (h _ (recip_pos k)) n hn
+
+  -- Step 4: `(f - g) n = f n - g n` (CauSeq sub is pointwise rfl)
+  rw [show ((f - g) n : TauRatQ) = f n - g n from rfl] at h_bound
+
+  -- Step 5: translate goal TauRat.lt → TauRatQ.<, abs → |·|
+  show TauRat.lt _ _
+  rw [TauRat.lt_iff_toQ_lt, TauRat.abs_toQ]
+
+  -- Step 5.5: definitionally fold .val.approx n = Quotient.out (f n)
+  show |((Quotient.out (f n)).sub (Quotient.out (g n))).toQ|
+        < (TauRat.ofNatRecip k).toQ
+
+  -- Step 6: expand (sub).toQ = .toQ - .toQ
+  have h_sub : (((Quotient.out (f n))).sub (Quotient.out (g n))).toQ =
+      (Quotient.out (f n)).toQ - (Quotient.out (g n)).toQ := by
+    show ((Quotient.out (f n)).add (Quotient.out (g n)).negate).toQ = _
+    show ((Quotient.out (f n)).toQ + (Quotient.out (g n)).negate.toQ
+            : TauRatQ) = _
+    show ((Quotient.out (f n)).toQ + (-(Quotient.out (g n)).toQ)
+            : TauRatQ) = _
+    ring
+  rw [h_sub]
+
+  -- Step 7: Quotient.out_eq + ofNatRecip_toQ
+  rw [show (Quotient.out (f n)).toQ = f n from Quotient.out_eq (f n),
+      show (Quotient.out (g n)).toQ = g n from Quotient.out_eq (g n),
+      TauRat.ofNatRecip_toQ]
+
+  -- Goal: |f n - g n| < 1/(k+1)
+  exact h_bound
+
 end Tau.Boundary
