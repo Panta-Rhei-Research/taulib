@@ -729,4 +729,78 @@ theorem diagonalData_not_equiv (f : Nat → DataCauchyTauReal) (N : Nat) :
   -- Combine: lower bound says δ_N < |...|, upper bound says |...| < 1/(k₀+1) < δ_N
   linarith
 
+-- ============================================================
+-- Phase 6: TauRealQ-level lift — Choice enters once at the input
+-- ============================================================
+
+/-! Phase 6 lifts the constructive diagonal to `TauRealQ`. The only
+classical move is at the input boundary: `Quotient.out` (Choice) to
+pick a `CauchyTauReal` representative for each `f n`, plus
+`CauchyTauReal.toData` (uses `Classical.choose` once for modulus
+extraction). Everything internal — including the separation proof —
+inherits the constructive content from Phases 1-5. -/
+
+/-- **🎉 Constructive Cantor diagonal at the `TauRealQ` level**.
+
+    The function `TauRealQ.cantorDiagonalConstructive : (ℕ → TauRealQ) → TauRealQ`
+    addresses an existing `TauRealQ` element via the bisection-style
+    constructive procedure. The Choice content is concentrated at:
+    - `Quotient.out` (picks `CauchyTauReal` representative)
+    - `CauchyTauReal.toData` (extracts modulus via `Classical.choose`)
+
+    Both classical moves are at the input boundary; everything
+    downstream is constructive (Phases 1-5).
+
+    Companion to `TauRealQ.cantorDiagonal` (PR #163, abstract via
+    `Classical.choose` on existence of element). The two functions
+    may produce different `TauRealQ` values — both are addressing
+    operations on the same uncountable carrier. -/
+noncomputable def TauRealQ.cantorDiagonalConstructive
+    (f : Nat → TauRealQ) : TauRealQ :=
+  let g : Nat → DataCauchyTauReal := fun n => (Quotient.out (f n)).toData
+  (diagonalData g).toQ
+
+/-- **Constructive separation at the `TauRealQ` level**.
+
+    Inherited from Phase 5's constructive `diagonalData_not_equiv`. The
+    Choice content here is exactly the input-boundary `Quotient.out` +
+    `Classical.choose` from `cantorDiagonalConstructive`'s definition;
+    the `≠` proof itself is constructive. -/
+theorem TauRealQ.cantorDiagonalConstructive_ne_apply
+    (f : Nat → TauRealQ) (n : Nat) :
+    TauRealQ.cantorDiagonalConstructive f ≠ f n := by
+  intro heq
+  -- Unfold cantorDiagonalConstructive
+  let g : Nat → DataCauchyTauReal := fun k => (Quotient.out (f k)).toData
+  change (diagonalData g).toQ = f n at heq
+  -- f n = (Quotient.out (f n)).toQ by Quotient.out_eq
+  rw [show f n = (Quotient.out (f n)).toQ from (Quotient.out_eq (f n)).symm] at heq
+  -- (diagonalData g).toQ = (diagonalData g).toCauchy.toQ unfolds
+  change (diagonalData g).toCauchy.toQ = (Quotient.out (f n)).toQ at heq
+  -- Apply CauchyTauReal.toQ_eq_iff
+  rw [CauchyTauReal.toQ_eq_iff] at heq
+  -- heq : CauchyTauReal.equiv (diagonalData g).toCauchy (Quotient.out (f n))
+  -- which unfolds to TauReal.equiv on .val
+  -- Apply Phase 5 — note (g n).val = (Quotient.out (f n)).val by .toData_val
+  apply diagonalData_not_equiv g n
+  show TauReal.equiv (diagonalData g).val ((Quotient.out (f n)).toData.val)
+  rw [CauchyTauReal.toData_val]
+  exact heq
+
+/-- **🎉 Cantor's theorem for `TauRealQ` — constructive version**.
+
+    No surjection `ℕ → TauRealQ` exists. The proof uses the
+    constructive separation theorem rather than `Classical.choose`
+    on the uncountability existential (PR #163 / `cantor_no_surjection`).
+
+    The bijection-impossibility content is the same as PR #163's
+    classical version, but the witness is constructive: given any
+    candidate enumeration, the diagonal procedure produces an
+    explicit `TauRealQ` element outside the image. -/
+theorem TauRealQ.cantor_no_surjection_constructive (f : Nat → TauRealQ) :
+    ¬ Function.Surjective f := by
+  intro hf
+  obtain ⟨n, hn⟩ := hf (TauRealQ.cantorDiagonalConstructive f)
+  exact TauRealQ.cantorDiagonalConstructive_ne_apply f n hn.symm
+
 end Tau.Boundary
