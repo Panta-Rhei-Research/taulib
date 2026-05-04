@@ -106,4 +106,67 @@ noncomputable def cauSeqOfCauchyTauReal (a : CauchyTauReal) :
   -- Step H: chain h_tauRat < ... ≤ ε via hN
   exact lt_of_lt_of_le h_tauRat hN
 
+-- ============================================================
+-- B2.alg / W3 Path B / Step 2-equiv-fwd: forward respects ≈
+-- ============================================================
+
+/-- **Forward function respects equivalence**: if two
+    `CauchyTauReal` values are τ-equivalent (in the sense of
+    `CauchyTauReal.equiv`), then their forward images under
+    `cauSeqOfCauchyTauReal` are equivalent in Mathlib's `CauSeq`
+    sense (`f ≈ g ↔ LimZero (f - g)`).
+
+    Uses the same Archimedean + modulus + abs/lt translation
+    chain as `cauSeqOfCauchyTauReal` itself, adapted for the
+    pairwise-difference modulus from `TauReal.equiv`. -/
+theorem cauSeqOfCauchyTauReal_respects_equiv (a b : CauchyTauReal)
+    (h : CauchyTauReal.equiv a b) :
+    cauSeqOfCauchyTauReal a ≈ cauSeqOfCauchyTauReal b := by
+  -- Unfold ≈ to LimZero (f - g)
+  show CauSeq.LimZero (cauSeqOfCauchyTauReal a - cauSeqOfCauchyTauReal b)
+  intro ε hε_pos
+  -- Step A: Archimedean N with 1/(N+1) ≤ ε
+  obtain ⟨N, hN⟩ := TauRatQ.exists_recip_le_of_pos hε_pos
+  -- Step B: TauReal.equiv modulus (single-index form)
+  obtain ⟨μ, hμ⟩ := h
+  refine ⟨μ N, ?_⟩
+  intro j hj
+  -- Step C: τ-native witness at index j ≥ μ N
+  have h_tauRat : TauRat.lt
+      ((a.val.approx j).sub (b.val.approx j)).abs
+      (TauRat.ofNatRecip N) := hμ N j hj
+  -- Step D: TauRat.lt → TauRatQ.lt
+  rw [TauRat.lt_iff_toQ_lt] at h_tauRat
+  -- Step E: abs commutes with toQ
+  rw [TauRat.abs_toQ] at h_tauRat
+  -- Step F: expand .sub.toQ
+  have h_sub : ((a.val.approx j).sub (b.val.approx j)).toQ =
+      ((a.val.approx j).toQ - (b.val.approx j).toQ : TauRatQ) := by
+    show ((a.val.approx j).add (b.val.approx j).negate).toQ = _
+    show ((a.val.approx j).toQ + ((b.val.approx j).negate).toQ : TauRatQ) =
+        ((a.val.approx j).toQ - (b.val.approx j).toQ)
+    show ((a.val.approx j).toQ + (-(b.val.approx j).toQ) : TauRatQ) =
+        ((a.val.approx j).toQ - (b.val.approx j).toQ)
+    ring
+  rw [h_sub] at h_tauRat
+  -- Step G: (TauRat.ofNatRecip N).toQ = (1 : TauRatQ) / (N + 1)
+  have h_ofNR : (TauRat.ofNatRecip N).toQ = (1 : TauRatQ) / (N + 1 : ℕ) := by
+    rw [TauRatQ.eq_iff_toRat_eq, TauRatQ.toRat_mk,
+        TauRat.ofNatRecip_toRat, TauRatQ.toRat_div,
+        TauRatQ.toRat_natCast,
+        show (1 : TauRatQ).toRat = 1 from TauRatQ.toRat_one]
+    push_cast
+    rfl
+  rw [h_ofNR] at h_tauRat
+  -- Step H: chain to < ε via hN
+  -- Goal: abs ((cauSeqOfCauchyTauReal a - cauSeqOfCauchyTauReal b) j) < ε
+  -- After CauSeq sub coercion: abs (cauSeq_a.val j - cauSeq_b.val j) < ε
+  -- = abs ((a.val.approx j).toQ - (b.val.approx j).toQ) < ε
+  -- Which matches h_tauRat after combination with hN
+  show abs ((cauSeqOfCauchyTauReal a - cauSeqOfCauchyTauReal b) j) < ε
+  rw [show ((cauSeqOfCauchyTauReal a - cauSeqOfCauchyTauReal b) j : TauRatQ) =
+        (cauSeqOfCauchyTauReal a) j - (cauSeqOfCauchyTauReal b) j from rfl]
+  show abs ((a.val.approx j).toQ - (b.val.approx j).toQ) < ε
+  exact lt_of_lt_of_le h_tauRat hN
+
 end Tau.Boundary
