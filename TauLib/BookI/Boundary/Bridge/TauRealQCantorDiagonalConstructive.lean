@@ -1,5 +1,8 @@
 import TauLib.BookI.Boundary.Bridge.TauRealQuotient
 import TauLib.BookI.Boundary.ConstructiveReals
+import TauLib.BookI.Boundary.TauRatField
+import TauLib.BookI.Boundary.TauRatOrder
+import TauLib.BookI.Boundary.TauRatAbs
 
 /-!
 # TauLib.BookI.Boundary.Bridge.TauRealQCantorDiagonalConstructive
@@ -151,5 +154,166 @@ theorem CauchyTauReal.toData_modulus (c : CauchyTauReal) :
     since `Classical.choose` extracts *some* modulus). -/
 @[simp] theorem DataCauchyTauReal.toCauchy_toData_val (d : DataCauchyTauReal) :
     d.toCauchy.toData.val = d.val := rfl
+
+-- ============================================================
+-- Phase 2: bisectStep — constructive interval bisection
+-- ============================================================
+
+/-! ## Phase 2: bisection step
+
+Given an interval `[a, b]` and a probe value `probe`, return a sub-
+interval that EXCLUDES the probe with explicit margin and width.
+
+Design:
+- Width shrinks by factor 4 per step (clean recursion)
+- Probe is excluded by margin ≥ (b − a) / 4 on either side
+- Decidable bisection via `TauRat.lt`'s underlying `Rat` order
+
+To avoid `TauRat.div`'s nonzero-proof obligation in the body, we use a
+helper `TauRat.scaleDownByPos` that scales a TauRat by a positive
+natural divisor by multiplying the denominator. This is more
+constructive (no Prop-level hypotheses inside the body of `bisectStep`). -/
+
+/-- Scale a `TauRat` by `1/n` for a positive natural `n`: multiplies the
+    denominator. Constructive (no `is_nonzero` Prop required). -/
+def TauRat.scaleDownByPos (a : TauRat) (n : Nat) (hn : 0 < n) : TauRat :=
+  ⟨a.num, a.den * n, Nat.mul_pos a.den_pos hn⟩
+
+/-- Halving a TauRat: scale by 1/2. -/
+def TauRat.half (a : TauRat) : TauRat :=
+  TauRat.scaleDownByPos a 2 (by decide)
+
+/-- Quartering a TauRat: scale by 1/4. -/
+def TauRat.quarter (a : TauRat) : TauRat :=
+  TauRat.scaleDownByPos a 4 (by decide)
+
+/-- Decidability of `TauRat.lt` (routes through `Rat.lt` via `toRat`). -/
+instance TauRat.decidableLt (a b : TauRat) : Decidable (TauRat.lt a b) :=
+  inferInstanceAs (Decidable (a.toRat < b.toRat))
+
+/-- Decidability of `TauRat.le` (routes through `Rat.le` via `toRat`). -/
+instance TauRat.decidableLe (a b : TauRat) : Decidable (TauRat.le a b) :=
+  inferInstanceAs (Decidable (a.toRat ≤ b.toRat))
+
+/-- **`bisectStep`**: one bisection step for the constructive Cantor
+    diagonal. Given an interval `[a, b]` and a probe value `probe`,
+    return a sub-interval `[a', b']` such that:
+
+    - **Width**: `b' − a' = (b − a) / 4` (cleanly shrinking by factor 4)
+    - **Separation from probe**: every `x ∈ [a', b']` satisfies
+      `|x − probe| ≥ (b − a) / 4`
+    - **Subset**: `[a', b'] ⊆ [a, b]`
+
+    Logic: split `[a, b]` into halves at `mid := (a + b) / 2`. If `probe`
+    is in the lower half (`probe ≤ mid`), pick the upper "shifted half"
+    `[mid + (b − a) / 4, b]`; otherwise pick the lower shifted half
+    `[a, mid − (b − a) / 4]`. The shift creates a margin of `(b − a) / 4`
+    between probe and the new interval. -/
+def bisectStep (a b probe : TauRat) : TauRat × TauRat :=
+  let mid := (a.add b).half
+  let q := (b.sub a).quarter
+  if probe.le mid then (mid.add q, b) else (a, mid.sub q)
+
+-- ============================================================
+-- Phase 2: structural lemmas about bisectStep at the toRat level
+-- ============================================================
+
+/-! Phase 5 (constructive separation) and Phase 3 (Cauchy proof for the
+diagonal sequence) need to reason about widths and bounds at the `Rat`
+level (where `linarith` and `field_simp` are available). The lemmas
+below state the key structural facts about `bisectStep` after passing
+through `TauRat.toRat`. -/
+
+/-- `scaleDownByPos` corresponds to `Rat`-level division. -/
+theorem TauRat.scaleDownByPos_toRat (a : TauRat) (n : Nat) (hn : 0 < n) :
+    (TauRat.scaleDownByPos a n hn).toRat = a.toRat / (n : Rat) := by
+  simp only [TauRat.toRat, TauRat.scaleDownByPos]
+  push_cast
+  have ha : (a.den : Rat) ≠ 0 := a.den_ne_zero_rat
+  have hn' : (n : Rat) ≠ 0 := by exact_mod_cast Nat.pos_iff_ne_zero.mp hn
+  field_simp
+
+/-- `half` corresponds to `Rat`-level division by 2. -/
+theorem TauRat.half_toRat (a : TauRat) : a.half.toRat = a.toRat / 2 := by
+  unfold TauRat.half
+  rw [TauRat.scaleDownByPos_toRat]
+  norm_num
+
+/-- `quarter` corresponds to `Rat`-level division by 4. -/
+theorem TauRat.quarter_toRat (a : TauRat) : a.quarter.toRat = a.toRat / 4 := by
+  unfold TauRat.quarter
+  rw [TauRat.scaleDownByPos_toRat]
+  norm_num
+
+/-- **bisectStep_subset (toRat form)**: the new interval is contained
+    in the old. Proved by case analysis on the bisection branch and
+    `linarith` after passing through `toRat`. -/
+theorem bisectStep_subset (a b probe : TauRat) (hab : a.toRat ≤ b.toRat) :
+    let p := bisectStep a b probe
+    a.toRat ≤ p.1.toRat ∧ p.2.toRat ≤ b.toRat := by
+  unfold bisectStep
+  by_cases h : probe.le ((a.add b).half)
+  · simp only [h, if_true]
+    refine ⟨?_, le_refl _⟩
+    rw [toRat_add, TauRat.half_toRat, TauRat.quarter_toRat,
+        toRat_add, toRat_sub]
+    linarith
+  · simp only [h, if_false]
+    refine ⟨le_refl _, ?_⟩
+    rw [toRat_sub, TauRat.half_toRat, TauRat.quarter_toRat,
+        toRat_add, toRat_sub]
+    linarith
+
+/-- **bisectStep_width (toRat form)**: the new interval has width
+    `(b − a) / 4` in `Rat`. -/
+theorem bisectStep_width (a b probe : TauRat) :
+    let p := bisectStep a b probe
+    p.2.toRat - p.1.toRat = (b.toRat - a.toRat) / 4 := by
+  unfold bisectStep
+  by_cases h : probe.le ((a.add b).half)
+  · simp only [h, if_true]
+    rw [toRat_add, TauRat.half_toRat, TauRat.quarter_toRat,
+        toRat_add, toRat_sub]
+    ring
+  · simp only [h, if_false]
+    rw [toRat_sub, TauRat.half_toRat, TauRat.quarter_toRat,
+        toRat_add, toRat_sub]
+    ring
+
+/-- **bisectStep_separation (toRat form)**: every point in the new
+    interval is separated from the probe by at least `(b − a) / 4`. -/
+theorem bisectStep_separation (a b probe : TauRat) (hab : a.toRat ≤ b.toRat) :
+    let p := bisectStep a b probe
+    ∀ x : TauRat, p.1.toRat ≤ x.toRat → x.toRat ≤ p.2.toRat →
+      |x.toRat - probe.toRat| ≥ (b.toRat - a.toRat) / 4 := by
+  unfold bisectStep
+  by_cases h : probe.le ((a.add b).half)
+  · -- probe ≤ mid: new interval is [mid + q, b]; probe is to the left,
+    -- separation = x - probe ≥ (mid + q) - mid = q = (b-a)/4
+    simp only [h, if_true]
+    intro x hx_lo _
+    rw [toRat_add, TauRat.half_toRat, TauRat.quarter_toRat,
+        toRat_add, toRat_sub] at hx_lo
+    have h_probe : probe.toRat ≤ (a.toRat + b.toRat) / 2 := by
+      have h' := h
+      simp only [TauRat.le, toRat_add, TauRat.half_toRat] at h'
+      linarith
+    have hpos : (0 : Rat) ≤ x.toRat - probe.toRat := by linarith
+    rw [ge_iff_le, abs_of_nonneg hpos]
+    linarith
+  · -- probe > mid: new interval is [a, mid - q]; probe is to the right,
+    -- separation = probe - x ≥ mid - (mid - q) = q = (b-a)/4
+    simp only [h, if_false]
+    intro x _ hx_hi
+    rw [toRat_sub, TauRat.half_toRat, TauRat.quarter_toRat,
+        toRat_add, toRat_sub] at hx_hi
+    have h_probe : probe.toRat > (a.toRat + b.toRat) / 2 := by
+      have h' := h
+      simp only [TauRat.le, toRat_add, TauRat.half_toRat] at h'
+      push_neg at h'
+      linarith
+    have hneg : x.toRat - probe.toRat ≤ 0 := by linarith
+    rw [ge_iff_le, abs_of_nonpos hneg]
+    linarith
 
 end Tau.Boundary
