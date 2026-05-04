@@ -396,4 +396,196 @@ noncomputable def tauRatQCauchyToCauchyQRingHom :
 @[simp] theorem tauRatQCauchyToCauchyQRingHom_apply (x : TauRatQCauchy) :
     tauRatQCauchyToCauchyQRingHom x = tauRatQCauchyToCauchyQ x := rfl
 
+-- ============================================================
+-- B2.alg / W3 Path B / Step 3d-back-equiv: backward respects ≈
+-- ============================================================
+
+/-- **Backward CauSeq translation respects equivalence**: if `f ≈ g`
+    in `CauSeq ℚ abs`, then `cauSeqTauRatQOfCauSeqQ f ≈
+    cauSeqTauRatQOfCauSeqQ g` in `CauSeq TauRatQ abs`.
+
+    Mirror of `cauSeqQOfCauSeqTauRatQ_respects_equiv` (Step 3c) for
+    the inverse direction. -/
+theorem cauSeqTauRatQOfCauSeqQ_respects_equiv
+    (f g : CauSeq ℚ (abs : ℚ → ℚ)) (h : f ≈ g) :
+    cauSeqTauRatQOfCauSeqQ f ≈ cauSeqTauRatQOfCauSeqQ g := by
+  show CauSeq.LimZero (cauSeqTauRatQOfCauSeqQ f - cauSeqTauRatQOfCauSeqQ g)
+  intro ε hε_pos
+
+  -- Step 1: lift ε to ℚ via toRat
+  have hε'_pos : (0 : ℚ) < ε.toRat := by
+    rw [← TauRatQ.toRat_zero', ← TauRatQ.lt_iff]
+    exact hε_pos
+
+  -- Step 2: apply LimZero of f - g at ε.toRat
+  obtain ⟨N, hN⟩ := h _ hε'_pos
+  refine ⟨N, ?_⟩
+  intro j hj
+
+  -- Step 3: translate the bound
+  have hb := hN j hj
+  -- hb : |((f - g) j)| < ε.toRat in ℚ
+  rw [show ((f - g) j : ℚ) = f j - g j from rfl] at hb
+  -- Goal: abs ((cauSeqTauRatQ f - cauSeqTauRatQ g) j) < ε in TauRatQ
+  show abs ((cauSeqTauRatQOfCauSeqQ f - cauSeqTauRatQOfCauSeqQ g) j) < ε
+  rw [show ((cauSeqTauRatQOfCauSeqQ f - cauSeqTauRatQOfCauSeqQ g) j : TauRatQ) =
+        TauRatQ.ringEquivRat.symm (f j) -
+          TauRatQ.ringEquivRat.symm (g j) from rfl]
+  rw [TauRatQ.lt_iff, TauRatQ.toRat_abs, TauRatQ.toRat_sub,
+      TauRatQ.symm_toRat, TauRatQ.symm_toRat]
+  exact hb
+
+-- ============================================================
+-- B2.alg / W3 Path B / Step 3d-back-quotient: lift backward to TauRatQCauchy
+-- ============================================================
+
+/-- **Composed backward map** `Cauchy_ℚ → TauRatQCauchy` (per-rep
+    form). -/
+noncomputable def tauRatQCauchyOfCauSeqQ
+    (f : CauSeq ℚ (abs : ℚ → ℚ)) : TauRatQCauchy :=
+  CauSeq.Completion.mk (cauSeqTauRatQOfCauSeqQ f)
+
+/-- **Composed backward respects equivalence**. -/
+theorem tauRatQCauchyOfCauSeqQ_respects_equiv
+    (f g : CauSeq ℚ (abs : ℚ → ℚ)) (h : f ≈ g) :
+    tauRatQCauchyOfCauSeqQ f = tauRatQCauchyOfCauSeqQ g := by
+  unfold tauRatQCauchyOfCauSeqQ
+  exact CauSeq.Completion.mk_eq.mpr
+    (cauSeqTauRatQOfCauSeqQ_respects_equiv f g h)
+
+/-- **Lifted backward map** `CauSeq.Completion.Cauchy (abs : ℚ → ℚ)
+    → TauRatQCauchy`. -/
+noncomputable def cauchyQToTauRatQCauchy :
+    CauSeq.Completion.Cauchy (abs : ℚ → ℚ) → TauRatQCauchy :=
+  Quotient.lift tauRatQCauchyOfCauSeqQ tauRatQCauchyOfCauSeqQ_respects_equiv
+
+@[simp] theorem cauchyQToTauRatQCauchy_mk
+    (f : CauSeq ℚ (abs : ℚ → ℚ)) :
+    cauchyQToTauRatQCauchy (CauSeq.Completion.mk f) =
+    CauSeq.Completion.mk (cauSeqTauRatQOfCauSeqQ f) := rfl
+
+-- ============================================================
+-- B2.alg / W3 Path B / Step 3d-roundtrip: round-trip identities
+-- ============================================================
+
+/-- **CauSeq-level round-trip (forward∘backward)**:
+    `cauSeqQOfCauSeqTauRatQ (cauSeqTauRatQOfCauSeqQ g) = g`. -/
+theorem cauSeqQOfCauSeqTauRatQ_cauSeqTauRatQOfCauSeqQ
+    (g : CauSeq ℚ (abs : ℚ → ℚ)) :
+    cauSeqQOfCauSeqTauRatQ (cauSeqTauRatQOfCauSeqQ g) = g := by
+  apply Subtype.ext
+  funext n
+  show ((TauRatQ.ringEquivRat.symm (g n)).toRat : ℚ) = g n
+  exact TauRatQ.symm_toRat (g n)
+
+/-- **CauSeq-level round-trip (backward∘forward)**:
+    `cauSeqTauRatQOfCauSeqQ (cauSeqQOfCauSeqTauRatQ f) = f`. -/
+theorem cauSeqTauRatQOfCauSeqQ_cauSeqQOfCauSeqTauRatQ
+    (f : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) :
+    cauSeqTauRatQOfCauSeqQ (cauSeqQOfCauSeqTauRatQ f) = f := by
+  apply Subtype.ext
+  funext n
+  show TauRatQ.ringEquivRat.symm ((f n).toRat) = f n
+  exact TauRatQ.symm_apply_toRat (f n)
+
+/-- **Quotient-level forward∘backward = id**. -/
+theorem tauRatQCauchyToCauchyQ_cauchyQToTauRatQCauchy
+    (x : CauSeq.Completion.Cauchy (abs : ℚ → ℚ)) :
+    tauRatQCauchyToCauchyQ (cauchyQToTauRatQCauchy x) = x := by
+  refine Quotient.inductionOn x (fun g => ?_)
+  show tauRatQCauchyToCauchyQ
+        (cauchyQToTauRatQCauchy (CauSeq.Completion.mk g)) =
+        CauSeq.Completion.mk g
+  rw [cauchyQToTauRatQCauchy_mk, tauRatQCauchyToCauchyQ_mk,
+      cauSeqQOfCauSeqTauRatQ_cauSeqTauRatQOfCauSeqQ]
+
+/-- **Quotient-level backward∘forward = id**. -/
+theorem cauchyQToTauRatQCauchy_tauRatQCauchyToCauchyQ
+    (y : TauRatQCauchy) :
+    cauchyQToTauRatQCauchy (tauRatQCauchyToCauchyQ y) = y := by
+  refine Quotient.inductionOn y (fun f => ?_)
+  show cauchyQToTauRatQCauchy
+        (tauRatQCauchyToCauchyQ (CauSeq.Completion.mk f)) =
+        CauSeq.Completion.mk f
+  rw [tauRatQCauchyToCauchyQ_mk, cauchyQToTauRatQCauchy_mk,
+      cauSeqTauRatQOfCauSeqQ_cauSeqQOfCauSeqTauRatQ]
+
+-- ============================================================
+-- B2.alg / W3 Path B / Step 3 KEYSTONE: TauRatQCauchy ≃+* Cauchy_ℚ
+-- ============================================================
+
+/-- **🎉 Path B Step 3 KEYSTONE — `TauRatQCauchy ≃+* CauSeq.Completion.
+    Cauchy (abs : ℚ → ℚ)`**.
+
+    Assembles the Cauchy-completion ring-equivalence from the
+    forward `RingHom` (Step 3c) plus the backward function (Step 3d
+    above) and round-trip identities. Together with PR #157 (Step 2
+    KEYSTONE), this builds `TauRealQ ≃+* CauSeq.Completion.Cauchy
+    (abs : ℚ → ℚ)`, which composes with `Real.ringEquivCauchy.symm`
+    to yield the **final `TauRealQ ≃+* ℝ`** (Step 4, queued). -/
+noncomputable def tauRatQCauchyRingEquivCauchyQ :
+    TauRatQCauchy ≃+* CauSeq.Completion.Cauchy (abs : ℚ → ℚ) :=
+  { tauRatQCauchyToCauchyQRingHom with
+    invFun    := cauchyQToTauRatQCauchy
+    left_inv  := cauchyQToTauRatQCauchy_tauRatQCauchyToCauchyQ
+    right_inv := tauRatQCauchyToCauchyQ_cauchyQToTauRatQCauchy }
+
+/-- **Coercion handle (forward)**. -/
+@[simp] theorem tauRatQCauchyRingEquivCauchyQ_apply (x : TauRatQCauchy) :
+    tauRatQCauchyRingEquivCauchyQ x = tauRatQCauchyToCauchyQ x := rfl
+
+/-- **Coercion handle (backward)**. -/
+@[simp] theorem tauRatQCauchyRingEquivCauchyQ_symm_apply
+    (y : CauSeq.Completion.Cauchy (abs : ℚ → ℚ)) :
+    tauRatQCauchyRingEquivCauchyQ.symm y = cauchyQToTauRatQCauchy y := rfl
+
+-- ============================================================
+-- B2.alg / W3 Path B / Step 4 KEYSTONE: TauRealQ ≃+* ℝ 🎉🎉🎉
+-- ============================================================
+
+/-- **🎉🎉🎉 PATH B FINAL KEYSTONE — `TauRealQ ≃+* ℝ`** 🎉🎉🎉
+
+    Composes the three Path B ring-equivalences:
+
+    ```
+    TauRealQ                           (τ-native Cauchy quotient)
+      ≃+* TauRatQCauchy                (Step 2 KEYSTONE, PR #157)
+      ≃+* CauSeq.Completion.Cauchy ℚ   (Step 3 KEYSTONE, this module above)
+      ≃+* ℝ                             (Step 4, via Real.ringEquivCauchy.symm)
+    ```
+
+    This is **the full bridge from τ-native reals to Mathlib's `ℝ`**,
+    completing the Path B program. With this in place:
+
+    - **W3 (full)**: `TauAlgReal ≃ₐ[TauRatQ] algebraicClosure ℚ ℝ`
+      becomes tractable (composes through this bridge)
+    - **W3b**: `LinearOrderedField TauAlgReal` via this transport
+    - **Downstream**: any Mathlib theorem about ℝ (analysis, topology,
+      measure theory, etc.) can be transported back to TauRealQ via
+      this iso
+
+    The full chain achieves what the **constructive-real cardinality
+    boundary** said was structurally blocked at the LinearOrderedField
+    level (atlas/insights/2026-04-29-constructive-real-cardinality-boundary.md):
+    we sidestep the Markov wall by bridging at the *Cauchy carrier
+    level* (Cauchy completion) rather than at the LinearOrderedField
+    level. Mathematics ⇄ τ-mathematics fully connected. 🎉 -/
+noncomputable def tauRealQRingEquivReal : TauRealQ ≃+* ℝ :=
+  (tauRealQRingEquivTauRatQCauchy.trans
+    tauRatQCauchyRingEquivCauchyQ).trans
+    Real.ringEquivCauchy.symm
+
+/-- **Coercion handle (forward)**: the underlying function of
+    `tauRealQRingEquivReal` is the composition. -/
+theorem tauRealQRingEquivReal_apply (x : TauRealQ) :
+    tauRealQRingEquivReal x =
+    Real.ringEquivCauchy.symm
+      (tauRatQCauchyToCauchyQ (tauRealQToTauRatQCauchy x)) := rfl
+
+/-- **Coercion handle (backward)**: the inverse. -/
+theorem tauRealQRingEquivReal_symm_apply (r : ℝ) :
+    tauRealQRingEquivReal.symm r =
+    tauRatQCauchyToTauRealQ
+      (cauchyQToTauRatQCauchy (Real.ringEquivCauchy r)) := rfl
+
 end Tau.Boundary
