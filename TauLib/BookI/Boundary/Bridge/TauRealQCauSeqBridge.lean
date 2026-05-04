@@ -214,4 +214,171 @@ noncomputable def tauRealQToTauRatQCauchy : TauRealQ → TauRatQCauchy :=
 @[simp] theorem tauRealQToTauRatQCauchy_mk (a : CauchyTauReal) :
     tauRealQToTauRatQCauchy a.toQ = tauRatQCauchyOfCauchyTauReal a := rfl
 
+-- ============================================================
+-- B2.alg / W3 Path B / Step 2-fwd-ring-zero-one: zero & one preservation
+-- ============================================================
+
+/-- **`cauSeqOfCauchyTauReal CauchyTauReal.zero` has all-zero values**.
+
+    Helper for `tauRealQToTauRatQCauchy_zero` — the underlying
+    sequence of the forward image of `CauchyTauReal.zero` is the
+    constant-zero sequence in `TauRatQ`. -/
+theorem cauSeqOfCauchyTauReal_zero_apply (n : ℕ) :
+    (cauSeqOfCauchyTauReal CauchyTauReal.zero) n = 0 := by
+  show ((CauchyTauReal.zero.val.approx n).toQ : TauRatQ) = 0
+  show ((TauReal.zero.approx n).toQ : TauRatQ) = 0
+  show (TauRat.zero.toQ : TauRatQ) = 0
+  rfl
+
+/-- **`tauRealQToTauRatQCauchy` preserves zero**:
+    `tauRealQToTauRatQCauchy 0 = 0`. -/
+theorem tauRealQToTauRatQCauchy_zero :
+    tauRealQToTauRatQCauchy 0 = 0 := by
+  show tauRealQToTauRatQCauchy CauchyTauReal.zero.toQ = 0
+  rw [tauRealQToTauRatQCauchy_mk]
+  show CauSeq.Completion.mk (cauSeqOfCauchyTauReal CauchyTauReal.zero) = 0
+  -- Show CauSeq is equal to the zero CauSeq
+  have h_eq : cauSeqOfCauchyTauReal CauchyTauReal.zero = 0 := by
+    apply Subtype.ext
+    funext n
+    exact cauSeqOfCauchyTauReal_zero_apply n
+  rw [h_eq]
+  rfl
+
+/-- **`cauSeqOfCauchyTauReal CauchyTauReal.one` has all-one values**.
+
+    Helper for `tauRealQToTauRatQCauchy_one`. -/
+theorem cauSeqOfCauchyTauReal_one_apply (n : ℕ) :
+    (cauSeqOfCauchyTauReal CauchyTauReal.one) n = 1 := by
+  show ((CauchyTauReal.one.val.approx n).toQ : TauRatQ) = 1
+  show ((TauReal.one.approx n).toQ : TauRatQ) = 1
+  show (TauRat.one.toQ : TauRatQ) = 1
+  rfl
+
+/-- **`tauRealQToTauRatQCauchy` preserves one**:
+    `tauRealQToTauRatQCauchy 1 = 1`. -/
+theorem tauRealQToTauRatQCauchy_one :
+    tauRealQToTauRatQCauchy 1 = 1 := by
+  show tauRealQToTauRatQCauchy CauchyTauReal.one.toQ = 1
+  rw [tauRealQToTauRatQCauchy_mk]
+  show CauSeq.Completion.mk (cauSeqOfCauchyTauReal CauchyTauReal.one) = 1
+  have h_eq : cauSeqOfCauchyTauReal CauchyTauReal.one = 1 := by
+    apply Subtype.ext
+    funext n
+    exact cauSeqOfCauchyTauReal_one_apply n
+  rw [h_eq]
+  rfl
+
+-- ============================================================
+-- B2.alg / W3 Path B / Step 2-fwd-ring-add-neg-mul: add/neg/mul preservation
+-- ============================================================
+
+/-- **Pointwise add equation**: `cauSeqOfCauchyTauReal (a.add b)`
+    has the same values as `cauSeqOfCauchyTauReal a +
+    cauSeqOfCauchyTauReal b` at every index `n`.
+
+    Pointwise rfl chain: `((a.add b).val.approx n).toQ` unfolds via
+    `CauchyTauReal.add` and `TauReal.add` to
+    `(TauRat.add (a.val.approx n) (b.val.approx n)).toQ`, which
+    equals `(a.val.approx n).toQ + (b.val.approx n).toQ` by
+    `TauRatQ.add_mk` (rfl). -/
+theorem cauSeqOfCauchyTauReal_add_apply (a b : CauchyTauReal) (n : ℕ) :
+    (cauSeqOfCauchyTauReal (a.add b)) n =
+    (cauSeqOfCauchyTauReal a) n + (cauSeqOfCauchyTauReal b) n := by
+  show (((a.val.add b.val).approx n).toQ : TauRatQ) =
+    (a.val.approx n).toQ + (b.val.approx n).toQ
+  show ((TauRat.add (a.val.approx n) (b.val.approx n)).toQ : TauRatQ) =
+    (a.val.approx n).toQ + (b.val.approx n).toQ
+  rfl
+
+/-- **CauSeq-level add equation**: bundle the pointwise equation
+    into a `CauSeq` equality via `Subtype.ext` + `funext`. -/
+theorem cauSeqOfCauchyTauReal_add (a b : CauchyTauReal) :
+    cauSeqOfCauchyTauReal (a.add b) =
+    cauSeqOfCauchyTauReal a + cauSeqOfCauchyTauReal b := by
+  apply Subtype.ext
+  funext n
+  exact cauSeqOfCauchyTauReal_add_apply a b n
+
+/-- **`tauRealQToTauRatQCauchy` preserves addition**:
+    `tauRealQToTauRatQCauchy (x + y) = tauRealQToTauRatQCauchy x +
+    tauRealQToTauRatQCauchy y`.
+
+    Combines `cauSeqOfCauchyTauReal_add` with Mathlib's
+    `CauSeq.Completion.mk_add` (a `rfl`). -/
+theorem tauRealQToTauRatQCauchy_add (x y : TauRealQ) :
+    tauRealQToTauRatQCauchy (x + y) =
+    tauRealQToTauRatQCauchy x + tauRealQToTauRatQCauchy y := by
+  refine Quotient.inductionOn₂ x y (fun a b => ?_)
+  show tauRealQToTauRatQCauchy ((a.add b).toQ) =
+    tauRealQToTauRatQCauchy a.toQ + tauRealQToTauRatQCauchy b.toQ
+  rw [tauRealQToTauRatQCauchy_mk, tauRealQToTauRatQCauchy_mk,
+      tauRealQToTauRatQCauchy_mk]
+  unfold tauRatQCauchyOfCauchyTauReal
+  rw [cauSeqOfCauchyTauReal_add, ← CauSeq.Completion.mk_add]
+
+/-- **Pointwise neg equation**: `cauSeqOfCauchyTauReal (a.neg)`
+    has values `-(cauSeqOfCauchyTauReal a) n` at every index. -/
+theorem cauSeqOfCauchyTauReal_neg_apply (a : CauchyTauReal) (n : ℕ) :
+    (cauSeqOfCauchyTauReal a.neg) n =
+    -((cauSeqOfCauchyTauReal a) n) := by
+  show ((a.val.negate.approx n).toQ : TauRatQ) =
+    -(a.val.approx n).toQ
+  show ((TauRat.negate (a.val.approx n)).toQ : TauRatQ) =
+    -(a.val.approx n).toQ
+  rfl
+
+/-- **CauSeq-level neg equation**: bundle pointwise into `CauSeq`. -/
+theorem cauSeqOfCauchyTauReal_neg (a : CauchyTauReal) :
+    cauSeqOfCauchyTauReal a.neg = -(cauSeqOfCauchyTauReal a) := by
+  apply Subtype.ext
+  funext n
+  exact cauSeqOfCauchyTauReal_neg_apply a n
+
+/-- **`tauRealQToTauRatQCauchy` preserves negation**:
+    `tauRealQToTauRatQCauchy (-x) = -(tauRealQToTauRatQCauchy x)`. -/
+theorem tauRealQToTauRatQCauchy_neg (x : TauRealQ) :
+    tauRealQToTauRatQCauchy (-x) =
+    -(tauRealQToTauRatQCauchy x) := by
+  refine Quotient.inductionOn x (fun a => ?_)
+  show tauRealQToTauRatQCauchy a.neg.toQ =
+    -(tauRealQToTauRatQCauchy a.toQ)
+  rw [tauRealQToTauRatQCauchy_mk, tauRealQToTauRatQCauchy_mk]
+  unfold tauRatQCauchyOfCauchyTauReal
+  rw [cauSeqOfCauchyTauReal_neg, ← CauSeq.Completion.mk_neg]
+
+/-- **Pointwise mul equation**: `cauSeqOfCauchyTauReal (a.mul b)`
+    has values `(cauSeqOfCauchyTauReal a) n * (cauSeqOfCauchyTauReal
+    b) n` at every index. -/
+theorem cauSeqOfCauchyTauReal_mul_apply (a b : CauchyTauReal) (n : ℕ) :
+    (cauSeqOfCauchyTauReal (a.mul b)) n =
+    (cauSeqOfCauchyTauReal a) n * (cauSeqOfCauchyTauReal b) n := by
+  show (((a.val.mul b.val).approx n).toQ : TauRatQ) =
+    (a.val.approx n).toQ * (b.val.approx n).toQ
+  show ((TauRat.mul (a.val.approx n) (b.val.approx n)).toQ : TauRatQ) =
+    (a.val.approx n).toQ * (b.val.approx n).toQ
+  rfl
+
+/-- **CauSeq-level mul equation**: bundle pointwise into `CauSeq`. -/
+theorem cauSeqOfCauchyTauReal_mul (a b : CauchyTauReal) :
+    cauSeqOfCauchyTauReal (a.mul b) =
+    cauSeqOfCauchyTauReal a * cauSeqOfCauchyTauReal b := by
+  apply Subtype.ext
+  funext n
+  exact cauSeqOfCauchyTauReal_mul_apply a b n
+
+/-- **`tauRealQToTauRatQCauchy` preserves multiplication**:
+    `tauRealQToTauRatQCauchy (x * y) = tauRealQToTauRatQCauchy x *
+    tauRealQToTauRatQCauchy y`. -/
+theorem tauRealQToTauRatQCauchy_mul (x y : TauRealQ) :
+    tauRealQToTauRatQCauchy (x * y) =
+    tauRealQToTauRatQCauchy x * tauRealQToTauRatQCauchy y := by
+  refine Quotient.inductionOn₂ x y (fun a b => ?_)
+  show tauRealQToTauRatQCauchy ((a.mul b).toQ) =
+    tauRealQToTauRatQCauchy a.toQ * tauRealQToTauRatQCauchy b.toQ
+  rw [tauRealQToTauRatQCauchy_mk, tauRealQToTauRatQCauchy_mk,
+      tauRealQToTauRatQCauchy_mk]
+  unfold tauRatQCauchyOfCauchyTauReal
+  rw [cauSeqOfCauchyTauReal_mul, ← CauSeq.Completion.mk_mul]
+
 end Tau.Boundary
