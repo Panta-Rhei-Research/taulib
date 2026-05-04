@@ -206,4 +206,194 @@ noncomputable def cauSeqTauRatQOfCauSeqQ
     (g : CauSeq ℚ (abs : ℚ → ℚ)) (n : ℕ) :
     (cauSeqTauRatQOfCauSeqQ g) n = TauRatQ.ringEquivRat.symm (g n) := rfl
 
+-- ============================================================
+-- B2.alg / W3 Path B / Step 3c-pre: per-rep CauSeq ring-op preservation (forward)
+-- ============================================================
+
+/-- **Per-rep zero preservation**: forward of `(0 : CauSeq TauRatQ abs)`
+    is `(0 : CauSeq ℚ abs)`. -/
+theorem cauSeqQOfCauSeqTauRatQ_zero :
+    cauSeqQOfCauSeqTauRatQ (0 : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) =
+    (0 : CauSeq ℚ (abs : ℚ → ℚ)) := by
+  apply Subtype.ext
+  funext n
+  show ((0 : TauRatQ).toRat : ℚ) = 0
+  exact TauRatQ.toRat_zero'
+
+/-- **Per-rep one preservation**: forward of `(1 : CauSeq TauRatQ abs)`
+    is `(1 : CauSeq ℚ abs)`. -/
+theorem cauSeqQOfCauSeqTauRatQ_one :
+    cauSeqQOfCauSeqTauRatQ (1 : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) =
+    (1 : CauSeq ℚ (abs : ℚ → ℚ)) := by
+  apply Subtype.ext
+  funext n
+  show ((1 : TauRatQ).toRat : ℚ) = 1
+  exact TauRatQ.toRat_one'
+
+/-- **Per-rep add preservation**: forward distributes over `(+)`. -/
+theorem cauSeqQOfCauSeqTauRatQ_add
+    (f g : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) :
+    cauSeqQOfCauSeqTauRatQ (f + g) =
+    cauSeqQOfCauSeqTauRatQ f + cauSeqQOfCauSeqTauRatQ g := by
+  apply Subtype.ext
+  funext n
+  show ((f n + g n).toRat : ℚ) = (f n).toRat + (g n).toRat
+  exact TauRatQ.toRat_add' (f n) (g n)
+
+/-- **Per-rep neg preservation**: forward distributes over `(-_)`. -/
+theorem cauSeqQOfCauSeqTauRatQ_neg
+    (f : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) :
+    cauSeqQOfCauSeqTauRatQ (-f) = -(cauSeqQOfCauSeqTauRatQ f) := by
+  apply Subtype.ext
+  funext n
+  show ((-f n).toRat : ℚ) = -((f n).toRat)
+  exact TauRatQ.toRat_neg (f n)
+
+/-- **Per-rep mul preservation**: forward distributes over `(*)`. -/
+theorem cauSeqQOfCauSeqTauRatQ_mul
+    (f g : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) :
+    cauSeqQOfCauSeqTauRatQ (f * g) =
+    cauSeqQOfCauSeqTauRatQ f * cauSeqQOfCauSeqTauRatQ g := by
+  apply Subtype.ext
+  funext n
+  show ((f n * g n).toRat : ℚ) = (f n).toRat * (g n).toRat
+  exact TauRatQ.toRat_mul' (f n) (g n)
+
+-- ============================================================
+-- B2.alg / W3 Path B / Step 3c: forward respects equiv + lift to quotient
+-- ============================================================
+
+/-- **Forward CauSeq translation respects equivalence**: if `f ≈ g`
+    in `CauSeq TauRatQ abs`, then `cauSeqQOfCauSeqTauRatQ f ≈
+    cauSeqQOfCauSeqTauRatQ g` in `CauSeq ℚ abs`.
+
+    Mirror of `cauSeqOfCauchyTauReal_respects_equiv` (Step 2-equiv-fwd)
+    for the Cauchy-completion bridge layer. The proof translates the
+    `LimZero (f - g)` witness through `ringEquivRat`'s order
+    preservation. -/
+theorem cauSeqQOfCauSeqTauRatQ_respects_equiv
+    (f g : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) (h : f ≈ g) :
+    cauSeqQOfCauSeqTauRatQ f ≈ cauSeqQOfCauSeqTauRatQ g := by
+  -- ≈ unfolds to LimZero (· - ·)
+  show CauSeq.LimZero (cauSeqQOfCauSeqTauRatQ f - cauSeqQOfCauSeqTauRatQ g)
+  intro ε hε_pos
+
+  -- Step 1: lift ε to TauRatQ
+  have hε'_pos : (0 : TauRatQ) < TauRatQ.ringEquivRat.symm ε := by
+    rw [TauRatQ.lt_iff, TauRatQ.toRat_zero', TauRatQ.symm_toRat]
+    exact hε_pos
+
+  -- Step 2: apply LimZero of f - g at ε'
+  obtain ⟨N, hN⟩ := h _ hε'_pos
+  refine ⟨N, ?_⟩
+  intro j hj
+
+  -- Step 3: translate the bound
+  have hb := hN j hj
+  -- hb : abs ((f - g) j) < ringEquivRat.symm ε in TauRatQ
+  rw [show ((f - g) j : TauRatQ) = f j - g j from rfl] at hb
+  rw [TauRatQ.lt_iff, TauRatQ.toRat_abs, TauRatQ.toRat_sub,
+      TauRatQ.symm_toRat] at hb
+  -- hb : |((f j).toRat - (g j).toRat)| < ε
+  -- Goal: abs ((cauSeqQ f - cauSeqQ g) j) < ε
+  show abs ((cauSeqQOfCauSeqTauRatQ f - cauSeqQOfCauSeqTauRatQ g) j) < ε
+  rw [show ((cauSeqQOfCauSeqTauRatQ f - cauSeqQOfCauSeqTauRatQ g) j : ℚ) =
+        (cauSeqQOfCauSeqTauRatQ f) j - (cauSeqQOfCauSeqTauRatQ g) j from rfl]
+  show |(f j).toRat - (g j).toRat| < ε
+  exact hb
+
+/-- **Composed forward map** `TauRatQCauchy → Cauchy_ℚ` (per-rep
+    form). Composes `cauSeqQOfCauSeqTauRatQ` with
+    `CauSeq.Completion.mk`. -/
+noncomputable def cauchyQOfCauSeqTauRatQ
+    (f : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) :
+    CauSeq.Completion.Cauchy (abs : ℚ → ℚ) :=
+  CauSeq.Completion.mk (cauSeqQOfCauSeqTauRatQ f)
+
+/-- **Composed map respects equivalence**: equivalent CauSeqs map to
+    the same Cauchy-class. -/
+theorem cauchyQOfCauSeqTauRatQ_respects_equiv
+    (f g : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) (h : f ≈ g) :
+    cauchyQOfCauSeqTauRatQ f = cauchyQOfCauSeqTauRatQ g := by
+  unfold cauchyQOfCauSeqTauRatQ
+  exact CauSeq.Completion.mk_eq.mpr
+    (cauSeqQOfCauSeqTauRatQ_respects_equiv f g h)
+
+/-- **B2.alg / W3 Path B / Step 3c — the lifted forward map**
+    `TauRatQCauchy → CauSeq.Completion.Cauchy (abs : ℚ → ℚ)`.
+
+    Lifts `cauchyQOfCauSeqTauRatQ` to `TauRatQCauchy` via
+    `Quotient.lift`. -/
+noncomputable def tauRatQCauchyToCauchyQ :
+    TauRatQCauchy → CauSeq.Completion.Cauchy (abs : ℚ → ℚ) :=
+  Quotient.lift cauchyQOfCauSeqTauRatQ
+    cauchyQOfCauSeqTauRatQ_respects_equiv
+
+/-- **Verification handle**: lifted map agrees with per-rep on `mk`. -/
+@[simp] theorem tauRatQCauchyToCauchyQ_mk
+    (f : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) :
+    tauRatQCauchyToCauchyQ (CauSeq.Completion.mk f) =
+    CauSeq.Completion.mk (cauSeqQOfCauSeqTauRatQ f) := rfl
+
+-- ============================================================
+-- B2.alg / W3 Path B / Step 3c-ring: ring-hom preservation at quotient
+-- ============================================================
+
+/-- **`tauRatQCauchyToCauchyQ` preserves zero**. -/
+theorem tauRatQCauchyToCauchyQ_zero :
+    tauRatQCauchyToCauchyQ 0 = 0 := by
+  show tauRatQCauchyToCauchyQ (CauSeq.Completion.mk 0) = 0
+  rw [tauRatQCauchyToCauchyQ_mk, cauSeqQOfCauSeqTauRatQ_zero]
+  rfl
+
+/-- **`tauRatQCauchyToCauchyQ` preserves one**. -/
+theorem tauRatQCauchyToCauchyQ_one :
+    tauRatQCauchyToCauchyQ 1 = 1 := by
+  show tauRatQCauchyToCauchyQ (CauSeq.Completion.mk 1) = 1
+  rw [tauRatQCauchyToCauchyQ_mk, cauSeqQOfCauSeqTauRatQ_one]
+  rfl
+
+/-- **`tauRatQCauchyToCauchyQ` preserves addition**. -/
+theorem tauRatQCauchyToCauchyQ_add (x y : TauRatQCauchy) :
+    tauRatQCauchyToCauchyQ (x + y) =
+    tauRatQCauchyToCauchyQ x + tauRatQCauchyToCauchyQ y := by
+  refine Quotient.inductionOn₂ x y (fun f g => ?_)
+  show tauRatQCauchyToCauchyQ (CauSeq.Completion.mk (f + g)) =
+       tauRatQCauchyToCauchyQ (CauSeq.Completion.mk f) +
+       tauRatQCauchyToCauchyQ (CauSeq.Completion.mk g)
+  rw [tauRatQCauchyToCauchyQ_mk, tauRatQCauchyToCauchyQ_mk,
+      tauRatQCauchyToCauchyQ_mk, cauSeqQOfCauSeqTauRatQ_add,
+      ← CauSeq.Completion.mk_add]
+
+/-- **`tauRatQCauchyToCauchyQ` preserves multiplication**. -/
+theorem tauRatQCauchyToCauchyQ_mul (x y : TauRatQCauchy) :
+    tauRatQCauchyToCauchyQ (x * y) =
+    tauRatQCauchyToCauchyQ x * tauRatQCauchyToCauchyQ y := by
+  refine Quotient.inductionOn₂ x y (fun f g => ?_)
+  show tauRatQCauchyToCauchyQ (CauSeq.Completion.mk (f * g)) =
+       tauRatQCauchyToCauchyQ (CauSeq.Completion.mk f) *
+       tauRatQCauchyToCauchyQ (CauSeq.Completion.mk g)
+  rw [tauRatQCauchyToCauchyQ_mk, tauRatQCauchyToCauchyQ_mk,
+      tauRatQCauchyToCauchyQ_mk, cauSeqQOfCauSeqTauRatQ_mul,
+      ← CauSeq.Completion.mk_mul]
+
+-- ============================================================
+-- B2.alg / W3 Path B / Step 3c-RingHom: forward as RingHom
+-- ============================================================
+
+/-- **`tauRatQCauchyToCauchyQRingHom`** — the lifted forward map
+    packaged as a `RingHom`. Forward half of the eventual
+    `TauRatQCauchy ≃+* CauSeq.Completion.Cauchy (abs : ℚ → ℚ)`
+    (Step 3 KEYSTONE). -/
+noncomputable def tauRatQCauchyToCauchyQRingHom :
+    TauRatQCauchy →+* CauSeq.Completion.Cauchy (abs : ℚ → ℚ) where
+  toFun     := tauRatQCauchyToCauchyQ
+  map_zero' := tauRatQCauchyToCauchyQ_zero
+  map_one'  := tauRatQCauchyToCauchyQ_one
+  map_add'  := tauRatQCauchyToCauchyQ_add
+  map_mul'  := tauRatQCauchyToCauchyQ_mul
+
+@[simp] theorem tauRatQCauchyToCauchyQRingHom_apply (x : TauRatQCauchy) :
+    tauRatQCauchyToCauchyQRingHom x = tauRatQCauchyToCauchyQ x := rfl
+
 end Tau.Boundary
