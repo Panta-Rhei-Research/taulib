@@ -169,4 +169,49 @@ theorem cauSeqOfCauchyTauReal_respects_equiv (a b : CauchyTauReal)
   show abs ((a.val.approx j).toQ - (b.val.approx j).toQ) < ε
   exact lt_of_lt_of_le h_tauRat hN
 
+-- ============================================================
+-- B2.alg / W3 Path B / Step 2-fwd-quotient: lift to TauRealQ
+-- ============================================================
+
+/-- **Composition with `CauSeq.Completion.mk`**: package the
+    `CauSeq` produced by `cauSeqOfCauchyTauReal` into a
+    `TauRatQCauchy` (= `CauSeq.Completion.Cauchy abs`) value.
+
+    This is the per-`CauchyTauReal`-representative form of the
+    forward map; the next step lifts it to `TauRealQ` via
+    `Quotient.lift`. -/
+noncomputable def tauRatQCauchyOfCauchyTauReal (a : CauchyTauReal) :
+    TauRatQCauchy :=
+  CauSeq.Completion.mk (cauSeqOfCauchyTauReal a)
+
+/-- **Composed map respects equivalence**: equivalent
+    `CauchyTauReal` values map to the same `TauRatQCauchy` class.
+
+    Combines `cauSeqOfCauchyTauReal_respects_equiv`
+    (Step 2-equiv-fwd) with Mathlib's `CauSeq.Completion.mk_eq`
+    (which says `mk f = mk g ↔ LimZero (f - g) ↔ f ≈ g`). -/
+theorem tauRatQCauchyOfCauchyTauReal_respects_equiv
+    (a b : CauchyTauReal) (h : CauchyTauReal.equiv a b) :
+    tauRatQCauchyOfCauchyTauReal a = tauRatQCauchyOfCauchyTauReal b := by
+  unfold tauRatQCauchyOfCauchyTauReal
+  exact CauSeq.Completion.mk_eq.mpr
+    (cauSeqOfCauchyTauReal_respects_equiv a b h)
+
+/-- **B2.alg / W3 Path B / Step 2-fwd-quotient — the lifted
+    forward map** `TauRealQ → TauRatQCauchy`.
+
+    Lifts `tauRatQCauchyOfCauchyTauReal` (per-representative form)
+    to the `TauRealQ` quotient via `Quotient.lift`, using
+    `tauRatQCauchyOfCauchyTauReal_respects_equiv` as the
+    equivalence-respect witness. -/
+noncomputable def tauRealQToTauRatQCauchy : TauRealQ → TauRatQCauchy :=
+  Quotient.lift tauRatQCauchyOfCauchyTauReal
+    tauRatQCauchyOfCauchyTauReal_respects_equiv
+
+/-- **Verification handle**: the lifted map agrees with the
+    per-representative form on `CauchyTauReal.toQ` images. By
+    `Quotient.lift`'s defining equation. -/
+@[simp] theorem tauRealQToTauRatQCauchy_mk (a : CauchyTauReal) :
+    tauRealQToTauRatQCauchy a.toQ = tauRatQCauchyOfCauchyTauReal a := rfl
+
 end Tau.Boundary
