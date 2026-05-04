@@ -410,4 +410,91 @@ noncomputable def tauRealQToTauRatQCauchyRingHom :
 @[simp] theorem tauRealQToTauRatQCauchyRingHom_apply (x : TauRealQ) :
     tauRealQToTauRatQCauchyRingHom x = tauRealQToTauRatQCauchy x := rfl
 
+-- ============================================================
+-- B2.alg / W3 Path B / Step 2-back-func: backward function
+-- ============================================================
+
+/-- **Helper — `(TauRat.ofNatRecip k).toQ = 1/(k+1)` in TauRatQ**.
+
+    Same identity used in the forward proof, factored out for
+    reuse in the backward direction. Combines Step 2-pre-2's
+    NatCast/div ring-hom preservation lemmas. -/
+theorem TauRat.ofNatRecip_toQ (k : ℕ) :
+    (TauRat.ofNatRecip k).toQ = (1 : TauRatQ) / ((k + 1 : ℕ) : TauRatQ) := by
+  rw [TauRatQ.eq_iff_toRat_eq, TauRatQ.toRat_mk,
+      TauRat.ofNatRecip_toRat, TauRatQ.toRat_div,
+      TauRatQ.toRat_natCast,
+      show (1 : TauRatQ).toRat = 1 from TauRatQ.toRat_one]
+  push_cast
+  rfl
+
+/-- **Backward function `CauSeq TauRatQ abs → CauchyTauReal`**.
+
+    Given a Mathlib `CauSeq` over `TauRatQ`, produces a
+    `CauchyTauReal` via:
+
+    - **Sequence**: `n ↦ Quotient.out (f n) : ℕ → TauRat` (uses
+      `Quotient.out` to pick a representative for each `f n :
+      TauRatQ`)
+    - **`IsCauchy` witness**: translate Mathlib's `IsCauSeq` (∀
+      ε > 0, ∃ N) to τ-native `TauReal.IsCauchy` (modulus + `1/(k+1)`
+      bound) using `IsCauSeq.cauchy₂` (pairwise bound) for cleaner
+      triangle-inequality handling.
+
+    This is the **inverse direction** of `cauSeqOfCauchyTauReal`;
+    together they assemble `TauRealQ ≃+* TauRatQCauchy` (Path B
+    Step 2 KEYSTONE). -/
+noncomputable def cauchyTauRealOfCauSeq
+    (f : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) :
+    CauchyTauReal := by
+  refine ⟨⟨fun n => Quotient.out (f n)⟩, ?_⟩
+  -- Goal: TauReal.IsCauchy ⟨fun n => Quotient.out (f n)⟩
+  -- IsCauchy: ∃ μ, ∀ k m n, μ k ≤ m → μ k ≤ n →
+  --   TauRat.lt (((f m).out).sub ((f n).out)).abs (TauRat.ofNatRecip k)
+
+  -- Step 1: positivity of 1/(k+1) in TauRatQ
+  have recip_pos : ∀ k : ℕ, (0 : TauRatQ) < (1 : TauRatQ) / ((k + 1 : ℕ) : TauRatQ) := by
+    intro k
+    apply div_pos one_pos
+    exact_mod_cast Nat.succ_pos k
+
+  -- Step 2: extract modulus via IsCauSeq.cauchy₂ (pairwise bound)
+  refine ⟨fun k => Classical.choose (f.property.cauchy₂ (recip_pos k)), ?_⟩
+  intro k m n hm hn
+
+  -- Step 3: pairwise bound from cauchy₂
+  have h_bound : abs (f m - f n) < (1 : TauRatQ) / ((k + 1 : ℕ) : TauRatQ) :=
+    Classical.choose_spec (f.property.cauchy₂ (recip_pos k)) m hm n hn
+
+  -- Step 4: Translate goal TauRat.lt → TauRatQ.<
+  show TauRat.lt _ _
+  rw [TauRat.lt_iff_toQ_lt]
+  -- Goal: (((f m).out).sub ((f n).out)).abs.toQ < (TauRat.ofNatRecip k).toQ
+
+  -- Step 5: rewrite TauRat.abs.toQ → |.toQ|, sub.toQ → toQ - toQ
+  rw [TauRat.abs_toQ]
+  -- Goal: |(((f m).out).sub ((f n).out)).toQ| < (TauRat.ofNatRecip k).toQ
+
+  -- Step 6: expand (sub).toQ = .toQ - .toQ
+  have h_sub : (((f m).out).sub ((f n).out)).toQ =
+      ((f m).out).toQ - ((f n).out).toQ := by
+    show (((f m).out).add ((f n).out).negate).toQ = _
+    show (((f m).out).toQ + ((f n).out).negate.toQ : TauRatQ) =
+        ((f m).out).toQ - ((f n).out).toQ
+    show (((f m).out).toQ + (-((f n).out).toQ) : TauRatQ) =
+        ((f m).out).toQ - ((f n).out).toQ
+    ring
+  rw [h_sub]
+
+  -- Step 7: Quotient.out_eq for both representatives
+  rw [show ((f m).out).toQ = f m from Quotient.out_eq (f m),
+      show ((f n).out).toQ = f n from Quotient.out_eq (f n)]
+  -- Goal: |f m - f n| < (TauRat.ofNatRecip k).toQ
+
+  -- Step 8: rewrite RHS via h_ofNR helper
+  rw [TauRat.ofNatRecip_toQ]
+  -- Goal: |f m - f n| < (1 : TauRatQ) / ((k + 1 : ℕ) : TauRatQ)
+
+  exact h_bound
+
 end Tau.Boundary
