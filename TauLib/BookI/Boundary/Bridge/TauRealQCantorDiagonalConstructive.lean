@@ -406,4 +406,129 @@ theorem diagonalIntervalSeq_left_le_right (f : Nat → DataCauchyTauReal) (n : N
   have : (0 : Rat) ≤ (1 : Rat) / ((4 ^ n : Nat) : Rat) := by positivity
   linarith
 
+-- ============================================================
+-- Phase 4: lift to DataCauchyTauReal — constructive Cauchy modulus
+-- ============================================================
+
+/-! Phase 4 packages the diagonal sequence as a `DataCauchyTauReal`
+with explicit Cauchy modulus. The Cauchy proof uses:
+
+- **Generalized nesting** (interval at m ⊆ interval at n for m ≥ n)
+- **Midpoint membership** (the midpoint of the interval at n lies in
+  the interval at n)
+- **Width recursion** (Phase 3) bounding the difference
+
+The chosen modulus is `μ k = k + 1`, which gives the bound
+`1 / 4^(k+1) < 1 / (k+1)` (provable since `4^(k+1) > k+1` for all
+`k : Nat`). -/
+
+/-- **Generalized nesting**: for `n ≤ m`, the interval at step `m` is
+    contained in the interval at step `n`. -/
+theorem diagonalIntervalSeq_subset_general (f : Nat → DataCauchyTauReal)
+    {m n : Nat} (hmn : n ≤ m) :
+    let pn := diagonalIntervalSeq f n
+    let pm := diagonalIntervalSeq f m
+    pn.1.toRat ≤ pm.1.toRat ∧ pm.2.toRat ≤ pn.2.toRat := by
+  induction m, hmn using Nat.le_induction with
+  | base => exact ⟨le_refl _, le_refl _⟩
+  | succ k hk ih =>
+    obtain ⟨ih1, ih2⟩ := ih
+    have step := diagonalIntervalSeq_subset_step f k
+    exact ⟨le_trans ih1 step.1, le_trans step.2 ih2⟩
+
+/-- **Midpoint membership**: the midpoint at step n lies in the
+    interval at step n. -/
+theorem diagonalSeq_mem_interval (f : Nat → DataCauchyTauReal) (n : Nat) :
+    let p := diagonalIntervalSeq f n
+    p.1.toRat ≤ (diagonalSeq f n).toRat ∧
+    (diagonalSeq f n).toRat ≤ p.2.toRat := by
+  have hab := diagonalIntervalSeq_left_le_right f n
+  show (diagonalIntervalSeq f n).1.toRat ≤
+         ((diagonalIntervalSeq f n).1.add
+           (diagonalIntervalSeq f n).2).half.toRat ∧
+       ((diagonalIntervalSeq f n).1.add
+           (diagonalIntervalSeq f n).2).half.toRat ≤
+         (diagonalIntervalSeq f n).2.toRat
+  rw [TauRat.half_toRat, toRat_add]
+  refine ⟨?_, ?_⟩ <;> linarith
+
+/-- **Power-of-4 inequality**: `4 ^ (k + 1) > k + 1` for all `k : Nat`.
+    Used to verify the Cauchy modulus `μ k = k + 1` strictly satisfies
+    the bound `1 / 4^μ(k) < 1 / (k+1)`. -/
+theorem four_pow_succ_gt (k : Nat) : k + 1 < 4 ^ (k + 1) := by
+  induction k with
+  | zero => decide
+  | succ n ih =>
+    have h1 : 1 ≤ 4 ^ (n + 1) := by
+      have : 0 < 4 ^ (n + 1) := by positivity
+      omega
+    calc n + 1 + 1
+        ≤ 4 ^ (n + 1) + 1 := by linarith
+      _ ≤ 4 ^ (n + 1) + 4 ^ (n + 1) := by linarith
+      _ < 4 * 4 ^ (n + 1) := by linarith
+      _ = 4 ^ (n + 1 + 1) := by ring
+
+/-- **Cauchy bound**: for `m, n ≥ k + 1`, the diagonal midpoints differ
+    by less than `1 / (k + 1)` in `Rat`. -/
+theorem diagonalSeq_cauchy_toRat (f : Nat → DataCauchyTauReal)
+    (k m n : Nat) (hmk : k + 1 ≤ m) (hnk : k + 1 ≤ n) :
+    |((diagonalSeq f m).toRat - (diagonalSeq f n).toRat)| <
+      (1 : Rat) / ((k + 1 : Nat) : Rat) := by
+  -- Both midpoints are in [a_(k+1), b_(k+1)] (interval at step k+1)
+  have hmem_m := diagonalSeq_mem_interval f m
+  have hmem_n := diagonalSeq_mem_interval f n
+  have hsub_m := diagonalIntervalSeq_subset_general f hmk
+  have hsub_n := diagonalIntervalSeq_subset_general f hnk
+  -- Width at step k+1 is 1/4^(k+1)
+  have hw := diagonalIntervalSeq_width_toRat f (k + 1)
+  -- Bound: |midpoint_m - midpoint_n| ≤ width(k+1) = 1/4^(k+1)
+  have hbound : |((diagonalSeq f m).toRat - (diagonalSeq f n).toRat)| ≤
+      (1 : Rat) / ((4 ^ (k + 1) : Nat) : Rat) := by
+    have h_m_lo := le_trans hsub_m.1 hmem_m.1
+    have h_m_hi := le_trans hmem_m.2 hsub_m.2
+    have h_n_lo := le_trans hsub_n.1 hmem_n.1
+    have h_n_hi := le_trans hmem_n.2 hsub_n.2
+    rw [abs_sub_le_iff]
+    refine ⟨?_, ?_⟩ <;> linarith
+  -- 1/4^(k+1) < 1/(k+1) since 4^(k+1) > k+1
+  have h_pow_gt : (k + 1 : Rat) < ((4 ^ (k + 1) : Nat) : Rat) := by
+    exact_mod_cast four_pow_succ_gt k
+  have h_pow_pos : (0 : Rat) < ((4 ^ (k + 1) : Nat) : Rat) := by
+    positivity
+  have h_succ_pos : (0 : Rat) < ((k + 1 : Nat) : Rat) := by
+    push_cast; linarith
+  have h_pow_gt' : ((k + 1 : Nat) : Rat) < ((4 ^ (k + 1) : Nat) : Rat) := by
+    push_cast
+    push_cast at h_pow_gt
+    exact h_pow_gt
+  have hstrict : (1 : Rat) / ((4 ^ (k + 1) : Nat) : Rat) <
+      (1 : Rat) / ((k + 1 : Nat) : Rat) :=
+    one_div_lt_one_div_of_lt h_succ_pos h_pow_gt'
+  linarith
+
+/-- **Cauchy witness for the diagonal**: the standard
+    `DataCauchyTauReal`-shaped witness using `μ k = k + 1`. -/
+theorem diagonalSeq_isCauchy_witness (f : Nat → DataCauchyTauReal) :
+    ∀ k m n : Nat, k + 1 ≤ m → k + 1 ≤ n →
+    TauRat.lt (((diagonalSeq f m).sub (diagonalSeq f n)).abs)
+              (TauRat.ofNatRecip k) := by
+  intro k m n hm hn
+  -- Translate to Rat-level via toRat
+  show ((diagonalSeq f m).sub (diagonalSeq f n)).abs.toRat <
+       (TauRat.ofNatRecip k).toRat
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  have h := diagonalSeq_cauchy_toRat f k m n hm hn
+  -- Convert (k + 1 : Nat) cast to (k : Rat) + 1
+  rw [show ((k + 1 : Nat) : Rat) = (k : Rat) + 1 by push_cast; ring] at h
+  exact h
+
+/-- **🎉 The constructive Cantor diagonal as a `DataCauchyTauReal`**.
+
+    Modulus is `λ k => k + 1` (chosen so width `1/4^(k+1) < 1/(k+1)`).
+    All construction is constructive — no `Classical.choose`, no LEM,
+    no Markov. The `cauchy_witness` field is the explicit data-level
+    proof. -/
+def diagonalData (f : Nat → DataCauchyTauReal) : DataCauchyTauReal :=
+  ⟨⟨diagonalSeq f⟩, fun k => k + 1, diagonalSeq_isCauchy_witness f⟩
+
 end Tau.Boundary
