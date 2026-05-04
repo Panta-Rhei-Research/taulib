@@ -637,4 +637,114 @@ instance : Uncountable TauRealQ := by
   rw [← Cardinal.aleph0_lt_mk_iff, TauRealQ.mk_eq_continuum]
   exact Cardinal.aleph0_lt_continuum
 
+-- ============================================================
+-- B2.alg / W3 Path B / Cantor-diagonal-as-constructor:
+-- the diagonal as an addressing operation, not an entity creator
+-- ============================================================
+
+/-! ## Cantor's diagonal as an addressing operation
+
+The constructive-foundations reading developed in companion research note
+`cantor-bridge-categorical` (Panta-Rhei-Research) interprets Cantor's
+diagonal procedure as a **constructor** of `TauRealQ` elements rather
+than a **creator** of new entities. The diagonal real is, by the
+no-ghost reading, an **existing** `TauRealQ` element addressed by a
+non-internal selection function (Choice via `Classical.choose`); the
+classical content is in the *separation* (proving the addressed element
+is outside the input enumeration's image), not in the *existence* of a
+hidden entity beyond the carrier type.
+
+This section formalises the reading as a Lean function. The Choice
+content is concentrated in a single `Classical.choose` on the
+existential delivered by `Uncountable TauRealQ` (PR \#162); the
+separation proof is the non-trivial classical content; the corollary
+`cantor_no_surjection` is the standard impossibility-of-bijection
+statement.
+
+The construction makes manifest that **AC is an addressing mechanism,
+not a creation mechanism**: the chosen element was a `TauRealQ` value
+all along; `Classical.choose` just points at one in the complement of
+the image. -/
+
+/-- **Existence: the complement of any countable image in `TauRealQ` is
+    non-empty.** Combines `Uncountable TauRealQ` (PR \#162) with
+    countability of `Set.range f` for any `f : ℕ → TauRealQ`.
+
+    Per the no-ghost reading: the witnessed element is an *existing*
+    `TauRealQ` value; the existential statement is about the carrier
+    type's classical cardinality being strictly larger than the
+    countable image. -/
+theorem TauRealQ.exists_not_mem_range (f : ℕ → TauRealQ) :
+    ∃ d : TauRealQ, d ∉ Set.range f := by
+  by_contra h
+  push_neg at h
+  have h_univ : Set.range f = Set.univ := Set.eq_univ_of_forall h
+  have h_count_univ : (Set.univ : Set TauRealQ).Countable := h_univ ▸ Set.countable_range f
+  have h_count : Countable TauRealQ := Set.countable_univ_iff.mp h_count_univ
+  exact (not_countable : ¬ Countable TauRealQ) h_count
+
+/-- **🎉 Cantor's diagonal as a `TauRealQ`-valued constructor**.
+
+    The function `TauRealQ.cantorDiagonal : (ℕ → TauRealQ) → TauRealQ`
+    addresses, via `Classical.choose`, an *existing* `TauRealQ` element
+    in the complement of the input enumeration's image. The element
+    was a perfectly normal `TauRealQ` value all along (`TauRealQ` is
+    `Quotient CauchyTauReal.setoid` by definition; every element is the
+    equivalence class of an explicit Cauchy sequence). What `Classical.
+    choose` does is **point at** one such element non-internally, which
+    is exactly the "addressing-not-creating" role of AC.
+
+    `noncomputable` because `Classical.choose` is. The Choice content
+    factors through `TauRealQ.exists_not_mem_range`, which itself uses
+    the `Uncountable TauRealQ` instance (PR \#162, transport via Path B
+    bridge from `Cardinal.mk_real`). The diagonal is therefore the
+    composition of three classical moves:
+    1. Path B bridge (Choice via `Quotient.out` in `tauRealQRingEquivReal`),
+    2. `Cardinal.mk_real`'s lower bound (LEM via `cantorFunction_injective`),
+    3. `Classical.choose` on the resulting non-emptiness (AC, addressing).
+
+    The constructive content (no Choice, no LEM) is in the type itself:
+    every `TauRealQ` element is by construction an equivalence class of
+    Cauchy sequences with explicit moduli. The diagonal *constructs* one
+    such element by pointing at it. -/
+noncomputable def TauRealQ.cantorDiagonal (f : ℕ → TauRealQ) : TauRealQ :=
+  (TauRealQ.exists_not_mem_range f).choose
+
+/-- **The diagonal is not in the image of `f`** — by `Classical.choose_spec`. -/
+theorem TauRealQ.cantorDiagonal_not_mem_range (f : ℕ → TauRealQ) :
+    TauRealQ.cantorDiagonal f ∉ Set.range f :=
+  (TauRealQ.exists_not_mem_range f).choose_spec
+
+/-- **Separation** (the standard form of Cantor's diagonal conclusion):
+    the diagonal differs from `f n` for every `n`. Per the no-ghost
+    reading, this is *not* a statement about the existence of a new
+    entity outside the carrier; it is a statement about the
+    *bijection-impossibility* — `f` cannot enumerate all `TauRealQ`
+    values. The diagonal *witnesses* this impossibility by exhibiting a
+    `TauRealQ` element outside `f`'s image. -/
+theorem TauRealQ.cantorDiagonal_ne_apply (f : ℕ → TauRealQ) (n : ℕ) :
+    TauRealQ.cantorDiagonal f ≠ f n := fun h =>
+  TauRealQ.cantorDiagonal_not_mem_range f ⟨n, h.symm⟩
+
+/-- **🎉 Cantor's theorem for `TauRealQ`**: no surjection `ℕ → TauRealQ`
+    exists.
+
+    This is the **bijection-impossibility** reading of Cantor's diagonal,
+    in line with the no-ghost interpretation: the theorem says that no
+    enumeration of `TauRealQ` exists, *not* that there are entities
+    beyond any enumeration. The `TauRealQ` carrier type is a
+    `Quotient` of explicit Cauchy sequences; every element has a
+    Cauchy-modulus name. What fails classically is the existence of an
+    `ℕ`-indexed enumeration of all such names modulo equivalence. -/
+theorem TauRealQ.cantor_no_surjection (f : ℕ → TauRealQ) :
+    ¬ Function.Surjective f := fun hf =>
+  TauRealQ.cantorDiagonal_not_mem_range f
+    (hf (TauRealQ.cantorDiagonal f))
+
+/-- **Stronger restatement**: there is no surjection `ℕ → TauRealQ`,
+    expressed as the negation of the existence of such a surjection. -/
+theorem TauRealQ.no_surjection_from_nat :
+    ¬ ∃ f : ℕ → TauRealQ, Function.Surjective f := fun ⟨f, hf⟩ =>
+  TauRealQ.cantor_no_surjection f hf
+
 end Tau.Boundary
