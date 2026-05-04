@@ -381,4 +381,33 @@ theorem tauRealQToTauRatQCauchy_mul (x y : TauRealQ) :
   unfold tauRatQCauchyOfCauchyTauReal
   rw [cauSeqOfCauchyTauReal_mul, ← CauSeq.Completion.mk_mul]
 
+-- ============================================================
+-- B2.alg / W3 Path B / Step 2-fwd-RingHom: package as RingHom
+-- ============================================================
+
+/-- **`tauRealQToTauRatQCauchyRingHom : TauRealQ →+* TauRatQCauchy`** —
+    the lifted forward map packaged as a Mathlib `RingHom`.
+
+    Bundles `tauRealQToTauRatQCauchy` together with its five
+    preservation witnesses (`_zero`, `_one`, `_add`, `_mul`) into
+    Mathlib's `RingHom` structure. Negation preservation follows
+    automatically from `RingHom`'s additive-group structure (proved
+    separately as `tauRealQToTauRatQCauchy_neg`).
+
+    This is the **forward-direction RingHom** half of the eventual
+    `RingEquiv TauRealQ TauRatQCauchy` (Path B Step 2 KEYSTONE);
+    the inverse direction + RingEquiv assembly are queued. -/
+noncomputable def tauRealQToTauRatQCauchyRingHom :
+    TauRealQ →+* TauRatQCauchy where
+  toFun     := tauRealQToTauRatQCauchy
+  map_zero' := tauRealQToTauRatQCauchy_zero
+  map_one'  := tauRealQToTauRatQCauchy_one
+  map_add'  := tauRealQToTauRatQCauchy_add
+  map_mul'  := tauRealQToTauRatQCauchy_mul
+
+/-- **Coercion handle**: the underlying function of
+    `tauRealQToTauRatQCauchyRingHom` is `tauRealQToTauRatQCauchy`. -/
+@[simp] theorem tauRealQToTauRatQCauchyRingHom_apply (x : TauRealQ) :
+    tauRealQToTauRatQCauchyRingHom x = tauRealQToTauRatQCauchy x := rfl
+
 end Tau.Boundary
