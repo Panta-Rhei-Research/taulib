@@ -531,4 +531,202 @@ theorem diagonalSeq_isCauchy_witness (f : Nat → DataCauchyTauReal) :
 def diagonalData (f : Nat → DataCauchyTauReal) : DataCauchyTauReal :=
   ⟨⟨diagonalSeq f⟩, fun k => k + 1, diagonalSeq_isCauchy_witness f⟩
 
+-- ============================================================
+-- Phase 5: constructive separation — the BOMBSHELL
+-- ============================================================
+
+/-! Phase 5 proves `¬ TauReal.equiv (diagonalData f).val (f N).val`
+**constructively** — no LEM, no Choice in this proof. The proof
+factors through three sub-steps:
+
+- **5a (lower bound)**: explicit constructive lower bound
+  `|diagonalSeq K - (f N).val.approx K| ≥ 1/4^(N+2)` for sufficiently
+  large K. Built from `bisectStep_separation` (Phase 2) + `(f N)`'s
+  Cauchy modulus + triangle inequality.
+- **5b (Archimedean)**: for any positive Rat, find `k` with
+  `1/(k+1) < ε`. Constructive (rationals are Archimedean).
+- **5c (the contradiction)**: assume an equiv modulus exists, derive
+  contradiction at the `k` where `1/(k+1)` is below the lower bound.
+
+This is the **bombshell**: a *constructive* Cantor's-diagonal
+separation argument for `TauRealQ`'s constructive Cauchy completion. -/
+
+/-- **5a: explicit lower bound on the diagonal vs. (f N) at large indices**.
+
+    For `K ≥ N + 1` and `K ≥ (f N).modulus (4^(N+2))`, the difference
+    `|diagonalSeq K - (f N).val.approx K| > 1/4^(N+2)` strictly.
+
+    Proof: combines `bisectStep_separation` (margin from probe ≥
+    1/4^(N+1)) with `(f N)`'s Cauchy modulus (probe is within
+    1/(4^(N+2)+1) of `(f N).val.approx K`) via triangle inequality. -/
+theorem diagonalSeq_lower_bound_toRat (f : Nat → DataCauchyTauReal)
+    (N K : Nat) (hK1 : N + 1 ≤ K)
+    (hK2 : (f N).modulus (4 ^ (N + 2)) ≤ K) :
+    (1 : Rat) / ((4 ^ (N + 2) : Nat) : Rat) <
+      |((diagonalSeq f K).toRat - ((f N).val.approx K).toRat)| := by
+  -- Set up: probe and bisection separation at step N+1
+  set probe := diagonalProbe f N with hprobe_def
+  -- diagonalProbe f N = (f N).val.approx ((f N).modulus (4^(N+2)))
+  have hprobe_eq : probe = (f N).val.approx ((f N).modulus (4 ^ (N + 2))) := rfl
+
+  -- Margin: midpoint at step K is in interval at step N+1
+  -- (since K ≥ N+1 implies subset of intervals)
+  have hmem_K := diagonalSeq_mem_interval f K
+  have hsub : (diagonalIntervalSeq f (N + 1)).1.toRat ≤
+              (diagonalIntervalSeq f K).1.toRat ∧
+              (diagonalIntervalSeq f K).2.toRat ≤
+              (diagonalIntervalSeq f (N + 1)).2.toRat :=
+    diagonalIntervalSeq_subset_general f hK1
+  have hmid_lo : (diagonalIntervalSeq f (N + 1)).1.toRat ≤
+                 (diagonalSeq f K).toRat :=
+    le_trans hsub.1 hmem_K.1
+  have hmid_hi : (diagonalSeq f K).toRat ≤
+                 (diagonalIntervalSeq f (N + 1)).2.toRat :=
+    le_trans hmem_K.2 hsub.2
+
+  -- Apply bisectStep_separation at step N+1
+  have hwN := diagonalIntervalSeq_width_toRat f N
+  have hN_le : (diagonalIntervalSeq f N).1.toRat ≤
+                (diagonalIntervalSeq f N).2.toRat :=
+    diagonalIntervalSeq_left_le_right f N
+  have hbsep := bisectStep_separation
+    (diagonalIntervalSeq f N).1 (diagonalIntervalSeq f N).2
+    probe hN_le (diagonalSeq f K) hmid_lo hmid_hi
+  -- hbsep : |(diagonalSeq f K).toRat - probe.toRat| ≥
+  --         ((diagonalIntervalSeq f N).2.toRat - .1.toRat) / 4
+  --       = (1/4^N) / 4 = 1/4^(N+1)
+  have hmargin : |(diagonalSeq f K).toRat - probe.toRat| ≥
+                 (1 : Rat) / ((4 ^ (N + 1) : Nat) : Rat) := by
+    rw [hwN] at hbsep
+    have h_pos : (0 : Rat) < ((4 ^ (N + 1) : Nat) : Rat) := by positivity
+    have h_pos_n : (0 : Rat) < ((4 ^ N : Nat) : Rat) := by positivity
+    calc |(diagonalSeq f K).toRat - probe.toRat|
+        ≥ ((1 : Rat) / ((4 ^ N : Nat) : Rat)) / 4 := hbsep
+      _ = (1 : Rat) / ((4 ^ (N + 1) : Nat) : Rat) := by
+          push_cast; field_simp; ring
+
+  -- Cauchy bound: |(f N).val.approx K - probe| < 1/(4^(N+2) + 1)
+  have hcauchy : ((((f N).val.approx K).sub probe).abs).toRat <
+                 (TauRat.ofNatRecip (4 ^ (N + 2))).toRat := by
+    have hwit := (f N).cauchy_witness (4 ^ (N + 2))
+                  K ((f N).modulus (4 ^ (N + 2)))
+                  hK2 (le_refl _)
+    -- TauRat.lt unfolds to toRat < toRat
+    exact hwit
+  have hcauchy_rat : |((f N).val.approx K).toRat - probe.toRat| <
+                     (1 : Rat) / ((4 ^ (N + 2) : Nat) : Rat) := by
+    -- Translate τ-level Cauchy to Rat-level
+    rw [TauRat.toRat_abs, toRat_sub] at hcauchy
+    rw [TauRat.ofNatRecip_toRat] at hcauchy
+    -- hcauchy : |((f N).val.approx K).toRat - probe.toRat| < 1/((4^(N+2):Nat:Rat) + 1)
+    -- We want < 1/(4^(N+2):Nat:Rat). Strengthen by `1/(M+1) < 1/M` for `M > 0`.
+    have hM_pos : (0 : Rat) < ((4 ^ (N + 2) : Nat) : Rat) := by positivity
+    have hM_lt : ((4 ^ (N + 2) : Nat) : Rat) <
+                 ((4 ^ (N + 2) : Nat) : Rat) + 1 := by linarith
+    have h_smaller : (1 : Rat) / (((4 ^ (N + 2) : Nat) : Rat) + 1) <
+                     (1 : Rat) / ((4 ^ (N + 2) : Nat) : Rat) :=
+      one_div_lt_one_div_of_lt hM_pos hM_lt
+    linarith
+
+  -- Triangle inequality:
+  -- |diagonalSeq K - (f N).val.approx K|
+  --   ≥ |diagonalSeq K - probe| - |(f N).val.approx K - probe|
+  --   > 1/4^(N+1) - 1/4^(N+2)
+  --   = 4/4^(N+2) - 1/4^(N+2)
+  --   = 3/4^(N+2)
+  --   > 1/4^(N+2)
+  have htri : |(diagonalSeq f K).toRat - ((f N).val.approx K).toRat| ≥
+              |(diagonalSeq f K).toRat - probe.toRat| -
+              |((f N).val.approx K).toRat - probe.toRat| := by
+    have := abs_sub_abs_le_abs_sub
+              ((diagonalSeq f K).toRat - probe.toRat)
+              (((f N).val.approx K).toRat - probe.toRat)
+    have hsub_eq : (diagonalSeq f K).toRat - probe.toRat -
+                    (((f N).val.approx K).toRat - probe.toRat) =
+                    (diagonalSeq f K).toRat - ((f N).val.approx K).toRat := by ring
+    rw [hsub_eq] at this
+    linarith
+
+  -- Now combine to get strict lower bound > 1/4^(N+2)
+  have h_pow_pos : (0 : Rat) < ((4 ^ (N + 2) : Nat) : Rat) := by positivity
+  have h_pow_pos1 : (0 : Rat) < ((4 ^ (N + 1) : Nat) : Rat) := by positivity
+  -- 1/4^(N+1) = 4/4^(N+2)
+  have h_pow_rel : (1 : Rat) / ((4 ^ (N + 1) : Nat) : Rat) =
+                   4 / ((4 ^ (N + 2) : Nat) : Rat) := by
+    push_cast; field_simp; ring
+  rw [h_pow_rel] at hmargin
+  -- Want: 1/4^(N+2) < |diagonalSeq K - (f N).val.approx K|
+  -- Have: hmargin: |d - probe| ≥ 4/4^(N+2)
+  --       hcauchy_rat: |f(N) - probe| < 1/4^(N+2)
+  --       htri: |d - f(N)| ≥ |d - probe| - |f(N) - probe|
+  -- So: |d - f(N)| ≥ 4/4^(N+2) - 1/4^(N+2) = 3/4^(N+2) > 1/4^(N+2)
+  have hgap : (3 : Rat) / ((4 ^ (N + 2) : Nat) : Rat) =
+              4 / ((4 ^ (N + 2) : Nat) : Rat) -
+              1 / ((4 ^ (N + 2) : Nat) : Rat) := by
+    field_simp; ring
+  have h_3_gt_1 : (1 : Rat) / ((4 ^ (N + 2) : Nat) : Rat) <
+                  3 / ((4 ^ (N + 2) : Nat) : Rat) := by
+    gcongr
+    norm_num
+  linarith
+
+/-- **5b: constructive Archimedean** for Rat-level positive values:
+    given `0 < δ`, find `k : Nat` with `1/(k+1) < δ`. -/
+theorem rat_archimedean_recip (δ : Rat) (hδ : 0 < δ) :
+    ∃ k : Nat, (1 : Rat) / ((k + 1 : Nat) : Rat) < δ := by
+  obtain ⟨k, hk⟩ := exists_nat_one_div_lt hδ
+  refine ⟨k, ?_⟩
+  exact_mod_cast hk
+
+/-- **5c: the constructive separation theorem** — the bombshell.
+
+    No LEM, no Choice in this proof: assume an equiv-modulus exists,
+    derive contradiction from the explicit constructive lower bound
+    (5a) + Archimedean (5b). -/
+theorem diagonalData_not_equiv (f : Nat → DataCauchyTauReal) (N : Nat) :
+    ¬ TauReal.equiv (diagonalData f).val (f N).val := by
+  intro ⟨μ, hμ⟩
+  -- The lower bound: δ_N = 1/4^(N+2)
+  set δ_N := (1 : Rat) / ((4 ^ (N + 2) : Nat) : Rat) with hδ_def
+  have hδ_pos : 0 < δ_N := by
+    rw [hδ_def]
+    have : (0 : Rat) < ((4 ^ (N + 2) : Nat) : Rat) := by positivity
+    positivity
+
+  -- Archimedean: pick k such that 1/(k+1) < δ_N
+  obtain ⟨k₀, hk₀⟩ := rat_archimedean_recip δ_N hδ_pos
+
+  -- Define K large enough for both the equiv-modulus and the lower bound
+  set K := max (μ k₀) (max (N + 1) ((f N).modulus (4 ^ (N + 2)))) with hK_def
+  have hK_μ : μ k₀ ≤ K := le_max_left _ _
+  have hK_N : N + 1 ≤ K := le_trans (le_max_left _ _) (le_max_right _ _)
+  have hK_mod : (f N).modulus (4 ^ (N + 2)) ≤ K :=
+    le_trans (le_max_right _ _) (le_max_right _ _)
+
+  -- Apply lower bound (5a)
+  have h_lower := diagonalSeq_lower_bound_toRat f N K hK_N hK_mod
+  -- h_lower : δ_N < |(diagonalSeq f K).toRat - ((f N).val.approx K).toRat|
+  -- Recall: (diagonalData f).val.approx K = diagonalSeq f K
+  have h_lower' : δ_N <
+      |((diagonalData f).val.approx K).toRat - ((f N).val.approx K).toRat| := by
+    show δ_N < |(diagonalSeq f K).toRat - ((f N).val.approx K).toRat|
+    exact h_lower
+
+  -- Apply equiv-modulus at k₀
+  have h_upper_τ : ((((diagonalData f).val.approx K).sub
+                    ((f N).val.approx K)).abs).toRat <
+                   (TauRat.ofNatRecip k₀).toRat := hμ k₀ K hK_μ
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat] at h_upper_τ
+  have h_upper : |((diagonalData f).val.approx K).toRat -
+                  ((f N).val.approx K).toRat| <
+                 (1 : Rat) / ((k₀ : Rat) + 1) := h_upper_τ
+
+  -- The bridge: 1/(k₀ + 1 : Nat as Rat) = 1/((k₀ : Rat) + 1)
+  have h_cast : (1 : Rat) / ((k₀ + 1 : Nat) : Rat) = 1 / ((k₀ : Rat) + 1) := by
+    push_cast; ring
+  rw [h_cast] at hk₀
+
+  -- Combine: lower bound says δ_N < |...|, upper bound says |...| < 1/(k₀+1) < δ_N
+  linarith
+
 end Tau.Boundary
