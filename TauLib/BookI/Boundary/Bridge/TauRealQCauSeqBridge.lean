@@ -605,4 +605,110 @@ noncomputable def tauRatQCauchyToTauRealQ : TauRatQCauchy → TauRealQ :=
     tauRatQCauchyToTauRealQ (CauSeq.Completion.mk f) =
     (cauchyTauRealOfCauSeq f).toQ := rfl
 
+-- ============================================================
+-- B2.alg / W3 Path B / Step 2-roundtrip: forward∘backward = id, backward∘forward = id
+-- ============================================================
+
+/-- **CauSeq-level round-trip**: forward applied to backward of `f`
+    recovers `f` exactly (as a `CauSeq`).
+
+    Proof: pointwise unfold + `Quotient.out_eq`. The composition
+    `cauSeqOfCauchyTauReal ∘ cauchyTauRealOfCauSeq` produces, at each
+    index `n`, `((Quotient.out (f n)) : TauRat).toQ = f n` — which is
+    `Quotient.out_eq (f n)`. Then `Subtype.ext` + `funext` packages
+    this into the CauSeq equality. -/
+theorem cauSeqOfCauchyTauReal_cauchyTauRealOfCauSeq
+    (f : CauSeq TauRatQ (abs : TauRatQ → TauRatQ)) :
+    cauSeqOfCauchyTauReal (cauchyTauRealOfCauSeq f) = f := by
+  apply Subtype.ext
+  funext n
+  show ((Quotient.out (f n)).toQ : TauRatQ) = f n
+  exact Quotient.out_eq (f n)
+
+/-- **Forward∘backward round-trip on `TauRatQCauchy`**:
+    `tauRealQToTauRatQCauchy ∘ tauRatQCauchyToTauRealQ = id`.
+
+    This is one of the two `RingEquiv` identity-witness lemmas.
+    Combines `cauSeqOfCauchyTauReal_cauchyTauRealOfCauSeq` with the
+    `mk`-tagged `@[simp]` handles for both directions. -/
+theorem tauRealQToTauRatQCauchy_tauRatQCauchyToTauRealQ
+    (x : TauRatQCauchy) :
+    tauRealQToTauRatQCauchy (tauRatQCauchyToTauRealQ x) = x := by
+  refine Quotient.inductionOn x (fun f => ?_)
+  show tauRealQToTauRatQCauchy
+        (tauRatQCauchyToTauRealQ (CauSeq.Completion.mk f)) =
+        CauSeq.Completion.mk f
+  rw [tauRatQCauchyToTauRealQ_mk, tauRealQToTauRatQCauchy_mk]
+  unfold tauRatQCauchyOfCauchyTauReal
+  -- Goal: mk (cauSeqOfCauchyTauReal (cauchyTauRealOfCauSeq f)) = mk f
+  rw [cauSeqOfCauchyTauReal_cauchyTauRealOfCauSeq]
+
+/-- **Backward∘forward round-trip on `TauRealQ`**:
+    `tauRatQCauchyToTauRealQ ∘ tauRealQToTauRatQCauchy = id`.
+
+    Proof uses `Quotient.sound` to reduce to `CauchyTauReal.equiv`,
+    then `TauReal.equiv_of_pointwise` to reduce to pointwise
+    `TauRat.equiv`, which follows from `Quotient.out_eq` via
+    `TauRat.toQ_eq_iff`.
+
+    This is the second `RingEquiv` identity-witness lemma. -/
+theorem tauRatQCauchyToTauRealQ_tauRealQToTauRatQCauchy
+    (y : TauRealQ) :
+    tauRatQCauchyToTauRealQ (tauRealQToTauRatQCauchy y) = y := by
+  refine Quotient.inductionOn y (fun a => ?_)
+  show tauRatQCauchyToTauRealQ (tauRealQToTauRatQCauchy a.toQ) =
+       a.toQ
+  rw [tauRealQToTauRatQCauchy_mk]
+  unfold tauRatQCauchyOfCauchyTauReal
+  rw [tauRatQCauchyToTauRealQ_mk]
+  -- Goal: (cauchyTauRealOfCauSeq (cauSeqOfCauchyTauReal a)).toQ = a.toQ
+  apply Quotient.sound
+  -- Goal: CauchyTauReal.equiv (cauchyTauRealOfCauSeq (cauSeqOfCauchyTauReal a)) a
+  show TauReal.equiv _ a.val
+  apply TauReal.equiv_of_pointwise
+  intro n
+  -- Goal: TauRat.equiv (Quotient.out ((a.val.approx n).toQ)) (a.val.approx n)
+  exact (TauRat.toQ_eq_iff _ _).mp (Quotient.out_eq _)
+
+-- ============================================================
+-- B2.alg / W3 Path B / Step 2-RingEquiv: KEYSTONE — TauRealQ ≃+* TauRatQCauchy
+-- ============================================================
+
+/-- **🎉 Path B Step 2 KEYSTONE — `TauRealQ ≃+* TauRatQCauchy`**.
+
+    Assembles the full ring-equivalence from the forward RingHom (PR
+    #153) plus the backward function (PR #154) and round-trip
+    identities (this PR):
+
+    - `toFun`     := `tauRealQToTauRatQCauchy`
+    - `invFun`    := `tauRatQCauchyToTauRealQ`
+    - `left_inv`  := backward∘forward = id (Step 2-roundtrip)
+    - `right_inv` := forward∘backward = id (Step 2-roundtrip)
+    - `map_add'`  := forward preserves addition (PR #153 ring-hom)
+    - `map_mul'`  := forward preserves multiplication (PR #153 ring-hom)
+
+    This unblocks the rest of the Path B chain:
+    - **Step 3**: transport `TauRealQ ≃+* CauSeq.Completion.Cauchy (abs : ℚ → ℚ)`
+      via Wave 40's `TauRatQ ≃+* ℚ`
+    - **Step 4**: compose with Mathlib's `Real.ringEquivCauchy` to
+      bridge to ℝ — yielding `TauRealQ ≃+* ℝ`
+    - **W3 (full)**: `TauAlgReal ≃ₐ[TauRatQ] algebraicClosure ℚ ℝ`
+    - **W3b**: `LinearOrderedField TauAlgReal` via the bridge -/
+noncomputable def tauRealQRingEquivTauRatQCauchy :
+    TauRealQ ≃+* TauRatQCauchy :=
+  { tauRealQToTauRatQCauchyRingHom with
+    invFun    := tauRatQCauchyToTauRealQ
+    left_inv  := tauRatQCauchyToTauRealQ_tauRealQToTauRatQCauchy
+    right_inv := tauRealQToTauRatQCauchy_tauRatQCauchyToTauRealQ }
+
+/-- **Coercion handle (forward)**: the `RingEquiv`'s `toFun` is
+    `tauRealQToTauRatQCauchy`. -/
+@[simp] theorem tauRealQRingEquivTauRatQCauchy_apply (x : TauRealQ) :
+    tauRealQRingEquivTauRatQCauchy x = tauRealQToTauRatQCauchy x := rfl
+
+/-- **Coercion handle (backward)**: the `RingEquiv`'s `symm.toFun` is
+    `tauRatQCauchyToTauRealQ`. -/
+@[simp] theorem tauRealQRingEquivTauRatQCauchy_symm_apply (y : TauRatQCauchy) :
+    tauRealQRingEquivTauRatQCauchy.symm y = tauRatQCauchyToTauRealQ y := rfl
+
 end Tau.Boundary
