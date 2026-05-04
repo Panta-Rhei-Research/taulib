@@ -316,4 +316,94 @@ theorem bisectStep_separation (a b probe : TauRat) (hab : a.toRat ≤ b.toRat) :
     rw [ge_iff_le, abs_of_nonpos hneg]
     linarith
 
+-- ============================================================
+-- Phase 3: diagonal interval + midpoint sequences
+-- ============================================================
+
+/-! Iterated bisection produces a sequence of nested rational intervals
+that shrink by factor 4 per step. The midpoint sequence is the
+constructive Cantor diagonal as a TauRat-valued ℕ-indexed sequence. -/
+
+/-- Precision level used when probing `f n` at step `n`. The value
+    `4 ^ (n + 2)` is chosen so that `(f n)`'s approximation error,
+    bounded by `1 / (4 ^ (n + 2) + 1)`, is smaller than the new
+    interval's quarter-width `(1 / 4) ^ (n + 1)` at step `n + 1`.
+    Phase 5 will use this precision margin. -/
+def diagonalProbeLevel (n : Nat) : Nat := 4 ^ (n + 2)
+
+/-- The probe value: `f n`'s approximation at the chosen precision
+    level, using `f n`'s explicit modulus (no `Classical.choose`
+    needed — modulus is `data` in `DataCauchyTauReal`). -/
+def diagonalProbe (f : Nat → DataCauchyTauReal) (n : Nat) : TauRat :=
+  (f n).val.approx ((f n).modulus (diagonalProbeLevel n))
+
+/-- **Iterated bisection — the interval sequence**. Starts at `[0, 1]`
+    and bisects against `f n`'s probe at each step, producing a
+    sub-interval that excludes the probe with margin. -/
+def diagonalIntervalSeq (f : Nat → DataCauchyTauReal) : Nat → TauRat × TauRat
+  | 0 => (TauRat.zero, TauRat.one)
+  | n+1 =>
+      let p := diagonalIntervalSeq f n
+      bisectStep p.1 p.2 (diagonalProbe f n)
+
+/-- **The midpoint sequence — the constructive diagonal**.
+    The midpoint of each bisected interval. -/
+def diagonalSeq (f : Nat → DataCauchyTauReal) (n : Nat) : TauRat :=
+  let p := diagonalIntervalSeq f n
+  (p.1.add p.2).half
+
+-- ============================================================
+-- Phase 3: width and subset properties at the toRat level
+-- ============================================================
+
+/-- **Width recursion**: at step n, the interval has width `1 / 4^n` in Rat. -/
+theorem diagonalIntervalSeq_width_toRat (f : Nat → DataCauchyTauReal) (n : Nat) :
+    let p := diagonalIntervalSeq f n
+    p.2.toRat - p.1.toRat = (1 : Rat) / (4 ^ n : Nat) := by
+  induction n with
+  | zero =>
+    -- Step 0: interval is (0, 1), width = 1 - 0 = 1 = 1/4^0 = 1/1
+    show TauRat.one.toRat - TauRat.zero.toRat = (1 : Rat) / ((4 ^ 0 : Nat) : Rat)
+    rw [toRat_one, toRat_zero]
+    norm_num
+  | succ n ih =>
+    -- Step n+1: bisectStep, width shrinks by factor 4
+    have hbw := bisectStep_width
+      (diagonalIntervalSeq f n).1 (diagonalIntervalSeq f n).2
+      (diagonalProbe f n)
+    show (bisectStep _ _ _).2.toRat - (bisectStep _ _ _).1.toRat
+        = (1 : Rat) / ((4 ^ (n + 1) : Nat) : Rat)
+    rw [hbw]
+    have ih' : (diagonalIntervalSeq f n).2.toRat -
+               (diagonalIntervalSeq f n).1.toRat
+             = (1 : Rat) / ((4 ^ n : Nat) : Rat) := ih
+    rw [ih']
+    push_cast
+    field_simp
+    ring
+
+/-- **Subset (one step)**: the new interval is contained in the old. -/
+theorem diagonalIntervalSeq_subset_step (f : Nat → DataCauchyTauReal) (n : Nat) :
+    let p := diagonalIntervalSeq f n
+    let p' := diagonalIntervalSeq f (n + 1)
+    p.1.toRat ≤ p'.1.toRat ∧ p'.2.toRat ≤ p.2.toRat := by
+  -- Note: requires a ≤ b at step n; provable from width recursion.
+  have hwn := diagonalIntervalSeq_width_toRat f n
+  have hwn' : (1 : Rat) / ((4 ^ n : Nat) : Rat) ≥ 0 := by positivity
+  have hab : (diagonalIntervalSeq f n).1.toRat ≤ (diagonalIntervalSeq f n).2.toRat := by
+    linarith
+  show let p := diagonalIntervalSeq f n
+       let p' := bisectStep p.1 p.2 (diagonalProbe f n)
+       p.1.toRat ≤ p'.1.toRat ∧ p'.2.toRat ≤ p.2.toRat
+  exact bisectStep_subset _ _ _ hab
+
+/-- **Width is non-negative** in Rat (consequence of width recursion). -/
+theorem diagonalIntervalSeq_left_le_right (f : Nat → DataCauchyTauReal) (n : Nat) :
+    let p := diagonalIntervalSeq f n
+    p.1.toRat ≤ p.2.toRat := by
+  have h := diagonalIntervalSeq_width_toRat f n
+  have hpos : (0 : Rat) < ((4 ^ n : Nat) : Rat) := by positivity
+  have : (0 : Rat) ≤ (1 : Rat) / ((4 ^ n : Nat) : Rat) := by positivity
+  linarith
+
 end Tau.Boundary
