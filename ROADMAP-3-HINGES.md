@@ -1,8 +1,56 @@
 # TauLib Refactoring Roadmap — Three Hinge Theorems
 
-**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; **Workstream B1 COMPLETE** ✅. **Workstream B2.alg in progress** — W0 (namespace rename) + W1 (Algebra TauRatQ TauRealQ) + W2 (TauAlgReal real algebraics) + W4 (TauAlgComplex ℚ̄) + W5 (TauAlgComplex bridge to Mathlib's AlgebraicClosure ℚ) all SHIPPED ✅; W3, W3b queued. **Dossier Part 7.2 ACHIEVED for both topology equality AND TauAlgComplex** (dual-path verification handles for both canonical anchoring decisions)
-**Version:** v1.0 (2026-04-21); v2.0c status update (2026-05-04) — B2.alg W5 canonical bridge landed
+**Status:** Phases 0 & 4 closed; Phases 2A & 2B partial; **Workstream B1 COMPLETE** ✅. **Workstream B2.alg in progress** — W0 + W1 + W2 + W4 + W5 + soft-W3 all SHIPPED ✅; W3 (full) + W3b queued with concrete prerequisite identified (Path B via CauSeq.Completion.Cauchy intermediate). **Dossier Part 7.2 ACHIEVED for topology equality AND TauAlgComplex**
+**Version:** v1.0 (2026-04-21); v2.0d status update (2026-05-04) — soft W3 + effective-reals research finding
 **Authors:** Thorsten Fuchs & Anna-Sophie Fuchs (via collaborative planning session)
+
+> **2026-05-04 update v2.0d (B2.alg soft W3 landed +
+> effective-reals research finding):**
+>
+> - **Soft W3** (TauLib PR #146 → `bf0ab10`):
+>   `TauAlgReal →ₐ[TauRatQ] AlgebraicClosure ℚ` — partial
+>   canonical-anchoring verification handle for TauAlgReal via
+>   composition through TauAlgComplex (W4) + W5 bridge.
+>   τ-native real algebraic numbers now demonstrably embed into
+>   Mathlib's canonical algebraic closure of ℚ.
+>
+> - **Effective-reals research finding** (atlas insights doc
+>   2026-05-04): comprehensive Mathlib search confirmed that
+>   **Mathlib has no `EffectiveReal` / `ComputableReal` /
+>   `ConstructiveReal` type**, but does expose
+>   `CauSeq.Completion.Cauchy` (the constructive carrier
+>   underlying ℝ). The classical/Markov boundary is at the
+>   **layer above the carrier** (`LinearOrderedField`, sSup),
+>   not the carrier itself.
+>
+> - **Strategic implication**: the originally-planned W3 path
+>   (`TauRealQ →+* ℝ` directly) was suboptimal. **Path B** —
+>   bridging TauRealQ to `CauSeq.Completion.Cauchy (abs : TauRat
+>   → TauRat)` first, then deriving `TauRealQ ≃+* ℝ` via the
+>   structural wrapper — is cleaner and shorter (~80-150 LOC vs.
+>   ~100-300 LOC). Once Path B lands, W3 (full) and W3b
+>   (LinearOrderedField TauAlgReal via transport) unblock
+>   naturally.
+>
+> ## Updated Workstream B2.alg structure
+>
+> | Wave | Status | Content |
+> |------|--------|---------|
+> | **W0** | **✅ SHIPPED** | Namespace rename (PR #141) |
+> | **W1** | **✅ SHIPPED** | `Algebra TauRatQ TauRealQ` (PR #142) |
+> | **W2** | **✅ SHIPPED** | `TauAlgReal` IntermediateField (PR #142) |
+> | **W3 (soft)** | **✅ SHIPPED** | `TauAlgReal →ₐ[TauRatQ] AlgebraicClosure ℚ` (PR #146) |
+> | W3 (full) | QUEUED — Path B identified | `TauAlgReal ≃ₐ[TauRatQ] algebraicClosure ℚ ℝ` via `CauSeq.Completion.Cauchy` intermediate (~80-150 LOC) |
+> | W3b | QUEUED — derivable post-Path-B | `LinearOrderedField TauAlgReal` (transport) |
+> | **W4** | **✅ SHIPPED** | `TauAlgComplex` = τ-native ℚ̄ (PR #139) |
+> | **W5** | **✅ SHIPPED** | `TauAlgComplex ≃ₐ[TauRatQ] AlgebraicClosure ℚ` bridge (PR #144) |
+> | Path C | QUEUED — strategic future | Define `EffectiveReal` in TauLib, contribute to Mathlib |
+>
+> ## Atlas insights cross-reference
+>
+> See `atlas/insights/2026-05-04-mathlib-has-no-effective-reals.md`
+> (atlas PR #22) for the full research finding and four durable
+> learnings about classical/constructive layering in Mathlib.
 
 > **2026-05-04 update v2.0c (B2.alg W5 — canonical bridge for
 > TauAlgComplex landed):**
