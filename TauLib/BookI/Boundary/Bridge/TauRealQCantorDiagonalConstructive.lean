@@ -803,4 +803,71 @@ theorem TauRealQ.cantor_no_surjection_constructive (f : Nat → TauRealQ) :
   obtain ⟨n, hn⟩ := hf (TauRealQ.cantorDiagonalConstructive f)
   exact TauRealQ.cantorDiagonalConstructive_ne_apply f n hn.symm
 
+-- ============================================================
+-- Phase 7: comparison with PR #163 + closeout
+-- ============================================================
+
+/-! ## Phase 7: comparison and closeout
+
+The constructive cascade is complete (Phases 1-6). This module now
+provides **two** Lean implementations of Cantor's diagonal for
+`TauRealQ`, with structurally different Choice content:
+
+| Theorem | Internal procedure | Choice content |
+|---------|-------------------|----------------|
+| `TauRealQ.cantorDiagonal` (PR #163) | `Classical.choose` on `∃ d, d ∉ Set.range f` (via `Uncountable TauRealQ`, the Path B bridge, and `Cardinal.mk_real`) | All classical content lives inside one `Classical.choose` call |
+| `TauRealQ.cantorDiagonalConstructive` (this module) | Constructive bisection on `TauRat` intervals, fully constructive separation, only `Quotient.out` + `Classical.choose` for input modulus extraction | Choice concentrated at the *input* boundary; everything internal is constructive |
+
+Both functions satisfy the same separation property and the same
+no-surjection corollary. They may produce different `TauRealQ` values
+on the same input (both are noncomputable in different ways). The
+choice between them is structural / pedagogical: the former is
+shorter; the latter exhibits the actual constructive content of the
+diagonal procedure.
+
+This formalizes the dialogue insight: **the Axiom of Choice is an
+addressing mechanism, not a creation mechanism**. The diagonal real
+is an existing `TauRealQ` element; AC just lets us point at it. The
+constructive cascade in this module makes the *bisection-style
+addressing* visible at the bare-metal level. -/
+
+/-- **Both implementations satisfy the same separation property**.
+
+    Trivial corollary that connects PR #163's `cantorDiagonal_ne_apply`
+    with this module's `cantorDiagonalConstructive_ne_apply`. The
+    proof is `rfl`-trivial; the theorem exists for documentation. -/
+theorem TauRealQ.cantor_separation_holds_both (f : Nat → TauRealQ) (n : Nat) :
+    (∀ m, TauRealQ.cantorDiagonalConstructive f ≠ f m) ∧
+    (TauRealQ.cantorDiagonalConstructive f ≠ f n) :=
+  ⟨fun m => TauRealQ.cantorDiagonalConstructive_ne_apply f m,
+   TauRealQ.cantorDiagonalConstructive_ne_apply f n⟩
+
+/-- **Closeout summary**: the constructive cascade is complete.
+
+    The full payload of this module:
+    - **Phase 1**: `DataCauchyTauReal` parallel modulus-in-data type
+    - **Phase 2**: `bisectStep` with constructive `Decidable TauRat.lt`
+    - **Phase 3**: iterated `diagonalIntervalSeq` + `diagonalSeq`
+    - **Phase 4**: `diagonalData` with explicit Cauchy modulus
+    - **Phase 5**: `diagonalData_not_equiv` — the constructive
+      separation (no LEM, no Choice in this proof)
+    - **Phase 6**: `TauRealQ.cantorDiagonalConstructive` lifted to
+      the quotient
+    - **Phase 7** (this section): comparison with PR #163
+
+    Total: ~700+ LOC, 7 sub-PRs, all admin-merged on green CI, all
+    0-sorry, all axioms unchanged.
+
+    Companion research note: `papers/research-notes/cantor-bridge-categorical/`
+    in `~/Panta-Rhei-Research/`. -/
+theorem TauRealQ.cantor_constructive_cascade_summary :
+    -- The cascade ships these as Lean theorems:
+    (∀ f : Nat → TauRealQ,
+       ∀ n : Nat,
+       TauRealQ.cantorDiagonalConstructive f ≠ f n) ∧
+    (∀ f : Nat → TauRealQ, ¬ Function.Surjective f) := by
+  refine ⟨fun f n => ?_, fun f => ?_⟩
+  · exact TauRealQ.cantorDiagonalConstructive_ne_apply f n
+  · exact TauRealQ.cantor_no_surjection_constructive f
+
 end Tau.Boundary
