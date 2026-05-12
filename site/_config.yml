@@ -1,5 +1,5 @@
 title: "TauLib"
-description: "Dedicated Lean documentation site for TauLib, the Panta Rhei Research Program's Lean 4 formalization surface."
+description: "Generated Lean 4 documentation for TauLib, the formalization surface of the Panta Rhei Research Program. Includes routes to WP003, Verify / TauLib, the Release Manifest, and the public GitHub repository."
 url: "https://taulib.site"
 baseurl: ""
 
