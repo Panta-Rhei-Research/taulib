@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="TauLib — Panta Rhei Research Program preview card for TauLib.">
+  <defs>
+    <style>
+      @font-face { font-family: "EB Garamond OG"; src: url("../fonts-local/EBGaramond-Regular.ttf"); }
+      @font-face { font-family: "Source Sans 3 OG"; src: url("../fonts-local/SourceSans3-Regular.ttf"); }
+      @font-face { font-family: "Source Code Pro OG"; src: url("../fonts-local/SourceCodePro-Regular.ttf"); }
+    </style>
+    <linearGradient id="panta-og-dark" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#13395E"/><stop offset="48%" stop-color="#163E64"/><stop offset="100%" stop-color="#1A4874"/></linearGradient>
+    <linearGradient id="spectrum-rule" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#5A7EB3"/><stop offset="34%" stop-color="#1B8278"/><stop offset="68%" stop-color="#9F5B5C"/><stop offset="100%" stop-color="#896092"/></linearGradient>
+  </defs>
+
+  <!-- Background: Panta Blue diagonal gradient. -->
+  <rect width="1200" height="630" fill="url(#panta-og-dark)"/>
+
+  <!-- Bottom 12px spectrum strip — TauLib inherits the canonical Panta Rhei brand signature. -->
+  <rect x="0" y="618" width="1200" height="12" fill="url(#spectrum-rule)"/>
+
+  <!-- Large τ watermark: TauLib's standard sub-brand mark.
+       EB Garamond italic for elegance; positioned right-center, low-opacity. -->
+  <text x="940" y="465" font-family="EB Garamond OG, Georgia, serif" font-size="540" font-style="italic" font-weight="400" fill="#F8FAF7" opacity="0.22" text-anchor="middle" aria-hidden="true">τ</text>
+
+  <!-- Top-right: π ρ wordmark + Panta Rhei attribution (parent brand). -->
+  <g transform="translate(785 26)" fill="#F8FAF7">
+    <text x="0" y="44" font-family="EB Garamond OG, Georgia, serif" font-size="52" font-weight="400">π</text>
+    <text x="31" y="67" font-family="EB Garamond OG, Georgia, serif" font-size="52" font-style="italic" font-weight="400">ρ</text>
+    <text x="86" y="36" font-family="Source Sans 3 OG, Inter, Arial, sans-serif" font-size="25" font-weight="700">Panta Rhei Research</text>
+    <text x="86" y="67" font-family="Source Sans 3 OG, Inter, Arial, sans-serif" font-size="21" opacity="0.82">TauLib · Lean 4 formalization</text>
+  </g>
+
+  <!-- Top-left pill: category label (LEAN 4 FORMALIZATION etc.). -->
+  <g transform="translate(70 76)">
+    <rect width="296" height="44" rx="22" fill="#F8FAF7" opacity="0.96"/>
+    <text x="18" y="29" font-family="Source Code Pro OG, ui-monospace, monospace" font-size="19" font-weight="700" letter-spacing="1.8" fill="#163E64">LEAN 4 FORMALIZATION</text>
+  </g>
+
+  <!-- Primary title (EB Garamond, large). -->
+  <text font-family="EB Garamond OG, Georgia, serif" font-size="112" font-weight="400" fill="#F8FAF7">
+    <tspan x="78" y="280">TauLib</tspan>
+  </text>
+
+  <!-- Subtitle (Source Sans 3). -->
+  <text font-family="Source Sans 3 OG, Inter, Arial, sans-serif" font-size="34" font-weight="400" fill="#D8E3EC">
+    <tspan x="82" y="474">Public Lean 4 formalization repo</tspan><tspan x="82" y="516">of the Panta Rhei Research Program.</tspan>
+  </text>
+
+  <!-- Bottom-left URL anchor (Source Code Pro). -->
+  <text x="82" y="582" font-family="Source Code Pro OG, ui-monospace, monospace" font-size="30" font-weight="500" fill="#B9CFE2">github.com/Panta-Rhei-Research/taulib</text>
+</svg>
