@@ -7,9 +7,18 @@
   margin-top: 48px;
 }
 
+@media (max-width: $bp-collapse) {
+  .site-footer-wrap {
+    padding: 0 16px 28px;
+  }
+}
+
 .site-footer {
   @include glass;
-  max-width: calc(#{$rail-left-w} + #{$content-max} + #{$rail-right-w} + #{$shell-gap} * 2);
+  // Match the .site-header inner-bar alignment — capsule edges align with
+  // .page-grid CONTENT edges (page-grid outer = --site-shell-max minus
+  // 2*$page-px of inline padding). Mirrors panta-rhei.site/_sass/_footer.scss.
+  max-width: calc(var(--site-shell-max) - #{$page-px * 2});
   margin: 0 auto;
   padding: 28px 32px 22px;
   display: grid;

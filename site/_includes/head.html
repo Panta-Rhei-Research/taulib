@@ -79,6 +79,13 @@
 <!-- Styles -->
 <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
 
+<!-- Pagefind search (CSS deferred — only needed when search overlay opens; JS already deferred).
+     data-cfasync="false" opts the Pagefind UI script out of Cloudflare Rocket Loader, which
+     on mobile delays/breaks PagefindUI definition + onclick handlers. -->
+<link rel="preload" href="{{ '/pagefind/pagefind-ui.css' | relative_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ '/pagefind/pagefind-ui.css' | relative_url }}"></noscript>
+<script src="{{ '/pagefind/pagefind-ui.js' | relative_url }}" defer data-cfasync="false"></script>
+
 <!-- Skip to content (a11y) -->
 <style>.skip-link{position:absolute;top:-100%;left:0;padding:8px 16px;background:#163e64;color:#fff;z-index:100;font-size:0.85rem;border-radius:0 0 8px 0;}.skip-link:focus{top:0;}</style>
 
