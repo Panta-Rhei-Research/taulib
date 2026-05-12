@@ -2,6 +2,8 @@
 layout: default
 title: "API Documentation"
 permalink: /docs/
+og_image: /assets/og/png/og-docs.png
+og_image_alt: "TauLib API Documentation — generated Lean 4 module docs"
 right_rail:
   related:
     - title: "Home"

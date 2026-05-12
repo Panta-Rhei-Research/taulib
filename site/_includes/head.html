@@ -24,6 +24,13 @@
   {%- assign computed_title = site.title -%}
 {%- endif -%}
 {%- assign seo_description = page.summary_short | default: site.description | strip_html | truncate: 160 -%}
+{%- comment -%}
+  Per-page OG image override. Pages may set `og_image:` in frontmatter to
+  point at a custom card (e.g. /assets/og/png/og-docs.png); otherwise we
+  fall back to the canonical site-wide /assets/og-image.png brand card.
+{%- endcomment -%}
+{%- assign og_image_path = page.og_image | default: '/assets/og-image.png' -%}
+{%- assign og_image_alt = page.og_image_alt | default: 'TauLib — Lean 4 formalization layer of the Panta Rhei Research Program' -%}
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -44,16 +51,17 @@
 <meta property="og:url" content="{{ page.url | absolute_url }}">
 <meta property="og:site_name" content="{{ site.title }}">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="{{ '/assets/og-image.png' | absolute_url }}">
+<meta property="og:image" content="{{ og_image_path | absolute_url }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="{{ site.title }}">
+<meta property="og:image:alt" content="{{ og_image_alt }}">
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ raw_page_title }}">
 <meta name="twitter:description" content="{{ seo_description }}">
-<meta name="twitter:image" content="{{ '/assets/og-image.png' | absolute_url }}">
+<meta name="twitter:image" content="{{ og_image_path | absolute_url }}">
+<meta name="twitter:image:alt" content="{{ og_image_alt }}">
 
 <!-- Favicon set -->
 <link rel="icon" type="image/svg+xml" href="{{ '/assets/favicon.svg' | relative_url }}">
