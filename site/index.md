@@ -28,11 +28,11 @@ right_rail:
   <h1>TauLib</h1>
   <p>Generated Lean 4 documentation for the public TauLib repository — with release facts, trust-budget boundaries, and inspection routes owned by the Panta Rhei <a href="https://panta-rhei.site/verify/">Verify</a> lane.</p>
   <div class="btn-group">
-    <a href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" class="btn-primary">Read WP003 Technical Overview</a>
-    <a href="https://panta-rhei.site/verify/taulib/" class="btn-secondary">Open Verify / TauLib</a>
-    <a href="{{ '/docs/' | relative_url }}" class="btn-secondary">Browse All Modules</a>
-    <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-lean" target="_blank" rel="noopener">View on GitHub</a>
-    <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-tertiary">Release Manifest</a>
+    <a href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" class="btn-primary" {% include cta-attrs.html location="hero" lane="taulib" label="Read WP003 Technical Overview" href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" variant="wp003" %}>Read WP003 Technical Overview</a>
+    <a href="https://panta-rhei.site/verify/taulib/" class="btn-secondary" {% include cta-attrs.html location="hero" label="Open Verify / TauLib" href="https://panta-rhei.site/verify/taulib/" variant="verify-taulib" %}>Open Verify / TauLib</a>
+    <a href="{{ '/docs/' | relative_url }}" class="btn-secondary" {% include cta-attrs.html location="hero" label="Browse All Modules" href="/docs/" %}>Browse All Modules</a>
+    <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-lean" target="_blank" rel="noopener" {% include cta-attrs.html location="hero" label="View on GitHub" href="https://github.com/Panta-Rhei-Research/taulib" variant="taulib-source" %}>View on GitHub</a>
+    <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-tertiary" {% include cta-attrs.html location="hero" label="Release Manifest" href="https://panta-rhei.site/verify/release-manifest/" variant="release-manifest" %}>Release Manifest</a>
   </div>
   <p class="hero-supporting-line">This site is the dedicated Lean documentation surface. For the full trust budget, custom-axiom inventory, no-sorry status, and bridge-boundary language, use Verify / TauLib and the Release Manifest.</p>
 </div>
@@ -44,9 +44,9 @@ right_rail:
 WP003 is the canonical technical white paper for TauLib: architecture, release snapshot, trust budget, inspection routes, and reviewer protocols. Read it first if you want one self-contained document explaining what TauLib is, what it does, and what it does not do.
 
 <div class="btn-group section-ctas">
-  <a href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" class="btn-primary">Read WP003 (landing)</a>
-  <a href="https://panta-rhei.site/assets/pdfs/anchor-documents/wp003-taulib-technical-overview.pdf" class="btn-secondary" target="_blank" rel="noopener">Download PDF</a>
-  <a href="https://prrp.site/wp003" class="btn-tertiary">Short route: prrp.site/wp003</a>
+  <a href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" class="btn-primary" {% include cta-attrs.html location="section" label="Read WP003 landing" href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" variant="wp003-landing" %}>Read WP003 (landing)</a>
+  <a href="https://panta-rhei.site/assets/pdfs/anchor-documents/wp003-taulib-technical-overview.pdf" class="btn-secondary" target="_blank" rel="noopener" {% include cta-attrs.html location="section" label="WP003 PDF" href="https://panta-rhei.site/assets/pdfs/anchor-documents/wp003-taulib-technical-overview.pdf" variant="wp003-pdf" %}>Download PDF</a>
+  <a href="https://prrp.site/wp003" class="btn-tertiary" {% include cta-attrs.html location="section" label="prrp.site/wp003" href="https://prrp.site/wp003" variant="wp003-short" %}>Short route: prrp.site/wp003</a>
 </div>
 
 ## About TauLib
@@ -107,9 +107,9 @@ A short reviewer route, in order:
 ## Browse the documentation
 
 <div class="btn-group section-ctas">
-  <a href="{{ '/docs/' | relative_url }}" class="btn-secondary">Browse All Modules</a>
-  <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-tertiary">Read Release Manifest</a>
-  <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-lean" target="_blank" rel="noopener">View on GitHub</a>
+  <a href="{{ '/docs/' | relative_url }}" class="btn-secondary" {% include cta-attrs.html location="section" label="Browse All Modules (footer)" href="/docs/" variant="docs-bottom" %}>Browse All Modules</a>
+  <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-tertiary" {% include cta-attrs.html location="section" label="Read Release Manifest" href="https://panta-rhei.site/verify/release-manifest/" variant="release-manifest" %}>Read Release Manifest</a>
+  <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-lean" target="_blank" rel="noopener" {% include cta-attrs.html location="section" label="View on GitHub (footer)" href="https://github.com/Panta-Rhei-Research/taulib" variant="taulib-source" %}>View on GitHub</a>
 </div>
 
 </div>

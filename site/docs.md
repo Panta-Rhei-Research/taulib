@@ -25,10 +25,10 @@ right_rail:
   <h1>Module Documentation</h1>
   <p>Generated Lean 4 module documentation, organized by book and subject area. For release metrics and trust budget, use the Release Manifest and WP003.</p>
   <div class="btn-group">
-    <a href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" class="btn-primary">WP003</a>
-    <a href="https://panta-rhei.site/verify/taulib/" class="btn-secondary">Verify / TauLib</a>
-    <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-tertiary">Release Manifest</a>
-    <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-lean" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" class="btn-primary" {% include cta-attrs.html location="hero" label="WP003" href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" variant="wp003" %}>WP003</a>
+    <a href="https://panta-rhei.site/verify/taulib/" class="btn-secondary" {% include cta-attrs.html location="hero" label="Verify / TauLib" href="https://panta-rhei.site/verify/taulib/" variant="verify-taulib" %}>Verify / TauLib</a>
+    <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-tertiary" {% include cta-attrs.html location="hero" label="Release Manifest" href="https://panta-rhei.site/verify/release-manifest/" variant="release-manifest" %}>Release Manifest</a>
+    <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-lean" target="_blank" rel="noopener" {% include cta-attrs.html location="hero" label="GitHub" href="https://github.com/Panta-Rhei-Research/taulib" variant="taulib-source" %}>GitHub</a>
   </div>
 </div>
 
