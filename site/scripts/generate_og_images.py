@@ -23,6 +23,7 @@ to the script location). Requires `rsvg-convert` on PATH.
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import subprocess
 import sys
@@ -34,9 +35,18 @@ SITE_ROOT  = SCRIPT_DIR.parent                        # site/
 ASSETS     = SITE_ROOT / "assets" / "og"
 SVG_DIR    = ASSETS / "svg"
 PNG_DIR    = ASSETS / "png"
+LOCKUP_DIR = ASSETS / "lockup"
 SITE_ROOT_PNG = SITE_ROOT / "assets" / "og-image.png"  # site-wide fallback consumed by head.html
 REPO_ROOT  = SITE_ROOT.parent                          # taulib/
 GH_PREVIEW = REPO_ROOT / ".github" / "social-preview.png"
+
+# Canonical brand lockup — used as the corner mark on every TauLib OG card.
+# Vendored from atlas/design/logo/logo-ug-images{,-light}.svg.
+LOCKUP_DARK_PATH  = LOCKUP_DIR / "logo-lockup-dark.svg"
+LOCKUP_LIGHT_PATH = LOCKUP_DIR / "logo-lockup-light.svg"
+# Lockup viewBox is 2128 × 1074 (aspect ratio ≈ 1.98 : 1).
+LOCKUP_VIEWBOX_W = 2128
+LOCKUP_VIEWBOX_H = 1074
 
 # Brand tokens (mirrors panta-rhei v4 OG card) -------------------------
 CARD_W, CARD_H = 1200, 630
@@ -103,19 +113,43 @@ def _gradient_xml(grad_id: str, stops, x2: int = 0, y2: int = 630, x1: int = 0, 
     )
 
 
+def _load_lockup_inner(svg_path: Path) -> str:
+    """Read a vendored brand lockup and strip the outer `<svg>` wrapper.
+
+    The lockup SVGs from atlas/design/logo/ wrap their content in a single
+    `<svg viewBox="0 0 2128 1074" ...>...</svg>` root. To re-embed the
+    content inside another SVG, we extract the inner part and let the
+    caller place it inside a nested `<svg x=".." y=".." width=".." height=".."
+    viewBox="0 0 2128 1074">...inner...</svg>` block.
+    """
+    text = svg_path.read_text(encoding="utf-8")
+    # Drop the XML/DOCTYPE prolog and the outer <svg ...> open tag.
+    body = re.sub(r"^.*?<svg[^>]*>", "", text, count=1, flags=re.DOTALL)
+    # Drop the closing </svg>.
+    body = re.sub(r"</svg>\s*$", "", body, count=1, flags=re.DOTALL)
+    return body.strip()
+
+
+LOCKUP_DARK_INNER = _load_lockup_inner(LOCKUP_DARK_PATH)
+
+
 def render_svg(*, pill: str, title: str, subtitle: list[str], url: str, **_) -> str:
     """Return the SVG source for a TauLib OG card.
 
     Visual structure (mirrors panta-rhei.site/assets/og/svg/index.svg
-    with τ glyph as the centerpiece):
+    with τ glyph as the centerpiece and the official Panta Rhei brand
+    lockup as the corner mark):
 
       ┌────────────────────────────────────────────────┐
-      │ ┌─────────────┐                π ρ Panta Rhei  │
-      │ │   PILL      │                    Research    │
-      │ └─────────────┘                    TauLib      │
+      │ ┌─────────────┐               ┌──────────────┐ │
+      │ │   PILL      │               │  π ρ  PANTA  │ │  ← official
+      │ └─────────────┘               │       RHEI   │ │     lockup
+      │                               │   RESEARCH   │ │     (dark
+      │                               │   PROGRAM    │ │     variant)
+      │                               └──────────────┘ │
       │                                                │
-      │                                       τ        │  ← large τ watermark
-      │  Title (EB Garamond, 112pt)                    │
+      │                                       τ        │  ← large τ
+      │  Title (EB Garamond, 112pt)                    │     centerpiece
       │  Subtitle (Source Sans 3, 34pt)                │
       │                                                │
       │  url (Source Code Pro, 30pt)                   │
@@ -129,6 +163,13 @@ def render_svg(*, pill: str, title: str, subtitle: list[str], url: str, **_) -> 
     )
     # Pill width adapts to text length (rough heuristic: ~13px per char + 36px padding).
     pill_w = 36 + len(pill) * 13
+
+    # Brand lockup positioning in the top-right.
+    # 2128 × 1074 viewBox scaled to 380 × 191.8 — sits comfortably above the title.
+    lockup_w = 380
+    lockup_h = round(lockup_w * LOCKUP_VIEWBOX_H / LOCKUP_VIEWBOX_W, 2)  # ≈ 191.81
+    lockup_x = CARD_W - lockup_w - 50
+    lockup_y = 40
 
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="{CARD_W}" height="{CARD_H}" viewBox="0 0 {CARD_W} {CARD_H}" role="img" aria-label="TauLib — Panta Rhei Research Program preview card for {title}.">
@@ -149,16 +190,16 @@ def render_svg(*, pill: str, title: str, subtitle: list[str], url: str, **_) -> 
   <rect x="0" y="618" width="{CARD_W}" height="12" fill="url(#spectrum-rule)"/>
 
   <!-- Large τ watermark: TauLib's standard sub-brand mark.
-       EB Garamond italic for elegance; positioned right-center, low-opacity. -->
-  <text x="940" y="465" font-family="EB Garamond OG, Georgia, serif" font-size="540" font-style="italic" font-weight="400" fill="{TAU_COLOR}" opacity="{TAU_OPACITY}" text-anchor="middle" aria-hidden="true">τ</text>
+       EB Garamond italic for elegance; sits in the right half, below the
+       brand lockup so the two marks read as a stacked composition rather
+       than overlapping. -->
+  <text x="970" y="585" font-family="EB Garamond OG, Georgia, serif" font-size="430" font-style="italic" font-weight="400" fill="{TAU_COLOR}" opacity="{TAU_OPACITY}" text-anchor="middle" aria-hidden="true">τ</text>
 
-  <!-- Top-right: π ρ wordmark + Panta Rhei attribution (parent brand). -->
-  <g transform="translate(785 26)" fill="{TITLE_COLOR}">
-    <text x="0" y="44" font-family="EB Garamond OG, Georgia, serif" font-size="52" font-weight="400">π</text>
-    <text x="31" y="67" font-family="EB Garamond OG, Georgia, serif" font-size="52" font-style="italic" font-weight="400">ρ</text>
-    <text x="86" y="36" font-family="Source Sans 3 OG, Inter, Arial, sans-serif" font-size="25" font-weight="700">Panta Rhei Research</text>
-    <text x="86" y="67" font-family="Source Sans 3 OG, Inter, Arial, sans-serif" font-size="21" opacity="0.82">TauLib · Lean 4 formalization</text>
-  </g>
+  <!-- Top-right: official Panta Rhei brand lockup (dark variant).
+       Vendored from atlas/design/logo/logo-ug-images.svg. -->
+  <svg x="{lockup_x}" y="{lockup_y}" width="{lockup_w}" height="{lockup_h}" viewBox="0 0 {LOCKUP_VIEWBOX_W} {LOCKUP_VIEWBOX_H}" preserveAspectRatio="xMidYMid meet" aria-label="Panta Rhei Research Program">
+    {LOCKUP_DARK_INNER}
+  </svg>
 
   <!-- Top-left pill: category label (LEAN 4 FORMALIZATION etc.). -->
   <g transform="translate(70 76)">
@@ -168,7 +209,7 @@ def render_svg(*, pill: str, title: str, subtitle: list[str], url: str, **_) -> 
 
   <!-- Primary title (EB Garamond, large). -->
   <text font-family="EB Garamond OG, Georgia, serif" font-size="112" font-weight="400" fill="{TITLE_COLOR}">
-    <tspan x="78" y="280">{title}</tspan>
+    <tspan x="78" y="320">{title}</tspan>
   </text>
 
   <!-- Subtitle (Source Sans 3). -->
