@@ -7,28 +7,28 @@
     <nav class="footer-links" aria-label="Footer">
       <div class="footer-link-group">
         <span class="footer-group-title">TauLib</span>
-        <a href="{{ '/' | relative_url }}">Home</a>
-        <a href="{{ '/docs/' | relative_url }}">API Docs</a>
-        <a href="https://panta-rhei.site/program/about/">About</a>
-        <button type="button" class="footer-link-button" onclick="openSearch()">Search</button>
+        <a href="{{ '/' | relative_url }}" {% include cta-attrs.html location="footer" label="Home" href="/" %}>Home</a>
+        <a href="{{ '/docs/' | relative_url }}" {% include cta-attrs.html location="footer" label="API Docs" href="/docs/" %}>API Docs</a>
+        <a href="https://panta-rhei.site/program/about/" {% include cta-attrs.html location="footer" label="About" href="https://panta-rhei.site/program/about/" variant="program-about" %}>About</a>
+        <button type="button" class="footer-link-button" onclick="openSearch()" data-umami-event="footer-search" data-umami-event-location="footer" data-umami-event-type="internal">Search</button>
       </div>
       <div class="footer-link-group">
         <span class="footer-group-title">Canonical routes</span>
-        <a href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/">WP003 Technical Overview</a>
-        <a href="https://panta-rhei.site/verify/taulib/">Verify / TauLib</a>
-        <a href="https://panta-rhei.site/verify/release-manifest/">Release Manifest</a>
+        <a href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" {% include cta-attrs.html location="footer" label="WP003" href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" variant="wp003" %}>WP003 Technical Overview</a>
+        <a href="https://panta-rhei.site/verify/taulib/" {% include cta-attrs.html location="footer" label="Verify / TauLib" href="https://panta-rhei.site/verify/taulib/" variant="verify-taulib" %}>Verify / TauLib</a>
+        <a href="https://panta-rhei.site/verify/release-manifest/" {% include cta-attrs.html location="footer" label="Release Manifest" href="https://panta-rhei.site/verify/release-manifest/" variant="release-manifest" %}>Release Manifest</a>
       </div>
       <div class="footer-link-group">
         <span class="footer-group-title">Sister sites</span>
-        <a href="https://panta-rhei.site">Panta Rhei Research</a>
-        <a href="https://panta-rhei.site/program/">Program</a>
-        <a href="https://panta-rhei.site/corpus/">Corpus</a>
+        <a href="https://panta-rhei.site" {% include cta-attrs.html location="footer" label="Panta Rhei Research" href="https://panta-rhei.site" variant="home" %}>Panta Rhei Research</a>
+        <a href="https://panta-rhei.site/program/" {% include cta-attrs.html location="footer" label="Program" href="https://panta-rhei.site/program/" variant="program" %}>Program</a>
+        <a href="https://panta-rhei.site/corpus/" {% include cta-attrs.html location="footer" label="Corpus" href="https://panta-rhei.site/corpus/" variant="corpus" %}>Corpus</a>
       </div>
       <div class="footer-link-group">
         <span class="footer-group-title">External</span>
-        <a href="https://github.com/Panta-Rhei-Research/taulib" target="_blank" rel="noopener">Repository</a>
-        <a href="https://lean-lang.org" target="_blank" rel="noopener">Lean</a>
-        <a href="https://leanprover-community.github.io/mathlib4_docs/" target="_blank" rel="noopener">Mathlib</a>
+        <a href="https://github.com/Panta-Rhei-Research/taulib" target="_blank" rel="noopener" {% include cta-attrs.html location="footer" label="Repository" href="https://github.com/Panta-Rhei-Research/taulib" variant="taulib-source" %}>Repository</a>
+        <a href="https://lean-lang.org" target="_blank" rel="noopener" {% include cta-attrs.html location="footer" label="Lean" href="https://lean-lang.org" %}>Lean</a>
+        <a href="https://leanprover-community.github.io/mathlib4_docs/" target="_blank" rel="noopener" {% include cta-attrs.html location="footer" label="Mathlib" href="https://leanprover-community.github.io/mathlib4_docs/" %}>Mathlib</a>
       </div>
     </nav>
     <div class="footer-legal">
