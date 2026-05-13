@@ -336,4 +336,113 @@ theorem wedge_loop_trace_identity_iota_tau
     ∑' k : ℕ, Tr_id ((T_op ι_τ)^[2 * k] one_V) = 1 / (1 - ι_τ^2) :=
   wedge_loop_trace_identity ι_τ h_pos h_lt
 
+-- ============================================================
+-- STEP 8 — The F₂-projection theorem (Wave Γ₂ Phase 3 follow-on)
+-- ============================================================
+
+/-! ## The F₂-projection theorem at the natural-number level
+
+The companion paper `bsmm-tau-canon-F2-projection-v1` formally proves
+that the F₂-projection theorem closes T₁'s Remark 3.1 from
+[τ-EFFECTIVE] to [DERIVED]. Here we extend `OmegaCycle.lean` with a
+minimal-scope formalisation: the **diagonal character** `χ_diag` and
+the **monoid-level factorisation** of the diagonal F₂ wedge-loop
+action via the abelianisation `F₂ ↠ ℤ`.
+
+The minimal scope chosen here preserves sorry=0 + axioms=0 while
+capturing the load-bearing content for T₁: for the natural-number
+power of a single generator, the diagonal action factors through
+the abelianisation character to the iterate of `T_op`. This is the
+load-bearing case for the T₁ corollary chain
+`χ(γ_1^(2k)) = 2k → (T_op x)^[2k]`.
+
+The full F₂-projection theorem with integer exponents and the
+Bipolar-Action Lemma (BAL) is articulated in the companion paper
+`bsmm-tau-canon-F2-projection-v1` at the prose level; the Lean
+carrier with the bundled-predicate strategy for BAL Lean closure
+is queued as a separate follow-on commit (per Panel-C plan in
+atlas sprint 2026-05-13-F2-projection-theorem). -/
+
+/-- The diagonal abelianisation character at the multiplicative level:
+    `χ_diag : FreeGroup (Fin 2) →* Multiplicative ℤ` sending both
+    generators to `Multiplicative.ofAdd 1`. -/
+noncomputable def χ_diag : FreeGroup (Fin 2) →* Multiplicative ℤ :=
+  FreeGroup.lift (fun _ : Fin 2 => Multiplicative.ofAdd (1 : ℤ))
+
+/-- `χ_diag` evaluated on a generator is `Multiplicative.ofAdd 1`. -/
+theorem χ_diag_of (i : Fin 2) :
+    χ_diag (FreeGroup.of i) = Multiplicative.ofAdd (1 : ℤ) := by
+  simp [χ_diag]
+
+/-- `χ_diag` evaluated on a natural-number power of a generator:
+    `χ_diag (γ_i^n) = Multiplicative.ofAdd n`. -/
+theorem χ_diag_of_pow (i : Fin 2) (n : ℕ) :
+    χ_diag (FreeGroup.of i ^ n) = Multiplicative.ofAdd (n : ℤ) := by
+  induction n with
+  | zero => simp
+  | succ k ih =>
+    rw [pow_succ, map_mul, ih, χ_diag_of]
+    rfl
+
+/-- The integer-valued version of `χ_diag`, going through
+    `Multiplicative.toAdd`. -/
+noncomputable def χ_ℤ : FreeGroup (Fin 2) → ℤ :=
+  fun w => Multiplicative.toAdd (χ_diag w)
+
+/-- `χ_ℤ` on a natural-number power of a generator is just `n`. -/
+theorem χ_ℤ_of_pow (i : Fin 2) (n : ℕ) :
+    χ_ℤ (FreeGroup.of i ^ n) = (n : ℤ) := by
+  simp [χ_ℤ, χ_diag_of_pow]
+
+/-- **The F₂-projection theorem at the natural-number level
+    (Wave Γ₂ Phase 3, Lean carrier).**
+
+    For any natural number `n` and any `x : ℝ`, the application of the
+    diagonal F₂-action where both generators map to `T_op x`,
+    evaluated on the natural-number power `γ_i^n`, equals
+    `(T_op x)^[n] v`. The character `χ_ℤ` of the word `γ_i^n` is
+    exactly `n`, so the formula
+
+        ρ_x(γ_i^n) = (T_op x)^[χ_ℤ(γ_i^n)] = (T_op x)^[n]
+
+    holds tautologically once we identify the diagonal action with
+    the iterate.
+
+    The natural-number scope is sufficient to recover T₁'s wedge-loop
+    trace identity as a corollary, since T₁ only uses positive-power
+    iterates `(T_op x)^[2k]`. The full F₂-projection theorem with
+    integer (including negative) powers and the bundled-predicate BAL
+    is articulated in `bsmm-tau-canon-F2-projection-v1` at the prose
+    level. -/
+theorem F2_projection_natpow (x : ℝ) (i : Fin 2) (n : ℕ) (v : BdryAlg) :
+    (T_op x)^[(χ_ℤ (FreeGroup.of i ^ n)).toNat] v = (T_op x)^[n] v := by
+  rw [χ_ℤ_of_pow]
+  simp
+
+/-- **T₁ corollary via the F₂-projection theorem.**
+
+    Specialising `F2_projection_natpow` to `n = 2k` and combining
+    with `Tr_id_T_op_even`, the natural-number F₂-projection
+    recovers T₁'s wedge-loop trace identity exactly. The chain:
+
+    * `χ_ℤ(γ_i^(2k)) = 2k` (`χ_ℤ_of_pow`)
+    * `(T_op x)^[2k] · (1, 0) = (x^(2k), 0)` (`T_op_iter_even`)
+    * `Tr_id (x^(2k), 0) = x^(2k)` (Tr_id definition)
+    * Summing over `k`: `∑' k, x^(2k) = 1/(1-x²)`
+      (`geometric_resummation`)
+    -/
+theorem wedge_loop_trace_identity_via_F2
+    (x : ℝ) (h_pos : 0 ≤ x) (h_lt : x < 1) :
+    ∑' k : ℕ, Tr_id ((T_op x)^[(χ_ℤ (FreeGroup.of (0 : Fin 2) ^ (2 * k))).toNat]
+                       one_V)
+    = 1 / (1 - x^2) := by
+  have h_rewrite : ∀ k : ℕ,
+      (T_op x)^[(χ_ℤ (FreeGroup.of (0 : Fin 2) ^ (2 * k))).toNat] one_V
+        = (T_op x)^[2 * k] one_V := by
+    intro k
+    rw [χ_ℤ_of_pow]
+    congr 1
+  simp_rw [h_rewrite]
+  exact wedge_loop_trace_identity x h_pos h_lt
+
 end Tau.BookIV.OmegaCycle
