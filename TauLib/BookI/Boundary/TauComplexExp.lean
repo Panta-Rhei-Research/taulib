@@ -156,57 +156,157 @@ theorem TauComplex.i_unit_pow_3_equiv_neg_i :
     try ring
 
 -- ============================================================
--- PART 3: STRUCTURAL FOUNDATION FOR exp_partial (Phase 3C Part 2b)
+-- PART 3: SCALE-BY-INVERSE-FACTORIAL HELPER (TauRat level)
 -- ============================================================
 
-/-! ## Phase 3C Part 2b roadmap (next session)
+/-- **TauRat-level scale-by-inverse-factorial**: divide a TauRat by `k!`
+    by multiplying its denominator by `k.factorial`. This is the
+    structural primitive needed for the Taylor series `z^k / k!`. -/
+def TauRat.scale_by_inv_factorial (q : TauRat) (k : Nat) : TauRat :=
+  { num    := q.num,
+    den    := q.den * k.factorial,
+    den_pos := Nat.mul_pos q.den_pos (Nat.factorial_pos k) }
 
-The `TauComplex.exp_partial z n := Σ_{k=0}^{n-1} z^k / k!` construction
-requires:
+/-- Bridge theorem: `scale_by_inv_factorial q k` toRat is `q.toRat / k!`. -/
+theorem TauRat.scale_by_inv_factorial_toRat (q : TauRat) (k : Nat) :
+    (TauRat.scale_by_inv_factorial q k).toRat = q.toRat / (k.factorial : Rat) := by
+  unfold TauRat.scale_by_inv_factorial TauRat.toRat
+  have h_fac_pos : (0 : Rat) < (k.factorial : Rat) := by
+    have := Nat.factorial_pos k; exact_mod_cast this
+  push_cast
+  field_simp
 
-1. **`TauReal.scale_by_inv_factorial`** (helper at TauReal level):
-   ```
-   def TauReal.scale_by_inv_factorial (x : TauReal) (k : Nat) : TauReal :=
-     ⟨fun n => { num := (x.approx n).num,
-                  den := (x.approx n).den * k.factorial,
-                  den_pos := ... }⟩
-   ```
-   Mirrors the `TauRat.exp_term` denominator multiplication.
+-- ============================================================
+-- PART 4: TauReal.scale_by_inv_factorial (lifted to TauReal)
+-- ============================================================
 
-2. **`TauComplex.exp_term z k := pow z k / k!`** at the TauComplex level:
-   ```
-   def TauComplex.exp_term (z : TauComplex) (k : Nat) : TauComplex :=
-     ⟨TauReal.scale_by_inv_factorial (TauComplex.pow z k).re k,
-      TauReal.scale_by_inv_factorial (TauComplex.pow z k).im k⟩
-   ```
+/-- **TauReal-level scale-by-inverse-factorial**: pointwise lift of
+    `TauRat.scale_by_inv_factorial`. -/
+def TauReal.scale_by_inv_factorial (x : TauReal) (k : Nat) : TauReal :=
+  ⟨fun n => TauRat.scale_by_inv_factorial (x.approx n) k⟩
 
-3. **`TauComplex.exp_partial z n`**: sum of exp_terms.
+@[simp] theorem TauReal.scale_by_inv_factorial_approx (x : TauReal) (k n : Nat) :
+    (TauReal.scale_by_inv_factorial x k).approx n =
+      TauRat.scale_by_inv_factorial (x.approx n) k := rfl
 
-4. **Cauchy proof**: lift from `TauReal.exp_partial_cauchy_bound`
-   (Wave 3b R10). The TauComplex Cauchy property holds componentwise:
-   each of `re` and `im` partial sums is Cauchy when |z| is bounded.
+-- ============================================================
+-- PART 5: TauComplex.exp_term (the k-th Taylor term)
+-- ============================================================
 
-## Phase 3C Part 3 (M3 breakthrough proper)
+/-- **[I.D-TauComplex-ExpTerm]** The k-th Taylor term of `exp(z)`:
+    `z^k / k!` as a TauComplex.
 
-Lift `TauReal.exp_add` (the binomial-Cauchy-product identity, ~200 LOC
-in TauRealExp.lean) to `TauComplex.exp_add`. The lift is mechanical
-once exp_partial is in place: the Cauchy product on TauComplex
-respects the same combinatorial structure as on TauReal, just with
-complex multiplication on the products.
+    Componentwise: divide both real and imaginary parts of `pow z k`
+    by `k!` (via `TauReal.scale_by_inv_factorial`).
 
-## Phase 3C Part 4 (sin/cos addition formula extraction)
+    The cyclotomic-4 structure of `i` (proved in Part 2 via
+    `i_unit_pow_4_equiv_one`) means that for `z = i·x` (purely imaginary),
+    the powers `i^k` cycle through `{1, i, -1, -i}` with period 4, giving
+    Euler's formula `exp(i·x) = cos(x) + i·sin(x)` via separation into
+    even-power (cos) and odd-power (sin) contributions. -/
+def TauComplex.exp_term (z : TauComplex) (k : Nat) : TauComplex :=
+  ⟨TauReal.scale_by_inv_factorial (TauComplex.pow z k).re k,
+   TauReal.scale_by_inv_factorial (TauComplex.pow z k).im k⟩
 
-Specialise `TauComplex.exp_add` to purely imaginary arguments:
-- `exp(i·α) · exp(i·β) ≈ exp(i·(α+β))`
-- LHS = `(cos α + i sin α) · (cos β + i sin β)`
-       = `(cos α cos β - sin α sin β) + i (cos α sin β + sin α cos β)`
-- RHS = `cos(α+β) + i sin(α+β)`
-- Equating real / imag parts via `TauComplex.equiv` gives the sin/cos
-  addition formulae as τ-native theorems.
+@[simp] theorem TauComplex.exp_term_re (z : TauComplex) (k : Nat) :
+    (TauComplex.exp_term z k).re =
+      TauReal.scale_by_inv_factorial (TauComplex.pow z k).re k := rfl
 
-The cyclotomic-4 root identity `i^4 ≈ 1` proved in this commit is
-the structural anchor for the whole chain — it confirms that the
-extension behaves correctly under repeated multiplication.
+@[simp] theorem TauComplex.exp_term_im (z : TauComplex) (k : Nat) :
+    (TauComplex.exp_term z k).im =
+      TauReal.scale_by_inv_factorial (TauComplex.pow z k).im k := rfl
+
+-- ============================================================
+-- PART 6: TauComplex.exp_partial (the partial-sum sequence)
+-- ============================================================
+
+/-- TauComplex sum: direct Nat-recursion summation. -/
+def TauComplex.sum (f : Nat → TauComplex) : Nat → TauComplex
+  | 0 => TauComplex.zero
+  | n + 1 => (TauComplex.sum f n).add (f n)
+
+@[simp] theorem TauComplex.sum_zero (f : Nat → TauComplex) :
+    TauComplex.sum f 0 = TauComplex.zero := rfl
+
+@[simp] theorem TauComplex.sum_succ (f : Nat → TauComplex) (n : Nat) :
+    TauComplex.sum f (n + 1) = (TauComplex.sum f n).add (f n) := rfl
+
+/-- **[I.D-TauComplex-ExpPartial]** Partial sum of the exp Taylor series
+    at depth `n`:
+    `exp_partial z n = Σ_{k=0}^{n-1} z^k / k!`. -/
+def TauComplex.exp_partial (z : TauComplex) (n : Nat) : TauComplex :=
+  TauComplex.sum (TauComplex.exp_term z) n
+
+@[simp] theorem TauComplex.exp_partial_zero (z : TauComplex) :
+    TauComplex.exp_partial z 0 = TauComplex.zero := rfl
+
+@[simp] theorem TauComplex.exp_partial_succ (z : TauComplex) (n : Nat) :
+    TauComplex.exp_partial z (n + 1) =
+      (TauComplex.exp_partial z n).add (TauComplex.exp_term z n) := rfl
+
+-- ============================================================
+-- PART 7: ROADMAP FOR PHASE 3C PART 3 (M3 BREAKTHROUGH)
+-- ============================================================
+
+/-! ## Phase 3C Part 3 roadmap (next session)
+
+With `TauComplex.exp_partial` defined, the next step is the **M3
+breakthrough proper**: prove `TauComplex.exp_add`, i.e.,
+
+  `exp(z₁ + z₂) ≈ exp(z₁) · exp(z₂)` (at the TauComplex.equiv level)
+
+by lifting `TauReal.exp_add` (Wave 3b R10, ~200 LOC of Cauchy-product
+manipulation in TauRealExp.lean) to TauComplex.
+
+### The lift strategy
+
+The existing `TauReal.exp_add` proof relies on:
+1. `TauRat.cauchyPStar` — Cauchy product at TauRat level (TauRealSum.lean).
+2. `TauReal.exp_partial_add_toRat_eq_cauchyPStar` — finite-N Cauchy-product
+   identity for exp partial sums.
+3. `TauRat.cauchy_product_bound` — tail bound on the Cauchy product.
+4. `Rat.four_div_two_pow_lt_recip` — the Cauchy-bound template's
+   workhorse.
+
+For TauComplex, the lift adds a layer of complex multiplication on top
+of each Cauchy-product step. The combinatorial identity (binomial
+theorem applied to `(a + b)^k`) carries over verbatim — the new
+content is that complex multiplication `(a+bi)(c+di) = (ac-bd) + (ad+bc)i`
+distributes correctly.
+
+### Phase 3C Part 4 (sin/cos addition formula extraction)
+
+Once `TauComplex.exp_add` lands, specialising to purely imaginary
+arguments `z₁ = i·α`, `z₂ = i·β` gives:
+
+  exp(i·α) · exp(i·β) ≈ exp(i·(α+β))
+
+Expanding both sides via `TauComplex.mul`:
+- LHS = (cos α + i sin α)(cos β + i sin β)
+       = (cos α cos β - sin α sin β) + i(cos α sin β + sin α cos β)
+- RHS = cos(α+β) + i sin(α+β)
+
+Equating real and imaginary parts via `TauComplex.equiv` yields:
+- cos(α+β) ≈ cos α cos β - sin α sin β
+- sin(α+β) ≈ cos α sin β + sin α cos β
+
+The cyclotomic-4 structure of `i` (Part 2's `i_unit_pow_4_equiv_one`)
+is what makes the LHS expansion clean: powers of `i` cycle through
+{1, i, -1, -i}, separating the real exp(i·x) Taylor terms into
+cos (even powers) and i·sin (odd powers) contributions.
+
+### What this commit adds
+
+* `TauRat.scale_by_inv_factorial` — divide a TauRat by k!.
+* `TauReal.scale_by_inv_factorial` — pointwise TauReal lift.
+* `TauComplex.exp_term z k` — `z^k / k!` as a TauComplex.
+* `TauComplex.sum` — direct Nat-recursion summation on TauComplex.
+* `TauComplex.exp_partial z n` — the partial sum at depth n.
+* Componentwise simp lemmas (exp_term_re, exp_term_im, sum_*, exp_partial_*).
+
+This completes Phase 3C Part 2b — the **structural definition** of
+exp on TauComplex. Phase 3C Part 3 (the actual exp_add lift) is the
+next session's M3 breakthrough work.
 -/
 
 end Tau.Boundary
