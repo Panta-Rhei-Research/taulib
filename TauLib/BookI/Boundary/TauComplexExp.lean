@@ -2553,25 +2553,85 @@ theorem TauComplex.right_after_first_bridge (z₁ z₂ : TauComplex) (n : Nat) :
   rw [h_eq]
   exact TauComplex.equiv_refl _
 
-/-! ### Σ_right_reindex deferred to next sprint
+-- ============================================================
+-- PART 27: PHASE 3C PART 3b'''''''''''''''' — right_after_first composite
+-- ============================================================
 
-The main `right_sum_reindex` theorem (`Σ_right ≈ pow z₂ (n+1) +
-Σ_right_shifted`) was attempted in this part but its theorem signature
-— three nested sum/mul/pow expressions — exhausts Lean's elaboration
-budget even at `maxHeartbeats 5000000`. The sub-lemmas
-`right_shifted_peel_last` and `right_after_first_bridge` shipped above
-have the same expression complexity, but they typecheck independently
-within budget.
+/-! ## Phase 3C Part 3b'''''''''''''''' deliverables — composing sub-lemma
 
-The disciplined response: ship the two sub-lemmas (which together
-provide the full bridge structure), and defer the main `right_sum_reindex`
-+ Pascal combine to Part 3b'''''''''''''''' (next), where they can be
-combined together — possibly via a different proof structure (e.g.,
-direct chained term-mode without intermediate `have`s) that doesn't
-explode Lean's elaboration.
+For the Σ_right reindex `Σ_right ≈ pow z₂ (n+1) + Σ_right_shifted`,
+this part ships the **composing sub-lemma** that fuses
+`right_after_first_bridge` (sum_after_first ≈ first_n_terms) with
+`right_shifted_peel_last` (first_n_terms ≈ Σ_right_shifted, reversed)
+to yield directly:
 
-This is the **whnf-elaboration-cost-defer pattern** observed for the
-fourth time in this campaign (cf. Parts 3b''''''''', 3b'''''''''',
-3b''''''''''''''). Ship what's clean, defer what's expensive. -/
+  `sum_after_first ≈ Σ_right_shifted`
+
+This is the cleanest decomposition because it keeps each theorem's
+signature within Lean's elaboration budget. The main `right_sum_reindex`
+in Part 3b''''''''''''''''' (next) will then chain this sub-lemma
+with `sum_split_first` and `first_term_simplify` via term-mode.
+
+### Why this works
+
+The composite `right_after_first_to_shifted` has TWO sums in its
+signature (sum_after_first form + Σ_right_shifted form), comparable
+complexity to the individual sub-lemmas. The main `right_sum_reindex`
+has THREE expressions (Σ_right + pow z₂ (n+1) + Σ_right_shifted), one
+more than the sub-lemmas — and the additional expression-tree depth
+appears to push it past the heartbeat budget. By keeping
+right_after_first_to_shifted at "two sums + chain" we stay within
+budget.
+-/
+
+/-- **right_after_first to Σ_right_shifted** (composite bridge):
+    `sum_after_first ≈ Σ_right_shifted`.
+
+    Fuses `right_after_first_bridge` (sum_after_first ≈ first_n_terms)
+    with `right_shifted_peel_last` (Σ_right_shifted ≈ first_n_terms,
+    used in reverse via `equiv_symm`). -/
+theorem TauComplex.right_after_first_to_shifted
+    (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z1 : TauComplex.BoundedBy z₁ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    (TauComplex.sum (fun i =>
+      ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n (i+1)))).mul
+        (TauComplex.pow z₁ (i+1))).mul (TauComplex.pow z₂ ((n - (i+1)) + 1))) n).equiv
+    (TauComplex.sum (fun j =>
+      ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n (j+1)))).mul
+        (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n - j))) (n+1)) :=
+  TauComplex.equiv_trans
+    (TauComplex.right_after_first_bridge z₁ z₂ n)
+    (TauComplex.equiv_symm
+      (TauComplex.right_shifted_peel_last z₁ z₂ M hM h_bound_z1 h_bound_z2 n))
+
+/-! ### right_sum_reindex (main) deferred — elaboration cost cliff
+
+The main `right_sum_reindex` theorem — composing `sum_split_first`,
+`first_term_simplify`, and `right_after_first_to_shifted` into the
+full `Σ_right ≈ pow z₂ (n+1) + Σ_right_shifted` identity — hits Lean's
+elaboration cost cliff:
+* Default 200000 heartbeats → whnf timeout.
+* 1000000 heartbeats → `isDefEq` timeout.
+* 5000000 heartbeats → did not terminate in reasonable time.
+
+The signature has THREE heavy sum/mul/pow expressions on each side of
+the equiv. Each `equiv_refl _` placeholder requires unifying with
+deeply-nested context types, which compounds elaboration cost
+geometrically. Both tactic-mode (`apply`-chain with `have`s) and
+term-mode (single chained expression) hit the cliff.
+
+The disciplined response (fourth instance of the
+**whnf-elaboration-cost-defer pattern** this campaign): ship what's
+clean (`right_after_first_to_shifted` above), defer the main combine
+to the next part with a more radical approach — likely `@[irreducible]`
+or `@[reducible]` private `def`s that hide the heavy expressions from
+the signature. With defs, the signature simplifies dramatically; the
+proof unfolds the defs at controlled points.
+
+This is a Lean operational-engineering challenge rather than a math
+content one: the mathematical proof is complete (every step is
+justified by a shipped sub-lemma); we just need a presentation that
+fits within elaboration budget. -/
 
 end Tau.Boundary
