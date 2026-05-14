@@ -702,6 +702,139 @@ foundational `equiv_mul_congr` shipped here is the load-bearing piece;
 `equiv_pow_congr` will be a mechanical induction on top.
 -/
 
+-- ============================================================
+-- PART 12: PHASE 3C PART 3b'' — TauComplex.BoundedBy + target propositions
+-- ============================================================
+
+/-! ## Phase 3C Part 3b'' deliverables — BoundedBy + binomial targets
+
+The remaining piece for discharging `exp_term_add_eq_cauchyDiag_target`
+is the binomial theorem on TauComplex. Part 3b'' ships the
+**bound-tracking infrastructure** + the **named-target propositions**
+that decompose the binomial proof into focused next-session work.
+
+The binomial theorem requires bound-tracking because TauReal.equiv_mul_congr
+needs `BoundedBy` hypotheses on both factors. As we induct over `pow z k`,
+the bound compounds: `|pow z k| ≤ M^k` for `|z| ≤ M`. We need a
+`TauComplex.BoundedBy` predicate to manage this cleanly.
+-/
+
+/-- **TauComplex BoundedBy predicate**: both real and imaginary
+    parts bounded by `M` at every approximation level. Componentwise
+    version of `TauReal.BoundedBy`.
+
+    Used as the hypothesis for `equiv_pow_congr` and the binomial
+    theorem on TauComplex. -/
+def TauComplex.BoundedBy (z : TauComplex) (M : Nat) : Prop :=
+  (∀ n, (z.re.approx n).abs.toRat ≤ M) ∧
+  (∀ n, (z.im.approx n).abs.toRat ≤ M)
+
+/-- **[I.D-TauComplex-EquivPowCongr-Target]** Named target for the
+    pow congruence theorem.
+
+    Asserts: for `z ≈ z'` with `z'` bounded by `M` (in TauComplex.BoundedBy
+    sense), `pow z k ≈ pow z' k` for all `k ≤ N` and any bound `Mk`
+    appropriate to depth `k`.
+
+    Discharging this requires:
+    1. Establishing that `pow z' k` is bounded (with explicit compound bound).
+    2. Induction on `k` using `equiv_mul_congr` at each step.
+
+    Phase 3C Part 3b''' (queued) will discharge this. -/
+def TauComplex.equiv_pow_congr_target : Prop :=
+  ∀ (z z' : TauComplex) (k : Nat),
+    z.equiv z' →
+    (∀ M : Nat, 1 ≤ M → TauComplex.BoundedBy z' M →
+      (TauComplex.pow z k).equiv (TauComplex.pow z' k))
+
+/-- **[I.D-TauComplex-AddPowEquiv-Target]** Named target for the
+    binomial theorem on TauComplex.
+
+    Asserts: `pow (z₁ + z₂) n ≈ Σ_{i=0}^n C(n,i) · pow z₁ i · pow z₂ (n-i)`
+    at TauComplex.equiv level, where:
+    - `C(n,i)` is the binomial coefficient (a natural number).
+    - The sum is `TauComplex.sum` (direct Nat recursion).
+    - `C(n,i) · z` means `(TauComplex.fromTauReal (TauReal.fromNat C(n,i))).mul z`.
+
+    Discharging this requires:
+    1. Induction on `n`.
+    2. Pascal's rule `C(n,i) + C(n,i-1) = C(n+1,i)`.
+    3. TauComplex distributivity (`taucomplex_left_distrib`).
+    4. The congruence lemmas (Parts 3b + 3b').
+
+    Phase 3C Part 3b''' (queued) will discharge this. -/
+def TauComplex.add_pow_equiv_target : Prop :=
+  ∀ (z₁ z₂ : TauComplex) (n : Nat),
+    (TauComplex.pow (z₁.add z₂) n).equiv
+      (TauComplex.sum (fun i =>
+        (TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+          ((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))))
+        (n + 1))
+
+-- ============================================================
+-- PART 13: WHAT THE BINOMIAL TARGET WOULD UNLOCK
+-- ============================================================
+
+/-! ## The discharge chain (Part 3b''' → Part 3c → Part 3e → Part 4)
+
+With `add_pow_equiv_target` discharged in Part 3b''', the path to
+the M3 endpoint is mechanical:
+
+### Part 3b''' → discharges `exp_term_add_eq_cauchyDiag_target`
+
+Combine the binomial theorem with division by `n!`:
+
+  pow (z₁+z₂) n / n!
+    ≈ Σ_{i=0}^n C(n,i) · pow z₁ i · pow z₂ (n-i) / n!     [by binomial theorem]
+    = Σ_{i=0}^n pow z₁ i · pow z₂ (n-i) / (i! · (n-i)!)  [C(n,i) = n!/(i!(n-i)!)]
+    = Σ_{i=0}^n (pow z₁ i / i!) · (pow z₂ (n-i) / (n-i)!) [factor reorganisation]
+    = Σ_{i=0}^n exp_term z₁ i · exp_term z₂ (n-i)        [by exp_term defn]
+    = cauchyDiag (exp_term z₁) (exp_term z₂) n           [by cauchyDiag defn]
+
+This gives `exp_term (z₁+z₂) n ≈ cauchyDiag ...` directly.
+
+### Part 3c → Cauchy-product bound at TauComplex level
+
+Componentwise lift of `TauRat.cauchy_product_bound`. Each TauComplex
+Cauchy product decomposes into four TauRat Cauchy products with signs,
+each bounded by the existing TauRat tail bound.
+
+### Part 3d → TauComplex.exp (full diagonal construction)
+
+Mirror `TauReal.exp` at TauComplex level:
+  exp z := componentwise (diagonal) Cauchy sequence over exp_partial.
+
+### Part 3e → TauComplex.exp_add (the M3 target)
+
+Combine 3b'' + 3c + 3d via the standard structure:
+- Binomial identity rewrites exp_partial(z₁+z₂) as cauchyPStar.
+- Cauchy-product bound estimates the difference from exp_partial·exp_partial.
+- Modulus inequality (parallel to TauReal.exp_add) closes the equiv.
+
+### Part 4 → sin/cos addition formula extraction
+
+Specialise to z₁ = i·α, z₂ = i·β. The cyclotomic-4 cycle of `i^k`
+separates Taylor terms into cos (even-power real) and sin (odd-power
+imaginary) contributions. Real/imag parts of `exp_add` at imaginary
+arguments give the addition formulae.
+
+## What this commit (Part 3b'') adds
+
+* `TauComplex.BoundedBy z M` — bound-tracking predicate.
+* `TauComplex.equiv_pow_congr_target : Prop` — pow congruence as named target.
+* `TauComplex.add_pow_equiv_target : Prop` — binomial theorem as named target.
+* Detailed proof-chain documentation showing how discharge of `add_pow_equiv_target`
+  immediately gives `exp_term_add_eq_cauchyDiag_target` (Part 3b's queued target).
+
+## Trust budget (unchanged)
+
+* sorry = 0
+* axioms = 3
+* Full TauLib build: 2695/2695 jobs ✓
+* Part 3b'' is infrastructure + named targets — no new proofs beyond
+  the type-level definitions.
+-/
+
 /-! ## Phase 3C Part 3 roadmap (next session)
 
 With `TauComplex.exp_partial` defined, the next step is the **M3
