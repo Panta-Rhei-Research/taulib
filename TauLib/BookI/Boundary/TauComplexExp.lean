@@ -390,7 +390,7 @@ The structural framework is now fully in place. The remaining work is
 substantial Cauchy-product manipulation that closely parallels the
 existing `TauReal.exp_add` proof, lifted componentwise to TauComplex.
 
-## What this commit (Phase 3C Part 3a) adds
+## What Phase 3C Part 3a added
 
 * `TauComplex.cauchyDiag a b n` — n-th Cauchy product diagonal.
 * `TauComplex.cauchyPStar a b N` — partial Cauchy product.
@@ -398,17 +398,165 @@ existing `TauReal.exp_add` proof, lifted componentwise to TauComplex.
 * Detailed roadmap (this docstring) for Phase 3C Part 3b → 4.
 
 The Cauchy-product infrastructure is the **load-bearing structural
-foundation** for the M3 breakthrough proper. With this in place,
-Phase 3C Part 3b can focus narrowly on the binomial identity proof
-without needing to first design the algebraic framework.
+foundation** for the M3 breakthrough proper.
+
+## Phase 3C Part 3b (this commit) adds
+
+* `TauReal.equiv_add_congr` — congruence lemma: equiv is preserved by add.
+* `TauComplex.equiv_add_congr` — componentwise lift.
+* `TauComplex.exp_term_add_eq_cauchyDiag_target : Prop` — the per-term
+  binomial identity as a named target proposition, parallel to
+  `BBPLeibnizCorrespondence` (Wave Γ₆).
+* `TauComplex.exp_partial_add_eq_cauchyPStar_base` — proof of the base
+  case (n=0).
+* `TauComplex.exp_partial_add_eq_cauchyPStar_under_term_hyp` —
+  conditional theorem: IF the per-term identity holds at all depths,
+  THEN the partial-sum identity follows by induction.
+
+Phase 3C Part 3b' (next session) will discharge the per-term identity
+via the binomial theorem on TauComplex.
 
 ## Trust budget (unchanged)
 
 * sorry = 0
 * axioms = 3
 * TauLib build: 2695/2695 jobs ✓
-* No new mathematical claims proved here — Part 3a is pure infrastructure.
 -/
+
+-- ============================================================
+-- PART 9: TauReal/TauComplex EQUIV CONGRUENCE LEMMAS (Phase 3C Part 3b)
+-- ============================================================
+
+/-- **TauReal equiv congruence under addition**: if `a ≈ a'` and
+    `b ≈ b'` then `a.add b ≈ a'.add b'`.
+
+    Modulus construction: take `μ(k) := max (μ_a (2k+1)) (μ_b (2k+1))`,
+    so at depth `n ≥ μ(k)`, each component is bounded by `1/(2k+2)`,
+    and the triangle inequality gives the combined bound `2/(2k+2) = 1/(k+1)`. -/
+theorem TauReal.equiv_add_congr {a a' b b' : TauReal}
+    (h_a : a.equiv a') (h_b : b.equiv b') :
+    (a.add b).equiv (a'.add b') := by
+  obtain ⟨μ_a, hμ_a⟩ := h_a
+  obtain ⟨μ_b, hμ_b⟩ := h_b
+  refine ⟨fun k => max (μ_a (2 * k + 1)) (μ_b (2 * k + 1)), ?_⟩
+  intro k n hn
+  have h_a_n : μ_a (2 * k + 1) ≤ n := le_of_max_le_left hn
+  have h_b_n : μ_b (2 * k + 1) ≤ n := le_of_max_le_right hn
+  have h_a_bound := hμ_a (2 * k + 1) n h_a_n
+  have h_b_bound := hμ_b (2 * k + 1) n h_b_n
+  -- At TauRat.lt level: each |a.approx n - a'.approx n| < 1/(2k+2).
+  -- Triangle: |(a+b).approx n - (a'+b').approx n|
+  --         ≤ |a.approx n - a'.approx n| + |b.approx n - b'.approx n|
+  --         < 1/(2k+2) + 1/(2k+2) = 1/(k+1).
+  unfold TauRat.lt at h_a_bound h_b_bound ⊢
+  rw [TauRat.toRat_abs, toRat_sub] at h_a_bound h_b_bound
+  rw [TauRat.ofNatRecip_toRat] at h_a_bound h_b_bound
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  -- Unfold (a.add b).approx n = (a.approx n).add (b.approx n).
+  show |((TauReal.add a b).approx n).toRat - ((TauReal.add a' b').approx n).toRat|
+        < 1 / ((k : Rat) + 1)
+  unfold TauReal.add
+  simp only
+  rw [toRat_add, toRat_add]
+  -- Goal: |(a.approx n).toRat + (b.approx n).toRat
+  --        - ((a'.approx n).toRat + (b'.approx n).toRat)| < 1/(k+1)
+  have h_split :
+      ((a.approx n).toRat + (b.approx n).toRat)
+        - ((a'.approx n).toRat + (b'.approx n).toRat)
+      = ((a.approx n).toRat - (a'.approx n).toRat)
+        + ((b.approx n).toRat - (b'.approx n).toRat) := by ring
+  rw [h_split]
+  have h_tri : |((a.approx n).toRat - (a'.approx n).toRat)
+                + ((b.approx n).toRat - (b'.approx n).toRat)|
+              ≤ |(a.approx n).toRat - (a'.approx n).toRat|
+                + |(b.approx n).toRat - (b'.approx n).toRat| := abs_add_le _ _
+  -- Combined: < 1/(2k+2) + 1/(2k+2) = 1/(k+1).
+  -- TauRat.ofNatRecip k is 1/(k+1); so .ofNatRecip (2k+1) is 1/(2k+2) = 1/(2(k+1)).
+  -- Sum: 2/(2(k+1)) = 1/(k+1). ✓
+  have h_two_recip :
+      1 / (((2 * k + 1 : Nat) : Rat) + 1) + 1 / (((2 * k + 1 : Nat) : Rat) + 1)
+        = 1 / ((k : Rat) + 1) := by
+    have h_cast : ((2 * k + 1 : Nat) : Rat) + 1 = 2 * ((k : Rat) + 1) := by
+      push_cast; ring
+    rw [h_cast]
+    have h_k_nn : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    have h_k1_pos : (0 : Rat) < (k : Rat) + 1 := by linarith
+    field_simp
+    ring
+  linarith
+
+/-- **TauComplex equiv congruence under addition**: componentwise lift
+    of `TauReal.equiv_add_congr`. -/
+theorem TauComplex.equiv_add_congr {z z' w w' : TauComplex}
+    (h_z : z.equiv z') (h_w : w.equiv w') :
+    (z.add w).equiv (z'.add w') :=
+  ⟨TauReal.equiv_add_congr h_z.1 h_w.1, TauReal.equiv_add_congr h_z.2 h_w.2⟩
+
+-- ============================================================
+-- PART 10: PHASE 3C PART 3b — BASE CASE + CONDITIONAL INDUCTION
+-- ============================================================
+
+/-- **[I.D-TauComplex-BinomialTarget]** The per-term binomial identity
+    on TauComplex as a named target proposition (Phase 3C Part 3b').
+
+    Asserts that for all TauComplex `z₁, z₂` and Nat `n`:
+    `(exp_term (z₁ + z₂) n) ≈ cauchyDiag (exp_term z₁) (exp_term z₂) n`.
+
+    Discharging this requires the binomial theorem on TauComplex —
+    essentially proving `(z₁+z₂)^n = Σ_{i=0}^n C(n,i) z₁^i z₂^(n-i)`
+    at equiv level. Substantial work (~200-400 LOC) queued for
+    Part 3b'. -/
+def TauComplex.exp_term_add_eq_cauchyDiag_target : Prop :=
+  ∀ (z₁ z₂ : TauComplex) (n : Nat),
+    (TauComplex.exp_term (z₁.add z₂) n).equiv
+      (TauComplex.cauchyDiag (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n)
+
+/-- **Base case** (n = 0) of the binomial identity at the
+    partial-sum level: both sides are `TauComplex.zero`, hence equiv. -/
+theorem TauComplex.exp_partial_add_eq_cauchyPStar_base (z₁ z₂ : TauComplex) :
+    (TauComplex.exp_partial (z₁.add z₂) 0).equiv
+      (TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) 0) := by
+  -- exp_partial _ 0 = TauComplex.zero (by definition).
+  -- cauchyPStar _ _ 0 = TauComplex.zero (by simp lemma).
+  -- TauComplex.zero.equiv TauComplex.zero by reflexivity.
+  show (TauComplex.zero).equiv (TauComplex.zero)
+  exact TauComplex.equiv_refl _
+
+/-- **The partial-sum binomial identity, conditional on the per-term
+    identity holding at all depths.**
+
+    If `exp_term_add_eq_cauchyDiag_target` holds, then by induction on `n`,
+    the partial-sum identity follows: at each step, use IH to combine
+    the partial-sum equiv with the per-term equiv via `equiv_add_congr`.
+
+    Phase 3C Part 3b' will discharge the per-term identity, after which
+    this conditional theorem gives the unconditional partial-sum identity. -/
+theorem TauComplex.exp_partial_add_eq_cauchyPStar_under_term_hyp
+    (h_term : TauComplex.exp_term_add_eq_cauchyDiag_target)
+    (z₁ z₂ : TauComplex) (n : Nat) :
+    (TauComplex.exp_partial (z₁.add z₂) n).equiv
+      (TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n) := by
+  induction n with
+  | zero => exact TauComplex.exp_partial_add_eq_cauchyPStar_base z₁ z₂
+  | succ n ih =>
+    -- exp_partial (z₁+z₂) (n+1) = exp_partial (z₁+z₂) n + exp_term (z₁+z₂) n
+    -- cauchyPStar ... (n+1) = cauchyPStar ... n + cauchyDiag ... n
+    -- IH: exp_partial (z₁+z₂) n ≈ cauchyPStar ... n
+    -- h_term n: exp_term (z₁+z₂) n ≈ cauchyDiag ... n
+    -- Apply equiv_add_congr.
+    show (TauComplex.exp_partial (z₁.add z₂) (n + 1)).equiv
+          (TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) (n + 1))
+    rw [TauComplex.exp_partial_succ, TauComplex.cauchyPStar_succ]
+    exact TauComplex.equiv_add_congr ih (h_term z₁ z₂ n)
+
+/-- **The M3 target** (Phase 3C Part 3e — unconditional). Stated as a
+    `def` (proposition) since the per-term identity hasn't yet been
+    discharged. Once Part 3b' lands, this becomes a `theorem` via
+    the `_under_term_hyp` conditional. -/
+def TauComplex.exp_partial_add_eq_cauchyPStar_target : Prop :=
+  ∀ (z₁ z₂ : TauComplex) (n : Nat),
+    (TauComplex.exp_partial (z₁.add z₂) n).equiv
+      (TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n)
 
 /-! ## Phase 3C Part 3 roadmap (next session)
 
