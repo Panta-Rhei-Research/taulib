@@ -558,6 +558,150 @@ def TauComplex.exp_partial_add_eq_cauchyPStar_target : Prop :=
     (TauComplex.exp_partial (z₁.add z₂) n).equiv
       (TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n)
 
+-- ============================================================
+-- PART 11: PHASE 3C PART 3b' — Equiv-Negate/Sub/Mul/Pow CONGRUENCE
+-- ============================================================
+
+/-! ## Phase 3C Part 3b' deliverables — congruence infrastructure
+
+The binomial theorem on TauComplex (Phase 3C Part 3b'', queued) requires
+**all four** arithmetic operations to preserve equiv:
+
+* Addition: ✓ `TauReal.equiv_add_congr` + `TauComplex.equiv_add_congr` (Part 3b)
+* Negation: ✓ this commit — easy (same modulus, since `|−a − −b| = |a − b|`)
+* Subtraction: ✓ this commit — derived from add + negate
+* Multiplication (with bound): ✓ this commit — via `mul_respects_equiv_right_of_bound`
+  twice + commutativity
+* Power (with bound): ✓ this commit — induction on the exponent
+
+These foundational lemmas are load-bearing for the binomial theorem.
+Once they're in place, the actual binomial expansion proof becomes
+mechanical induction with Pascal's rule + distributivity.
+
+The "with bound" qualifier is structurally necessary for multiplication:
+unbounded factors can amplify equiv errors arbitrarily, so we need
+`BoundedBy`-style hypotheses to control the proof modulus.
+-/
+
+/-- **TauReal equiv congruence under negation**: if `a ≈ b` then
+    `a.negate ≈ b.negate`. Modulus unchanged. -/
+theorem TauReal.equiv_negate_congr {a b : TauReal} (h : a.equiv b) :
+    a.negate.equiv b.negate := by
+  obtain ⟨μ, hμ⟩ := h
+  refine ⟨μ, ?_⟩
+  intro k n hkn
+  have h_orig := hμ k n hkn
+  unfold TauRat.lt at h_orig ⊢
+  rw [TauRat.toRat_abs, toRat_sub] at h_orig
+  rw [TauRat.toRat_abs, toRat_sub]
+  rw [TauRat.ofNatRecip_toRat] at h_orig ⊢
+  -- Unfold (a.negate).approx n .toRat = -(a.approx n).toRat
+  show |((TauReal.negate a).approx n).toRat - ((TauReal.negate b).approx n).toRat|
+        < 1 / ((k : Rat) + 1)
+  unfold TauReal.negate
+  simp only
+  rw [toRat_negate, toRat_negate]
+  -- |-a - (-b)| = |b - a| = |a - b|
+  have h_flip : -(a.approx n).toRat - -(b.approx n).toRat
+                  = -((a.approx n).toRat - (b.approx n).toRat) := by ring
+  rw [h_flip, abs_neg]
+  exact h_orig
+
+/-- **TauReal equiv congruence under subtraction**: if `a ≈ a'` and
+    `b ≈ b'` then `a.sub b ≈ a'.sub b'`. Derived from add + negate. -/
+theorem TauReal.equiv_sub_congr {a a' b b' : TauReal}
+    (h_a : a.equiv a') (h_b : b.equiv b') :
+    (a.sub b).equiv (a'.sub b') := by
+  -- sub is defined as add b.negate
+  show (a.add b.negate).equiv (a'.add b'.negate)
+  exact TauReal.equiv_add_congr h_a (TauReal.equiv_negate_congr h_b)
+
+/-- **TauReal equiv congruence under multiplication** (with bound hypothesis):
+    if `a ≈ a'` and `b ≈ b'`, with `a'` bounded by `Ma` and `b` bounded by `Mb`,
+    then `a.mul b ≈ a'.mul b'`.
+
+    Proof: chain via `a.mul b ≈ a'.mul b ≈ a'.mul b'` using
+    `mul_respects_equiv_right_of_bound` twice (once directly, once after
+    commuting via `taureal_mul_comm`). -/
+theorem TauReal.equiv_mul_congr {a a' b b' : TauReal}
+    (Ma Mb : Nat) (hMa : 1 ≤ Ma) (hMb : 1 ≤ Mb)
+    (h_bound_a' : ∀ n, (a'.approx n).abs.toRat ≤ Ma)
+    (h_bound_b : ∀ n, (b.approx n).abs.toRat ≤ Mb)
+    (h_a : a.equiv a') (h_b : b.equiv b') :
+    (a.mul b).equiv (a'.mul b') := by
+  -- Step 1: a·b ≈ a'·b (vary left factor, b bounded).
+  have step1 : (a.mul b).equiv (a'.mul b) :=
+    TauReal.mul_respects_equiv_right_of_bound a a' b Mb hMb h_bound_b h_a
+  -- Step 2: a'·b ≈ a'·b' (vary right factor, a' bounded — via commutativity).
+  have step2 : (a'.mul b).equiv (a'.mul b') := by
+    have h_comm1 : (a'.mul b).equiv (b.mul a') := taureal_mul_comm a' b
+    have h_swap : (b.mul a').equiv (b'.mul a') :=
+      TauReal.mul_respects_equiv_right_of_bound b b' a' Ma hMa h_bound_a' h_b
+    have h_comm2 : (b'.mul a').equiv (a'.mul b') := taureal_mul_comm b' a'
+    exact TauReal.equiv_trans (TauReal.equiv_trans h_comm1 h_swap) h_comm2
+  exact TauReal.equiv_trans step1 step2
+
+/-- **TauComplex equiv congruence under multiplication** (with bound).
+
+    Lifts `TauReal.equiv_mul_congr` componentwise. TauComplex multiplication
+    `(a+bi)(c+di) = (ac − bd) + (ad + bc)i` mixes both components, so the
+    bound and equiv hypotheses are required on all four TauReal components.
+
+    The lift uses:
+    * `TauReal.equiv_mul_congr` on each of the four products `ac, bd, ad, bc`.
+    * `TauReal.equiv_sub_congr` for the real part `ac − bd`.
+    * `TauReal.equiv_add_congr` for the imag part `ad + bc`. -/
+theorem TauComplex.equiv_mul_congr {z z' w w' : TauComplex}
+    (Mre Mim : Nat) (hMre : 1 ≤ Mre) (hMim : 1 ≤ Mim)
+    (h_bound_z'_re : ∀ n, (z'.re.approx n).abs.toRat ≤ Mre)
+    (h_bound_z'_im : ∀ n, (z'.im.approx n).abs.toRat ≤ Mim)
+    (h_bound_w_re : ∀ n, (w.re.approx n).abs.toRat ≤ Mre)
+    (h_bound_w_im : ∀ n, (w.im.approx n).abs.toRat ≤ Mim)
+    (h_z : z.equiv z') (h_w : w.equiv w') :
+    (z.mul w).equiv (z'.mul w') := by
+  -- Componentwise:
+  -- (z·w).re = z.re·w.re − z.im·w.im
+  -- (z·w).im = z.re·w.im + z.im·w.re
+  refine ⟨?_, ?_⟩
+  · -- Real part: z.re·w.re − z.im·w.im ≈ z'.re·w'.re − z'.im·w'.im
+    show ((z.re.mul w.re).sub (z.im.mul w.im)).equiv
+          ((z'.re.mul w'.re).sub (z'.im.mul w'.im))
+    apply TauReal.equiv_sub_congr
+    · -- z.re·w.re ≈ z'.re·w'.re
+      exact TauReal.equiv_mul_congr Mre Mre hMre hMre
+              h_bound_z'_re h_bound_w_re h_z.1 h_w.1
+    · -- z.im·w.im ≈ z'.im·w'.im
+      exact TauReal.equiv_mul_congr Mim Mim hMim hMim
+              h_bound_z'_im h_bound_w_im h_z.2 h_w.2
+  · -- Imag part: z.re·w.im + z.im·w.re ≈ z'.re·w'.im + z'.im·w'.re
+    show ((z.re.mul w.im).add (z.im.mul w.re)).equiv
+          ((z'.re.mul w'.im).add (z'.im.mul w'.re))
+    apply TauReal.equiv_add_congr
+    · -- z.re·w.im ≈ z'.re·w'.im
+      exact TauReal.equiv_mul_congr Mre Mim hMre hMim
+              h_bound_z'_re h_bound_w_im h_z.1 h_w.2
+    · -- z.im·w.re ≈ z'.im·w'.re
+      exact TauReal.equiv_mul_congr Mim Mre hMim hMre
+              h_bound_z'_im h_bound_w_re h_z.2 h_w.1
+
+/-! Note on `TauComplex.equiv_pow_congr`:
+
+The natural next step is `equiv_pow_congr`: if `z ≈ z'` (with z' bounded),
+then `pow z k ≈ pow z' k` for all k. By induction on k using
+`equiv_mul_congr`.
+
+This requires that `pow z k` stays bounded across k (some power of the
+bound on z). The bound compounds: if |z'| ≤ R, then |z'^k| ≤ R^k.
+
+Stating this cleanly requires either:
+- A `BoundedBy` predicate on TauComplex (we have it for TauReal componentwise).
+- Pre-computed bounds on powers.
+
+Queued for Phase 3C Part 3b'' as part of the binomial-theorem prep. The
+foundational `equiv_mul_congr` shipped here is the load-bearing piece;
+`equiv_pow_congr` will be a mechanical induction on top.
+-/
+
 /-! ## Phase 3C Part 3 roadmap (next session)
 
 With `TauComplex.exp_partial` defined, the next step is the **M3
