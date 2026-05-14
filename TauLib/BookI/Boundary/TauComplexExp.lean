@@ -1636,4 +1636,170 @@ theorem TauComplex.sum_split_first (f : Nat → TauComplex) (n : Nat) :
       taucomplex_add_assoc (f 0) (TauComplex.sum (fun i => f (i+1)) n) (f (n+1))
     exact TauComplex.equiv_trans h_ih_lift h_assoc
 
+-- ============================================================
+-- PART 20: PHASE 3C PART 3b''''''''' — Bound infrastructure + ring helpers
+-- ============================================================
+
+/-! ## Phase 3C Part 3b''''''''' deliverables — IH-substitution + ring helpers
+
+This commit ships the **bound-tracking infrastructure** and **ring-
+identity helpers** that the binomial inductive step (Part 3b'''''''''',
+next) will consume. Three load-bearing pieces:
+
+### Deliverables
+
+* `TauComplex.add_BoundedBy_compounds` — `BoundedBy z₁ M + BoundedBy z₂ M
+  ⟹ BoundedBy (z₁+z₂) (2M)`. Used for the OUTERMOST IH-substitution in
+  the binomial induction (where the substitution requires a bound on
+  the `(z₁+z₂)` factor).
+
+* `TauComplex.mul_respects_equiv_right_of_bound` — componentwise lift of
+  the TauReal version. Requires bound on `w` only (NOT on `z'`,
+  unlike the general `equiv_mul_congr`). Used at the OUTERMOST IH-
+  substitution step to substitute `pow (z₁+z₂) n ≈ B(n)` into the
+  product `_ · (z₁+z₂)`. Bound bookkeeping is minimal: only the bound
+  on `(z₁+z₂)` matters, derived via `add_BoundedBy_compounds`.
+
+* `TauComplex.mul_reassoc_right` — 4-variable identity `((c·a)·b)·x ≈
+  (c·(a·x))·b`. The natural `ring`-based proof (pointwise reduction)
+  TIMES OUT on whnf for this 4-variable identity (8 TauRat re/im
+  variables; the expression tree explodes). Instead, this proof chains
+  through bound-free outer-level identities (`mul_assoc`, `mul_left_comm`,
+  `mul_comm`) and ONE bounded substitution at the end via
+  `mul_respects_equiv_right_of_bound`. The bound is on `b` only.
+
+### Why this is foundational
+
+These three lemmas are the **load-bearing equiv-substitution tools**
+for the binomial induction:
+* `mul_respects_equiv_right_of_bound` handles the outer IH substitution.
+* `mul_reassoc_right` will handle term-level reorganization.
+* `add_BoundedBy_compounds` provides the bound on `(z₁+z₂)`.
+
+The term-level identities AND the sum decomposition `B(n)·(z₁+z₂) ≈
+Σ_left + Σ_right` were ATTEMPTED in this part but hit a **parenthesization
+mismatch timeout**: `B(n)` in the named target uses right-assoc inner
+`c · (X · Y)`, while `mul_reassoc_right`'s natural shape is left-assoc
+`(c · X) · Y`. The whnf cost of bridging these in unification was
+prohibitive. The disciplined response: ship the bound-tracking + ring-
+identity foundations, defer parenthesization-sensitive work to Part
+3b''''''''''.
+-/
+
+/-- **TauComplex addition bound compounding**: if `BoundedBy z₁ M` and
+    `BoundedBy z₂ M`, then `BoundedBy (z₁+z₂) (2M)`.
+
+    Componentwise via triangle inequality (`abs_add_le`):
+    `|z₁.re + z₂.re| ≤ |z₁.re| + |z₂.re| ≤ M + M = 2M`. Same for im. -/
+theorem TauComplex.add_BoundedBy_compounds (z₁ z₂ : TauComplex) (M : Nat)
+    (h₁ : TauComplex.BoundedBy z₁ M) (h₂ : TauComplex.BoundedBy z₂ M) :
+    TauComplex.BoundedBy (z₁.add z₂) (2 * M) := by
+  refine ⟨?_, ?_⟩
+  · intro n
+    show ((z₁.re.approx n).add (z₂.re.approx n)).abs.toRat ≤ ((2*M : Nat) : Rat)
+    have h_tri : (((z₁.re.approx n).add (z₂.re.approx n)).abs).toRat
+                  ≤ ((z₁.re.approx n).abs).toRat + ((z₂.re.approx n).abs).toRat := by
+      rw [TauRat.toRat_abs, TauRat.toRat_abs, TauRat.toRat_abs, toRat_add]
+      exact abs_add_le _ _
+    have h_cast : ((2*M : Nat) : Rat) = 2 * (M : Rat) := by push_cast; ring
+    rw [h_cast]
+    linarith [h₁.1 n, h₂.1 n]
+  · intro n
+    show ((z₁.im.approx n).add (z₂.im.approx n)).abs.toRat ≤ ((2*M : Nat) : Rat)
+    have h_tri : (((z₁.im.approx n).add (z₂.im.approx n)).abs).toRat
+                  ≤ ((z₁.im.approx n).abs).toRat + ((z₂.im.approx n).abs).toRat := by
+      rw [TauRat.toRat_abs, TauRat.toRat_abs, TauRat.toRat_abs, toRat_add]
+      exact abs_add_le _ _
+    have h_cast : ((2*M : Nat) : Rat) = 2 * (M : Rat) := by push_cast; ring
+    rw [h_cast]
+    linarith [h₁.2 n, h₂.2 n]
+
+/-- **TauComplex mul respects equiv on the LEFT with bound on the RIGHT**:
+    if `z ≈ z'` and `BoundedBy w M`, then `z.mul w ≈ z'.mul w`.
+
+    Componentwise lift of `TauReal.mul_respects_equiv_right_of_bound`.
+    The TauComplex multiplication has the form `(z·w).re = z.re·w.re -
+    z.im·w.im` and `(z·w).im = z.re·w.im + z.im·w.re`. Each of the four
+    TauReal products is a `mul_respects_equiv_right_of_bound` application
+    with the appropriate `w.re` or `w.im` bound. -/
+theorem TauComplex.mul_respects_equiv_right_of_bound
+    (z z' w : TauComplex) (Mw : Nat) (hM : 1 ≤ Mw)
+    (h_bound_w_re : ∀ n, (w.re.approx n).abs.toRat ≤ Mw)
+    (h_bound_w_im : ∀ n, (w.im.approx n).abs.toRat ≤ Mw)
+    (h : z.equiv z') :
+    (z.mul w).equiv (z'.mul w) := by
+  refine ⟨?_, ?_⟩
+  · -- (z·w).re = z.re·w.re - z.im·w.im
+    show ((z.re.mul w.re).sub (z.im.mul w.im)).equiv
+          ((z'.re.mul w.re).sub (z'.im.mul w.im))
+    apply TauReal.equiv_sub_congr
+    · exact TauReal.mul_respects_equiv_right_of_bound z.re z'.re w.re Mw hM h_bound_w_re h.1
+    · exact TauReal.mul_respects_equiv_right_of_bound z.im z'.im w.im Mw hM h_bound_w_im h.2
+  · -- (z·w).im = z.re·w.im + z.im·w.re
+    show ((z.re.mul w.im).add (z.im.mul w.re)).equiv
+          ((z'.re.mul w.im).add (z'.im.mul w.re))
+    apply TauReal.equiv_add_congr
+    · exact TauReal.mul_respects_equiv_right_of_bound z.re z'.re w.im Mw hM h_bound_w_im h.1
+    · exact TauReal.mul_respects_equiv_right_of_bound z.im z'.im w.re Mw hM h_bound_w_re h.2
+
+/-- **TauComplex mul reassociation right** (with bound on `b`):
+    `((c·a)·b)·x ≈ (c·(a·x))·b`.
+
+    The pure 4-variable ring identity at TauComplex level would expand
+    to a polynomial in 8 TauRat variables, which times out `ring`'s
+    whnf normalization. Instead, we chain through bound-free
+    intermediates and ONE bounded substitution at the end:
+
+    1. `((c·a)·b)·x ≈ (c·a)·(b·x)`  [taucomplex_mul_assoc]
+    2. `(c·a)·(b·x) ≈ b·((c·a)·x)`  [taucomplex_mul_left_comm]
+    3. `b·((c·a)·x) ≈ ((c·a)·x)·b`  [taucomplex_mul_comm]
+    4. `((c·a)·x)·b ≈ (c·(a·x))·b`  [substitute mul_assoc into _·b
+       via `mul_respects_equiv_right_of_bound`, needs bound on b]
+
+    The bound is on `b` only — in the binomial application, `b = pow z₂
+    (n-i)` which is bounded via `pow_BoundedBy_compounds` from a bound
+    on `z₂`. -/
+theorem TauComplex.mul_reassoc_right (c a b x : TauComplex) (Mb : Nat) (hMb : 1 ≤ Mb)
+    (h_bound_b_re : ∀ n, (b.re.approx n).abs.toRat ≤ Mb)
+    (h_bound_b_im : ∀ n, (b.im.approx n).abs.toRat ≤ Mb) :
+    (((c.mul a).mul b).mul x).equiv ((c.mul (a.mul x)).mul b) := by
+  have h1 : (((c.mul a).mul b).mul x).equiv ((c.mul a).mul (b.mul x)) :=
+    taucomplex_mul_assoc (c.mul a) b x
+  have h2 : ((c.mul a).mul (b.mul x)).equiv (b.mul ((c.mul a).mul x)) :=
+    taucomplex_mul_left_comm (c.mul a) b x
+  have h3 : (b.mul ((c.mul a).mul x)).equiv (((c.mul a).mul x).mul b) :=
+    taucomplex_mul_comm b ((c.mul a).mul x)
+  have h4 : (((c.mul a).mul x).mul b).equiv ((c.mul (a.mul x)).mul b) :=
+    TauComplex.mul_respects_equiv_right_of_bound
+      ((c.mul a).mul x) (c.mul (a.mul x)) b Mb hMb h_bound_b_re h_bound_b_im
+      (taucomplex_mul_assoc c a x)
+  exact TauComplex.equiv_trans (TauComplex.equiv_trans (TauComplex.equiv_trans h1 h2) h3) h4
+
+/-! ### Part 3b''''''''' scoping note
+
+The `add_pow_term_left/right` lifting + `B(n)·(z₁+z₂)` sum decomposition
+were ATTEMPTED in this part but hit a **parenthesization mismatch
+timeout**: B(n) in the named target uses `c · (X · Y)` (right-assoc
+inner), while `mul_reassoc_right`'s natural shape is `(c · X) · Y`
+(left-assoc inner). Converting between these requires a bound-dependent
+substitution that whnf-times-out on the deeply-nested mul expressions.
+
+The disciplined response: ship `mul_reassoc_right` as the bound-free
+ring-identity workhorse (proved via assoc + left_comm + comm + ONE
+bounded substitution into `_ · b`), defer the parenthesization-sensitive
+sum decomposition to Part 3b'''''''''' (next), where it can be handled
+alongside the Pascal combinatorial step using a more careful approach:
+either (a) reformulating B(n) internally in left-assoc form and equiv-
+bridging to the target's right-assoc form at the boundary, or (b)
+proving the term identity directly in right-assoc form using bound on c
+(the coefficient).
+
+This is another example of the **named-target + later-discharge
+pattern** (atlas insights/2026-05-14-named-target-discharge-pattern.md):
+when mid-discharge the proof reveals a structural issue (here:
+parenthesization mismatch with the named target's chosen shape), pause
+and decompose. Ship what's proved cleanly; queue the structurally-
+sensitive piece for a focused session.
+-/
+
 end Tau.Boundary
