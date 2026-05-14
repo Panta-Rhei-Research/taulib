@@ -2893,4 +2893,103 @@ theorem taucomplex_add_left_comm (a b c : TauComplex) :
     try push_cast
     try ring
 
+/-- **Conditional discharge of `pascal_combine_target`** given
+    `right_sum_reindex_target` as a hypothesis.
+
+    The chain (in def-name form, kept compact via @[reducible] defs):
+    1. `equiv_add_congr (refl) h_right`: bridges `binomial_right_sum` to
+       `pow z₂ (n+1) + binomial_right_shifted` inside the add.
+    2. `taucomplex_add_left_comm`: reorganizes `Σ_left + (z₂ + S) ≈
+       z₂ + (Σ_left + S)`.
+    3. `equiv_add_congr (refl) (pascal_sum_decompose.symm)`: bridges
+       `Σ_left + binomial_right_shifted` to `sum_pascal_LHS_form`.
+    4. (Nat-arith bridge — deferred to future part; requires
+       `sum_equiv_congr` over `(n+1)-(j+1) = n-j`.)
+    5. `B_left_split_first.symm`: bridges `pow z₂ + sum_form_via_succ_sub_succ`
+       to `binomial_left_sum z₁ z₂ (n+1)`.
+
+    The Nat-arith bridge (step 4) is the last operational obstacle.
+    Once it's discharged, this conditional theorem closes pascal_combine
+    under the right_sum_reindex hypothesis.
+
+    Ship as a recursive named target for the Nat-arith bridge to keep
+    the chain disciplined. -/
+def TauComplex.pascal_LHS_form_bridge_target : Prop :=
+  ∀ (z₁ z₂ : TauComplex) (n : Nat),
+    (TauComplex.sum (fun j =>
+       ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose (n+1) (j+1)))).mul
+         (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n - j))) (n+1)).equiv
+    (TauComplex.sum (fun j =>
+       ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose (n+1) (j+1)))).mul
+         (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ ((n+1) - (j+1)))) (n+1))
+
+/-- **Discharge `pascal_LHS_form_bridge_target`** via term-wise
+    Nat-arith rewrite `n - j = (n+1) - (j+1)`.
+
+    Both sides of the sum have the same body except for the `z₂` Nat
+    exponent. By `Nat.succ_sub_succ_eq_sub`, the two exponents are
+    equal as Nats — apply via `sum_equiv_congr` lifted with a
+    term-wise rewrite. -/
+theorem TauComplex.pascal_LHS_form_bridge_discharge :
+    TauComplex.pascal_LHS_form_bridge_target := by
+  intro z₁ z₂ n
+  apply TauComplex.sum_equiv_congr
+  intro i
+  have h_eq : n - i = (n+1) - (i+1) := (Nat.succ_sub_succ_eq_sub n i).symm
+  rw [h_eq]
+  exact TauComplex.equiv_refl _
+
+/-- **Conditional discharge of `pascal_combine_target`** under
+    `right_sum_reindex_target` as hypothesis.
+
+    The full chain (7 steps), all kept compact via @[reducible] def names:
+    1. `equiv_add_congr (refl) h_right` lifts `binomial_right_sum` to
+       `pow z₂ (n+1) + binomial_right_shifted` inside the add.
+    2. `taucomplex_add_left_comm` reorganizes
+       `Σ_L + (z₂ + R) ≈ z₂ + (Σ_L + R)`.
+    3. `pascal_sum_decompose.symm` bridges
+       `Σ_L + R ≈ pascal_sum_LHS_form_n-j`.
+    4. `equiv_add_congr (refl) ...` lifts through `pow z₂ + _`.
+    5. `pascal_LHS_form_bridge_discharge` bridges
+       `n-j` form to `(n+1)-(j+1)` form.
+    6. `equiv_add_congr (refl) ...` lifts through `pow z₂ + _`.
+    7. `B_left_split_first.symm` closes to `binomial_left_sum (n+1)`.
+
+    Once `right_sum_reindex_target` is discharged (queued for future
+    part), this conditional theorem becomes the unconditional
+    `pascal_combine_discharge`. -/
+theorem TauComplex.pascal_combine_target_under_right_reindex_hyp
+    (h_right_reindex : TauComplex.right_sum_reindex_target) :
+    TauComplex.pascal_combine_target := by
+  intro z₁ z₂ M hM h_bound_z1 h_bound_z2 n
+  -- Step 0: get the right-sum reindex equiv from the hypothesis.
+  have h_right := h_right_reindex z₁ z₂ M hM h_bound_z1 h_bound_z2 n
+  -- Step 1: lift h_right through binomial_sigma_left + _
+  have h_lift1 := TauComplex.equiv_add_congr
+    (TauComplex.equiv_refl (TauComplex.binomial_sigma_left z₁ z₂ n)) h_right
+  -- Step 2: reorganize Σ_L + (z₂ + R) ≈ z₂ + (Σ_L + R)
+  have h_reorg := taucomplex_add_left_comm
+    (TauComplex.binomial_sigma_left z₁ z₂ n)
+    (TauComplex.pow z₂ (n+1))
+    (TauComplex.binomial_right_shifted z₁ z₂ n)
+  -- Step 3: bridge Σ_L + R ≈ pascal_sum_LHS_n-j_form via pascal_sum_decompose.symm
+  have h_pascal_sym := TauComplex.equiv_symm
+    (TauComplex.pascal_sum_decompose z₁ z₂ M hM h_bound_z1 h_bound_z2 n)
+  -- Step 4: lift h_pascal_sym through pow z₂ + _
+  have h_lift2 := TauComplex.equiv_add_congr
+    (TauComplex.equiv_refl (TauComplex.pow z₂ (n+1))) h_pascal_sym
+  -- Step 5: bridge n-j to (n+1)-(j+1) via pascal_LHS_form_bridge_discharge
+  have h_bridge := TauComplex.pascal_LHS_form_bridge_discharge z₁ z₂ n
+  -- Step 6: lift h_bridge through pow z₂ + _
+  have h_lift3 := TauComplex.equiv_add_congr
+    (TauComplex.equiv_refl (TauComplex.pow z₂ (n+1))) h_bridge
+  -- Step 7: B_left_split_first.symm closes to binomial_left_sum (n+1)
+  have h_BL_sym := TauComplex.equiv_symm
+    (TauComplex.B_left_split_first z₁ z₂ M hM h_bound_z2 n)
+  -- Chain everything
+  exact TauComplex.equiv_trans h_lift1
+    (TauComplex.equiv_trans h_reorg
+      (TauComplex.equiv_trans h_lift2
+        (TauComplex.equiv_trans h_lift3 h_BL_sym)))
+
 end Tau.Boundary
