@@ -835,6 +835,113 @@ arguments give the addition formulae.
   the type-level definitions.
 -/
 
+-- ============================================================
+-- PART 14: PHASE 3C PART 3b''' — Left-identity equivs + binomial base case
+-- ============================================================
+
+/-- **TauComplex equivalence is transitive** (componentwise via TauReal). -/
+theorem TauComplex.equiv_trans {z w v : TauComplex}
+    (h_zw : z.equiv w) (h_wv : w.equiv v) : z.equiv v :=
+  ⟨TauReal.equiv_trans h_zw.1 h_wv.1, TauReal.equiv_trans h_zw.2 h_wv.2⟩
+
+/-! ## Phase 3C Part 3b''' deliverables — base case + left-identity equivs
+
+The binomial theorem proof (Part 3b''' through 3b'''') decomposes into
+disciplined sub-pieces, mirroring the pattern that's worked through
+Parts 3a-3b''. This commit ships:
+
+1. **Left-identity equivs**: `zero.add z ≈ z` and `one.mul z ≈ z` at the
+   TauComplex.equiv level. These are needed for sum-simplification steps
+   in the binomial proof (sums of the form `zero.add (term)` reduce via
+   left-identity).
+
+2. **Base case of binomial theorem** (`n = 0`): explicitly proved as
+   a focused theorem. Both sides reduce to `TauComplex.one` (up to equiv).
+
+Phase 3C Part 3b'''' (next session) will handle the inductive step:
+- Apply IH via equiv_mul_congr (with bound tracking).
+- Distribute (z₁+z₂) over the sum.
+- Reindex the resulting two sums.
+- Apply Pascal's rule to combine.
+-/
+
+/-- **Left-identity for add at TauComplex.equiv level**: `zero.add z ≈ z`.
+
+    Derived via `taucomplex_add_comm` + `taucomplex_add_zero` (the
+    right-identity version that already exists in `ComplexField.lean`). -/
+theorem TauComplex.zero_add_equiv (z : TauComplex) :
+    (TauComplex.zero.add z).equiv z := by
+  have h_comm : (TauComplex.zero.add z).equiv (z.add TauComplex.zero) :=
+    taucomplex_add_comm TauComplex.zero z
+  have h_right_id : (z.add TauComplex.zero).equiv z :=
+    taucomplex_add_zero z
+  exact TauComplex.equiv_trans h_comm h_right_id
+
+/-- **Left-identity for mul at TauComplex.equiv level**: `one.mul z ≈ z`.
+
+    Derived via `taucomplex_mul_comm` + `taucomplex_mul_one` (the
+    right-identity version that already exists in `ComplexField.lean`). -/
+theorem TauComplex.one_mul_equiv (z : TauComplex) :
+    (TauComplex.one.mul z).equiv z := by
+  have h_comm : (TauComplex.one.mul z).equiv (z.mul TauComplex.one) :=
+    taucomplex_mul_comm TauComplex.one z
+  have h_right_id : (z.mul TauComplex.one).equiv z :=
+    taucomplex_mul_one z
+  exact TauComplex.equiv_trans h_comm h_right_id
+
+/-- **Phase 3C Part 3b''' core: base case of the binomial theorem**.
+
+    At `n = 0`, the binomial theorem reduces componentwise to TauRat
+    identities that close by `ring` at the Int level.
+
+    LHS: `pow (z₁ + z₂) 0 = TauComplex.one` (definitional).
+    RHS: `sum (...) 1 = zero.add ((fromTauReal (fromNat 1)).mul (one.mul one))`,
+    which is structurally a TauComplex whose components reduce to `1` (re)
+    and `0` (im) after componentwise simplification.
+
+    Direct pointwise reduction following the proof pattern of
+    `i_unit_pow_4_equiv_one` (Part 2). -/
+theorem TauComplex.add_pow_equiv_base (z₁ z₂ : TauComplex) :
+    (TauComplex.pow (z₁.add z₂) 0).equiv
+      (TauComplex.sum (fun i =>
+        (TauComplex.fromTauReal (TauReal.fromNat (Nat.choose 0 i))).mul
+          ((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (0 - i))))
+        (0 + 1)) := by
+  -- pow z 0 = TauComplex.one (definitional).
+  -- sum (...) (0+1) = sum (...) 1 = zero.add (term at i=0).
+  -- term at i=0 has C(0,0)=1, pow z₁ 0 = one, pow z₂ 0 = one, so it's
+  -- (fromTauReal (fromNat 1)).mul (one.mul one).
+  -- Both sides should reduce to TauComplex.one componentwise.
+  refine ⟨?_, ?_⟩
+  · -- Real part
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.pow, TauComplex.sum, TauComplex.mul, TauComplex.add,
+               TauComplex.zero, TauComplex.one, TauComplex.fromTauReal,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
+               TauReal.fromNat, TauReal.fromTauRat, TauReal.zero, TauReal.one]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate,
+               TauRat.zero, TauRat.one]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+    try decide
+  · -- Imaginary part
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.pow, TauComplex.sum, TauComplex.mul, TauComplex.add,
+               TauComplex.zero, TauComplex.one, TauComplex.fromTauReal,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
+               TauReal.fromNat, TauReal.fromTauRat, TauReal.zero, TauReal.one]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate,
+               TauRat.zero, TauRat.one]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+    try decide
+
 /-! ## Phase 3C Part 3 roadmap (next session)
 
 With `TauComplex.exp_partial` defined, the next step is the **M3
