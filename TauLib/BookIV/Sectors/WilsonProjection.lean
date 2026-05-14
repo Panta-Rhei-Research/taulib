@@ -91,18 +91,39 @@ true `ι_τ = 2/(π+e) = 0.341304238875…`; the structural bridge between
 the two is `TauRealIotaTau.iota_tau_numerical_certificate` at K=50.
 -/
 
-/-- The master constant `ι_τ` as a rational at fiat 6-decimal precision.
+/-- The master constant `ι_τ` as a rational at fiat 50-decimal precision.
     The structural definition is `TauReal.iota_tau` in
     `BookI.Boundary.TauRealIotaTau` (the Cauchy completion of `2/(π+e)`);
-    this `ℚ`-valued shadow at `341304/1000000` is used by the FCNC κ-ladder
-    arithmetic and matches the fiat rational used by the 162 Nat-decidable
-    physics-calibration callsites in `BookI.Boundary.Iota`.
+    this `ℚ`-valued shadow at the 50-decimal truncation of the true
+    `ι_τ = 0.34130423887521951564286718664378341086894393637511…`
+    is used by the FCNC κ-ladder arithmetic.
 
     **Wave Γ₂ (mathlib-free migration)**: codomain is `ℚ` (Lean core)
     rather than `ℝ`. Since the fiat value is rational by construction,
     `ℚ` is the natural shadow type and drops the `Mathlib.Data.Real.Basic`
-    import. -/
-noncomputable def iotaTau : ℚ := 341304 / 1000000
+    import.
+
+    **Wave Γ₅ (high-precision upgrade)**: precision bumped from
+    `341304/10⁶` (6-decimal, relative error ~7×10⁻⁷) to the 50-decimal
+    truncation. Motivation: at the κ-ladder's high-power composites
+    (notably `κ(A,B) = ι_τ³` and `κ_{C₉} = ι_τ⁻³`), the relative error
+    compounds:
+    * 6-digit fiat at ι_τ¹⁸: relative error ~1.26×10⁻⁵ (~5 digits lost)
+    * 50-digit fiat at ι_τ¹⁸: relative error ~10⁻⁴⁸ (effectively perfect)
+    The 50-decimal value is sourced from external high-precision evaluation
+    of `2/(π+e)` (mpmath, dps=60). Since `ι_τ` is irrational, this is
+    necessarily a truncation; the structural-fiat agreement is now
+    `|true − fiat| < 10⁻⁵⁰`, vastly tighter than the Wave 4 `< 3×10⁻⁷`
+    bound documented in `TauRealIotaTau`.
+
+    Note: BookI's `TauRat.iota_tau_fiat` remains at 6-decimal precision
+    for backward compatibility with the 162 Nat-decidable
+    physics-calibration callsites in `BookI.Boundary.Iota` and the
+    `native_decide`-based `iota_tau_numerical_certificate`. Upgrading
+    BookI's fiat is queued as a follow-on if needed. -/
+noncomputable def iotaTau : ℚ :=
+  34130423887521951564286718664378341086894393637511 /
+  100000000000000000000000000000000000000000000000000
 
 /-- `ι_τ > 0` (by direct arithmetic on the fiat rational). -/
 theorem iotaTau_pos : 0 < iotaTau := by
