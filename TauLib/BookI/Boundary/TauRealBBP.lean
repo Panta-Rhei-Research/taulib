@@ -425,4 +425,140 @@ theorem TauReal.pi_bbp_isCauchy : TauReal.pi_bbp.IsCauchy := by
     have h_four_lt := Rat.four_div_two_pow_lt_recip k (4*m - 1) h_4m_minus_1_ge
     linarith
 
+-- ============================================================
+-- PART 7 (PHASE 2): The BBP-Leibniz π identity — honest scope
+-- ============================================================
+
+/-! ## Wave Γ₆ Phase 2 — honest scope clarification
+
+The Wave Γ₆ red-team verdict (atlas
+`2026-05-14-accelerated-pi-feasibility-redteam/verdict.md`) envisioned
+Phase 2 as a direct "BBP-Leibniz block-equivalence proof via 8-residue
+re-indexing of the Leibniz partial-sum, scaled by 1/16^k."
+
+**On detailed analysis (this turn), that claim does not hold.**
+The verdict.md was over-optimistic. The two series have fundamentally
+different per-term structure:
+
+* `pi_pair_term k = 8/((4k+1)(4k+3))` — sub-quadratic `~1/(2k²)` decay
+* `bbp_term k`     — exponential `~1/16^k` decay
+
+These cannot be related by direct partial-sum re-indexing because no
+finite block of Leibniz pair terms equals one BBP term — the leading
+magnitudes are incommensurate (`1/k²` versus `1/16^k`).
+
+**The orthodox derivation** of BBP goes through:
+1. `π = 4·arctan(1/√2) + (correction terms involving arctan(1/k))` —
+   a Machin-like identity.
+2. `arctan(x) = ∫_0^x dt/(1+t²) = Σ_{j=0}^∞ (-1)^j · x^(2j+1)/(2j+1)`
+   — the arctan Taylor series.
+3. Substitute `x = 1/√2` and rearrange to get the BBP base-16 form,
+   using `1/(1-y^8) = Σ y^(8k)` (geometric series in `y^8`).
+
+The proof requires **τ-native arctan** as a Cauchy series, plus an
+arctan-addition-formula identity. Neither exists in TauLib today.
+Building τ-native arctan is a separate substantial undertaking (~3-4
+modules: `TauRealArctan.lean`, with sin/cos infrastructure if going
+via half-angle reductions). Queued as a follow-on wave (Γ₇+).
+
+## What Phase 2 delivers (honest scope)
+
+Rather than overpromise the full equivalence, Phase 2 delivers:
+
+1. **The abstract Cauchy-of-difference framework theorem**: if two
+   TauReal sequences have a pointwise difference bounded by `1/(k+1)`
+   past an explicit modulus, they're Cauchy-equivalent.
+   Pure structural infrastructure; reusable for any future equivalence
+   proof.
+
+2. **The `BBPLeibnizCorrespondence` proposition**: a named abstract
+   target `TauReal.pi_bbp.equiv TauReal.pi` that future τ-native
+   arctan work can discharge.
+
+3. **Explicit documentation** of the orthodox derivation path and
+   what would need to be built τ-natively to close it.
+
+## What survives without the full equivalence
+
+The structural credibility narrative — **"BBP exposes the 8-fold
+periodicity of the wedge-loop projection"** — remains intact.
+It's a claim about the *form* of BBP, not a claim that requires the
+Leibniz equivalence to be proved. Specifically:
+
+* The BBP series exists τ-natively (Part 1-3).
+* Its `1/16^k = 1/2^(4k)` exponential decay matches the τ-canon's
+  4-axis × 2-polarity × chirality-doubled 16-fold periodicity.
+* The Cauchy-bound template's `λ k => k + 2` modulus is sharper than
+  exp/geom's `k + 3`, reflecting the quartic-exponent structure.
+
+These are the load-bearing structural claims, and they hold without
+Phase 2. What Phase 2 was supposed to add is **the connecting bridge**
+to the existing TauLib π. That bridge requires deeper analytical
+infrastructure (τ-native arctan) than this wave can deliver. Honestly
+queued for Γ₇+.
+-/
+
+/-- **The abstract BBP-π correspondence claim** (Wave Γ₆ Phase 2 target).
+
+    Asserts that `TauReal.pi_bbp` and the existing `TauReal.pi`
+    (Leibniz-pair series) are Cauchy-equivalent.
+
+    This proposition captures the load-bearing orthodox fact that
+    π admits both BBP and Leibniz representations. A τ-native proof
+    requires building τ-native arctan + Machin-formula identities
+    (Wave Γ₇+ candidate).
+
+    Future waves can discharge this via:
+    (a) Build `TauRealArctan.lean` with `arctan` as a Cauchy series.
+    (b) Prove the τ-native Machin-like identity
+        `π = 4·arctan(1/√2) + ...` (or equivalent).
+    (c) Connect both BBP and Leibniz to the same arctan identity
+        chain, yielding the equivalence.
+
+    For now, we **name** the proposition explicitly so consumers can
+    route through it abstractly. The proposition is `def`, not
+    `theorem` — it's a target, not a proven fact. -/
+def BBPLeibnizCorrespondence : Prop :=
+  TauReal.pi_bbp.equiv TauReal.pi
+
+/-- **Cauchy-of-difference framework theorem** (Wave Γ₆ Phase 2).
+
+    Two TauReals are Cauchy-equivalent if their pointwise difference
+    is bounded by `1/(k+1)` past an explicit modulus.
+
+    This is a thin wrapper around the `TauReal.equiv` definition —
+    useful as a named lemma so future equivalence proofs (e.g.,
+    `BBPLeibnizCorrespondence` discharge) can route through a uniform
+    interface.
+
+    Note: this is just the `TauReal.equiv` definition unpacked; included
+    here because it makes the structural intent explicit and gives
+    Phase 2's deliverable a stable API surface. -/
+theorem TauReal.equiv_of_difference_modulus
+    (a b : TauReal)
+    (μ : Nat → Nat)
+    (h : ∀ k n : Nat, μ k ≤ n →
+        TauRat.lt ((a.approx n).sub (b.approx n)).abs (TauRat.ofNatRecip k)) :
+    a.equiv b :=
+  ⟨μ, h⟩
+
+/-- **Cauchy-of-difference under a per-index Rat-level bound.**
+
+    Variant of the framework theorem stated at the Rat level: if past
+    modulus `μ k`, the toRat difference is strictly less than `1/(k+1)`,
+    then the TauReals are equivalent.
+
+    More ergonomic for proofs that work in Rat arithmetic. -/
+theorem TauReal.equiv_of_rat_difference_modulus
+    (a b : TauReal)
+    (μ : Nat → Nat)
+    (h : ∀ k n : Nat, μ k ≤ n →
+        |((a.approx n).toRat - (b.approx n).toRat)| < 1 / ((k : Rat) + 1)) :
+    a.equiv b := by
+  refine ⟨μ, ?_⟩
+  intro k n hkn
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  exact h k n hkn
+
 end Tau.Boundary
