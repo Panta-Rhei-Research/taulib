@@ -1966,4 +1966,96 @@ theorem TauComplex.B_left_n_mul_add_eq_sigmas (z₁ z₂ : TauComplex) (M : Nat)
     (TauComplex.B_left_n_mul_z2_eq_right_sum z₁ z₂ n)
   exact TauComplex.equiv_trans h1 h2
 
+-- ============================================================
+-- PART 22: PHASE 3C PART 3b''''''''''' — Pascal preliminaries
+-- ============================================================
+
+/-! ## Phase 3C Part 3b''''''''''' deliverables — Pascal-lift lemmas
+
+For the Pascal combinatorial step `Σ_left + Σ_right ≈ B_left(n+1)`
+(Part 3b'''''''''''', queued), we need to lift the Nat-level Pascal
+identity to TauComplex via the coefficient map `fromTauReal ∘ fromNat`:
+
+  `Nat.choose (n+1) (j+1) = Nat.choose n j + Nat.choose n (j+1)`  [Pascal at Nat]
+                          ↓ apply `fromTauReal ∘ fromNat` ↓
+  `fromTauReal (fromNat (Nat.choose (n+1) (j+1))) ≈
+   fromTauReal (fromNat (Nat.choose n j)) + fromTauReal (fromNat (Nat.choose n (j+1)))`  [Pascal at TauComplex]
+
+This commit ships the **additive distributivity** of `fromTauReal ∘
+fromNat` and the **zero-coefficient case** (needed for the boundary
+term `c_{n,n+1} = 0` when reindexing Σ_right).
+
+### Deliverables
+
+* `TauComplex.fromTauReal_fromNat_add` — `fromTauReal (fromNat (a+b)) ≈
+  fromTauReal (fromNat a) + fromTauReal (fromNat b)`. Proved by
+  componentwise pointwise reduction at TauRat level with `ring`.
+
+* `TauComplex.fromTauReal_fromNat_zero` — `fromTauReal (fromNat 0) ≈
+  TauComplex.zero`. Componentwise: `.re = fromNat 0 ≈ zero` (pointwise
+  TauRat) and `.im = zero ≈ zero` (refl).
+
+The combinatorial Pascal step + main outer induction + equiv-bridge to
+`B_target` are queued for Part 3b'''''''''''' (next).
+-/
+
+/-- **fromTauReal ∘ fromNat distributes over Nat addition** at the
+    TauComplex.equiv level: `fromTauReal (fromNat (a+b)) ≈ fromTauReal
+    (fromNat a) + fromTauReal (fromNat b)`.
+
+    Used in the Pascal step to lift `Nat.choose_succ_succ` to TauComplex
+    coefficients. Proved by componentwise pointwise reduction with `ring`. -/
+theorem TauComplex.fromTauReal_fromNat_add (a b : Nat) :
+    (TauComplex.fromTauReal (TauReal.fromNat (a + b))).equiv
+      ((TauComplex.fromTauReal (TauReal.fromNat a)).add
+        (TauComplex.fromTauReal (TauReal.fromNat b))) := by
+  refine ⟨?_, ?_⟩
+  · -- Real part: fromNat (a+b) ≈ fromNat a + fromNat b
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.fromTauReal, TauComplex.add,
+               TauReal.fromNat, TauReal.fromTauRat, TauReal.add]
+    simp only [TauRat.equiv, TauRat.add, nat_to_taurat, int_to_taurat]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_nat_to_tauint,
+                    toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+    try decide
+  · -- Imag part: TauReal.zero ≈ TauReal.zero + TauReal.zero (both componentwise zero).
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.fromTauReal, TauComplex.add,
+               TauReal.zero, TauReal.fromTauRat, TauReal.add]
+    simp only [TauRat.equiv, TauRat.add, TauRat.zero]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+    try decide
+
+/-- **fromTauReal ∘ fromNat 0 is TauComplex.zero** (at equiv level):
+    `fromTauReal (fromNat 0) ≈ TauComplex.zero`.
+
+    Used in the Pascal step to discharge the boundary term `c_{n,n+1}
+    = Nat.choose n (n+1) = 0` when reindexing the second Pascal sum
+    (which extends one index beyond Σ_right's range; the extra term
+    has coefficient 0 and thus contributes equiv-zero). -/
+theorem TauComplex.fromTauReal_fromNat_zero :
+    (TauComplex.fromTauReal (TauReal.fromNat 0)).equiv TauComplex.zero := by
+  refine ⟨?_, ?_⟩
+  · -- Real part: fromNat 0 ≈ TauReal.zero pointwise.
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.fromTauReal, TauComplex.zero,
+               TauReal.fromNat, TauReal.fromTauRat, TauReal.zero]
+    simp only [TauRat.equiv, TauRat.zero]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+    try decide
+  · -- Imag part: TauReal.zero ≈ TauReal.zero (refl).
+    exact TauReal.equiv_refl _
+
 end Tau.Boundary
