@@ -1775,31 +1775,195 @@ theorem TauComplex.mul_reassoc_right (c a b x : TauComplex) (Mb : Nat) (hMb : 1 
       (taucomplex_mul_assoc c a x)
   exact TauComplex.equiv_trans (TauComplex.equiv_trans (TauComplex.equiv_trans h1 h2) h3) h4
 
-/-! ### Part 3b''''''''' scoping note
+-- ============================================================
+-- PART 21: PHASE 3C PART 3b'''''''''' — Term identities + B_left decomposition
+-- ============================================================
 
-The `add_pow_term_left/right` lifting + `B(n)·(z₁+z₂)` sum decomposition
-were ATTEMPTED in this part but hit a **parenthesization mismatch
-timeout**: B(n) in the named target uses `c · (X · Y)` (right-assoc
-inner), while `mul_reassoc_right`'s natural shape is `(c · X) · Y`
-(left-assoc inner). Converting between these requires a bound-dependent
-substitution that whnf-times-out on the deeply-nested mul expressions.
+/-! ## Phase 3C Part 3b'''''''''' deliverables — term identities (left-assoc)
 
-The disciplined response: ship `mul_reassoc_right` as the bound-free
-ring-identity workhorse (proved via assoc + left_comm + comm + ONE
-bounded substitution into `_ · b`), defer the parenthesization-sensitive
-sum decomposition to Part 3b'''''''''' (next), where it can be handled
-alongside the Pascal combinatorial step using a more careful approach:
-either (a) reformulating B(n) internally in left-assoc form and equiv-
-bridging to the target's right-assoc form at the boundary, or (b)
-proving the term identity directly in right-assoc form using bound on c
-(the coefficient).
+This commit ships the **term-level identities** + **`B_left(n)` sum
+decomposition** for the binomial inductive step, using a
+**left-associated** internal form to match `mul_reassoc_right`'s
+natural shape and avoid the parenthesization mismatch that blocked
+Part 3b'''''''''.
 
-This is another example of the **named-target + later-discharge
-pattern** (atlas insights/2026-05-14-named-target-discharge-pattern.md):
-when mid-discharge the proof reveals a structural issue (here:
-parenthesization mismatch with the named target's chosen shape), pause
-and decompose. Ship what's proved cleanly; queue the structurally-
-sensitive piece for a focused session.
+### B_left vs B_target
+
+The named target `add_pow_equiv_target` uses RIGHT-associated inner:
+  `B_target(n) := sum (fun i => c_i · (z₁^i · z₂^(n-i))) (n+1)`
+
+This commit works with the LEFT-associated form:
+  `B_left(n) := sum (fun i => (c_i · z₁^i) · z₂^(n-i)) (n+1)`
+
+The two are equivalent via `taucomplex_mul_assoc` term-wise (`(c·X)·Y ≈
+c·(X·Y)`) + `sum_equiv_congr`. The equiv-bridge `B_left(n) ≈ B_target(n)`
+will be discharged at the end of the full binomial proof (Part
+3b''''''''''').
+
+### Why left-assoc internally
+
+`mul_reassoc_right`'s natural shape is `((c·a)·b)·x ≈ (c·(a·x))·b` —
+LEFT-assoc throughout. When we multiply `B_left(n)` by `z₁` on the
+right via `sum_mul_distrib_right`, each term becomes `(((c·X)·Y)·z₁)`,
+which is EXACTLY `mul_reassoc_right`'s LHS shape. No whnf-explosion
+on unification, no inner-associativity gymnastics. Clean.
+
+### Deliverables
+
+* `TauComplex.add_pow_term_left` — `((c · z₁^i) · z₂^(n-i)) · z₁ ≈
+  (c · z₁^(i+1)) · z₂^(n-i)`. Via `mul_reassoc_right` with bound on
+  `b = pow z₂ (n-i)`.
+
+* `TauComplex.add_pow_term_right` — `((c · z₁^i) · z₂^k) · z₂ ≈
+  (c · z₁^i) · z₂^(k+1)`. Via `taucomplex_mul_assoc` (bound-free).
+
+* `TauComplex.B_left_n_mul_z1_eq_left_sum` — `B_left(n) · z₁ ≈ Σ_left`.
+  Via `sum_mul_distrib_right` + `sum_equiv_congr` + `add_pow_term_left`.
+
+* `TauComplex.B_left_n_mul_z2_eq_right_sum` — `B_left(n) · z₂ ≈ Σ_right`.
+  Via `sum_mul_distrib_right` + `sum_equiv_congr` + `add_pow_term_right`.
+
+* `TauComplex.B_left_n_mul_add_eq_sigmas` — `B_left(n) · (z₁+z₂) ≈
+  Σ_left + Σ_right`. Via `taucomplex_left_distrib` + `equiv_add_congr`
+  + the two above.
+
+The Pascal combinatorial step `Σ_left + Σ_right ≈ B_left(n+1)` and the
+final outer induction + equiv-bridge to `B_target` are queued for
+Part 3b''''''''''' (next).
 -/
+
+/-- **Binomial-term identity (LEFT factor z₁, left-assoc shape)**:
+    `((c · z₁^i) · z₂^(n-i)) · z₁ ≈ (c · z₁^(i+1)) · z₂^(n-i)`.
+
+    Direct application of `mul_reassoc_right` (with bound on
+    `b = pow z₂ (n-i)`). The definitional `pow_succ` makes
+    `(pow z₁ i).mul z₁ = pow z₁ (i+1)`, so the conclusion of
+    `mul_reassoc_right` matches the goal shape after `simp only
+    [pow_succ]` rewrites the goal's `pow z₁ (i+1)` to `(pow z₁ i).mul z₁`. -/
+theorem TauComplex.add_pow_term_left (c z₁ z₂ : TauComplex) (i n : Nat) (Mb : Nat)
+    (hMb : 1 ≤ Mb)
+    (h_bound_b_re : ∀ m, ((TauComplex.pow z₂ (n - i)).re.approx m).abs.toRat ≤ Mb)
+    (h_bound_b_im : ∀ m, ((TauComplex.pow z₂ (n - i)).im.approx m).abs.toRat ≤ Mb) :
+    (((c.mul (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ (n - i))).mul z₁).equiv
+      ((c.mul (TauComplex.pow z₁ (i+1))).mul (TauComplex.pow z₂ (n - i))) := by
+  simp only [TauComplex.pow_succ]
+  exact TauComplex.mul_reassoc_right c (TauComplex.pow z₁ i) (TauComplex.pow z₂ (n - i)) z₁
+    Mb hMb h_bound_b_re h_bound_b_im
+
+/-- **Binomial-term identity (RIGHT factor z₂, left-assoc shape)**:
+    `((c · z₁^i) · z₂^k) · z₂ ≈ (c · z₁^i) · z₂^(k+1)`.
+
+    Direct application of `taucomplex_mul_assoc`. The definitional
+    `pow_succ` makes `(pow z₂ k).mul z₂ = pow z₂ (k+1)`, so the
+    conclusion of `mul_assoc` matches the goal shape after `simp only
+    [pow_succ]`. Bound-free. -/
+theorem TauComplex.add_pow_term_right (c z₁ z₂ : TauComplex) (i k : Nat) :
+    (((c.mul (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ k)).mul z₂).equiv
+      ((c.mul (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ (k+1))) := by
+  simp only [TauComplex.pow_succ]
+  exact taucomplex_mul_assoc (c.mul (TauComplex.pow z₁ i)) (TauComplex.pow z₂ k) z₂
+
+/-- **`B_left(n) · z₁ ≈ Σ_left`**: distribute z₁ over the left-assoc
+    binomial sum at depth n.
+
+    LHS: `B_left(n) · z₁ = (sum (fun i => (c_i · z₁^i) · z₂^(n-i)) (n+1)) · z₁`.
+    RHS: `Σ_left := sum (fun i => (c_i · z₁^(i+1)) · z₂^(n-i)) (n+1)`.
+
+    Chain:
+    1. `sum_mul_distrib_right`: lift the `· z₁` inside the sum.
+    2. `sum_equiv_congr` + `add_pow_term_left`: rewrite each term. -/
+theorem TauComplex.B_left_n_mul_z1_eq_left_sum (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    ((TauComplex.sum (fun i =>
+        ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+          (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ (n - i))) (n+1)).mul z₁).equiv
+      (TauComplex.sum (fun i =>
+        ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+          (TauComplex.pow z₁ (i+1))).mul (TauComplex.pow z₂ (n - i))) (n+1)) := by
+  have h1 := TauComplex.sum_mul_distrib_right
+    (fun i => ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+                (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ (n - i)))
+    z₁ (n+1)
+  have h2 : (TauComplex.sum (fun i =>
+              (((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+                (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ (n - i))).mul z₁) (n+1)).equiv
+             (TauComplex.sum (fun i =>
+              ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+                (TauComplex.pow z₁ (i+1))).mul (TauComplex.pow z₂ (n - i))) (n+1)) := by
+    apply TauComplex.sum_equiv_congr
+    intro i
+    obtain ⟨Bk, hBk_pos, h_bound⟩ :=
+      TauComplex.pow_BoundedBy_compounds z₂ M (n - i) hM h_bound_z2
+    exact TauComplex.add_pow_term_left
+      (TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i)))
+      z₁ z₂ i n Bk hBk_pos h_bound.1 h_bound.2
+  exact TauComplex.equiv_trans h1 h2
+
+/-- **`B_left(n) · z₂ ≈ Σ_right`**: distribute z₂ over the left-assoc
+    binomial sum at depth n. Bound-free (uses bound-free `add_pow_term_right`).
+
+    LHS: `B_left(n) · z₂ = (sum (fun i => (c_i · z₁^i) · z₂^(n-i)) (n+1)) · z₂`.
+    RHS: `Σ_right := sum (fun i => (c_i · z₁^i) · z₂^((n-i)+1)) (n+1)`.
+
+    Note: `(n-i)+1 = n+1-i` for `i ≤ n` (the sum's range). The Pascal
+    combinatorial step (Part 3b''''''''''') will use this Nat-arithmetic
+    fact to align with `B_left(n+1)`'s `z₂^(n+1-j)` indexing. -/
+theorem TauComplex.B_left_n_mul_z2_eq_right_sum (z₁ z₂ : TauComplex) (n : Nat) :
+    ((TauComplex.sum (fun i =>
+        ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+          (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ (n - i))) (n+1)).mul z₂).equiv
+      (TauComplex.sum (fun i =>
+        ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+          (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ ((n - i) + 1))) (n+1)) := by
+  have h1 := TauComplex.sum_mul_distrib_right
+    (fun i => ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+                (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ (n - i)))
+    z₂ (n+1)
+  have h2 : (TauComplex.sum (fun i =>
+              (((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+                (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ (n - i))).mul z₂) (n+1)).equiv
+             (TauComplex.sum (fun i =>
+              ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+                (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ ((n - i) + 1))) (n+1)) := by
+    apply TauComplex.sum_equiv_congr
+    intro i
+    exact TauComplex.add_pow_term_right
+      (TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i)))
+      z₁ z₂ i (n - i)
+  exact TauComplex.equiv_trans h1 h2
+
+/-- **`B_left(n) · (z₁+z₂) ≈ Σ_left + Σ_right`**: full decomposition of
+    the binomial-step LHS in left-assoc form.
+
+    Chain:
+    1. `taucomplex_left_distrib`: `B_left(n) · (z₁+z₂) ≈ B_left(n)·z₁
+       + B_left(n)·z₂`.
+    2. `equiv_add_congr` lifts the two sub-equivs (`B_left_n_mul_z1_eq_left_sum`
+       and `B_left_n_mul_z2_eq_right_sum`) to the add level.
+
+    This completes the LEFT HALF of the binomial inductive step. The
+    Pascal combinatorial step `Σ_left + Σ_right ≈ B_left(n+1)` is
+    queued for Part 3b''''''''''' (next). -/
+theorem TauComplex.B_left_n_mul_add_eq_sigmas (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    ((TauComplex.sum (fun i =>
+        ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+          (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ (n - i))) (n+1)).mul
+      (z₁.add z₂)).equiv
+      ((TauComplex.sum (fun i =>
+        ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+          (TauComplex.pow z₁ (i+1))).mul (TauComplex.pow z₂ (n - i))) (n+1)).add
+       (TauComplex.sum (fun i =>
+        ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+          (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ ((n - i) + 1))) (n+1))) := by
+  have h1 := taucomplex_left_distrib
+    (TauComplex.sum (fun i =>
+      ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+        (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ (n - i))) (n+1))
+    z₁ z₂
+  have h2 := TauComplex.equiv_add_congr
+    (TauComplex.B_left_n_mul_z1_eq_left_sum z₁ z₂ M hM h_bound_z2 n)
+    (TauComplex.B_left_n_mul_z2_eq_right_sum z₁ z₂ n)
+  exact TauComplex.equiv_trans h1 h2
 
 end Tau.Boundary
