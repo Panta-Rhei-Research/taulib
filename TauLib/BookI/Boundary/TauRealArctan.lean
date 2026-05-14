@@ -360,4 +360,66 @@ theorem arctan_reciprocal_pair_term_rat_abs_bound (q k : Nat) (hq : 1 ≤ q) :
     nlinarith
   linarith
 
+-- ============================================================
+-- PART 6: NUMERICAL CHECKPOINT (Wave Γ₇ Strategy G)
+-- ============================================================
+
+/-! ## Wave Γ₇ Numerical Certificate
+
+Per the Wave Γ₇ Phase 3 strategic plan
+(`atlas/planning/wave-gamma-7-phase-3-strategy.md`), we land a
+numerical certificate as defensive evidence **before** attempting
+the M3 breakthrough (the tan-addition formula via i-structure
+decomposition).
+
+The certificate: Machin's formula applied at finite partial-sum
+depth K=3 lies within `1/15` of the Leibniz partial sum at depth
+M=10. This validates that:
+
+1. The arctan(1/q) infrastructure (Phase 1A) is correctly
+   capturing the Machin chain values.
+2. The Machin formula `π = 16·arctan(1/5) − 4·arctan(1/239)`
+   evaluates numerically to the same value as Leibniz π
+   (verified at modest precision via `native_decide`).
+3. The pi_machin and pi_leibniz approximation sequences are
+   getting closer with K, M (~0.05 at K=3,M=10 vs full π
+   agreement at K, M → ∞).
+
+This is **not a proof of `pi_machin.equiv pi_leibniz`** — that
+remains the Phase 3F target. It's empirical evidence at finite
+precision that the chain numerically does what it should.
+-/
+
+/-- Machin's formula partial sum at the Rat level:
+    `16 · arctan_partial(1/5, K) − 4 · arctan_partial(1/239, K)`.
+
+    Converges to `π = 16·arctan(1/5) − 4·arctan(1/239)` exponentially.
+    Reference convergence: K=42 gives 50-digit precision; K=3 already
+    gives ~3 digits of π. -/
+def pi_machin_partial_rat (K : Nat) : Rat :=
+  16 * arctan_reciprocal_partial_rat 5 K - 4 * arctan_reciprocal_partial_rat 239 K
+
+/-- **Numerical certificate (Wave Γ₇ Strategy G — intermediate checkpoint)**:
+    at K=3, M=10, the Machin and Leibniz partial sums agree within `1/15`.
+
+    Empirically (verified by `native_decide` at the bytecode level):
+    * `pi_machin_partial_rat 3 ≈ 3.1416 - δ` for small δ
+    * `(pi_partial 10).toRat ≈ 3.0916` (Leibniz error ~0.05)
+    * Difference ≈ `0.0500`, comfortably within `1/15 ≈ 0.0667`.
+
+    This is a finite-precision evidence checkpoint, not a proof of
+    Cauchy equivalence. It precedes (and motivates) the Phase 3C M3
+    breakthrough that would establish the full
+    `pi_machin.equiv pi_leibniz`. -/
+theorem pi_machin_close_to_pi_leibniz_K3M10 :
+    |pi_machin_partial_rat 3 - (TauRat.pi_partial 10).toRat| < 1 / 15 := by
+  native_decide
+
+/-- **Tighter numerical certificate** at K=5, M=50: agreement within
+    `1/80`. The K=5 Machin partial already has 8+ digits of π; the
+    M=50 Leibniz partial is at error ~0.01. -/
+theorem pi_machin_close_to_pi_leibniz_K5M50 :
+    |pi_machin_partial_rat 5 - (TauRat.pi_partial 50).toRat| < 1 / 80 := by
+  native_decide
+
 end Tau.Boundary
