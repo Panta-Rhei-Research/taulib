@@ -1160,30 +1160,127 @@ def TauComplex.pow_BoundedBy_compounds_target : Prop :=
     1 ≤ M → TauComplex.BoundedBy z M →
     ∃ Bk : Nat, 1 ≤ Bk ∧ TauComplex.BoundedBy (TauComplex.pow z k) Bk
 
-/-! ## Phase 3C Part 3b'''''' (next session) — discharge bound targets
+-- ============================================================
+-- PART 17: PHASE 3C PART 3b'''''' — Discharge bound-compounding targets
+-- ============================================================
 
-The discharge requires component-level abs-arithmetic:
+/-- Helper: a fully-unfolded form of `(z.mul w).re.approx n .toRat`. -/
+private theorem TauComplex.mul_re_approx_toRat (z w : TauComplex) (n : Nat) :
+    (((z.mul w).re).approx n).toRat
+      = (z.re.approx n).toRat * (w.re.approx n).toRat
+        - (z.im.approx n).toRat * (w.im.approx n).toRat := by
+  -- (z.mul w).re = (z.re.mul w.re).sub (z.im.mul w.im)
+  -- TauReal.sub a b = a.add b.negate
+  -- (.add x y).approx n = (x.approx n).add (y.approx n)
+  -- (.negate x).approx n = (x.approx n).negate
+  -- toRat_add, toRat_mul, toRat_negate close it.
+  show ((((z.re.mul w.re).add (z.im.mul w.im).negate)).approx n).toRat
+        = (z.re.approx n).toRat * (w.re.approx n).toRat
+          - (z.im.approx n).toRat * (w.im.approx n).toRat
+  show (((z.re.mul w.re).approx n).add (((z.im.mul w.im).negate).approx n)).toRat
+        = (z.re.approx n).toRat * (w.re.approx n).toRat
+          - (z.im.approx n).toRat * (w.im.approx n).toRat
+  rw [toRat_add]
+  show ((z.re.mul w.re).approx n).toRat + (((z.im.mul w.im).negate).approx n).toRat
+        = (z.re.approx n).toRat * (w.re.approx n).toRat
+          - (z.im.approx n).toRat * (w.im.approx n).toRat
+  show ((z.re.mul w.re).approx n).toRat + (((z.im.mul w.im).approx n).negate).toRat
+        = (z.re.approx n).toRat * (w.re.approx n).toRat
+          - (z.im.approx n).toRat * (w.im.approx n).toRat
+  rw [toRat_negate]
+  show ((z.re.mul w.re).approx n).toRat + (- ((z.im.mul w.im).approx n).toRat)
+        = (z.re.approx n).toRat * (w.re.approx n).toRat
+          - (z.im.approx n).toRat * (w.im.approx n).toRat
+  show (((z.re.approx n).mul (w.re.approx n))).toRat
+        + (- (((z.im.approx n).mul (w.im.approx n))).toRat)
+        = (z.re.approx n).toRat * (w.re.approx n).toRat
+          - (z.im.approx n).toRat * (w.im.approx n).toRat
+  rw [toRat_mul, toRat_mul]
+  ring
 
-For `mul_BoundedBy_compounds`:
-- `|(z·w).re|.toRat = |z.re·w.re − z.im·w.im|.toRat`
-- After unfolding `TauReal.sub ↦ add + negate`, `TauReal.mul` componentwise,
-  this becomes `|(z.re.approx n).toRat · (w.re.approx n).toRat
-                  − (z.im.approx n).toRat · (w.im.approx n).toRat|`.
-- Triangle: `≤ |z.re·w.re| + |z.im·w.im| ≤ M² + M² = 2M²`.
+/-- Helper: a fully-unfolded form of `(z.mul w).im.approx n .toRat`. -/
+private theorem TauComplex.mul_im_approx_toRat (z w : TauComplex) (n : Nat) :
+    (((z.mul w).im).approx n).toRat
+      = (z.re.approx n).toRat * (w.im.approx n).toRat
+        + (z.im.approx n).toRat * (w.re.approx n).toRat := by
+  show (((z.re.mul w.im).approx n).add ((z.im.mul w.re).approx n)).toRat
+        = (z.re.approx n).toRat * (w.im.approx n).toRat
+          + (z.im.approx n).toRat * (w.re.approx n).toRat
+  rw [toRat_add]
+  show ((z.re.mul w.im).approx n).toRat + ((z.im.mul w.re).approx n).toRat
+        = (z.re.approx n).toRat * (w.im.approx n).toRat
+          + (z.im.approx n).toRat * (w.re.approx n).toRat
+  show (((z.re.approx n).mul (w.im.approx n))).toRat
+        + (((z.im.approx n).mul (w.re.approx n))).toRat
+        = (z.re.approx n).toRat * (w.im.approx n).toRat
+          + (z.im.approx n).toRat * (w.re.approx n).toRat
+  rw [toRat_mul, toRat_mul]
 
-For `pow_BoundedBy_compounds`:
-- Induction on k.
-- Base k=0: `pow z 0 = one`, with `BoundedBy one 1`.
-- Step k+1: `pow z (k+1) = pow z k · z`. Apply mul_BoundedBy to combine
-  bounds: if pow z k bounded by `B_k`, then `pow z (k+1)` bounded by
-  `2 · B_k · M`.
-- Bk could be `(2M)^k` or similar.
+/-- **Mul-bound compounding** (discharge of `mul_BoundedBy_compounds_target`):
+    if `BoundedBy z M` and `BoundedBy w M` with `1 ≤ M`, then
+    `BoundedBy (z·w) (2·M·M)`. -/
+theorem TauComplex.mul_BoundedBy_compounds (z w : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z : TauComplex.BoundedBy z M) (h_bound_w : TauComplex.BoundedBy w M) :
+    TauComplex.BoundedBy (z.mul w) (2 * M * M) := by
+  refine ⟨?_, ?_⟩
+  · -- Real part: |(z·w).re| ≤ |z.re·w.re| + |z.im·w.im| ≤ M² + M² = 2M².
+    intro n
+    have h_zr := h_bound_z.1 n
+    have h_zi := h_bound_z.2 n
+    have h_wr := h_bound_w.1 n
+    have h_wi := h_bound_w.2 n
+    rw [TauRat.toRat_abs] at h_zr h_zi h_wr h_wi
+    rw [TauRat.toRat_abs]
+    rw [TauComplex.mul_re_approx_toRat]
+    have h_tri :
+        |(z.re.approx n).toRat * (w.re.approx n).toRat
+          - (z.im.approx n).toRat * (w.im.approx n).toRat|
+        ≤ |(z.re.approx n).toRat * (w.re.approx n).toRat|
+          + |(z.im.approx n).toRat * (w.im.approx n).toRat| := abs_sub _ _
+    have hM_nn : (0 : Rat) ≤ (M : Rat) := by exact_mod_cast Nat.zero_le M
+    have h_pre : |(z.re.approx n).toRat * (w.re.approx n).toRat|
+                  ≤ (M : Rat) * (M : Rat) := by
+      rw [abs_mul]
+      exact mul_le_mul h_zr h_wr (abs_nonneg _) hM_nn
+    have h_pim : |(z.im.approx n).toRat * (w.im.approx n).toRat|
+                  ≤ (M : Rat) * (M : Rat) := by
+      rw [abs_mul]
+      exact mul_le_mul h_zi h_wi (abs_nonneg _) hM_nn
+    have h_cast : ((2 * M * M : Nat) : Rat) = 2 * (M : Rat) * (M : Rat) := by
+      push_cast; ring
+    rw [h_cast]
+    linarith
+  · -- Imag part: |(z·w).im| ≤ |z.re·w.im| + |z.im·w.re| ≤ M² + M² = 2M².
+    intro n
+    have h_zr := h_bound_z.1 n
+    have h_zi := h_bound_z.2 n
+    have h_wr := h_bound_w.1 n
+    have h_wi := h_bound_w.2 n
+    rw [TauRat.toRat_abs] at h_zr h_zi h_wr h_wi
+    rw [TauRat.toRat_abs]
+    rw [TauComplex.mul_im_approx_toRat]
+    have h_tri :
+        |(z.re.approx n).toRat * (w.im.approx n).toRat
+          + (z.im.approx n).toRat * (w.re.approx n).toRat|
+        ≤ |(z.re.approx n).toRat * (w.im.approx n).toRat|
+          + |(z.im.approx n).toRat * (w.re.approx n).toRat| := abs_add_le _ _
+    have hM_nn : (0 : Rat) ≤ (M : Rat) := by exact_mod_cast Nat.zero_le M
+    have h_p1 : |(z.re.approx n).toRat * (w.im.approx n).toRat|
+                  ≤ (M : Rat) * (M : Rat) := by
+      rw [abs_mul]
+      exact mul_le_mul h_zr h_wi (abs_nonneg _) hM_nn
+    have h_p2 : |(z.im.approx n).toRat * (w.re.approx n).toRat|
+                  ≤ (M : Rat) * (M : Rat) := by
+      rw [abs_mul]
+      exact mul_le_mul h_zi h_wr (abs_nonneg _) hM_nn
+    have h_cast : ((2 * M * M : Nat) : Rat) = 2 * (M : Rat) * (M : Rat) := by
+      push_cast; ring
+    rw [h_cast]
+    linarith
 
-These proofs are component-level abs-arithmetic — substantial but
-mechanical. Estimated ~150-200 LOC for Part 3b''''''.
-
-After discharge, Phase 3C Part 3b''''''' can attack the inductive step
-of the binomial theorem (the substantive combinatorial assembly).
--/
+/-- **Mul-bound compounding target discharged.** -/
+theorem TauComplex.mul_BoundedBy_compounds_target_discharged :
+    TauComplex.mul_BoundedBy_compounds_target :=
+  fun z w M hM h_z h_w => TauComplex.mul_BoundedBy_compounds z w M hM h_z h_w
 
 end Tau.Boundary
