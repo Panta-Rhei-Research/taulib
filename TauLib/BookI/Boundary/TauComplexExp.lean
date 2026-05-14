@@ -2058,4 +2058,175 @@ theorem TauComplex.fromTauReal_fromNat_zero :
   · -- Imag part: TauReal.zero ≈ TauReal.zero (refl).
     exact TauReal.equiv_refl _
 
+-- ============================================================
+-- PART 23: PHASE 3C PART 3b'''''''''''' — Pascal term + sum decomposition
+-- ============================================================
+
+/-! ## Phase 3C Part 3b'''''''''''' deliverables — Pascal step (first half)
+
+For the Pascal combinatorial identity `Σ_left + Σ_right ≈ B_left(n+1)`,
+this commit ships the **first half**: the term-wise and sum-wise Pascal
+decomposition. The Σ_right reindex + final assembly are queued for
+Part 3b''''''''''''' (next).
+
+### Strategy
+
+The binomial step decomposes:
+```
+B_left(n+1) ≈ f_{n+1}(0) + sum (fun j => f_{n+1}(j+1)) (n+1)   [sum_split_first]
+            ≈ z₂^(n+1) + sum (fun j => f_{n+1}(j+1)) (n+1)
+            ≈ z₂^(n+1) + Σ_left + Σ_right_shifted              [THIS COMMIT]
+            ≈ Σ_left + (z₂^(n+1) + Σ_right_shifted)
+            ≈ Σ_left + Σ_right                                  [Σ_right reindex, queued]
+```
+
+Where `Σ_right_shifted := sum (fun j => (c_{n,j+1} · z₁^(j+1)) · z₂^(n-j)) (n+1)`.
+
+This commit proves the THIRD line: that `sum (fun j => f_{n+1}(j+1)) (n+1)
+≈ Σ_left + Σ_right_shifted` via term-wise Pascal application.
+
+### Deliverables
+
+* `TauComplex.pascal_helper_A` — bound-free `((a+b)·P)·Q ≈ (a·P)·Q +
+  (b·P)·Q`. Bypasses the naive bound-dependent substitution by going
+  through `(a+b)·(P·Q)` via `mul_assoc`, applying `right_distrib_equiv`
+  (bound-free), then `mul_assoc` backwards on each side via
+  `equiv_add_congr` (bound-free).
+
+* `TauComplex.pascal_term_decompose` — term-wise Pascal lift: for each j,
+  `f_{n+1}(j+1) ≈ term_a(j) + term_b(j)` where `term_a(j) = (c_{n,j} ·
+  z₁^(j+1)) · z₂^(n-j)` and `term_b(j) = (c_{n,j+1} · z₁^(j+1)) ·
+  z₂^(n-j)`. Uses `Nat.choose_succ_succ` (Nat-level Pascal),
+  `fromTauReal_fromNat_add` (lift to TauComplex), bounded substitution
+  through `_·pow z₁ (j+1)` and `_·pow z₂ (n-j)`, then `pascal_helper_A`.
+
+* `TauComplex.pascal_sum_decompose` — sum-wise: `sum (fun j =>
+  f_{n+1}(j+1)) (n+1) ≈ Σ_left + Σ_right_shifted`. Via
+  `sum_equiv_congr` lifting `pascal_term_decompose` + `sum_add_split`.
+-/
+
+/-- **Pascal helper A** (bound-free): `((a+b)·P)·Q ≈ (a·P)·Q + (b·P)·Q`.
+
+    Proved by:
+    1. `((a+b)·P)·Q ≈ (a+b)·(P·Q)`  [mul_assoc]
+    2. `(a+b)·(P·Q) ≈ a·(P·Q) + b·(P·Q)`  [right_distrib_equiv]
+    3. `a·(P·Q) ≈ (a·P)·Q` and `b·(P·Q) ≈ (b·P)·Q`  [mul_assoc backwards via equiv_symm]
+    4. Combine via `equiv_add_congr` (bound-free).
+
+    The key insight: going through `(a+b)·(P·Q)` avoids the bounded
+    substitution that the naive chain `((a+b)·P)·Q ≈ ((a·P)+(b·P))·Q
+    ≈ (a·P)·Q + (b·P)·Q` would need. -/
+theorem TauComplex.pascal_helper_A (a b P Q : TauComplex) :
+    (((a.add b).mul P).mul Q).equiv (((a.mul P).mul Q).add ((b.mul P).mul Q)) := by
+  have h1 : (((a.add b).mul P).mul Q).equiv ((a.add b).mul (P.mul Q)) :=
+    taucomplex_mul_assoc (a.add b) P Q
+  have h2 : ((a.add b).mul (P.mul Q)).equiv ((a.mul (P.mul Q)).add (b.mul (P.mul Q))) :=
+    TauComplex.right_distrib_equiv a b (P.mul Q)
+  have h3a : (a.mul (P.mul Q)).equiv ((a.mul P).mul Q) :=
+    TauComplex.equiv_symm (taucomplex_mul_assoc a P Q)
+  have h3b : (b.mul (P.mul Q)).equiv ((b.mul P).mul Q) :=
+    TauComplex.equiv_symm (taucomplex_mul_assoc b P Q)
+  have h4 : ((a.mul (P.mul Q)).add (b.mul (P.mul Q))).equiv
+              (((a.mul P).mul Q).add ((b.mul P).mul Q)) :=
+    TauComplex.equiv_add_congr h3a h3b
+  exact TauComplex.equiv_trans (TauComplex.equiv_trans h1 h2) h4
+
+/-- **Pascal term decomposition** (one binomial term at index j+1):
+    `((c_{n+1, j+1}) · z₁^(j+1)) · z₂^(n-j) ≈
+     ((c_{n,j} · z₁^(j+1)) · z₂^(n-j)) + ((c_{n,j+1} · z₁^(j+1)) · z₂^(n-j))`.
+
+    Chain:
+    1. Apply `Nat.choose_succ_succ` (Pascal at Nat level) to rewrite
+       the coefficient as `Nat.choose n j + Nat.choose n (j+1)`.
+    2. Lift to TauComplex via `fromTauReal_fromNat_add`:
+       `fromTauReal (fromNat (a+b)) ≈ fromTauReal (fromNat a) +
+        fromTauReal (fromNat b)`.
+    3. Substitute through `_·pow z₁ (j+1)` (bound on `pow z₁ (j+1)`
+       from `pow_BoundedBy_compounds` at z₁) and `_·pow z₂ (n-j)`
+       (bound on `pow z₂ (n-j)` from `pow_BoundedBy_compounds` at z₂).
+    4. Apply `pascal_helper_A` (bound-free). -/
+theorem TauComplex.pascal_term_decompose
+    (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z1 : TauComplex.BoundedBy z₁ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n j : Nat) :
+    (((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose (n+1) (j+1)))).mul
+        (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n-j))).equiv
+    ((((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n j))).mul
+        (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n-j))).add
+     (((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n (j+1)))).mul
+        (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n-j)))) := by
+  -- Step 1: Pascal at Nat level
+  rw [Nat.choose_succ_succ]
+  -- Step 2: bounds on pow factors
+  obtain ⟨B_P, hBP_pos, h_bound_P⟩ :=
+    TauComplex.pow_BoundedBy_compounds z₁ M (j+1) hM h_bound_z1
+  obtain ⟨B_Q, hBQ_pos, h_bound_Q⟩ :=
+    TauComplex.pow_BoundedBy_compounds z₂ M (n-j) hM h_bound_z2
+  -- Step 3: lift fromTauReal_fromNat_add through _·P then _·Q
+  have h_coef := TauComplex.fromTauReal_fromNat_add (Nat.choose n j) (Nat.choose n (j+1))
+  have h_lift_P : ((TauComplex.fromTauReal (TauReal.fromNat
+                    (Nat.choose n j + Nat.choose n (j+1)))).mul
+                    (TauComplex.pow z₁ (j+1))).equiv
+                  (((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n j))).add
+                    (TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n (j+1))))).mul
+                    (TauComplex.pow z₁ (j+1))) :=
+    TauComplex.mul_respects_equiv_right_of_bound _ _ (TauComplex.pow z₁ (j+1))
+      B_P hBP_pos h_bound_P.1 h_bound_P.2 h_coef
+  have h_lift_Q := TauComplex.mul_respects_equiv_right_of_bound
+    _ _ (TauComplex.pow z₂ (n-j)) B_Q hBQ_pos h_bound_Q.1 h_bound_Q.2 h_lift_P
+  -- Step 4: apply pascal_helper_A
+  have h_helper := TauComplex.pascal_helper_A
+    (TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n j)))
+    (TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n (j+1))))
+    (TauComplex.pow z₁ (j+1))
+    (TauComplex.pow z₂ (n-j))
+  exact TauComplex.equiv_trans h_lift_Q h_helper
+
+/-- **Pascal sum decomposition**: `sum (fun j => f_{n+1}(j+1)) (n+1) ≈
+    Σ_left + Σ_right_shifted`.
+
+    Where:
+    * `f_{n+1}(j+1) = (c_{n+1,j+1} · z₁^(j+1)) · z₂^(n-j)` — the j+1-th
+      term of B_left(n+1).
+    * `Σ_left = sum (fun j => (c_{n,j} · z₁^(j+1)) · z₂^(n-j)) (n+1)` —
+      EXACTLY matches the Σ_left shipped in Part 3b''''''''''.
+    * `Σ_right_shifted = sum (fun j => (c_{n,j+1} · z₁^(j+1)) · z₂^(n-j))
+      (n+1)` — the reindexed Σ_right (i = j+1 shift).
+
+    Chain: apply `pascal_term_decompose` term-wise via `sum_equiv_congr`,
+    then split via `sum_add_split`. -/
+theorem TauComplex.pascal_sum_decompose
+    (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z1 : TauComplex.BoundedBy z₁ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    (TauComplex.sum (fun j =>
+        ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose (n+1) (j+1)))).mul
+          (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n-j))) (n+1)).equiv
+    ((TauComplex.sum (fun j =>
+        ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n j))).mul
+          (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n-j))) (n+1)).add
+     (TauComplex.sum (fun j =>
+        ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n (j+1)))).mul
+          (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n-j))) (n+1))) := by
+  -- Step 1: apply pascal_term_decompose term-wise
+  have h_terms : (TauComplex.sum (fun j =>
+                  ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose (n+1) (j+1)))).mul
+                    (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n-j))) (n+1)).equiv
+                  (TauComplex.sum (fun j =>
+                    (((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n j))).mul
+                      (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n-j))).add
+                    (((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n (j+1)))).mul
+                      (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n-j)))) (n+1)) := by
+    apply TauComplex.sum_equiv_congr
+    intro j
+    exact TauComplex.pascal_term_decompose z₁ z₂ M hM h_bound_z1 h_bound_z2 n j
+  -- Step 2: split via sum_add_split
+  have h_split := TauComplex.sum_add_split
+    (fun j => ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n j))).mul
+                (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n-j)))
+    (fun j => ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n (j+1)))).mul
+                (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n-j)))
+    (n+1)
+  exact TauComplex.equiv_trans h_terms h_split
+
 end Tau.Boundary
