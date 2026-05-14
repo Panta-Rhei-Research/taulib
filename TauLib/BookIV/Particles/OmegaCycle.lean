@@ -2,7 +2,6 @@ import TauLib.BookI.Polarity.BipolarAlgebra
 import TauLib.BookI.Polarity.WedgeLoop
 import TauLib.BookI.Boundary.TauRealIotaTau
 import TauLib.BookI.Boundary.TauRealGeometric
-import Mathlib.Analysis.SpecificLimits.Basic
 import Mathlib.Analysis.SpecificLimits.Normed
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.NormNum

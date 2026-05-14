@@ -1,10 +1,14 @@
 import TauLib.BookI.Polarity.BipolarAlgebra
 import TauLib.BookI.Boundary.TauRealIotaTau
-import Mathlib.Data.Real.Basic
 import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.FieldSimp
+
+-- Note (Wave Γ₂ — full mathlib-free migration): `Mathlib.Data.Real.Basic`
+-- is no longer needed. After the ℝ → ℚ migration of the fiat
+-- `iotaTau := 341304/1000000` and the κ-ladder entries, all arithmetic
+-- in this module uses `ℚ` (which is Lean core).
 
 /-!
 # TauLib.BookIV.Sectors.WilsonProjection
@@ -66,7 +70,7 @@ namespace Tau.BookIV.WilsonProjection
 
 /-! ## Wave Γ₁ Phase 11 W2 — Mathlib-free migration of `iotaTau`
 
-The previous definition `iotaTau : ℝ := 2 / (Real.pi + Real.exp 1)`
+The previous definition `iotaTau : ℚ := 2 / (Real.pi + Real.exp 1)`
 imported `Mathlib.Analysis.SpecialFunctions.Exp`,
 `Mathlib.Analysis.Real.Pi.Bounds`, and
 `Mathlib.Analysis.Complex.ExponentialBounds` — non-tactics Mathlib
@@ -78,7 +82,7 @@ The **structural definition** of ι_τ lives at
 TauReal.iota_tau := TauReal.div TauReal.two (TauReal.pi.add TauReal.e)
 ```
 with the Cauchy structure + K=50 numerical certificate established
-there. This module's `iotaTau : ℝ` is the **numerical-evaluation
+there. This module's `iotaTau : ℚ` is the **numerical-evaluation
 shadow** at the 6-decimal fiat precision used by the 162 Nat-decidable
 physics-calibration callsites and the FCNC κ-ladder arithmetic.
 
@@ -87,14 +91,18 @@ true `ι_τ = 2/(π+e) = 0.341304238875…`; the structural bridge between
 the two is `TauRealIotaTau.iota_tau_numerical_certificate` at K=50.
 -/
 
-/-- The master constant `ι_τ` as a real number at fiat 6-decimal
-    precision. The structural definition is `TauReal.iota_tau` in
-    `BookI.Boundary.TauRealIotaTau` (the Cauchy completion of
-    `2/(π+e)`); this `ℝ`-valued shadow at `341304/1000000` is used by
-    the FCNC κ-ladder arithmetic and matches the fiat rational used
-    by the 162 Nat-decidable physics-calibration callsites in
-    `BookI.Boundary.Iota`. -/
-noncomputable def iotaTau : ℝ := 341304 / 1000000
+/-- The master constant `ι_τ` as a rational at fiat 6-decimal precision.
+    The structural definition is `TauReal.iota_tau` in
+    `BookI.Boundary.TauRealIotaTau` (the Cauchy completion of `2/(π+e)`);
+    this `ℚ`-valued shadow at `341304/1000000` is used by the FCNC κ-ladder
+    arithmetic and matches the fiat rational used by the 162 Nat-decidable
+    physics-calibration callsites in `BookI.Boundary.Iota`.
+
+    **Wave Γ₂ (mathlib-free migration)**: codomain is `ℚ` (Lean core)
+    rather than `ℝ`. Since the fiat value is rational by construction,
+    `ℚ` is the natural shadow type and drops the `Mathlib.Data.Real.Basic`
+    import. -/
+noncomputable def iotaTau : ℚ := 341304 / 1000000
 
 /-- `ι_τ > 0` (by direct arithmetic on the fiat rational). -/
 theorem iotaTau_pos : 0 < iotaTau := by
@@ -111,21 +119,21 @@ theorem iotaTau_lt_one : iotaTau < 1 := by
 
 /-- `κ(D; 1) = 1 - ι_τ`, the gravity-sector depth-1 self-coupling.
     Anchored at Book IV ch67 \cite{PantaRhei-BookIV}. -/
-noncomputable def kappa_D1 : ℝ := 1 - iotaTau
+noncomputable def kappa_D1 : ℚ := 1 - iotaTau
 
 /-- `κ(A; 1) = ι_τ`, the weak-sector depth-1 self-coupling. -/
-noncomputable def kappa_A1 : ℝ := iotaTau
+noncomputable def kappa_A1 : ℚ := iotaTau
 
 /-- `κ(B; 2) = ι_τ²`, the EM-sector depth-2 self-coupling. -/
-noncomputable def kappa_B2 : ℝ := iotaTau ^ 2
+noncomputable def kappa_B2 : ℚ := iotaTau ^ 2
 
 /-- `κ(C; 3) = ι_τ³/(1-ι_τ)`, the strong-sector depth-3 self-coupling.
     The temporal-complement denominator (1-ι_τ) = κ(D;1). -/
-noncomputable def kappa_C3 : ℝ := iotaTau ^ 3 / (1 - iotaTau)
+noncomputable def kappa_C3 : ℚ := iotaTau ^ 3 / (1 - iotaTau)
 
 /-- `κ(A, B) = ι_τ³`, the weak × EM cross-coupling.
     Anchored at Book IV ch25:69-101 + ch67:132-157. -/
-noncomputable def kappa_AB : ℝ := iotaTau ^ 3
+noncomputable def kappa_AB : ℚ := iotaTau ^ 3
 
 -- ============================================================
 -- STEP 3 — The 5 Wilson-coefficient family identifications
@@ -134,28 +142,28 @@ noncomputable def kappa_AB : ℝ := iotaTau ^ 3
 /-- `κ_{C₂} = 1 + ι_τ²` — the τ-canon identification of the
     current-current Wilson coefficient C₂ at sub-1% precision.
     BBL-LL value at standard inputs: ≈ 1.109 (deviation 0.7%). -/
-noncomputable def kappa_C2 : ℝ := 1 + iotaTau ^ 2
+noncomputable def kappa_C2 : ℚ := 1 + iotaTau ^ 2
 
 /-- `κ_{C₇} = κ(D;1) = 1 - ι_τ` — the τ-canon identification of the
     photonic dipole Wilson coefficient C₇. BBL value ≈ 0.664 (0.8%). -/
-noncomputable def kappa_C7 : ℝ := kappa_D1
+noncomputable def kappa_C7 : ℚ := kappa_D1
 
 /-- `κ_{C₈} = κ(D;1) + κ(A,B) = (1 - ι_τ) + ι_τ³` — the τ-canon
     identification of the gluonic dipole Wilson coefficient C₈ via the
     additive dipole rule. BBL value ≈ 0.6988 (the cleanest match in the
     family at 0.05%). Discovered in Wave Γ₁ Phase 3 Test-C₈. -/
-noncomputable def kappa_C8 : ℝ := kappa_D1 + kappa_AB
+noncomputable def kappa_C8 : ℚ := kappa_D1 + kappa_AB
 
 /-- `κ_{C₉} = ι_τ⁻³ = (π + e)³ / 8` — the τ-canon identification of
     the semileptonic vector Wilson coefficient C₉. NNLL value ≈ 25.27
     (0.47%). Load-bearing identification of the Wilson family and of
     the v1.5 anomaly note. -/
-noncomputable def kappa_C9 : ℝ := iotaTau⁻¹ ^ 3
+noncomputable def kappa_C9 : ℚ := iotaTau⁻¹ ^ 3
 
 /-- `κ_{C₁₀} = ι_τ⁰ = 1` — the τ-canon identification of the
     semileptonic axial Wilson coefficient C₁₀. BBL value = 1.000
     exactly (chirality-enforced RG-invariance). -/
-noncomputable def kappa_C10 : ℝ := 1
+noncomputable def kappa_C10 : ℚ := 1
 
 -- ============================================================
 -- STEP 4 — Structural identities within the family
@@ -265,11 +273,11 @@ theorem kappa_C9_gt_one : 1 < kappa_C9 := by
     numerical sub-1% matches are documented in the prose papers and
     listed in the docstrings of `kappa_C2` through `kappa_C10`. -/
 structure WilsonFamily where
-  C2 : ℝ := kappa_C2
-  C7 : ℝ := kappa_C7
-  C8 : ℝ := kappa_C8
-  C9 : ℝ := kappa_C9
-  C10 : ℝ := kappa_C10
+  C2 : ℚ := kappa_C2
+  C7 : ℚ := kappa_C7
+  C8 : ℚ := kappa_C8
+  C9 : ℚ := kappa_C9
+  C10 : ℚ := kappa_C10
 
 /-- The default τ-canon Wilson family with all 5 identifications
     populated. -/
@@ -307,9 +315,9 @@ The companion paper `bsmm-tau-canon-Wilson-coefficient-family-v1` v1.4
 The Lean carrier here:
 
 * Encodes the SM operator zoo as an inductive `SMOperator`.
-* Defines `chiralityChar : SMOperator → ℝ` with values in [0,1].
+* Defines `chiralityChar : SMOperator → ℚ` with values in [0,1].
 * Proves the unit-interval bound.
-* Defines `nearestEndpoint : SMOperator → ℝ` returning 0 or 1.
+* Defines `nearestEndpoint : SMOperator → ℚ` returning 0 or 1.
 * The `endpointDistance` function `d(χ)` is sorry-marked pending
   the d(χ) form closure note (Programme Note forward-research
   candidate #7).
@@ -343,7 +351,7 @@ inductive SMOperator where
 
     The approximate-protection value `1 - m_s/m_b ≈ 0.976` for primed
     currents is encoded directly; the precise value depends on PDG inputs. -/
-noncomputable def chiralityChar : SMOperator → ℝ
+noncomputable def chiralityChar : SMOperator → ℚ
   | .O2 | .O7 | .O8 | .O9 | .O10 => 1
   | .OS | .OP | .OT => 0
   | .O7p | .O9p | .O10p => 1 - 0.024  -- m_s/m_b ≈ 0.024
@@ -369,7 +377,7 @@ theorem chiralityChar_le_one (O : SMOperator) : chiralityChar O ≤ 1 :=
     * O9 → 1 (multiplicative inversion regime)
     * OS, OP, OT → 0 (asymptotic endpoint, exact protection)
     * O7', O9', O10' → 0 (asymptotic endpoint, approximate protection) -/
-noncomputable def nearestEndpoint : SMOperator → ℝ
+noncomputable def nearestEndpoint : SMOperator → ℚ
   | .O2 | .O7 | .O8 | .O9 | .O10 => 1
   | .OS | .OP | .OT => 0
   | .O7p | .O9p | .O10p => 0
@@ -382,7 +390,7 @@ theorem nearestEndpoint_in_endpoints (O : SMOperator) :
 /-- **The κ(A, D) cross-coupling**: κ(A, D) = ι_τ(1 − ι_τ) ≈ 0.2249.
     This is the Weinberg-angle sin²θ_W identification (Identity II of the
     Programme Note, ch67:146-147 + ch25:141-144). -/
-noncomputable def kappa_AD : ℝ := iotaTau * (1 - iotaTau)
+noncomputable def kappa_AD : ℚ := iotaTau * (1 - iotaTau)
 
 /-- **The endpoint-distance function d(χ)** — closed at [DERIVED] in
     Wave Γ₁ Phase 9 Panel-C.
@@ -408,7 +416,7 @@ noncomputable def kappa_AD : ℝ := iotaTau * (1 - iotaTau)
     precision floor.
 
     Companion closure note: `bsmm-tau-canon-endpoint-projection-closure-v1`. -/
-noncomputable def endpointDistance (χ : ℝ) : ℝ := χ * (1 - χ)
+noncomputable def endpointDistance (χ : ℚ) : ℚ := χ * (1 - χ)
 
 /-- **Boundary condition d(0) = 0**: exact chirality protection sits
     at the asymptotic endpoint. -/
@@ -428,14 +436,14 @@ theorem endpointDistance_iotaTau_eq_kappaAD :
   unfold endpointDistance kappa_AD; rfl
 
 /-- d(χ) is non-negative on [0, 1]. -/
-theorem endpointDistance_nonneg (χ : ℝ) (h0 : 0 ≤ χ) (h1 : χ ≤ 1) :
+theorem endpointDistance_nonneg (χ : ℚ) (h0 : 0 ≤ χ) (h1 : χ ≤ 1) :
     0 ≤ endpointDistance χ := by
   unfold endpointDistance
   have h2 : 0 ≤ 1 - χ := by linarith
   exact mul_nonneg h0 h2
 
 /-- d(χ) ≤ 1/4 on [0, 1] (maximum at χ = 1/2). -/
-theorem endpointDistance_le_quarter (χ : ℝ) (h0 : 0 ≤ χ) (h1 : χ ≤ 1) :
+theorem endpointDistance_le_quarter (χ : ℚ) (h0 : 0 ≤ χ) (h1 : χ ≤ 1) :
     endpointDistance χ ≤ 1 / 4 := by
   unfold endpointDistance
   nlinarith [sq_nonneg (χ - 1/2)]

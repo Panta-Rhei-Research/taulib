@@ -38,15 +38,19 @@ generator M_{μν} = σ_{μν}/2 of the Dirac-Clifford algebra.
 ## Methodological note
 
 Per the TauLib lakefile policy ("Mathlib for TACTICS ONLY"), this
-module uses minimal Mathlib mathematical content (Fin, Matrix, BigOperators)
-rather than the full `Mathlib.LinearAlgebra.CliffordAlgebra` machinery.
-The full Clifford algebra structure is not needed for the
-load-bearing ½ prefactor claim; the antisymmetric-bivector content
-suffices.
+module uses minimal Mathlib mathematical content (Fin from Lean core,
+tactics-only Mathlib content) rather than the full
+`Mathlib.LinearAlgebra.CliffordAlgebra` machinery. The full Clifford
+algebra structure is not needed for the load-bearing ½ prefactor claim;
+the antisymmetric-bivector content suffices.
 
-The BookIV modules `OmegaCycle.lean` and `WilsonProjection.lean`
-already use Mathlib analysis content (Real, FreeGroup, SpecificLimits)
-and set the precedent for BookIV bridges to physical Wilson coefficients.
+**Wave Γ₂ (mathlib-free migration)**: all rational arithmetic (σ-bivector,
+M_{μν} = σ/2 prefactor, single/double σ-weight, dipole-σ contribution,
+modeSelectionR2) is now ℚ-typed, matching the ℚ-typed κ-ladder entries
+of `WilsonProjection`. After this migration, `OmegaCycle.lean` retains
+`Mathlib.Analysis.SpecificLimits.Normed` (for `tsum_geometric_of_lt_one`
+in T₁'s geometric resummation), but `WilsonProjection.lean` and this
+module are mathlib-non-tactics-free.
 
 ## Registry Cross-References
 
@@ -82,8 +86,14 @@ open Tau.BookIV.WilsonProjection
     here we work at the level needed for the ½ prefactor claim).
 
     The bilinear `sigmaBilinear μ ν` is antisymmetric: sigma(μ,ν) = -sigma(ν,μ),
-    and sigma(μ,μ) = 0. -/
-def sigmaBilinear (μ ν : Fin 4) : ℝ :=
+    and sigma(μ,μ) = 0.
+
+    **Wave Γ₂ (mathlib-free migration)**: the codomain is `ℚ` rather than
+    `ℝ`. The σ-bivector takes only the three values `{−1, 0, +1}`, all
+    rational; the κ-ladder antisymmetric-bilinear content does not need
+    real-valued continuity. Aligns with the ℚ-typed κ-ladder entries
+    `kappa_AB`, `kappa_D1`, `kappa_C7`, `kappa_C8` of `WilsonProjection`. -/
+def sigmaBilinear (μ ν : Fin 4) : ℚ :=
   if μ.val < ν.val then 1
   else if μ.val = ν.val then 0
   else -1
@@ -130,7 +140,7 @@ theorem sigmaBilinear_antisymm (μ ν : Fin 4) :
     R2 (Mode-Selection Theorem): each σ-insertion-mediated shift
     Δγ/(2β₀) = -1/23 contributes +½·κ(A,B) on the κ-ladder side. Two
     σ-insertions (as in C₇ → C₈ mixing) accumulate to +κ(A,B) = +ι_τ³. -/
-noncomputable def lorentzM (μ ν : Fin 4) : ℝ := sigmaBilinear μ ν / 2
+noncomputable def lorentzM (μ ν : Fin 4) : ℚ := sigmaBilinear μ ν / 2
 
 /-- The canonical generator vanishes on the diagonal. -/
 theorem lorentzM_diag (μ : Fin 4) : lorentzM μ μ = 0 := by
@@ -169,11 +179,11 @@ theorem two_lorentzM_eq_sigma (μ ν : Fin 4) :
     A single σ-insertion contributes weight `(1/2) · κ(A,B)` per
     the Mode-Selection R2 rule articulated in
     `bsmm-tau-canon-Wilson-coefficient-family-v1` v1.5 §6.1. -/
-noncomputable def singleSigmaWeight : ℝ := (1 / 2) * kappa_AB
+noncomputable def singleSigmaWeight : ℚ := (1 / 2) * kappa_AB
 
 /-- Two σ-insertions accumulate to a full κ(A,B) shift. This is the
     structural content of the C₇ → C₈ transition on the κ-ladder. -/
-noncomputable def doubleSigmaWeight : ℝ := 2 * singleSigmaWeight
+noncomputable def doubleSigmaWeight : ℚ := 2 * singleSigmaWeight
 
 /-- **The load-bearing theorem**: two σ-insertions give exactly κ(A,B).
 
@@ -220,7 +230,7 @@ def sigmaInsertionCount : DipoleGaugeField → ℕ
 /-- The κ-ladder contribution of a dipole operator's σ-insertions.
     For photonic dipoles: 0 (trivial-cross). For gluonic dipoles:
     κ(A,B) = ι_τ³ via the doubleSigmaWeight identity. -/
-noncomputable def dipoleSigmaContribution (g : DipoleGaugeField) : ℝ :=
+noncomputable def dipoleSigmaContribution (g : DipoleGaugeField) : ℚ :=
   match g with
   | .photonic => 0
   | .gluonic => doubleSigmaWeight
@@ -244,7 +254,7 @@ theorem dipoleSigmaContribution_gluonic :
 
     For C₇ (photonic): kappa_D1 + 0 = kappa_D1 = kappa_C7. ✓
     For C₈ (gluonic): kappa_D1 + kappa_AB = kappa_C8. ✓ -/
-noncomputable def dipoleKappaIdentification (g : DipoleGaugeField) : ℝ :=
+noncomputable def dipoleKappaIdentification (g : DipoleGaugeField) : ℚ :=
   kappa_D1 + dipoleSigmaContribution g
 
 /-- The C₇ identification matches the photonic dipole computation. -/
@@ -278,8 +288,8 @@ theorem dipoleKappa_gluonic_eq_C8 :
     For photonic dipoles (n=0): no shift, identification is kappa_D1 = kappa_C7.
     For gluonic dipoles (n=2): full κ(A,B) shift, identification is
     kappa_D1 + kappa_AB = kappa_C8. -/
-noncomputable def modeSelectionR2 (n : ℕ) : ℝ :=
-  kappa_D1 + (n / 2 : ℝ) * kappa_AB
+noncomputable def modeSelectionR2 (n : ℕ) : ℚ :=
+  kappa_D1 + (n / 2 : ℚ) * kappa_AB
 
 /-- R2 at n=0 (photonic): just the background κ(D;1) = kappa_C7. -/
 theorem modeSelectionR2_zero : modeSelectionR2 0 = kappa_D1 := by
