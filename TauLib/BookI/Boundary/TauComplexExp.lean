@@ -2745,4 +2745,88 @@ def TauComplex.pascal_combine_target : Prop :=
       (TauComplex.binomial_right_sum z₁ z₂ n)).equiv
     (TauComplex.binomial_left_sum z₁ z₂ (n+1))
 
+/-- **Base case of `add_pow_equiv_strong_left`** at n=0:
+    `pow (z₁+z₂) 0 ≈ binomial_left_sum z₁ z₂ 0`.
+
+    Both sides reduce to `TauComplex.one` componentwise; proved by the
+    same pointwise reduction pattern as `add_pow_equiv_base` (just with
+    left-assoc inner `(c · z₁^i) · z₂^(n-i)` instead of right-assoc
+    `c · (z₁^i · z₂^(n-i))`). -/
+theorem TauComplex.add_pow_equiv_left_base (z₁ z₂ : TauComplex) :
+    (TauComplex.pow (z₁.add z₂) 0).equiv (TauComplex.binomial_left_sum z₁ z₂ 0) := by
+  refine ⟨?_, ?_⟩
+  · -- Real part
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.pow, TauComplex.binomial_left_sum, TauComplex.sum, TauComplex.mul,
+               TauComplex.add, TauComplex.zero, TauComplex.one, TauComplex.fromTauReal,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
+               TauReal.fromNat, TauReal.fromTauRat, TauReal.zero, TauReal.one]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate,
+               TauRat.zero, TauRat.one, nat_to_taurat, int_to_taurat]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_nat_to_tauint,
+                    toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+    try decide
+  · -- Imag part
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.pow, TauComplex.binomial_left_sum, TauComplex.sum, TauComplex.mul,
+               TauComplex.add, TauComplex.zero, TauComplex.one, TauComplex.fromTauReal,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
+               TauReal.fromNat, TauReal.fromTauRat, TauReal.zero, TauReal.one]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate,
+               TauRat.zero, TauRat.one, nat_to_taurat, int_to_taurat]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_nat_to_tauint,
+                    toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+    try decide
+
+/-- **Conditional `add_pow_equiv_strong_left`** (the binomial theorem on
+    TauComplex, in left-assoc internal form, conditional on
+    `pascal_combine_target`):
+
+    Given the named-target Pascal combine hypothesis, by induction on n:
+    * Base n=0: `add_pow_equiv_left_base`.
+    * Step n → n+1: chain via `mul_respects_equiv_right_of_bound` (with
+      `add_BoundedBy_compounds` for the (z₁+z₂) bound), then
+      `B_left_n_mul_add_eq_sigmas` (which gives Σ_left + Σ_right), then
+      `h_pascal` (which gives B_left(n+1)).
+
+    Once `pascal_combine_target` is discharged (Part 3b''''''''''''''''''',
+    queued), this conditional theorem becomes unconditional via direct
+    application — yielding the binomial theorem on TauComplex in
+    strengthened form (with bounds on z₁, z₂). -/
+theorem TauComplex.add_pow_equiv_strong_under_pascal_hyp
+    (h_pascal : TauComplex.pascal_combine_target)
+    (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z1 : TauComplex.BoundedBy z₁ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    (TauComplex.pow (z₁.add z₂) n).equiv (TauComplex.binomial_left_sum z₁ z₂ n) := by
+  induction n with
+  | zero => exact TauComplex.add_pow_equiv_left_base z₁ z₂
+  | succ n ih =>
+    -- Bound on (z₁+z₂) via add_BoundedBy_compounds.
+    have h_bound_add := TauComplex.add_BoundedBy_compounds z₁ z₂ M h_bound_z1 h_bound_z2
+    have h_2M_pos : 1 ≤ 2 * M := by omega
+    -- Step 1: pow (z₁+z₂) n .mul (z₁+z₂) ≈ binomial_left_sum z₁ z₂ n .mul (z₁+z₂)
+    --   via mul_respects_equiv_right_of_bound (bound on z₁+z₂) + ih.
+    have h_step1 : ((TauComplex.pow (z₁.add z₂) n).mul (z₁.add z₂)).equiv
+                    ((TauComplex.binomial_left_sum z₁ z₂ n).mul (z₁.add z₂)) :=
+      TauComplex.mul_respects_equiv_right_of_bound _ _ (z₁.add z₂) (2*M) h_2M_pos
+        h_bound_add.1 h_bound_add.2 ih
+    -- Step 2: binomial_left_sum .mul (z₁+z₂) ≈ binomial_sigma_left + binomial_right_sum
+    --   via B_left_n_mul_add_eq_sigmas.
+    have h_step2 := TauComplex.B_left_n_mul_add_eq_sigmas z₁ z₂ M hM h_bound_z2 n
+    -- Step 3: binomial_sigma_left + binomial_right_sum ≈ binomial_left_sum z₁ z₂ (n+1)
+    --   via the named-target hypothesis h_pascal.
+    have h_step3 := h_pascal z₁ z₂ M hM h_bound_z1 h_bound_z2 n
+    -- Goal: pow (z₁+z₂) (n+1) ≈ binomial_left_sum z₁ z₂ (n+1)
+    -- pow (z₁+z₂) (n+1) = (pow (z₁+z₂) n).mul (z₁+z₂) by pow_succ definitionally.
+    exact TauComplex.equiv_trans h_step1 (TauComplex.equiv_trans h_step2 h_step3)
+
 end Tau.Boundary
