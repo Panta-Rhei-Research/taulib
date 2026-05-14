@@ -2829,4 +2829,68 @@ theorem TauComplex.add_pow_equiv_strong_under_pascal_hyp
     -- pow (z₁+z₂) (n+1) = (pow (z₁+z₂) n).mul (z₁+z₂) by pow_succ definitionally.
     exact TauComplex.equiv_trans h_step1 (TauComplex.equiv_trans h_step2 h_step3)
 
+-- ============================================================
+-- PART 30: PHASE 3C — discharge attempt for pascal_combine_target
+-- ============================================================
+
+/-! ## Discharge attempt — recursive named-target hierarchy
+
+To discharge `pascal_combine_target`, we need:
+1. `right_sum_reindex` content: `binomial_right_sum z₁ z₂ n ≈ pow z₂ (n+1)
+   + binomial_right_shifted z₁ z₂ n`. (Couldn't elaborate as standalone.)
+2. `B_left_split_first` content (already shipped, with `(n+1)-(j+1)` form).
+3. Nat-arith bridge `(n+1)-(j+1) = n-j` for the sum forms.
+4. Add reorganization.
+
+Since (1) hits the elaboration cliff, ship it as ANOTHER named target —
+applying the **named-target + later-discharge pattern** recursively.
+
+Then `pascal_combine_target` becomes conditional on this new named target.
+The discharge of `right_sum_reindex_target` is queued for a focused
+future commit with the right operational tooling.
+-/
+
+/-- **[I.D-TauComplex-RightSumReindex-Target]** Named target for the
+    right-sum reindex identity:
+    `binomial_right_sum z₁ z₂ n ≈ pow z₂ (n+1) + binomial_right_shifted z₁ z₂ n`.
+
+    All sub-pieces are shipped: `sum_split_first`, `first_term_simplify`,
+    `right_after_first_to_shifted`. The composition into a single
+    theorem hits the elaboration cliff (Part 3b''''''''''''''''').
+    Ship as named target; the conditional `pascal_combine` can use it
+    as a hypothesis. -/
+def TauComplex.right_sum_reindex_target : Prop :=
+  ∀ (z₁ z₂ : TauComplex) (M : Nat), 1 ≤ M →
+    TauComplex.BoundedBy z₁ M → TauComplex.BoundedBy z₂ M → ∀ (n : Nat),
+    (TauComplex.binomial_right_sum z₁ z₂ n).equiv
+    ((TauComplex.pow z₂ (n+1)).add (TauComplex.binomial_right_shifted z₁ z₂ n))
+
+/-- **TauComplex add-left-comm** (unconditional ring identity):
+    `a + (b + c) ≈ b + (a + c)`.
+
+    Componentwise pointwise reduction with `ring`. Used in
+    `pascal_combine_target_under_right_reindex_hyp` for the add
+    reorganization `Σ_left + (z₂^(n+1) + S) ≈ z₂^(n+1) + (Σ_left + S)`. -/
+theorem taucomplex_add_left_comm (a b c : TauComplex) :
+    (a.add (b.add c)).equiv (b.add (a.add c)) := by
+  refine ⟨?_, ?_⟩
+  · -- Real part
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.add, TauReal.add]
+    simp only [TauRat.equiv, TauRat.add]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+  · -- Imag part
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.add, TauReal.add]
+    simp only [TauRat.equiv, TauRat.add]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+
 end Tau.Boundary
