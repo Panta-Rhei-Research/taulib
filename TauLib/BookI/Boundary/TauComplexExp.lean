@@ -2330,4 +2330,131 @@ theorem TauComplex.first_term_simplify (z₂ : TauComplex) (M : Nat) (hM : 1 ≤
     TauComplex.one_mul_equiv (TauComplex.pow z₂ (n+1))
   exact TauComplex.equiv_trans h_step3 h_step4
 
+-- ============================================================
+-- PART 25: PHASE 3C PART 3b'''''''''''''' — B_left split + bridge helpers
+-- ============================================================
+
+/-! ## Phase 3C Part 3b'''''''''''''' deliverables — B_left split + helpers
+
+For the Pascal combine `Σ_left + Σ_right ≈ B_left(n+1)` (Part
+3b''''''''''''''', queued), we need:
+
+1. **`B_left_split_first`**: B_left(n+1) reindexed via sum_split_first:
+     `B_left(n+1) ≈ pow z₂ (n+1) + sum (fun j => f_{n+1}(j+1)) (n+1)`
+   where the shifted-sum form matches pascal_sum_decompose's input.
+
+2. **`sum_equiv_congr_bounded`**: a bounded version of sum_equiv_congr
+   that only requires equiv on `i < n` (not all i). Used to bridge two
+   sums whose terms agree only on the in-range portion.
+
+3. **`zero_term_equiv_zero`**: if `c ≈ zero`, then `(c · z₁^k) · z₂^l ≈
+   zero`. Used to drop the `c_{n,n+1} = 0` boundary term from
+   Σ_right_shifted when bridging to Σ_right.
+
+### Deliverables
+
+* `TauComplex.B_left_split_first` — `B_left(n+1) ≈ pow z₂ (n+1) +
+  sum_shifted`. Via `sum_split_first` + `first_term_simplify` +
+  `equiv_add_congr`. The shifted-sum form matches what
+  `pascal_sum_decompose` consumes (the `(n+1) - (j+1) = n - j`
+  reduction is `rfl` in Lean 4).
+
+* `TauComplex.sum_equiv_congr_bounded` — `(∀ i < n, f i ≈ g i) → sum
+  f n ≈ sum g n`. By induction, using `equiv_add_congr` with the
+  bounded hypothesis.
+
+* `TauComplex.zero_term_equiv_zero` — `c ≈ zero → ((c · pow z₁ k)
+  · pow z₂ l) ≈ zero`. Chain: substitute c → zero via two bounded
+  substitutions, then collapse via `zero_mul_equiv` twice.
+-/
+
+/-- **B_left split first**: peel the j=0 term of B_left(n+1) which
+    simplifies to `pow z₂ (n+1)`.
+
+    `B_left(n+1) ≈ pow z₂ (n+1) + sum (fun j => f_{n+1}(j+1)) (n+1)`
+
+    Via `sum_split_first` (peels j=0) + `first_term_simplify` (the
+    j=0 term reduces to `pow z₂ (n+1)` after `Nat.choose (n+1) 0 = 1`
+    and `(n+1)-0 = n+1` definitional reductions).
+
+    The shifted-sum form uses `(n+1) - (j+1)` (matching
+    `sum_split_first`'s natural output). The bridge to `n - j` form
+    (which `pascal_sum_decompose` consumes) is handled in the next
+    part via the `Nat.succ_sub_succ_eq_sub : (n+1) - (j+1) = n - j`
+    rfl identity. -/
+theorem TauComplex.B_left_split_first (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    (TauComplex.sum (fun j =>
+       ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose (n+1) j))).mul
+         (TauComplex.pow z₁ j)).mul (TauComplex.pow z₂ ((n+1) - j))) (n+2)).equiv
+     ((TauComplex.pow z₂ (n+1)).add (TauComplex.sum (fun j =>
+       ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose (n+1) (j+1)))).mul
+         (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ ((n+1) - (j+1)))) (n+1))) := by
+  have h1 := TauComplex.sum_split_first (fun j =>
+    ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose (n+1) j))).mul
+      (TauComplex.pow z₁ j)).mul (TauComplex.pow z₂ ((n+1) - j))) (n+1)
+  have h_first : (((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose (n+1) 0))).mul
+                    (TauComplex.pow z₁ 0)).mul (TauComplex.pow z₂ ((n+1) - 0))).equiv
+                  (TauComplex.pow z₂ (n+1)) :=
+    TauComplex.first_term_simplify z₂ M hM h_bound_z2 n
+  exact TauComplex.equiv_trans h1
+    (TauComplex.equiv_add_congr h_first (TauComplex.equiv_refl _))
+
+/-- **Bounded sum-equiv-congr**: if `f i ≈ g i` for all `i < n`, then
+    `sum f n ≈ sum g n`.
+
+    A weaker hypothesis than `sum_equiv_congr` (which requires `∀ i,
+    equiv`). Used to bridge two sums whose terms agree only on the
+    in-range portion `[0, n)`. -/
+theorem TauComplex.sum_equiv_congr_bounded (f g : Nat → TauComplex) (n : Nat)
+    (h : ∀ i, i < n → (f i).equiv (g i)) :
+    (TauComplex.sum f n).equiv (TauComplex.sum g n) := by
+  induction n with
+  | zero => exact TauComplex.equiv_refl _
+  | succ n ih =>
+    show ((TauComplex.sum f n).add (f n)).equiv ((TauComplex.sum g n).add (g n))
+    have h_n : (f n).equiv (g n) := h n (Nat.lt_succ_self n)
+    have ih' : (TauComplex.sum f n).equiv (TauComplex.sum g n) :=
+      ih (fun i hi => h i (Nat.lt_succ_of_lt hi))
+    exact TauComplex.equiv_add_congr ih' h_n
+
+/-- **Zero-coefficient term collapses to zero**: if the coefficient
+    `c ≈ zero`, then `((c · pow z₁ k) · pow z₂ l) ≈ zero`.
+
+    Used in the Pascal step to drop the boundary term `(c_{n,n+1} ·
+    z₁^(n+1)) · z₂^0` from Σ_right_shifted's last entry (where
+    `c_{n,n+1} = Nat.choose n (n+1) = 0`).
+
+    Chain: substitute c → zero through `_·pow z₁ k` (bound on
+    `pow z₁ k`) and `_·pow z₂ l` (bound on `pow z₂ l`), then collapse
+    via `zero_mul_equiv` twice. -/
+theorem TauComplex.zero_term_equiv_zero (c z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z1 : TauComplex.BoundedBy z₁ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M)
+    (h_c_zero : c.equiv TauComplex.zero) (k l : Nat) :
+    ((c.mul (TauComplex.pow z₁ k)).mul (TauComplex.pow z₂ l)).equiv TauComplex.zero := by
+  -- Step 1: substitute c → zero in _·pow z₁ k (bound on pow z₁ k).
+  obtain ⟨B_P, hBP_pos, h_bound_P⟩ :=
+    TauComplex.pow_BoundedBy_compounds z₁ M k hM h_bound_z1
+  have h_step1 : (c.mul (TauComplex.pow z₁ k)).equiv
+                  (TauComplex.zero.mul (TauComplex.pow z₁ k)) :=
+    TauComplex.mul_respects_equiv_right_of_bound c TauComplex.zero
+      (TauComplex.pow z₁ k) B_P hBP_pos h_bound_P.1 h_bound_P.2 h_c_zero
+  -- Step 2: zero · pow z₁ k ≈ zero [zero_mul_equiv].
+  have h_step2 : (TauComplex.zero.mul (TauComplex.pow z₁ k)).equiv TauComplex.zero :=
+    TauComplex.zero_mul_equiv (TauComplex.pow z₁ k)
+  -- Step 3: substitute into _·pow z₂ l (bound on pow z₂ l).
+  obtain ⟨B_Q, hBQ_pos, h_bound_Q⟩ :=
+    TauComplex.pow_BoundedBy_compounds z₂ M l hM h_bound_z2
+  have h_inner : (c.mul (TauComplex.pow z₁ k)).equiv TauComplex.zero :=
+    TauComplex.equiv_trans h_step1 h_step2
+  have h_step3 : ((c.mul (TauComplex.pow z₁ k)).mul (TauComplex.pow z₂ l)).equiv
+                  (TauComplex.zero.mul (TauComplex.pow z₂ l)) :=
+    TauComplex.mul_respects_equiv_right_of_bound _ _ (TauComplex.pow z₂ l)
+      B_Q hBQ_pos h_bound_Q.1 h_bound_Q.2 h_inner
+  -- Step 4: zero · pow z₂ l ≈ zero [zero_mul_equiv].
+  have h_step4 : (TauComplex.zero.mul (TauComplex.pow z₂ l)).equiv TauComplex.zero :=
+    TauComplex.zero_mul_equiv (TauComplex.pow z₂ l)
+  exact TauComplex.equiv_trans h_step3 h_step4
+
 end Tau.Boundary
