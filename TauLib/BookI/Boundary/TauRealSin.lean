@@ -261,4 +261,184 @@ theorem sin_pair_term_rat_abs_bound (x : Rat) (hx : |x| ≤ 1) (k : Nat) :
                = 2 / (Nat.factorial (4*k+1) : Rat) := by ring
   linarith
 
+-- ============================================================
+-- PART 5: FACTORIAL GROWTH + GEOMETRIC PER-TERM BOUND
+-- ============================================================
+
+/-- **Factorial growth bound**: `2^k ≤ (4k+1)!` for all `k ≥ 0`.
+
+    Proof by induction:
+    * `k = 0`: `2^0 = 1 = 1!` ✓.
+    * `k → k+1`: `(4(k+1)+1)! = (4k+5)·(4k+4)·(4k+3)·(4k+2)·(4k+1)!`.
+      By IH `(4k+1)! ≥ 2^k`, and the four-factor product is `≥ 5·4·3·2 = 120 ≥ 2`.
+      So `(4k+5)! ≥ 2·2^k = 2^(k+1)`. ✓
+
+    Load-bearing for the sin Cauchy bound: lets us chain
+    `2/(4k+1)! ≤ 2/2^k` to fit the existing Cauchy-bound template. -/
+theorem Nat.factorial_4k1_ge_two_pow_k (k : Nat) :
+    2^k ≤ (4*k+1).factorial := by
+  induction k with
+  | zero => simp [Nat.factorial]
+  | succ k ih =>
+    -- Unfold (4(k+1)+1)! = (4k+5)!
+    have h_index : 4*(k+1)+1 = 4*k+5 := by ring
+    rw [h_index]
+    -- Chain of factorial_succ applications to unfold (4k+5)! down to (4k+1)!
+    have e0 : (4*k+5).factorial = (4*k+5) * (4*k+4).factorial := by
+      rw [show (4*k+5 : Nat) = (4*k+4) + 1 from by omega]
+      exact Nat.factorial_succ _
+    have e1 : (4*k+4).factorial = (4*k+4) * (4*k+3).factorial := by
+      rw [show (4*k+4 : Nat) = (4*k+3) + 1 from by omega]
+      exact Nat.factorial_succ _
+    have e2 : (4*k+3).factorial = (4*k+3) * (4*k+2).factorial := by
+      rw [show (4*k+3 : Nat) = (4*k+2) + 1 from by omega]
+      exact Nat.factorial_succ _
+    have e3 : (4*k+2).factorial = (4*k+2) * (4*k+1).factorial := by
+      rw [show (4*k+2 : Nat) = (4*k+1) + 1 from by omega]
+      exact Nat.factorial_succ _
+    -- Combined: (4k+5)! = (4k+5)(4k+4)(4k+3)(4k+2)·(4k+1)!
+    have h_unfold : (4*k+5).factorial =
+        ((4*k+5) * (4*k+4) * (4*k+3) * (4*k+2)) * (4*k+1).factorial := by
+      rw [e0, e1, e2, e3]; ring
+    rw [h_unfold]
+    -- The four-factor product is ≥ 2 (since the (4k+2) factor is ≥ 2).
+    have h_factor_ge_two : 2 ≤ (4*k+5) * (4*k+4) * (4*k+3) * (4*k+2) := by
+      have h_2 : 2 ≤ 4*k+2 := by omega
+      have h_pos : 1 ≤ (4*k+5) * (4*k+4) * (4*k+3) := by
+        have : 0 < (4*k+5) * (4*k+4) * (4*k+3) := by positivity
+        omega
+      calc 2 = 1 * 2 := by ring
+        _ ≤ ((4*k+5) * (4*k+4) * (4*k+3)) * (4*k+2) :=
+            Nat.mul_le_mul h_pos h_2
+    -- Combine: 2^(k+1) = 2·2^k ≤ 2·(4k+1)! ≤ ((4k+5)(4k+4)(4k+3)(4k+2))·(4k+1)!.
+    have h_pow_succ : 2^(k+1) = 2 * 2^k := by ring
+    calc 2^(k+1)
+        = 2 * 2^k := h_pow_succ
+      _ ≤ 2 * (4*k+1).factorial := Nat.mul_le_mul_left 2 ih
+      _ ≤ ((4*k+5) * (4*k+4) * (4*k+3) * (4*k+2)) * (4*k+1).factorial :=
+          Nat.mul_le_mul_right _ h_factor_ge_two
+
+/-- **Geometric per-term bound (Wave Γ₇ Phase 3A — Cauchy seed, geometric form)**:
+    each sin paired term is bounded by `2/2^k` for `|x| ≤ 1`.
+
+    Combines `sin_pair_term_rat_abs_bound` (≤ 2/(4k+1)!) with the
+    factorial growth `(4k+1)! ≥ 2^k` to fit the Cauchy-bound template. -/
+theorem sin_pair_term_rat_abs_bound_geom (x : Rat) (hx : |x| ≤ 1) (k : Nat) :
+    |sin_pair_term_rat x k| ≤ 2 / (2 : Rat)^k := by
+  have h_factorial := sin_pair_term_rat_abs_bound x hx k
+  have h_fac_ge : (2 : Rat)^k ≤ (Nat.factorial (4*k+1) : Rat) := by
+    have := Nat.factorial_4k1_ge_two_pow_k k
+    have h_cast : ((2^k : Nat) : Rat) = (2 : Rat)^k := by push_cast; ring
+    have h_cast_le : ((2^k : Nat) : Rat) ≤ ((Nat.factorial (4*k+1) : Nat) : Rat) :=
+      by exact_mod_cast this
+    rw [h_cast] at h_cast_le
+    exact h_cast_le
+  have h_2k_pos : (0 : Rat) < (2 : Rat)^k := by positivity
+  have h_fac_pos : (0 : Rat) < (Nat.factorial (4*k+1) : Rat) := by
+    have := Nat.factorial_pos (4*k+1); exact_mod_cast this
+  have h_bound : (2 : Rat) / (Nat.factorial (4*k+1) : Rat) ≤ 2 / (2 : Rat)^k := by
+    rw [div_le_div_iff₀ h_fac_pos h_2k_pos]
+    nlinarith
+  linarith
+
+-- ============================================================
+-- PART 6: CAUCHY TAIL BOUND
+-- ============================================================
+
+/-- **Cauchy tail bound — exact form**: for `n ≤ m`, `|x| ≤ 1`,
+    `|sin_partial_rat x m − sin_partial_rat x n| ≤ 4/2^n − 4/2^m`.
+
+    The exact form (with the `−4/2^m` correction) is load-bearing for
+    the induction; the loose form `≤ 4/2^n` doesn't close the inductive
+    step because `IH + 2/2^m > 4/2^n` when `IH = 4/2^n`. The exact form
+    leaves room via the algebraic identity
+    `(4/2^n − 4/2^m) + 2/2^m = 4/2^n − 2/2^m = 4/2^n − 4/2^(m+1)`. -/
+theorem sin_partial_rat_cauchy_bound_exact (x : Rat) (hx : |x| ≤ 1)
+    (m n : Nat) (hnm : n ≤ m) :
+    |sin_partial_rat x m - sin_partial_rat x n|
+      ≤ 4 / (2 : Rat)^n - 4 / (2 : Rat)^m := by
+  induction m, hnm using Nat.le_induction with
+  | base => simp
+  | succ m hnm ih =>
+    rw [sin_partial_rat_succ]
+    have h_diff : sin_partial_rat x m + sin_pair_term_rat x m - sin_partial_rat x n
+                    = (sin_partial_rat x m - sin_partial_rat x n) + sin_pair_term_rat x m := by ring
+    rw [h_diff]
+    have h_tri : |(sin_partial_rat x m - sin_partial_rat x n) + sin_pair_term_rat x m|
+                  ≤ |sin_partial_rat x m - sin_partial_rat x n|
+                    + |sin_pair_term_rat x m| := abs_add_le _ _
+    have h_term := sin_pair_term_rat_abs_bound_geom x hx m
+    -- Algebraic identity: (4/2^n − 4/2^m) + 2/2^m = 4/2^n − 4/2^(m+1)
+    have h_2_m_pos : (0 : Rat) < (2 : Rat)^m := by positivity
+    have h_pow_succ : (2 : Rat)^(m+1) = 2 * (2 : Rat)^m := by
+      rw [pow_succ]; ring
+    have h_algebra :
+        4 / (2 : Rat)^n - 4 / (2 : Rat)^m + 2 / (2 : Rat)^m
+          = 4 / (2 : Rat)^n - 4 / (2 : Rat)^(m+1) := by
+      rw [h_pow_succ]
+      have h_2_n_pos : (0 : Rat) < (2 : Rat)^n := by positivity
+      field_simp
+      ring
+    linarith
+
+/-- **Cauchy tail bound — loose form**: `|sin_partial_rat x m − sin_partial_rat x n| ≤ 4/2^n`. -/
+theorem sin_partial_rat_cauchy_bound (x : Rat) (hx : |x| ≤ 1)
+    (m n : Nat) (hnm : n ≤ m) :
+    |sin_partial_rat x m - sin_partial_rat x n| ≤ 4 / (2 : Rat)^n := by
+  have h_exact := sin_partial_rat_cauchy_bound_exact x hx m n hnm
+  have h_subtract_nn : (0 : Rat) ≤ 4 / (2 : Rat)^m := by
+    apply div_nonneg (by norm_num : (0 : Rat) ≤ 4)
+    positivity
+  linarith
+
+-- ============================================================
+-- PART 7: TauReal.sin_of_rat + IsCauchy
+-- ============================================================
+
+/-- **[I.D-Sin-of-Rat]** The τ-native sin at a fixed TauRat argument.
+
+    The n-th approximation is the partial sum `sin_partial x n`.
+    Cauchy under `|x.toRat| ≤ 1` (Wave Γ₇ Phase 3A — the trig
+    extension of the Cauchy-bound template).
+
+    Mirrors `TauReal.exp_of_rat`, `TauReal.geom_of_rat`,
+    `TauReal.arctan_reciprocal` architecturally. -/
+def TauReal.sin_of_rat (x : TauRat) : TauReal :=
+  ⟨TauRat.sin_partial x⟩
+
+@[simp] theorem TauReal.sin_of_rat_approx (x : TauRat) (n : Nat) :
+    (TauReal.sin_of_rat x).approx n = TauRat.sin_partial x n := rfl
+
+/-- **[I.T-Sin-of-Rat-IsCauchy]** `TauReal.sin_of_rat x` is Cauchy
+    under `|x.toRat| ≤ 1` with explicit modulus `λ k => k + 3`.
+
+    Same modulus as exp/geom — the Cauchy-bound template's fourth
+    canonical instantiation. -/
+theorem TauReal.sin_of_rat_isCauchy (x : TauRat) (hx : |x.toRat| ≤ 1) :
+    (TauReal.sin_of_rat x).IsCauchy := by
+  refine ⟨fun k => k + 3, ?_⟩
+  intro k m n hm hn
+  change k + 3 ≤ m at hm
+  change k + 3 ≤ n at hn
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |(TauRat.sin_partial x m).toRat - (TauRat.sin_partial x n).toRat|
+         < 1 / ((k : Rat) + 1)
+  rw [TauRat.sin_partial_toRat, TauRat.sin_partial_toRat]
+  by_cases h_le : n ≤ m
+  · have h_bound := sin_partial_rat_cauchy_bound x.toRat hx m n h_le
+    have h_four_lt := Rat.four_div_two_pow_lt_recip k n hn
+    linarith
+  · push_neg at h_le
+    have h_m_le_n : m ≤ n := Nat.le_of_lt h_le
+    have h_swap_abs :
+        |sin_partial_rat x.toRat m - sin_partial_rat x.toRat n|
+          = |sin_partial_rat x.toRat n - sin_partial_rat x.toRat m| := by
+      rw [show sin_partial_rat x.toRat m - sin_partial_rat x.toRat n
+            = -(sin_partial_rat x.toRat n - sin_partial_rat x.toRat m) from by ring, abs_neg]
+    rw [h_swap_abs]
+    have h_bound := sin_partial_rat_cauchy_bound x.toRat hx n m h_m_le_n
+    have h_four_lt := Rat.four_div_two_pow_lt_recip k m hm
+    linarith
+
 end Tau.Boundary
