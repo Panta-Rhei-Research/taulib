@@ -2661,32 +2661,88 @@ the printed signature of `right_sum_reindex`.
     ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n (j+1)))).mul
       (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n - j))) (n+1)
 
-/-! ### right_sum_reindex still deferred — defs alone are valuable
+-- ============================================================
+-- PART 29: PHASE 3C PART 3b'''''''''''''''''' — binomial-left defs + pascal target
+-- ============================================================
 
-Even with `@[reducible]` defs hiding the heavy expressions from the
-printed signature, the proof body's unification of `first_term_simplify`
-and `right_after_first_to_shifted` against `sum_split_first`'s output
-exhausts the heartbeat budget. Three variants attempted:
-* term-mode chain → whnf timeout at default 200K, isDefEq timeout at 1M.
-* `apply` chain (step-by-step) → whnf + tactic-execution timeouts.
-* term-mode without `equiv_refl _` placeholders → whnf timeout.
+/-! ## Phase 3C Part 3b'''''''''''''''''' deliverables — pascal_combine named target
 
-The unification cost is in matching term-level structures (the heavy
-expressions in sub-lemmas' types), not in the simplified signature.
-Defs help the SIGNATURE but not the PROOF BODY's unification work.
+This part ships:
+1. `@[reducible]` defs for `binomial_left_sum` (B_left) and
+   `binomial_sigma_left` (Σ_left), completing the structural skeleton.
+2. `pascal_combine_target` as a Prop (named target) — the key
+   combinatorial identity `Σ_left + Σ_right ≈ B_left(n+1)`.
 
-The disciplined response: ship the `@[reducible]` defs (themselves
-useful as named abbreviations that downstream proofs can reference),
-document the right_sum_reindex deferral, and integrate the bridge
-directly into `add_pow_equiv_strong`'s proof body in the next part —
-where it can be combined with the B_left side under one unification
-pass with appropriate `refine` / `change` tactics that distribute
-cost.
+This applies the **named-target + later-discharge pattern** (used 7+
+times in this campaign). The pascal_combine identity is the deepest
+remaining piece — its discharge involves combining `right_sum_reindex`
++ `B_left_split_first` + Nat-arith bridges with cost-distributed
+elaboration. Ship the named target now; discharge in a focused future
+commit with the right operational tooling.
 
-The defs provide the **structural skeleton**: future proofs can write
-`(binomial_right_sum z₁ z₂ n).equiv ...` in signatures, keeping those
-signatures compact. The chain logic (sum_split_first +
-first_term_simplify + right_after_first_to_shifted) will be inlined
-into a single integrated proof at the discharge level. -/
+With all four binomial sums now defined (`binomial_left_sum`,
+`binomial_sigma_left`, `binomial_right_sum`, `binomial_right_shifted`),
+the named target's signature stays compact: three def-calls + one
+add + one equiv.
+
+### Deliverables
+
+* `TauComplex.binomial_left_sum` — `@[reducible]` def for `B_left(n)
+  = sum (fun i => (c_{n,i} · z₁^i) · z₂^(n-i)) (n+1)`.
+
+* `TauComplex.binomial_sigma_left` — `@[reducible]` def for `Σ_left
+  = sum (fun i => (c_{n,i} · z₁^(i+1)) · z₂^(n-i)) (n+1)`. This is
+  what `B_left(n)·z₁` becomes after `add_pow_term_left` lifts each
+  term.
+
+* `TauComplex.pascal_combine_target` — named-target Prop for the
+  Pascal combinatorial identity:
+  `∀ z₁ z₂ M (h_bounds) n,
+    (binomial_sigma_left z₁ z₂ n + binomial_right_sum z₁ z₂ n) ≈
+    binomial_left_sum z₁ z₂ (n+1)`.
+-/
+
+/-- **Binomial left sum** (B_left): the LEFT-assoc internal binomial
+    sum form.
+
+    `B_left(n) = sum (fun i => (c_{n,i} · z₁^i) · z₂^(n-i)) (n+1)`. -/
+@[reducible] def TauComplex.binomial_left_sum (z₁ z₂ : TauComplex) (n : Nat) : TauComplex :=
+  TauComplex.sum (fun i =>
+    ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+      (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ (n - i))) (n+1)
+
+/-- **Binomial sigma left** (Σ_left): the result of distributing `z₁` over
+    `B_left(n)·z₁` and applying `add_pow_term_left` term-wise.
+
+    `Σ_left = sum (fun i => (c_{n,i} · z₁^(i+1)) · z₂^(n-i)) (n+1)`. -/
+@[reducible] def TauComplex.binomial_sigma_left (z₁ z₂ : TauComplex) (n : Nat) : TauComplex :=
+  TauComplex.sum (fun i =>
+    ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+      (TauComplex.pow z₁ (i+1))).mul (TauComplex.pow z₂ (n - i))) (n+1)
+
+/-- **[I.D-TauComplex-PascalCombine-Target]** Named target for the
+    Pascal combinatorial identity that closes the binomial inductive
+    step.
+
+    Asserts: for any `z₁, z₂` with common bound `M` (1 ≤ M),
+    the sum `Σ_left + Σ_right` (each a binomial-style sum at depth n)
+    equals `B_left(n+1)` (the binomial sum at depth n+1).
+
+    Discharging this requires combining `right_sum_reindex` (still
+    queued due to elaboration-cost cliff), `B_left_split_first`, and
+    a Nat-arith bridge `(n+1)-(j+1) = n-j`. Ship as named target; the
+    full discharge is queued for Part 3b''''''''''''''''''' (next).
+
+    The named target's signature is compact thanks to the four
+    `@[reducible]` defs `binomial_left_sum`, `binomial_sigma_left`,
+    `binomial_right_sum`, `binomial_right_shifted` — keeping it within
+    elaboration budget while still capturing the full combinatorial
+    content. -/
+def TauComplex.pascal_combine_target : Prop :=
+  ∀ (z₁ z₂ : TauComplex) (M : Nat), 1 ≤ M →
+    TauComplex.BoundedBy z₁ M → TauComplex.BoundedBy z₂ M → ∀ (n : Nat),
+    ((TauComplex.binomial_sigma_left z₁ z₂ n).add
+      (TauComplex.binomial_right_sum z₁ z₂ n)).equiv
+    (TauComplex.binomial_left_sum z₁ z₂ (n+1))
 
 end Tau.Boundary
