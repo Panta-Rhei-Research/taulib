@@ -1458,4 +1458,182 @@ theorem TauComplex.equiv_pow_congr_strong (z z' : TauComplex) (h_zz : z.equiv z'
             N N hN_pos hN_pos
             h_pow_z'_N.1 h_pow_z'_N.2 h_z_N.1 h_z_N.2 ih h_zz
 
+-- ============================================================
+-- PART 19: PHASE 3C PART 3b'''''''' — Helpers for binomial theorem
+-- ============================================================
+
+/-! ## Phase 3C Part 3b'''''''' deliverables — binomial-theorem helpers
+
+The binomial theorem on TauComplex (`add_pow_equiv_target`, shipped at
+`60c1bff`) requires substantial scaffolding. This commit ships the
+**bound-free structural helpers** needed by the discharge:
+
+* **`taucomplex_mul_left_comm`** — unconditional `a·(b·c) ≈ b·(a·c)`.
+  Proved pointwise at TauRat level (the same way `taucomplex_mul_comm`
+  and `taucomplex_left_distrib` are proved). This is the key
+  bound-free reorganization tool for triple products.
+* **`TauComplex.sum_equiv_congr`** — if `f i ≈ g i` for all i, then
+  `sum f n ≈ sum g n`. Foundational for lifting term-level equivs to
+  sum-level.
+* **`TauComplex.sum_add_split`** — `sum (fun i => (f i).add (g i)) n ≈
+  (sum f n).add (sum g n)`. Lets us split a sum of sums-of-pairs into
+  a pair of sums.
+* **`TauComplex.sum_split_first`** — `sum f (n+1) ≈ f 0 + sum (fun i =>
+  f (i+1)) n`. Lets us peel off the first term from a sum (mirror
+  of the definitional `sum_succ` which peels the last term).
+
+### Why these are bound-free
+
+All four lemmas use only:
+* Componentwise pointwise reduction at the TauRat level (closed by
+  `ring` after unfolding) — for `mul_left_comm`.
+* `equiv_add_congr` (unconditional — addition respects equiv without
+  bounds) + `equiv_refl` + `equiv_trans` — for the sum-level lemmas.
+
+This is critical: the binomial inductive step needs to reorganize
+triple products like `(c · z₁^i · z₂^(n-i)) · z₁ → c · z₁^(i+1) · z₂^(n-i)`
+without bound bookkeeping on every assoc/comm step. The bound is then
+only needed at the **outermost** IH-substitution step (where
+`equiv_mul_congr` lifts `pow (z₁+z₂) n ≈ B(n)` into the product
+`(pow (z₁+z₂) n) · (z₁+z₂) ≈ B(n) · (z₁+z₂)`).
+
+### What Part 3b''''''''' (next) will use these for
+
+The discharge of `add_pow_equiv_target` (in strengthened form with
+bounds on z₁ and z₂):
+
+1. **Term identities** via `mul_left_comm` + `mul_assoc` chains:
+   `(c · z₁^i · z₂^(n-i)) · z₁ ≈ c · z₁^(i+1) · z₂^(n-i)`.
+2. **Lift to sum level** via `sum_equiv_congr` from term identity.
+3. **Split B(n) · (z₁+z₂)** via `taucomplex_left_distrib` →
+   `B(n) · z₁ + B(n) · z₂` → via `sum_mul_distrib_right` → two sums.
+4. **Combine into B(n+1)** via `sum_split_first` (peel off i=0) +
+   `sum_succ` (peel off i=n+1) + Pascal's rule on the middle range.
+-/
+
+/-- **TauComplex mul-left-comm** (unconditional ring identity):
+    `a · (b · c) ≈ b · (a · c)`.
+
+    Proved by componentwise pointwise reduction at the TauRat level
+    using `ring`. Used in Part 3b''''''''' for triple-product
+    reorganization in the binomial inductive step. -/
+theorem taucomplex_mul_left_comm (a b c : TauComplex) :
+    (a.mul (b.mul c)).equiv (b.mul (a.mul c)) := by
+  refine ⟨?_, ?_⟩
+  · -- Real part
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.mul, TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+  · -- Imag part
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.mul, TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+
+/-- **Sum-equiv-congr**: if `f i ≈ g i` for all `i`, then
+    `sum f n ≈ sum g n`.
+
+    Used to lift term-level equivalences (e.g.,
+    `(c · z₁^i · z₂^(n-i)) · z₁ ≈ c · z₁^(i+1) · z₂^(n-i)`) to
+    sum-level equivalences. -/
+theorem TauComplex.sum_equiv_congr (f g : Nat → TauComplex) (n : Nat)
+    (h : ∀ i, (f i).equiv (g i)) :
+    (TauComplex.sum f n).equiv (TauComplex.sum g n) := by
+  induction n with
+  | zero => exact TauComplex.equiv_refl _
+  | succ n ih =>
+    show ((TauComplex.sum f n).add (f n)).equiv ((TauComplex.sum g n).add (g n))
+    exact TauComplex.equiv_add_congr ih (h n)
+
+/-- **Sum-add-split**: `sum (fun i => (f i).add (g i)) n ≈
+    (sum f n).add (sum g n)`.
+
+    Used to split a sum-of-pairs into a pair-of-sums. In the binomial
+    step, this lets us turn `sum (fun i => left_term i + right_term i)`
+    into `sum left_term + sum right_term`. -/
+theorem TauComplex.sum_add_split (f g : Nat → TauComplex) (n : Nat) :
+    (TauComplex.sum (fun i => (f i).add (g i)) n).equiv
+      ((TauComplex.sum f n).add (TauComplex.sum g n)) := by
+  induction n with
+  | zero =>
+    -- sum _ 0 = zero; RHS = zero.add zero ≈ zero.
+    show TauComplex.zero.equiv (TauComplex.zero.add TauComplex.zero)
+    exact TauComplex.equiv_symm (TauComplex.zero_add_equiv TauComplex.zero)
+  | succ n ih =>
+    -- LHS = sum _ n + (f n + g n)
+    -- RHS = (sum f n + sum g n) + (f n + g n) — by sum_succ on each
+    --     = (sum f n + f n) + (sum g n + g n) after rearrangement
+    show ((TauComplex.sum (fun i => (f i).add (g i)) n).add ((f n).add (g n))).equiv
+          (((TauComplex.sum f n).add (f n)).add ((TauComplex.sum g n).add (g n)))
+    -- Strategy:
+    --   LHS ≈ [by ih] (sum f n + sum g n) + (f n + g n)
+    --       ≈ [add reorg] (sum f n + f n) + (sum g n + g n)
+    -- The "add reorg" is a pure ring identity, proved pointwise.
+    have h_ih_lift :
+        ((TauComplex.sum (fun i => (f i).add (g i)) n).add ((f n).add (g n))).equiv
+        (((TauComplex.sum f n).add (TauComplex.sum g n)).add ((f n).add (g n))) :=
+      TauComplex.equiv_add_congr ih (TauComplex.equiv_refl _)
+    -- Pure add reorganization: (A + B) + (X + Y) ≈ (A + X) + (B + Y).
+    have h_reorg :
+        (((TauComplex.sum f n).add (TauComplex.sum g n)).add ((f n).add (g n))).equiv
+        (((TauComplex.sum f n).add (f n)).add ((TauComplex.sum g n).add (g n))) := by
+      -- Componentwise pointwise reduction.
+      refine ⟨?_, ?_⟩
+      · apply TauReal.equiv_of_pointwise
+        intro k
+        simp only [TauComplex.add, TauReal.add]
+        simp only [TauRat.equiv, TauRat.add]
+        try rw [equiv_iff_toInt_eq]
+        try simp only [toInt_add, toInt_mul, toInt_fromNat, toInt_zero, toInt_one]
+        try push_cast
+        try ring
+      · apply TauReal.equiv_of_pointwise
+        intro k
+        simp only [TauComplex.add, TauReal.add]
+        simp only [TauRat.equiv, TauRat.add]
+        try rw [equiv_iff_toInt_eq]
+        try simp only [toInt_add, toInt_mul, toInt_fromNat, toInt_zero, toInt_one]
+        try push_cast
+        try ring
+    exact TauComplex.equiv_trans h_ih_lift h_reorg
+
+/-- **Sum-split-first**: `sum f (n+1) ≈ f 0 + sum (fun i => f (i+1)) n`.
+
+    Peels off the FIRST term of a sum (mirror of `sum_succ` which peels
+    the last). Used in Part 3b''''''''' to reindex the binomial sum
+    `S_{n+1} = sum (...) (n+2)` for matching against `Σ_left + Σ_right`. -/
+theorem TauComplex.sum_split_first (f : Nat → TauComplex) (n : Nat) :
+    (TauComplex.sum f (n + 1)).equiv ((f 0).add (TauComplex.sum (fun i => f (i+1)) n)) := by
+  induction n with
+  | zero =>
+    -- sum f 1 = zero.add (f 0)
+    -- RHS = (f 0).add zero
+    show (TauComplex.zero.add (f 0)).equiv ((f 0).add TauComplex.zero)
+    exact taucomplex_add_comm TauComplex.zero (f 0)
+  | succ n ih =>
+    -- LHS = sum f (n+2) = (sum f (n+1)).add (f (n+1))
+    --     ≈ [by ih on inner] (f 0 + sum (i+1) n).add (f (n+1))
+    --     ≈ [by add_assoc] f 0 + (sum (i+1) n + f (n+1))
+    --     = f 0 + sum (i+1) (n+1)  [definitional sum_succ]
+    show ((TauComplex.sum f (n+1)).add (f (n+1))).equiv
+          ((f 0).add ((TauComplex.sum (fun i => f (i+1)) n).add (f (n+1))))
+    have h_ih_lift :
+        ((TauComplex.sum f (n+1)).add (f (n+1))).equiv
+        (((f 0).add (TauComplex.sum (fun i => f (i+1)) n)).add (f (n+1))) :=
+      TauComplex.equiv_add_congr ih (TauComplex.equiv_refl _)
+    have h_assoc :
+        (((f 0).add (TauComplex.sum (fun i => f (i+1)) n)).add (f (n+1))).equiv
+        ((f 0).add ((TauComplex.sum (fun i => f (i+1)) n).add (f (n+1)))) :=
+      taucomplex_add_assoc (f 0) (TauComplex.sum (fun i => f (i+1)) n) (f (n+1))
+    exact TauComplex.equiv_trans h_ih_lift h_assoc
+
 end Tau.Boundary
