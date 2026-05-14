@@ -1,6 +1,7 @@
 import TauLib.BookI.Polarity.BipolarAlgebra
+import TauLib.BookI.Polarity.WedgeLoop
 import TauLib.BookI.Boundary.TauRealIotaTau
-import Mathlib.GroupTheory.FreeGroup.Basic
+import TauLib.BookI.Boundary.TauRealGeometric
 import Mathlib.Analysis.SpecificLimits.Basic
 import Mathlib.Analysis.SpecificLimits.Normed
 import Mathlib.Tactic.Ring
@@ -76,13 +77,21 @@ open Real
 -- STEP 1 — Types: wedge-loop group, boundary algebra, action
 -- ============================================================
 
-/-- The wedge-loop group based at ω on the lemniscate `𝕃 = S¹ ∨ S¹`.
-    Anchored at `[IV.ch03:362-364]`: `π₁(𝕃) ≅ F₂`. -/
-abbrev WedgeLoop : Type := FreeGroup (Fin 2)
+/-- The wedge-loop type based at ω on the lemniscate `𝕃 = S¹ ∨ S¹`.
+    Anchored at `[IV.ch03:362-364]`: `π₁(𝕃) ≅ F₂`.
+
+    **Wave Γ₁ Phase 11 (full mathlib-free migration)**: replaced
+    `FreeGroup (Fin 2)` with the τ-native `Tau.Polarity.WedgeLoop`
+    inductive. The FCNC F₂-projection only exercises positive powers
+    of single generators (`FreeGroup.of i ^ n` becomes `WedgeLoop.of i n`),
+    so the minimal inductive `WedgeLoop = trivial | of i n` suffices. -/
+abbrev WedgeLoop : Type := Tau.Polarity.WedgeLoop
 
 /-- The two lobe generators: `γ Fin.0` corresponds to `Lobe_1`,
-    `γ Fin.1` corresponds to `Lobe_2`. -/
-def γ : Fin 2 → WedgeLoop := FreeGroup.of
+    `γ Fin.1` corresponds to `Lobe_2`.
+
+    The τ-native `gen i = WedgeLoop.of i 1` replaces `FreeGroup.of`. -/
+def γ : Fin 2 → WedgeLoop := Tau.Polarity.WedgeLoop.gen
 
 /-- The boundary algebra at the bipolar level: a 2-dimensional ℝ-space
     with basis `(1, j)`. We represent it as `ℝ × ℝ` with first coordinate
@@ -364,36 +373,33 @@ carrier with the bundled-predicate strategy for BAL Lean closure
 is queued as a separate follow-on commit (per Panel-C plan in
 atlas sprint 2026-05-13-F2-projection-theorem). -/
 
-/-- The diagonal abelianisation character at the multiplicative level:
-    `χ_diag : FreeGroup (Fin 2) →* Multiplicative ℤ` sending both
-    generators to `Multiplicative.ofAdd 1`. -/
-noncomputable def χ_diag : FreeGroup (Fin 2) →* Multiplicative ℤ :=
-  FreeGroup.lift (fun _ : Fin 2 => Multiplicative.ofAdd (1 : ℤ))
+/-- The diagonal abelianisation character. **τ-native form** (Wave Γ₁
+    Phase 11): lands directly in `ℤ` rather than `Multiplicative ℤ`,
+    because for the FCNC F₂-projection theorem only the additive
+    structure (counting transits) is load-bearing — the multiplicative
+    wrapper was a coercion artefact, not structurally necessary. -/
+def χ_diag : WedgeLoop → ℤ := Tau.Polarity.χ_diag
 
-/-- `χ_diag` evaluated on a generator is `Multiplicative.ofAdd 1`. -/
+/-- `χ_diag` evaluated on `WedgeLoop.of i 1` (the generator at exponent 1)
+    is `1`. -/
 theorem χ_diag_of (i : Fin 2) :
-    χ_diag (FreeGroup.of i) = Multiplicative.ofAdd (1 : ℤ) := by
-  simp [χ_diag]
+    χ_diag (Tau.Polarity.WedgeLoop.gen i) = 1 :=
+  Tau.Polarity.χ_diag_gen i
 
 /-- `χ_diag` evaluated on a natural-number power of a generator:
-    `χ_diag (γ_i^n) = Multiplicative.ofAdd n`. -/
+    `χ_diag (WedgeLoop.of i n) = n`. **τ-native form**: directly in `ℤ`. -/
 theorem χ_diag_of_pow (i : Fin 2) (n : ℕ) :
-    χ_diag (FreeGroup.of i ^ n) = Multiplicative.ofAdd (n : ℤ) := by
-  induction n with
-  | zero => simp
-  | succ k ih =>
-    rw [pow_succ, map_mul, ih, χ_diag_of]
-    rfl
+    χ_diag (Tau.Polarity.WedgeLoop.of i n) = (n : ℤ) :=
+  Tau.Polarity.χ_diag_of_pow i n
 
-/-- The integer-valued version of `χ_diag`, going through
-    `Multiplicative.toAdd`. -/
-noncomputable def χ_ℤ : FreeGroup (Fin 2) → ℤ :=
-  fun w => Multiplicative.toAdd (χ_diag w)
+/-- The integer-valued character `χ_ℤ`. **τ-native form**: definitionally
+    equal to `χ_diag` (both land in `ℤ`). -/
+def χ_ℤ : WedgeLoop → ℤ := Tau.Polarity.χ_ℤ
 
 /-- `χ_ℤ` on a natural-number power of a generator is just `n`. -/
 theorem χ_ℤ_of_pow (i : Fin 2) (n : ℕ) :
-    χ_ℤ (FreeGroup.of i ^ n) = (n : ℤ) := by
-  simp [χ_ℤ, χ_diag_of_pow]
+    χ_ℤ (Tau.Polarity.WedgeLoop.of i n) = (n : ℤ) :=
+  Tau.Polarity.χ_ℤ_of_pow i n
 
 /-- **The F₂-projection theorem at the natural-number level
     (Wave Γ₂ Phase 3, Lean carrier).**
@@ -416,7 +422,7 @@ theorem χ_ℤ_of_pow (i : Fin 2) (n : ℕ) :
     is articulated in `bsmm-tau-canon-F2-projection-v1` at the prose
     level. -/
 theorem F2_projection_natpow (x : ℝ) (i : Fin 2) (n : ℕ) (v : BdryAlg) :
-    (T_op x)^[(χ_ℤ (FreeGroup.of i ^ n)).toNat] v = (T_op x)^[n] v := by
+    (T_op x)^[(χ_ℤ (Tau.Polarity.WedgeLoop.of i n)).toNat] v = (T_op x)^[n] v := by
   rw [χ_ℤ_of_pow]
   simp
 
@@ -434,11 +440,11 @@ theorem F2_projection_natpow (x : ℝ) (i : Fin 2) (n : ℕ) (v : BdryAlg) :
     -/
 theorem wedge_loop_trace_identity_via_F2
     (x : ℝ) (h_pos : 0 ≤ x) (h_lt : x < 1) :
-    ∑' k : ℕ, Tr_id ((T_op x)^[(χ_ℤ (FreeGroup.of (0 : Fin 2) ^ (2 * k))).toNat]
+    ∑' k : ℕ, Tr_id ((T_op x)^[(χ_ℤ (Tau.Polarity.WedgeLoop.of (0 : Fin 2) (2 * k))).toNat]
                        one_V)
     = 1 / (1 - x^2) := by
   have h_rewrite : ∀ k : ℕ,
-      (T_op x)^[(χ_ℤ (FreeGroup.of (0 : Fin 2) ^ (2 * k))).toNat] one_V
+      (T_op x)^[(χ_ℤ (Tau.Polarity.WedgeLoop.of (0 : Fin 2) (2 * k))).toNat] one_V
         = (T_op x)^[2 * k] one_V := by
     intro k
     rw [χ_ℤ_of_pow]
