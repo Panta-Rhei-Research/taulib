@@ -245,8 +245,170 @@ def TauComplex.exp_partial (z : TauComplex) (n : Nat) : TauComplex :=
       (TauComplex.exp_partial z n).add (TauComplex.exp_term z n) := rfl
 
 -- ============================================================
--- PART 7: ROADMAP FOR PHASE 3C PART 3 (M3 BREAKTHROUGH)
+-- PART 7: TauComplex Cauchy-product infrastructure (Phase 3C Part 3a)
 -- ============================================================
+
+/-- **[I.D-TauComplex-CauchyDiag]** The n-th diagonal of the Cauchy
+    product of TauComplex sequences:
+    `cauchyDiag a b n = Σ_{i=0}^{n} a(i) · b(n - i)` (TauComplex.mul). -/
+def TauComplex.cauchyDiag (a b : Nat → TauComplex) (n : Nat) : TauComplex :=
+  TauComplex.sum (fun i => (a i).mul (b (n - i))) (n + 1)
+
+/-- **[I.D-TauComplex-CauchyPStar]** Partial Cauchy product:
+    `cauchyPStar a b N = Σ_{k=0}^{N-1} cauchyDiag a b k`.
+
+    This is the τ-native Cauchy-product machinery on TauComplex,
+    parallel to `TauRat.cauchyPStar` from `TauRealSum.lean`. The M3
+    breakthrough (Phase 3C Part 3b-3e) will use this to express the
+    binomial identity `exp_partial(z₁+z₂) ≈ cauchyPStar (exp_term z₁) (exp_term z₂)`
+    and lift the `cauchy_product_bound` tail estimate. -/
+def TauComplex.cauchyPStar (a b : Nat → TauComplex) (N : Nat) : TauComplex :=
+  TauComplex.sum (TauComplex.cauchyDiag a b) N
+
+@[simp] theorem TauComplex.cauchyPStar_zero (a b : Nat → TauComplex) :
+    TauComplex.cauchyPStar a b 0 = TauComplex.zero := rfl
+
+@[simp] theorem TauComplex.cauchyPStar_succ (a b : Nat → TauComplex) (n : Nat) :
+    TauComplex.cauchyPStar a b (n + 1) =
+      (TauComplex.cauchyPStar a b n).add (TauComplex.cauchyDiag a b n) := rfl
+
+/-- `cauchyDiag a b 0 = sum_{i=0}^{0} a(i)·b(0-i) = TauComplex.zero.add ((a 0).mul (b 0))`,
+    structural unfolding. The equiv-level identity `cauchyDiag_zero_equiv`
+    saying this is equiv to `(a 0).mul (b 0)` follows via `taucomplex_zero_add`
+    at the TauReal level (queued for Part 3b). -/
+theorem TauComplex.cauchyDiag_zero (a b : Nat → TauComplex) :
+    TauComplex.cauchyDiag a b 0 =
+      TauComplex.zero.add ((a 0).mul (b 0)) := rfl
+
+-- ============================================================
+-- PART 8: M3 TARGETS (statements only — proofs queued for Part 3b-3e)
+-- ============================================================
+
+/-! ## Phase 3C Part 3b-3e roadmap — the M3 breakthrough
+
+With `TauComplex.cauchyPStar` defined, the M3 breakthrough decomposes
+into four focused sub-deliverables, paralleling the `TauReal.exp_add`
+proof structure (Wave 3b R10 in `TauRealExp.lean`):
+
+### Phase 3C Part 3b — The binomial identity at TauComplex level
+
+**Target**: `TauComplex.exp_partial_add_eq_cauchyPStar`:
+
+```
+(TauComplex.exp_partial (z₁.add z₂) n).equiv
+  (TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n)
+```
+
+**Proof strategy**: pointwise reduction via `TauReal.equiv_of_pointwise`,
+then expanding both sides componentwise. The key arithmetic identity
+at each component is the binomial theorem applied to `(z₁ + z₂)^n` in
+TauComplex arithmetic.
+
+The TauRat-level analog `exp_partial_add_toRat_eq_cauchyPStar` (in
+`TauRealExp.lean`, ~30 LOC) does this for reals. The TauComplex version
+adds a layer of complex-multiplication distributivity but follows the
+same combinatorial structure.
+
+**Estimated LOC**: ~150-200.
+
+### Phase 3C Part 3c — The Cauchy-product bound at TauComplex level
+
+**Target**: a TauComplex analog of `TauRat.cauchy_product_bound`:
+
+```
+|exp_partial(z₁) · exp_partial(z₂) - cauchyPStar(exp_term z₁, exp_term z₂, n)|
+  ≤ n · C² / 2^(n-1)
+```
+
+(at TauComplex.equiv level, with `C` a per-term bound).
+
+**Proof strategy**: lift the existing `TauRat.cauchy_product_bound`
+(~200 LOC in `TauRealSum.lean`) to TauComplex componentwise. Each of
+the real and imaginary components is a sum of 4 TauRat-level Cauchy
+products with appropriate signs:
+
+  (a·b).re = a.re·b.re - a.im·b.im
+  (a·b).im = a.re·b.im + a.im·b.re
+
+The TauComplex bound is at most `2x` the TauRat bound (from triangle
+inequality on the 2-term sums).
+
+**Estimated LOC**: ~250-300.
+
+### Phase 3C Part 3d — Full TauComplex.exp
+
+**Target**: define `TauComplex.exp : TauComplex → TauComplex` via the
+diagonal construction (parallel to `TauReal.exp`):
+
+```
+def TauComplex.exp (z : TauComplex) : TauComplex :=
+  -- n-th approximation: exp_partial at the n-th approximation of z, depth n
+  ⟨..., ...⟩
+```
+
+Plus its `IsCauchy` property for bounded arguments.
+
+**Estimated LOC**: ~100-150.
+
+### Phase 3C Part 3e — TauComplex.exp_add (the M3 target)
+
+**Target**: the M3 breakthrough proper:
+
+```
+theorem TauComplex.exp_add (a b : TauComplex) (R : Rat)
+    (hR0 : 0 ≤ R) (hR1 : R ≤ 1) (ha : TauComplex.BoundedBy a R)
+    (hb : TauComplex.BoundedBy b R) :
+    TauComplex.equiv
+      (TauComplex.exp (a.add b))
+      ((TauComplex.exp a).mul (TauComplex.exp b))
+```
+
+**Proof strategy**: directly mirror `TauReal.exp_add`:
+1. Use Part 3b's binomial identity to rewrite LHS as `cauchyPStar`.
+2. Use Part 3c's Cauchy-product bound to estimate the difference
+   `cauchyPStar - exp_partial · exp_partial`.
+3. Modulus `λ k => 2k + 6` (or similar) via the chain
+   `n · C² / 2^(n-1) < 1/(k+1)`.
+
+**Estimated LOC**: ~100.
+
+### Phase 3C Part 4 — sin/cos addition formula extraction
+
+Once Part 3e lands, specialise `TauComplex.exp_add` to purely imaginary
+arguments `z₁ = i·α, z₂ = i·β` and extract real/imag parts via
+`TauComplex.equiv`. The cyclotomic-4 structure (`i⁴ ≈ 1` proved in
+Part 2) is what cleanly separates the Taylor terms into cos (even
+power) and i·sin (odd power) contributions.
+
+**Estimated LOC**: ~150-200.
+
+## Total Wave Γ₇ M3 effort estimate
+
+Phases 3C Part 3b → Phase 4: **~650-1000 LOC across 4-5 focused sessions**.
+
+The structural framework is now fully in place. The remaining work is
+substantial Cauchy-product manipulation that closely parallels the
+existing `TauReal.exp_add` proof, lifted componentwise to TauComplex.
+
+## What this commit (Phase 3C Part 3a) adds
+
+* `TauComplex.cauchyDiag a b n` — n-th Cauchy product diagonal.
+* `TauComplex.cauchyPStar a b N` — partial Cauchy product.
+* Simp lemmas: `cauchyPStar_zero`, `cauchyPStar_succ`, `cauchyDiag_zero`.
+* Detailed roadmap (this docstring) for Phase 3C Part 3b → 4.
+
+The Cauchy-product infrastructure is the **load-bearing structural
+foundation** for the M3 breakthrough proper. With this in place,
+Phase 3C Part 3b can focus narrowly on the binomial identity proof
+without needing to first design the algebraic framework.
+
+## Trust budget (unchanged)
+
+* sorry = 0
+* axioms = 3
+* TauLib build: 2695/2695 jobs ✓
+* No new mathematical claims proved here — Part 3a is pure infrastructure.
+-/
 
 /-! ## Phase 3C Part 3 roadmap (next session)
 
