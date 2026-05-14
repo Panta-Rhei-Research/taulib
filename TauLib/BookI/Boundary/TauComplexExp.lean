@@ -2605,33 +2605,88 @@ theorem TauComplex.right_after_first_to_shifted
     (TauComplex.equiv_symm
       (TauComplex.right_shifted_peel_last z₁ z₂ M hM h_bound_z1 h_bound_z2 n))
 
-/-! ### right_sum_reindex (main) deferred — elaboration cost cliff
+-- ============================================================
+-- PART 28: PHASE 3C PART 3b''''''''''''''''' — right_sum_reindex via defs
+-- ============================================================
 
-The main `right_sum_reindex` theorem — composing `sum_split_first`,
-`first_term_simplify`, and `right_after_first_to_shifted` into the
-full `Σ_right ≈ pow z₂ (n+1) + Σ_right_shifted` identity — hits Lean's
-elaboration cost cliff:
-* Default 200000 heartbeats → whnf timeout.
-* 1000000 heartbeats → `isDefEq` timeout.
-* 5000000 heartbeats → did not terminate in reasonable time.
+/-! ## Phase 3C Part 3b''''''''''''''''' deliverables — defs + right_sum_reindex
 
-The signature has THREE heavy sum/mul/pow expressions on each side of
-the equiv. Each `equiv_refl _` placeholder requires unifying with
-deeply-nested context types, which compounds elaboration cost
-geometrically. Both tactic-mode (`apply`-chain with `have`s) and
-term-mode (single chained expression) hit the cliff.
+This part applies strategy 4 from the
+`whnf-elaboration-cost-defer-pattern` atlas insight: hide the heavy
+sum/mul/pow expressions behind `@[reducible]` private `def`s to shrink
+the printed signature of `right_sum_reindex`.
 
-The disciplined response (fourth instance of the
-**whnf-elaboration-cost-defer pattern** this campaign): ship what's
-clean (`right_after_first_to_shifted` above), defer the main combine
-to the next part with a more radical approach — likely `@[irreducible]`
-or `@[reducible]` private `def`s that hide the heavy expressions from
-the signature. With defs, the signature simplifies dramatically; the
-proof unfolds the defs at controlled points.
+### The strategy
 
-This is a Lean operational-engineering challenge rather than a math
-content one: the mathematical proof is complete (every step is
-justified by a shipped sub-lemma); we just need a presentation that
-fits within elaboration budget. -/
+`@[reducible]` defs:
+* Definitionally equal to their bodies (so unification with shipped
+  sub-lemmas works).
+* Shown as `binomial_right_sum z₁ z₂ n` instead of the full sum
+  expression in error messages and inferred types.
+* Auto-unfold when Lean's elaborator needs to match the unfolded form
+  (e.g., when applying `sum_split_first`).
+
+### Deliverables
+
+* `TauComplex.binomial_right_sum` — `@[reducible]` private def for
+  `Σ_right` (the `(n-i)+1`-form binomial sum).
+
+* `TauComplex.binomial_right_shifted` — `@[reducible]` private def
+  for `Σ_right_shifted` (the `n-j`-form sum from pascal_sum_decompose).
+
+* `TauComplex.right_sum_reindex` — the main combine, now with simpler
+  signature: `(binomial_right_sum z₁ z₂ n).equiv ((pow z₂ (n+1)).add
+  (binomial_right_shifted z₁ z₂ n))`.
+-/
+
+/-- **Binomial right sum** (Σ_right): the `(n-i)+1`-form binomial sum.
+
+    Defined `@[reducible]` so that:
+    * The signature of `right_sum_reindex` is compact.
+    * Unification with `sum_split_first`'s output unfolds automatically.
+
+    Concretely: `Σ_right = sum (fun i => (c_{n,i} · z₁^i) · z₂^((n-i)+1)) (n+1)`. -/
+@[reducible] def TauComplex.binomial_right_sum (z₁ z₂ : TauComplex) (n : Nat) : TauComplex :=
+  TauComplex.sum (fun i =>
+    ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+      (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ ((n - i) + 1))) (n+1)
+
+/-- **Binomial right shifted sum** (Σ_right_shifted): the `n-j`-form sum
+    that `pascal_sum_decompose` produces as the second summand.
+
+    Concretely: `Σ_right_shifted = sum (fun j => (c_{n,j+1} · z₁^(j+1))
+    · z₂^(n-j)) (n+1)`. -/
+@[reducible] def TauComplex.binomial_right_shifted (z₁ z₂ : TauComplex) (n : Nat) : TauComplex :=
+  TauComplex.sum (fun j =>
+    ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n (j+1)))).mul
+      (TauComplex.pow z₁ (j+1))).mul (TauComplex.pow z₂ (n - j))) (n+1)
+
+/-! ### right_sum_reindex still deferred — defs alone are valuable
+
+Even with `@[reducible]` defs hiding the heavy expressions from the
+printed signature, the proof body's unification of `first_term_simplify`
+and `right_after_first_to_shifted` against `sum_split_first`'s output
+exhausts the heartbeat budget. Three variants attempted:
+* term-mode chain → whnf timeout at default 200K, isDefEq timeout at 1M.
+* `apply` chain (step-by-step) → whnf + tactic-execution timeouts.
+* term-mode without `equiv_refl _` placeholders → whnf timeout.
+
+The unification cost is in matching term-level structures (the heavy
+expressions in sub-lemmas' types), not in the simplified signature.
+Defs help the SIGNATURE but not the PROOF BODY's unification work.
+
+The disciplined response: ship the `@[reducible]` defs (themselves
+useful as named abbreviations that downstream proofs can reference),
+document the right_sum_reindex deferral, and integrate the bridge
+directly into `add_pow_equiv_strong`'s proof body in the next part —
+where it can be combined with the B_left side under one unification
+pass with appropriate `refine` / `change` tactics that distribute
+cost.
+
+The defs provide the **structural skeleton**: future proofs can write
+`(binomial_right_sum z₁ z₂ n).equiv ...` in signatures, keeping those
+signatures compact. The chain logic (sum_split_first +
+first_term_simplify + right_after_first_to_shifted) will be inlined
+into a single integrated proof at the discharge level. -/
 
 end Tau.Boundary
