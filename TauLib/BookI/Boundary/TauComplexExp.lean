@@ -1122,4 +1122,68 @@ theorem TauComplex.sum_mul_distrib_left
     TauComplex.sum_mul_swap f z n
   exact TauComplex.equiv_trans (TauComplex.equiv_trans h_comm h_distrib) h_swap
 
+-- ============================================================
+-- PART 16: PHASE 3C PART 3b''''' — Bound-compounding named targets
+-- ============================================================
+
+/-! ## Phase 3C Part 3b''''' deliverables — bound-compounding targets
+
+The binomial theorem's inductive step (Part 3b'''''') needs to apply
+`TauComplex.equiv_mul_congr`, which requires `BoundedBy` hypotheses
+on the factors. As we induct over `pow z k`, the bound compounds:
+
+* Multiplication: `BoundedBy z M ∧ BoundedBy w M ⟹ BoundedBy (z·w) (2·M·M)`.
+* Power (inductive): `BoundedBy z M ⟹ BoundedBy (pow z k) ((2M)^k)` (rough bound).
+
+Component-level reasoning: each component of `z·w` is a sum/difference
+of products of bounded components, with the factor of 2 coming from
+triangle inequality on the sum.
+
+This commit ships the **named-target propositions** for bound
+compounding. Part 3b'''''' (next) will discharge them with the
+component-level abs-arithmetic + induction. The actual proofs require
+careful TauReal-level unfolding (TauReal.sub ↦ add + negate,
+TauReal.mul componentwise) which deserves its own focused session.
+-/
+
+/-- **[I.D-TauComplex-MulBoundCompounds-Target]** Named target for
+    multiplication bound compounding. -/
+def TauComplex.mul_BoundedBy_compounds_target : Prop :=
+  ∀ (z w : TauComplex) (M : Nat),
+    1 ≤ M → TauComplex.BoundedBy z M → TauComplex.BoundedBy w M →
+    TauComplex.BoundedBy (z.mul w) (2 * M * M)
+
+/-- **[I.D-TauComplex-PowBoundCompounds-Target]** Named target for
+    pow bound compounding. -/
+def TauComplex.pow_BoundedBy_compounds_target : Prop :=
+  ∀ (z : TauComplex) (M : Nat) (k : Nat),
+    1 ≤ M → TauComplex.BoundedBy z M →
+    ∃ Bk : Nat, 1 ≤ Bk ∧ TauComplex.BoundedBy (TauComplex.pow z k) Bk
+
+/-! ## Phase 3C Part 3b'''''' (next session) — discharge bound targets
+
+The discharge requires component-level abs-arithmetic:
+
+For `mul_BoundedBy_compounds`:
+- `|(z·w).re|.toRat = |z.re·w.re − z.im·w.im|.toRat`
+- After unfolding `TauReal.sub ↦ add + negate`, `TauReal.mul` componentwise,
+  this becomes `|(z.re.approx n).toRat · (w.re.approx n).toRat
+                  − (z.im.approx n).toRat · (w.im.approx n).toRat|`.
+- Triangle: `≤ |z.re·w.re| + |z.im·w.im| ≤ M² + M² = 2M²`.
+
+For `pow_BoundedBy_compounds`:
+- Induction on k.
+- Base k=0: `pow z 0 = one`, with `BoundedBy one 1`.
+- Step k+1: `pow z (k+1) = pow z k · z`. Apply mul_BoundedBy to combine
+  bounds: if pow z k bounded by `B_k`, then `pow z (k+1)` bounded by
+  `2 · B_k · M`.
+- Bk could be `(2M)^k` or similar.
+
+These proofs are component-level abs-arithmetic — substantial but
+mechanical. Estimated ~150-200 LOC for Part 3b''''''.
+
+After discharge, Phase 3C Part 3b''''''' can attack the inductive step
+of the binomial theorem (the substantive combinatorial assembly).
+-/
+
 end Tau.Boundary
