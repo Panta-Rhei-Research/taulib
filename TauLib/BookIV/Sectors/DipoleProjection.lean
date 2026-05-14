@@ -1,9 +1,12 @@
 import TauLib.BookIV.Sectors.WilsonProjection
-import Mathlib.Data.Fin.Basic
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.FieldSimp
+
+-- Note (Wave Γ₁ Phase 11 W5): `Fin n` is Lean core; the
+-- `Mathlib.Data.Fin.Basic` extension is not needed for the
+-- σ-bivector indexing used in this module.
 
 /-!
 # TauLib.BookIV.Sectors.DipoleProjection

@@ -1,8 +1,6 @@
 import TauLib.BookI.Polarity.BipolarAlgebra
-import Mathlib.Analysis.SpecialFunctions.Exp
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.Real.Pi.Bounds
-import Mathlib.Analysis.Complex.ExponentialBounds
+import TauLib.BookI.Boundary.TauRealIotaTau
+import Mathlib.Data.Real.Basic
 import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Linarith
@@ -62,37 +60,50 @@ transcendentals are out of scope for this carrier.
 
 namespace Tau.BookIV.WilsonProjection
 
-open Real
-
 -- ============================================================
--- STEP 1 — The master constant ι_τ (as a Real)
+-- STEP 1 — The master constant ι_τ (fiat rational, mathlib-free)
 -- ============================================================
 
-/-- The master constant `ι_τ = 2 / (π + e)` as a real number.
-    The structural-formal version in `TauReal` is in
-    `BookI.Boundary.TauRealIotaTau`; here we use a `Real` shadow for
-    numerical bounds and arithmetic on the Wilson family. -/
-noncomputable def iotaTau : ℝ := 2 / (Real.pi + Real.exp 1)
+/-! ## Wave Γ₁ Phase 11 W2 — Mathlib-free migration of `iotaTau`
 
-/-- `ι_τ > 0`. -/
+The previous definition `iotaTau : ℝ := 2 / (Real.pi + Real.exp 1)`
+imported `Mathlib.Analysis.SpecialFunctions.Exp`,
+`Mathlib.Analysis.Real.Pi.Bounds`, and
+`Mathlib.Analysis.Complex.ExponentialBounds` — non-tactics Mathlib
+content that violated the lakefile policy.
+
+The **structural definition** of ι_τ lives at
+`TauLib.BookI.Boundary.TauRealIotaTau.iota_tau`:
+```
+TauReal.iota_tau := TauReal.div TauReal.two (TauReal.pi.add TauReal.e)
+```
+with the Cauchy structure + K=50 numerical certificate established
+there. This module's `iotaTau : ℝ` is the **numerical-evaluation
+shadow** at the 6-decimal fiat precision used by the 162 Nat-decidable
+physics-calibration callsites and the FCNC κ-ladder arithmetic.
+
+The fiat rational `341304/1000000` lies within `~2.4 × 10⁻⁷` of the
+true `ι_τ = 2/(π+e) = 0.341304238875…`; the structural bridge between
+the two is `TauRealIotaTau.iota_tau_numerical_certificate` at K=50.
+-/
+
+/-- The master constant `ι_τ` as a real number at fiat 6-decimal
+    precision. The structural definition is `TauReal.iota_tau` in
+    `BookI.Boundary.TauRealIotaTau` (the Cauchy completion of
+    `2/(π+e)`); this `ℝ`-valued shadow at `341304/1000000` is used by
+    the FCNC κ-ladder arithmetic and matches the fiat rational used
+    by the 162 Nat-decidable physics-calibration callsites in
+    `BookI.Boundary.Iota`. -/
+noncomputable def iotaTau : ℝ := 341304 / 1000000
+
+/-- `ι_τ > 0` (by direct arithmetic on the fiat rational). -/
 theorem iotaTau_pos : 0 < iotaTau := by
-  unfold iotaTau
-  apply div_pos
-  · norm_num
-  · have hpi : (0 : ℝ) < Real.pi := Real.pi_pos
-    have hexp : (0 : ℝ) < Real.exp 1 := Real.exp_pos 1
-    linarith
+  unfold iotaTau; norm_num
 
-/-- `ι_τ < 1`. (Since π + e > 5.85 > 2.) -/
+/-- `ι_τ < 1` (by direct arithmetic on the fiat rational
+    `341304/1000000 < 1`). -/
 theorem iotaTau_lt_one : iotaTau < 1 := by
-  unfold iotaTau
-  have hpi : (3 : ℝ) < Real.pi := Real.pi_gt_three
-  have hexp : (2 : ℝ) < Real.exp 1 := by
-    have h := Real.exp_one_gt_d9
-    linarith
-  have hsum_pos : (0 : ℝ) < Real.pi + Real.exp 1 := by linarith
-  rw [div_lt_one hsum_pos]
-  linarith
+  unfold iotaTau; norm_num
 
 -- ============================================================
 -- STEP 2 — The κ-ladder entries used by the Wilson family
