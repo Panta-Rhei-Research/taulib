@@ -1283,4 +1283,179 @@ theorem TauComplex.mul_BoundedBy_compounds_target_discharged :
     TauComplex.mul_BoundedBy_compounds_target :=
   fun z w M hM h_z h_w => TauComplex.mul_BoundedBy_compounds z w M hM h_z h_w
 
+-- ============================================================
+-- PART 18: PHASE 3C PART 3b''''''' — pow_BoundedBy_compounds + equiv_pow_congr
+-- ============================================================
+
+/-! ## Phase 3C Part 3b''''''' deliverables — pow congruence with bound tracking
+
+With `mul_BoundedBy_compounds` discharged (Part 3b'''''', commit `72d0501`),
+this part ships:
+
+* **`TauComplex.one_BoundedBy_one`** — base case bound for `pow z 0 =
+  TauComplex.one`.
+* **`TauComplex.BoundedBy_mono`** — monotonicity of `BoundedBy` in the
+  bound (used to bump bounds to a common `max`).
+* **`TauComplex.pow_BoundedBy_compounds`** — discharge of
+  `pow_BoundedBy_compounds_target` by induction on `k`, using
+  `mul_BoundedBy_compounds` and bound bumping.
+* **`TauComplex.equiv_pow_congr_strong`** — pow congruence theorem with
+  bounds on BOTH `z` and `z'`. By induction on `k` using
+  `equiv_mul_congr` + `pow_BoundedBy_compounds`.
+
+### Why the strengthened form
+
+`TauComplex.equiv_mul_congr` (Part 3b') requires bounds on:
+* `z'` (rhs of the first equiv).
+* `w` (lhs of the second equiv).
+
+In the pow induction at `k → k+1`, the application of `equiv_mul_congr` to:
+* `z := pow z k`, `z' := pow z' k`, `w := z`, `w' := z'`
+* hypotheses: `IH : pow z k ≈ pow z' k`, `h_zz : z ≈ z'`
+
+needs:
+* bound on `z' = pow z' k` ✓ — from `pow_BoundedBy_compounds` at `z'`.
+* bound on `w = z` ✗ — NOT provided by the named target (which only
+  gives `BoundedBy z' M`).
+
+`BoundedBy` is a pointwise predicate (at every `n`), and an equivalence
+`z ≈ z'` together with `BoundedBy z' M` does NOT imply `BoundedBy z N`
+for any fixed `N` — equivalent Cauchy sequences can have arbitrary
+pointwise values (only the differences tend to 0). Transferring the
+bound would require a "Cauchy bound transfer" lemma that finds an `N₀`
+beyond which `z` is bounded by `M+1`, and rephrases the equiv at the
+tail. That lemma is non-trivial and is deferred.
+
+The **strengthened form** with bounds on both `z` and `z'` is what the
+binomial theorem (Part 3b'''''''', queued) actually consumes. The named
+target `equiv_pow_congr_target` remains queued for a later session.
+
+### The named-target + later-discharge pattern (applied)
+
+Per `atlas/insights/2026-05-14-named-target-discharge-pattern.md`, when
+mid-discharge a proof reveals depth not anticipated at the
+named-target-shipping commit, the disciplined response is to ship the
+strengthened-discharge AND keep the original named target queued. This
+preserves trust budget (no sorry-laundering) while still delivering the
+practically-useful form.
+-/
+
+/-- **TauComplex.one bounded by 1.**
+
+    Componentwise: `TauComplex.one.re = TauReal.one` (bounded by 1 trivially)
+    and `TauComplex.one.im = TauReal.zero` (bounded by 0 ≤ 1). -/
+theorem TauComplex.one_BoundedBy_one : TauComplex.BoundedBy TauComplex.one 1 := by
+  refine ⟨?_, ?_⟩
+  · -- Real part: |TauRat.one| = 1 ≤ 1.
+    intro n
+    show (TauRat.one.abs).toRat ≤ ((1 : Nat) : Rat)
+    rw [TauRat.toRat_abs, toRat_one]
+    norm_num
+  · -- Imag part: |TauRat.zero| = 0 ≤ 1.
+    intro n
+    show (TauRat.zero.abs).toRat ≤ ((1 : Nat) : Rat)
+    rw [TauRat.toRat_abs, toRat_zero]
+    norm_num
+
+/-- **Monotonicity of `BoundedBy`**: if `BoundedBy z M` and `M ≤ N`,
+    then `BoundedBy z N`.
+
+    Used in the pow induction to bring `pow z k` and `z` to a common
+    bound `max Bk M` before applying `mul_BoundedBy_compounds`. -/
+theorem TauComplex.BoundedBy_mono {z : TauComplex} {M N : Nat} (h : M ≤ N)
+    (h_bound : TauComplex.BoundedBy z M) :
+    TauComplex.BoundedBy z N := by
+  have hMN : ((M : Nat) : Rat) ≤ ((N : Nat) : Rat) := by exact_mod_cast h
+  refine ⟨?_, ?_⟩
+  · intro n; exact le_trans (h_bound.1 n) hMN
+  · intro n; exact le_trans (h_bound.2 n) hMN
+
+/-- **Pow-bound compounding** (discharge of `pow_BoundedBy_compounds_target`):
+    if `BoundedBy z M` and `1 ≤ M`, then for every `k`, there exists
+    `Bk` with `1 ≤ Bk` and `BoundedBy (pow z k) Bk`.
+
+    Proof: induction on `k`.
+    * Base `k = 0`: `pow z 0 = TauComplex.one`, bounded by 1.
+    * Step `k → k+1`: by IH, `BoundedBy (pow z k) Bk`. Set `N := max Bk M`,
+      bump both `pow z k` and `z` to bound `N` via `BoundedBy_mono`, then
+      apply `mul_BoundedBy_compounds` to get bound `2·N·N` on
+      `(pow z k).mul z = pow z (k+1)`. -/
+theorem TauComplex.pow_BoundedBy_compounds (z : TauComplex) (M : Nat) (k : Nat)
+    (hM : 1 ≤ M) (h_bound : TauComplex.BoundedBy z M) :
+    ∃ Bk : Nat, 1 ≤ Bk ∧ TauComplex.BoundedBy (TauComplex.pow z k) Bk := by
+  induction k with
+  | zero =>
+    -- pow z 0 = TauComplex.one, bounded by 1.
+    exact ⟨1, le_refl 1, TauComplex.one_BoundedBy_one⟩
+  | succ k ih =>
+    obtain ⟨Bk, hBk_pos, h_pow⟩ := ih
+    -- Common bound N = max Bk M, then bump both factors.
+    let N : Nat := max Bk M
+    have hN_pos : 1 ≤ N := Nat.le_trans hBk_pos (Nat.le_max_left Bk M)
+    have h_pow_N : TauComplex.BoundedBy (TauComplex.pow z k) N :=
+      TauComplex.BoundedBy_mono (Nat.le_max_left Bk M) h_pow
+    have h_z_N : TauComplex.BoundedBy z N :=
+      TauComplex.BoundedBy_mono (Nat.le_max_right Bk M) h_bound
+    -- mul_BoundedBy_compounds: bound on (pow z k).mul z = pow z (k+1).
+    have h_mul := TauComplex.mul_BoundedBy_compounds (TauComplex.pow z k) z N hN_pos h_pow_N h_z_N
+    -- 1 ≤ 2*N*N since N ≥ 1.
+    have hMul_pos : 1 ≤ 2 * N * N := by
+      have hN0 : 0 < N := hN_pos
+      have h2N : 0 < 2 * N := by omega
+      have : 0 < 2 * N * N := Nat.mul_pos h2N hN0
+      omega
+    exact ⟨2 * N * N, hMul_pos, h_mul⟩
+
+/-- **Pow-bound compounding target discharged.** -/
+theorem TauComplex.pow_BoundedBy_compounds_target_discharged :
+    TauComplex.pow_BoundedBy_compounds_target :=
+  fun z M k hM h_z => TauComplex.pow_BoundedBy_compounds z M k hM h_z
+
+/-- **Strengthened pow congruence** (with bounds on BOTH `z` and `z'`):
+    if `z ≈ z'` with `BoundedBy z M` and `BoundedBy z' M`, then
+    `pow z k ≈ pow z' k` for all `k`.
+
+    Proof: induction on `k`.
+    * Base `k = 0`: both sides are `TauComplex.one`, reflexive.
+    * Step `k → k+1`:
+        - IH: `pow z k ≈ pow z' k`.
+        - `pow_BoundedBy_compounds` on `z'` gives bound `Bk'` on `pow z' k`.
+        - Set common bound `N := max Bk' M`, bump `pow z' k` and `z` to `N`.
+        - Apply `equiv_mul_congr` with `(z := pow z k, z' := pow z' k,
+          w := z, w' := z')` using IH and `h_zz`.
+
+    The named target `equiv_pow_congr_target` (which requires bound on
+    `z'` only) is NOT discharged here — it requires a Cauchy-bound-
+    transfer argument that we defer to a later session. The strengthened
+    form is what the binomial theorem (Part 3b'''''''' next) actually
+    consumes. -/
+theorem TauComplex.equiv_pow_congr_strong (z z' : TauComplex) (h_zz : z.equiv z')
+    (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z : TauComplex.BoundedBy z M)
+    (h_bound_z' : TauComplex.BoundedBy z' M) (k : Nat) :
+    (TauComplex.pow z k).equiv (TauComplex.pow z' k) := by
+  induction k with
+  | zero =>
+    -- pow z 0 = TauComplex.one = pow z' 0, reflexive.
+    show TauComplex.one.equiv TauComplex.one
+    exact TauComplex.equiv_refl TauComplex.one
+  | succ k ih =>
+    -- pow z (k+1) = (pow z k).mul z, pow z' (k+1) = (pow z' k).mul z'.
+    show ((TauComplex.pow z k).mul z).equiv ((TauComplex.pow z' k).mul z')
+    -- Bound on pow z' k via pow_BoundedBy_compounds at z'.
+    obtain ⟨Bk', hBk'_pos, h_pow_z'⟩ :=
+      TauComplex.pow_BoundedBy_compounds z' M k hM h_bound_z'
+    -- Common bound N = max Bk' M for the multiplication step.
+    let N : Nat := max Bk' M
+    have hN_pos : 1 ≤ N := Nat.le_trans hBk'_pos (Nat.le_max_left Bk' M)
+    have h_pow_z'_N : TauComplex.BoundedBy (TauComplex.pow z' k) N :=
+      TauComplex.BoundedBy_mono (Nat.le_max_left Bk' M) h_pow_z'
+    have h_z_N : TauComplex.BoundedBy z N :=
+      TauComplex.BoundedBy_mono (Nat.le_max_right Bk' M) h_bound_z
+    -- Apply equiv_mul_congr: bound on z' = pow z' k ✓, bound on w = z ✓.
+    exact TauComplex.equiv_mul_congr (z := TauComplex.pow z k)
+            (z' := TauComplex.pow z' k) (w := z) (w' := z')
+            N N hN_pos hN_pos
+            h_pow_z'_N.1 h_pow_z'_N.2 h_z_N.1 h_z_N.2 ih h_zz
+
 end Tau.Boundary
