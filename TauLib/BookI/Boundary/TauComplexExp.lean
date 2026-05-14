@@ -1003,4 +1003,123 @@ exp on TauComplex. Phase 3C Part 3 (the actual exp_add lift) is the
 next session's M3 breakthrough work.
 -/
 
+-- ============================================================
+-- PART 15: PHASE 3C PART 3b'''' — Sum-mul-distributivity at TauComplex
+-- ============================================================
+
+/-! ## Phase 3C Part 3b'''' deliverables — sum-manipulation infrastructure
+
+The inductive step of the binomial theorem (Part 3b''''') needs to
+distribute `(z₁ + z₂)` over a sum, which requires:
+
+1. **Right-distributivity at equiv**: `(a + b) · c ≈ a·c + b·c`.
+2. **Sum-mul distributivity**: `(sum f n) · z ≈ sum (fun i => (f i)·z) n`.
+
+These foundational structural lemmas derive from the existing ring
+axioms via the equiv-congruence framework. They unblock Part 3b''''' (the
+substantive binomial induction step) without re-deriving structural
+manipulations inline.
+-/
+
+/-- `zero.mul z ≈ zero` at TauComplex.equiv level.
+
+    Direct componentwise pointwise reduction. -/
+theorem TauComplex.zero_mul_equiv (z : TauComplex) :
+    (TauComplex.zero.mul z).equiv TauComplex.zero := by
+  refine ⟨?_, ?_⟩
+  · apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.mul, TauComplex.zero,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate, TauReal.zero]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate, TauRat.zero]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+    try decide
+  · apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.mul, TauComplex.zero,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate, TauReal.zero]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate, TauRat.zero]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+    try decide
+
+/-- **Right-distributivity at equiv**: `(a + b) · c ≈ a·c + b·c`.
+
+    Derived from `taucomplex_left_distrib` (`a · (b + c) ≈ a·b + a·c`)
+    via `taucomplex_mul_comm` chains. -/
+theorem TauComplex.right_distrib_equiv (a b c : TauComplex) :
+    ((a.add b).mul c).equiv ((a.mul c).add (b.mul c)) := by
+  -- (a+b)·c ≈ c·(a+b)     [mul_comm]
+  --        ≈ c·a + c·b   [left_distrib]
+  --        ≈ a·c + b·c   [mul_comm on each term via equiv_add_congr]
+  have h1 : ((a.add b).mul c).equiv (c.mul (a.add b)) :=
+    taucomplex_mul_comm (a.add b) c
+  have h2 : (c.mul (a.add b)).equiv ((c.mul a).add (c.mul b)) :=
+    taucomplex_left_distrib c a b
+  have h3 : ((c.mul a).add (c.mul b)).equiv ((a.mul c).add (b.mul c)) :=
+    TauComplex.equiv_add_congr (taucomplex_mul_comm c a) (taucomplex_mul_comm c b)
+  exact TauComplex.equiv_trans (TauComplex.equiv_trans h1 h2) h3
+
+/-- **Sum-mul-distributivity (right)**: `(sum f n) · z ≈ sum (fun i => (f i)·z) n`.
+
+    Foundational lemma for the binomial theorem's inductive step:
+    distributing `(z₁+z₂)` over `sum (binomial-terms n)`.
+
+    Proof by induction on `n`:
+    - Base (n=0): `sum f 0 = zero`, so LHS = `zero · z ≈ zero` (via
+      `zero_mul_equiv`), and RHS = `sum (...) 0 = zero`.
+    - Step (n+1): LHS = `(sum f n + f n) · z ≈ (sum f n)·z + (f n)·z`
+      (`right_distrib_equiv`), then by IH on the first term + `equiv_add_congr`
+      gives `sum (...) n + (f n)·z = RHS`. -/
+theorem TauComplex.sum_mul_distrib_right
+    (f : Nat → TauComplex) (z : TauComplex) (n : Nat) :
+    ((TauComplex.sum f n).mul z).equiv (TauComplex.sum (fun i => (f i).mul z) n) := by
+  induction n with
+  | zero =>
+    show (TauComplex.zero.mul z).equiv TauComplex.zero
+    exact TauComplex.zero_mul_equiv z
+  | succ n ih =>
+    show (((TauComplex.sum f n).add (f n)).mul z).equiv
+          ((TauComplex.sum (fun i => (f i).mul z) n).add ((f n).mul z))
+    have h_distrib : (((TauComplex.sum f n).add (f n)).mul z).equiv
+                      (((TauComplex.sum f n).mul z).add ((f n).mul z)) :=
+      TauComplex.right_distrib_equiv (TauComplex.sum f n) (f n) z
+    have h_ih : (((TauComplex.sum f n).mul z).add ((f n).mul z)).equiv
+                  ((TauComplex.sum (fun i => (f i).mul z) n).add ((f n).mul z)) :=
+      TauComplex.equiv_add_congr ih (TauComplex.equiv_refl _)
+    exact TauComplex.equiv_trans h_distrib h_ih
+
+/-- Helper: pointwise mul-comm lifts through sum.
+    `sum (fun i => (f i).mul z) n ≈ sum (fun i => z.mul (f i)) n`. -/
+private theorem TauComplex.sum_mul_swap (f : Nat → TauComplex) (z : TauComplex) (n : Nat) :
+    (TauComplex.sum (fun i => (f i).mul z) n).equiv
+      (TauComplex.sum (fun i => z.mul (f i)) n) := by
+  induction n with
+  | zero => exact TauComplex.equiv_refl _
+  | succ n ih =>
+    show ((TauComplex.sum (fun i => (f i).mul z) n).add ((f n).mul z)).equiv
+          ((TauComplex.sum (fun i => z.mul (f i)) n).add (z.mul (f n)))
+    exact TauComplex.equiv_add_congr ih (taucomplex_mul_comm (f n) z)
+
+/-- **Sum-mul-distributivity (left)**: `z · (sum f n) ≈ sum (fun i => z·(f i)) n`.
+
+    Derived from the right version via `taucomplex_mul_comm`. -/
+theorem TauComplex.sum_mul_distrib_left
+    (z : TauComplex) (f : Nat → TauComplex) (n : Nat) :
+    (z.mul (TauComplex.sum f n)).equiv (TauComplex.sum (fun i => z.mul (f i)) n) := by
+  have h_comm : (z.mul (TauComplex.sum f n)).equiv ((TauComplex.sum f n).mul z) :=
+    taucomplex_mul_comm z (TauComplex.sum f n)
+  have h_distrib : ((TauComplex.sum f n).mul z).equiv
+                    (TauComplex.sum (fun i => (f i).mul z) n) :=
+    TauComplex.sum_mul_distrib_right f z n
+  have h_swap : (TauComplex.sum (fun i => (f i).mul z) n).equiv
+                  (TauComplex.sum (fun i => z.mul (f i)) n) :=
+    TauComplex.sum_mul_swap f z n
+  exact TauComplex.equiv_trans (TauComplex.equiv_trans h_comm h_distrib) h_swap
+
 end Tau.Boundary
