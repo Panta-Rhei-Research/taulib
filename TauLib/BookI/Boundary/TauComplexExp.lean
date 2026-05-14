@@ -2229,4 +2229,105 @@ theorem TauComplex.pascal_sum_decompose
     (n+1)
   exact TauComplex.equiv_trans h_terms h_split
 
+-- ============================================================
+-- PART 24: PHASE 3C PART 3b''''''''''''' — First-term simplification
+-- ============================================================
+
+/-! ## Phase 3C Part 3b''''''''''''' deliverables — first-term reduction
+
+For the Pascal step's final combine (Part 3b'''''''''''''', next), we
+need to reduce the i=0/j=0 boundary terms of `Σ_right` and `B_left(n+1)`
+to a clean `pow z₂ (n+1)` form. Specifically:
+
+* B_left(n+1) at j=0:
+    `((fromTauReal (fromNat (Nat.choose (n+1) 0))).mul (pow z₁ 0)).mul (pow z₂ (n+1-0))`
+    = `((fromTauReal (fromNat 1)).mul one).mul (pow z₂ (n+1))`
+    ≈ `pow z₂ (n+1)`
+
+* Σ_right at i=0:
+    `((fromTauReal (fromNat (Nat.choose n 0))).mul (pow z₁ 0)).mul (pow z₂ ((n-0)+1))`
+    = `((fromTauReal (fromNat 1)).mul one).mul (pow z₂ (n+1))`
+    ≈ `pow z₂ (n+1)`
+
+Both reduce via the same chain. This commit ships:
+
+### Deliverables
+
+* `TauComplex.fromTauReal_fromNat_one` — `fromTauReal (fromNat 1) ≈
+  TauComplex.one`. Via pointwise TauRat-level reduction with `ring`.
+
+* `TauComplex.first_term_simplify` — the unified i=0/j=0 simplification:
+    `((fromTauReal (fromNat 1)).mul one).mul (pow z₂ (n+1)) ≈ pow z₂ (n+1)`.
+  Chain:
+    1. `(fromTauReal (fromNat 1)).mul one ≈ fromTauReal (fromNat 1)`
+       via `taucomplex_mul_one` (bound-free).
+    2. `fromTauReal (fromNat 1) ≈ one` via `fromTauReal_fromNat_one`
+       (bound-free).
+    3. Substitute into `_·pow z₂ (n+1)`: bound on `pow z₂ (n+1)` from
+       `pow_BoundedBy_compounds` at z₂.
+    4. `one.mul (pow z₂ (n+1)) ≈ pow z₂ (n+1)` via `one_mul_equiv`
+       (bound-free).
+
+  One bounded substitution + three bound-free ring axioms.
+-/
+
+/-- **fromTauReal ∘ fromNat 1 is TauComplex.one** at equiv level:
+    `(fromTauReal (fromNat 1)).equiv TauComplex.one`.
+
+    Componentwise via pointwise TauRat-level reduction: `(fromNat 1)
+    .approx n = nat_to_taurat 1` which has num=1, den=1, matching
+    `TauReal.one.approx n = TauRat.one`. The imag side is `zero ≈
+    zero` (refl). -/
+theorem TauComplex.fromTauReal_fromNat_one :
+    (TauComplex.fromTauReal (TauReal.fromNat 1)).equiv TauComplex.one := by
+  refine ⟨?_, ?_⟩
+  · -- Real part: fromNat 1 ≈ TauReal.one pointwise.
+    apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.fromTauReal, TauComplex.one,
+               TauReal.fromNat, TauReal.fromTauRat, TauReal.one]
+    simp only [TauRat.equiv, TauRat.one, nat_to_taurat, int_to_taurat]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_nat_to_tauint,
+                    toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+    try decide
+  · -- Imag part: TauReal.zero ≈ TauReal.zero (refl).
+    exact TauReal.equiv_refl _
+
+/-- **First-term simplification**: the i=0 / j=0 boundary term of
+    Σ_right and B_left(n+1) reduces to `pow z₂ (n+1)`.
+
+    `((fromTauReal (fromNat 1)).mul one).mul (pow z₂ (n+1)) ≈ pow z₂ (n+1)`.
+
+    Used in Part 3b'''''''''''''' to discharge the first-term boundaries
+    of the Pascal combine. -/
+theorem TauComplex.first_term_simplify (z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    (((TauComplex.fromTauReal (TauReal.fromNat 1)).mul TauComplex.one).mul
+      (TauComplex.pow z₂ (n+1))).equiv (TauComplex.pow z₂ (n+1)) := by
+  -- Step 1: (fromTauReal (fromNat 1)).mul one ≈ fromTauReal (fromNat 1) [mul_one]
+  have h1 : ((TauComplex.fromTauReal (TauReal.fromNat 1)).mul TauComplex.one).equiv
+              (TauComplex.fromTauReal (TauReal.fromNat 1)) :=
+    taucomplex_mul_one (TauComplex.fromTauReal (TauReal.fromNat 1))
+  -- Step 2: fromTauReal (fromNat 1) ≈ one [fromTauReal_fromNat_one]
+  have h2 : (TauComplex.fromTauReal (TauReal.fromNat 1)).equiv TauComplex.one :=
+    TauComplex.fromTauReal_fromNat_one
+  -- Chain to get inner ≈ one
+  have h_inner : ((TauComplex.fromTauReal (TauReal.fromNat 1)).mul TauComplex.one).equiv
+                  TauComplex.one := TauComplex.equiv_trans h1 h2
+  -- Step 3: substitute into _·pow z₂ (n+1) [needs bound on pow z₂ (n+1)]
+  obtain ⟨B_Q, hBQ_pos, h_bound_Q⟩ :=
+    TauComplex.pow_BoundedBy_compounds z₂ M (n+1) hM h_bound_z2
+  have h_step3 : (((TauComplex.fromTauReal (TauReal.fromNat 1)).mul TauComplex.one).mul
+                   (TauComplex.pow z₂ (n+1))).equiv
+                  (TauComplex.one.mul (TauComplex.pow z₂ (n+1))) :=
+    TauComplex.mul_respects_equiv_right_of_bound
+      _ _ (TauComplex.pow z₂ (n+1)) B_Q hBQ_pos h_bound_Q.1 h_bound_Q.2 h_inner
+  -- Step 4: one.mul X ≈ X [one_mul_equiv]
+  have h_step4 : (TauComplex.one.mul (TauComplex.pow z₂ (n+1))).equiv (TauComplex.pow z₂ (n+1)) :=
+    TauComplex.one_mul_equiv (TauComplex.pow z₂ (n+1))
+  exact TauComplex.equiv_trans h_step3 h_step4
+
 end Tau.Boundary
