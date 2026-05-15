@@ -3826,4 +3826,80 @@ theorem TauComplex.mul_im_approx (x y : TauComplex) (m : Nat) :
       = TauRat.add (TauRat.mul (x.re.approx m) (y.im.approx m))
                    (TauRat.mul (x.im.approx m) (y.re.approx m)) := rfl
 
+-- ============================================================
+-- PART 36: PHASE 3C PART 3c.3 — TauComplex.cauchyDiag componentwise expansion
+-- ============================================================
+
+/-! ## Componentwise cauchyDiag expansion
+
+Combining `sum_re_approx` (Part 3c.1) and `mul_re_approx` (Part 3c.2)
+expresses `(TauComplex.cauchyDiag a b k).{re,im}.approx m` as a
+`TauRat.sum` of the appropriate `TauRat.sub` / `TauRat.add` of cross
+products of the componentwise approximations.
+
+These are the "double Cauchy" structural expansions:
+* **Real part**: `Σᵢ [(aᵢ.re · b_{k-i}.re) − (aᵢ.im · b_{k-i}.im)]` (real
+  part of complex product mixes re·re minus im·im).
+* **Imaginary part**: `Σᵢ [(aᵢ.re · b_{k-i}.im) + (aᵢ.im · b_{k-i}.re)]`
+  (imaginary part mixes re·im plus im·re).
+
+At the `.toRat` level these split into a difference (resp. sum) of two
+genuine `TauRat.cauchyDiag` expressions, but we keep the structural
+form here to avoid premature `.toRat`-projection. -/
+
+/-- **TauComplex.cauchyDiag_re_approx**: structural expansion of the
+    real part of `cauchyDiag` at `.approx m` level.
+
+    `(TauComplex.cauchyDiag a b k).re.approx m
+       = TauRat.sum (fun i => (aᵢ.re · b_{k-i}.re) − (aᵢ.im · b_{k-i}.im)) (k+1)` -/
+theorem TauComplex.cauchyDiag_re_approx (a b : Nat → TauComplex) (k m : Nat) :
+    (TauComplex.cauchyDiag a b k).re.approx m
+      = TauRat.sum (fun i =>
+          TauRat.sub
+            (TauRat.mul ((a i).re.approx m) ((b (k - i)).re.approx m))
+            (TauRat.mul ((a i).im.approx m) ((b (k - i)).im.approx m)))
+        (k + 1) := by
+  show (TauComplex.sum (fun i => (a i).mul (b (k - i))) (k + 1)).re.approx m
+     = _
+  rw [TauComplex.sum_re_approx]
+  rfl
+
+/-- **TauComplex.cauchyDiag_im_approx**: structural expansion of the
+    imaginary part of `cauchyDiag` at `.approx m` level.
+
+    `(TauComplex.cauchyDiag a b k).im.approx m
+       = TauRat.sum (fun i => (aᵢ.re · b_{k-i}.im) + (aᵢ.im · b_{k-i}.re)) (k+1)` -/
+theorem TauComplex.cauchyDiag_im_approx (a b : Nat → TauComplex) (k m : Nat) :
+    (TauComplex.cauchyDiag a b k).im.approx m
+      = TauRat.sum (fun i =>
+          TauRat.add
+            (TauRat.mul ((a i).re.approx m) ((b (k - i)).im.approx m))
+            (TauRat.mul ((a i).im.approx m) ((b (k - i)).re.approx m)))
+        (k + 1) := by
+  show (TauComplex.sum (fun i => (a i).mul (b (k - i))) (k + 1)).im.approx m
+     = _
+  rw [TauComplex.sum_im_approx]
+  rfl
+
+/-- **TauComplex.cauchyPStar_re_approx**: structural expansion of the
+    real part of `cauchyPStar` at `.approx m` level.
+
+    `(TauComplex.cauchyPStar a b N).re.approx m
+       = TauRat.sum (fun k => (cauchyDiag a b k).re.approx m) N`
+
+    Follows from `sum_re_approx` applied to the outer sum. -/
+theorem TauComplex.cauchyPStar_re_approx (a b : Nat → TauComplex) (N m : Nat) :
+    (TauComplex.cauchyPStar a b N).re.approx m
+      = TauRat.sum (fun k => (TauComplex.cauchyDiag a b k).re.approx m) N := by
+  show (TauComplex.sum (TauComplex.cauchyDiag a b) N).re.approx m = _
+  rw [TauComplex.sum_re_approx]
+
+/-- **TauComplex.cauchyPStar_im_approx**: structural expansion of the
+    imaginary part of `cauchyPStar` at `.approx m` level. -/
+theorem TauComplex.cauchyPStar_im_approx (a b : Nat → TauComplex) (N m : Nat) :
+    (TauComplex.cauchyPStar a b N).im.approx m
+      = TauRat.sum (fun k => (TauComplex.cauchyDiag a b k).im.approx m) N := by
+  show (TauComplex.sum (TauComplex.cauchyDiag a b) N).im.approx m = _
+  rw [TauComplex.sum_im_approx]
+
 end Tau.Boundary
