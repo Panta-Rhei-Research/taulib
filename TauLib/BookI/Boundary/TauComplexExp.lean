@@ -4197,4 +4197,112 @@ theorem TauComplex.cauchy_product_bound_im
         linarith [h_reim_bound, h_imre_bound]
     _ = 2 * (n : Rat) * C ^ 2 / (2 : Rat) ^ (n - 1) := by ring
 
+-- ============================================================
+-- PART 40: PHASE 3C PART 3d — TauComplex.pow componentwise magnitude bound
+-- ============================================================
+
+/-! ## TauComplex pow componentwise magnitude bound
+
+For the M3 endpoint, we need to establish geometric magnitude bounds on
+`(exp_term z i).re.approx m .toRat` and `(exp_term z i).im.approx m .toRat`,
+which feed `cauchy_product_bound_re/im` as the per-term geometric bound
+`≤ C / 2^i`.
+
+Since `exp_term z i = scale_by_inv_factorial (pow z i) i` componentwise,
+the chain is:
+1. **Bound on `pow z i` components** (this Part 3d): given
+   `TauComplex.BoundedBy z M`, `|((pow z i).{re,im}.approx m).toRat|
+   ≤ (2M)^i`. The factor of 2 vs. M^i comes from the TauComplex.mul cross
+   products: each mul step contributes a factor of 2M (sum of two M·M
+   cross products). The bound is **tight** under componentwise BoundedBy.
+2. **Bound on exp_term** (Part 3e, queued): combine with
+   `scale_by_inv_factorial_toRat` to get `|.| ≤ (2M)^i / i!`.
+3. **Convert to `C / 2^i` form** (Part 3e): for `M ≤ 1` (Nat), `(2M)^i / i!
+   ≤ 2^i / i!`, which is `≤ C / 2^i` iff `4^i ≤ C · i!`. The max of
+   `4^i / i!` over all `i` is `~11` (achieved at i=3,4), so `C = 11`
+   suffices.
+
+### The inductive structure
+
+Both `re` and `im` bounds prove **simultaneously** by induction on `i`:
+* **Base** `i = 0`: `pow z 0 = one`. `one.re.approx m = TauRat.one` (so
+  `|1| = 1 ≤ 1 = (2M)^0`); `one.im.approx m = TauRat.zero` (so `0 ≤ 1`).
+* **Step** `i + 1`: `pow z (i+1) = (pow z i).mul z`. Both `.re` and `.im`
+  satisfy the same bound via the mul cross-product structure + triangle
+  inequality + IH. -/
+
+/-- **TauComplex.pow componentwise magnitude bound (simultaneous re+im).**
+
+    Given `TauComplex.BoundedBy z M`, both `.re.approx m .toRat` and
+    `.im.approx m .toRat` of `pow z k` are bounded by `(2M)^k`. -/
+theorem TauComplex.pow_re_im_abs_le (z : TauComplex) (M : Nat)
+    (h : TauComplex.BoundedBy z M) (k m : Nat) :
+    |((TauComplex.pow z k).re.approx m).toRat| ≤ ((2 * M : Nat) : Rat) ^ k ∧
+    |((TauComplex.pow z k).im.approx m).toRat| ≤ ((2 * M : Nat) : Rat) ^ k := by
+  induction k with
+  | zero =>
+    -- pow z 0 = one. one.re.approx m .toRat = 1, one.im.approx m .toRat = 0.
+    refine ⟨?_, ?_⟩
+    · show |((TauComplex.one.re.approx m).toRat)| ≤ ((2 * M : Nat) : Rat) ^ 0
+      -- one.re = TauReal.one, .approx m = TauRat.one, .toRat = 1, |1| = 1.
+      show |((TauReal.one.approx m).toRat)| ≤ 1
+      show |TauRat.one.toRat| ≤ 1
+      rw [toRat_one]
+      simp
+    · show |((TauComplex.one.im.approx m).toRat)| ≤ ((2 * M : Nat) : Rat) ^ 0
+      show |((TauReal.zero.approx m).toRat)| ≤ 1
+      show |TauRat.zero.toRat| ≤ 1
+      rw [toRat_zero]
+      simp
+  | succ k ih =>
+    obtain ⟨h_re_k, h_im_k⟩ := ih
+    have hM_nn : (0 : Rat) ≤ ((2 * M : Nat) : Rat) := by
+      exact_mod_cast Nat.zero_le (2 * M)
+    have hM_pow_nn : (0 : Rat) ≤ ((2 * M : Nat) : Rat) ^ k :=
+      pow_nonneg hM_nn k
+    have h_z_re : |(z.re.approx m).toRat| ≤ (M : Rat) := by
+      have := h.1 m
+      rwa [TauRat.toRat_abs] at this
+    have h_z_im : |(z.im.approx m).toRat| ≤ (M : Rat) := by
+      have := h.2 m
+      rwa [TauRat.toRat_abs] at this
+    have hM_nat_nn : (0 : Rat) ≤ (M : Rat) := by exact_mod_cast Nat.zero_le M
+    -- 2 * M cast: ((2 * M : Nat) : Rat) = 2 * (M : Rat)
+    have h_cast : ((2 * M : Nat) : Rat) = 2 * (M : Rat) := by push_cast; ring
+    refine ⟨?_, ?_⟩
+    · -- |(pow z (k+1)).re.approx m .toRat| ≤ (2M)^(k+1)
+      rw [TauComplex.pow_succ, TauComplex.mul_re_approx, toRat_sub, toRat_mul, toRat_mul]
+      calc |((TauComplex.pow z k).re.approx m).toRat * (z.re.approx m).toRat
+              - ((TauComplex.pow z k).im.approx m).toRat * (z.im.approx m).toRat|
+          ≤ |((TauComplex.pow z k).re.approx m).toRat * (z.re.approx m).toRat|
+            + |((TauComplex.pow z k).im.approx m).toRat * (z.im.approx m).toRat| :=
+            abs_sub _ _
+        _ = |((TauComplex.pow z k).re.approx m).toRat| * |(z.re.approx m).toRat|
+            + |((TauComplex.pow z k).im.approx m).toRat| * |(z.im.approx m).toRat| := by
+              rw [abs_mul, abs_mul]
+        _ ≤ ((2 * M : Nat) : Rat) ^ k * (M : Rat)
+            + ((2 * M : Nat) : Rat) ^ k * (M : Rat) := by
+              apply add_le_add
+              · exact mul_le_mul h_re_k h_z_re (abs_nonneg _) hM_pow_nn
+              · exact mul_le_mul h_im_k h_z_im (abs_nonneg _) hM_pow_nn
+        _ = ((2 * M : Nat) : Rat) ^ (k + 1) := by
+              rw [h_cast]; ring
+    · -- |(pow z (k+1)).im.approx m .toRat| ≤ (2M)^(k+1)
+      rw [TauComplex.pow_succ, TauComplex.mul_im_approx, toRat_add, toRat_mul, toRat_mul]
+      calc |((TauComplex.pow z k).re.approx m).toRat * (z.im.approx m).toRat
+              + ((TauComplex.pow z k).im.approx m).toRat * (z.re.approx m).toRat|
+          ≤ |((TauComplex.pow z k).re.approx m).toRat * (z.im.approx m).toRat|
+            + |((TauComplex.pow z k).im.approx m).toRat * (z.re.approx m).toRat| :=
+            abs_add_le _ _
+        _ = |((TauComplex.pow z k).re.approx m).toRat| * |(z.im.approx m).toRat|
+            + |((TauComplex.pow z k).im.approx m).toRat| * |(z.re.approx m).toRat| := by
+              rw [abs_mul, abs_mul]
+        _ ≤ ((2 * M : Nat) : Rat) ^ k * (M : Rat)
+            + ((2 * M : Nat) : Rat) ^ k * (M : Rat) := by
+              apply add_le_add
+              · exact mul_le_mul h_re_k h_z_im (abs_nonneg _) hM_pow_nn
+              · exact mul_le_mul h_im_k h_z_re (abs_nonneg _) hM_pow_nn
+        _ = ((2 * M : Nat) : Rat) ^ (k + 1) := by
+              rw [h_cast]; ring
+
 end Tau.Boundary
