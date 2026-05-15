@@ -3404,4 +3404,82 @@ theorem TauComplex.scale_by_inv_factorial_respects_equiv
   ⟨TauReal.scale_by_inv_factorial_respects_equiv z.re z'.re k h.1,
    TauReal.scale_by_inv_factorial_respects_equiv z.im z'.im k h.2⟩
 
+/-- **TauRat-level scale-add distributivity** (via `TauRat.equiv` =
+    toRat-equality): `scale (p + q) k ≈ scale p k + scale q k`.
+
+    Both sides have toRat `(p.toRat + q.toRat) / k!`. Proof: unfold
+    via `scale_by_inv_factorial_toRat` and `toRat_add`, close by `ring`. -/
+theorem TauRat.scale_by_inv_factorial_add_equiv (p q : TauRat) (k : Nat) :
+    TauRat.equiv (TauRat.scale_by_inv_factorial (p.add q) k)
+                 ((TauRat.scale_by_inv_factorial p k).add (TauRat.scale_by_inv_factorial q k)) := by
+  rw [equiv_iff_toRat_eq, TauRat.scale_by_inv_factorial_toRat, toRat_add, toRat_add,
+      TauRat.scale_by_inv_factorial_toRat, TauRat.scale_by_inv_factorial_toRat]
+  have hk_fac_pos : (0 : Rat) < (k.factorial : Rat) := by
+    have := Nat.factorial_pos k; exact_mod_cast this
+  field_simp
+
+/-- **TauReal.scale_by_inv_factorial distributes over add**:
+    `scale (a + b) k ≈ scale a k + scale b k`.
+
+    Componentwise lift via `equiv_of_pointwise` of the TauRat-level identity. -/
+theorem TauReal.scale_by_inv_factorial_distrib_add (a b : TauReal) (k : Nat) :
+    (TauReal.scale_by_inv_factorial (a.add b) k).equiv
+    ((TauReal.scale_by_inv_factorial a k).add (TauReal.scale_by_inv_factorial b k)) := by
+  apply TauReal.equiv_of_pointwise
+  intro m
+  exact TauRat.scale_by_inv_factorial_add_equiv (a.approx m) (b.approx m) k
+
+/-- **TauComplex.scale_by_inv_factorial distributes over add**:
+    `scale (z + w) k ≈ scale z k + scale w k`.
+
+    Componentwise lift of `TauReal.scale_by_inv_factorial_distrib_add`. -/
+theorem TauComplex.scale_by_inv_factorial_distrib_add (z w : TauComplex) (k : Nat) :
+    (TauComplex.scale_by_inv_factorial (z.add w) k).equiv
+    ((TauComplex.scale_by_inv_factorial z k).add (TauComplex.scale_by_inv_factorial w k)) :=
+  ⟨TauReal.scale_by_inv_factorial_distrib_add z.re w.re k,
+   TauReal.scale_by_inv_factorial_distrib_add z.im w.im k⟩
+
+/-- **scale_by_inv_factorial of zero ≈ zero**.
+
+    At TauRat level, `scale TauRat.zero k` has num=0, den=k!, hence
+    toRat = 0/k! = 0. So pointwise toRat-equal to TauRat.zero. -/
+theorem TauReal.scale_by_inv_factorial_zero (k : Nat) :
+    (TauReal.scale_by_inv_factorial TauReal.zero k).equiv TauReal.zero := by
+  apply TauReal.equiv_of_pointwise
+  intro m
+  rw [equiv_iff_toRat_eq, TauReal.scale_by_inv_factorial_approx,
+      TauRat.scale_by_inv_factorial_toRat]
+  show ((TauReal.zero.approx m).toRat) / (k.factorial : Rat) = (TauReal.zero.approx m).toRat
+  rw [show (TauReal.zero.approx m) = TauRat.zero from rfl, toRat_zero]
+  simp
+
+theorem TauComplex.scale_by_inv_factorial_zero (k : Nat) :
+    (TauComplex.scale_by_inv_factorial TauComplex.zero k).equiv TauComplex.zero :=
+  ⟨TauReal.scale_by_inv_factorial_zero k, TauReal.scale_by_inv_factorial_zero k⟩
+
+/-- **TauComplex.scale_by_inv_factorial distributes over sum**:
+    `scale (sum f m) k ≈ sum (fun i => scale (f i) k) m`.
+
+    Proof: induction on `m`. Base case uses `scale_zero ≈ zero`. Step
+    uses `scale_distrib_add` + IH via `equiv_trans` + `equiv_add_congr`. -/
+theorem TauComplex.scale_by_inv_factorial_distrib_sum
+    (f : Nat → TauComplex) (m k : Nat) :
+    (TauComplex.scale_by_inv_factorial (TauComplex.sum f m) k).equiv
+    (TauComplex.sum (fun i => TauComplex.scale_by_inv_factorial (f i) k) m) := by
+  induction m with
+  | zero =>
+    -- sum f 0 = zero; sum (scale ∘ f) 0 = zero. scale zero k ≈ zero.
+    show (TauComplex.scale_by_inv_factorial TauComplex.zero k).equiv TauComplex.zero
+    exact TauComplex.scale_by_inv_factorial_zero k
+  | succ m ih =>
+    -- sum f (m+1) = (sum f m).add (f m) by sum_succ.
+    -- Apply scale_distrib_add to bridge scale(sum f m + f m) ≈ scale(sum f m) + scale(f m).
+    -- Then ih on the first part + equiv_refl on the second.
+    show (TauComplex.scale_by_inv_factorial ((TauComplex.sum f m).add (f m)) k).equiv
+          ((TauComplex.sum (fun i => TauComplex.scale_by_inv_factorial (f i) k) m).add
+            (TauComplex.scale_by_inv_factorial (f m) k))
+    apply TauComplex.equiv_trans
+      (TauComplex.scale_by_inv_factorial_distrib_add (TauComplex.sum f m) (f m) k)
+    exact TauComplex.equiv_add_congr ih (TauComplex.equiv_refl _)
+
 end Tau.Boundary
