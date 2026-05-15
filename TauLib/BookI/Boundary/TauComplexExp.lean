@@ -3482,4 +3482,29 @@ theorem TauComplex.scale_by_inv_factorial_distrib_sum
       (TauComplex.scale_by_inv_factorial_distrib_add (TauComplex.sum f m) (f m) k)
     exact TauComplex.equiv_add_congr ih (TauComplex.equiv_refl _)
 
+/-- **Factorial split at choose** (Rat-level): for `i ≤ n`,
+    `(C(n,i) : Rat) / n! = 1 / (i! · (n-i)!)`.
+
+    Foundational arithmetic identity for the factorial-split step in
+    `exp_term_add_eq_cauchyDiag_target` discharge. Direct consequence
+    of the combinatorial identity `C(n,i) · i! · (n-i)! = n!`
+    (`Nat.choose_mul_factorial_mul_factorial`) cast to Rat. -/
+theorem TauRat.choose_div_factorial_eq (n i : Nat) (h : i ≤ n) :
+    ((Nat.choose n i : Rat) / (n.factorial : Rat))
+    = 1 / ((i.factorial : Rat) * ((n - i).factorial : Rat)) := by
+  -- Nat-level combinatorial identity
+  have h_combinatorial : Nat.choose n i * i.factorial * (n - i).factorial = n.factorial :=
+    Nat.choose_mul_factorial_mul_factorial h
+  have h_rat : (Nat.choose n i : Rat) * (i.factorial : Rat) * ((n - i).factorial : Rat)
+             = (n.factorial : Rat) := by exact_mod_cast h_combinatorial
+  -- Factorial positivity for field_simp
+  have hi_ne : (i.factorial : Rat) ≠ 0 := by
+    have := Nat.factorial_pos i; exact_mod_cast this.ne'
+  have hni_ne : ((n - i).factorial : Rat) ≠ 0 := by
+    have := Nat.factorial_pos (n - i); exact_mod_cast this.ne'
+  have hn_ne : (n.factorial : Rat) ≠ 0 := by
+    have := Nat.factorial_pos n; exact_mod_cast this.ne'
+  field_simp
+  linear_combination h_rat
+
 end Tau.Boundary
