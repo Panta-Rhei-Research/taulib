@@ -3784,4 +3784,46 @@ theorem TauComplex.sum_im_approx (f : Nat → TauComplex) (n m : Nat) :
        = TauRat.add (TauRat.sum (fun i => (f i).im.approx m) n) ((f n).im.approx m)
     rw [ih]
 
+-- ============================================================
+-- PART 35: PHASE 3C PART 3c.2 — TauComplex.mul approx-bridge to TauRat ops
+-- ============================================================
+
+/-! ## Componentwise mul bridges to TauRat arithmetic
+
+The TauComplex multiplication formula `(a+bi)(c+di) = (ac-bd) + (ad+bc)i`
+becomes, at the `.approx m` level, a pair of definitional identities
+involving `TauRat.sub`, `TauRat.add`, `TauRat.mul` of the componentwise
+approximations.
+
+These hold by **rfl** since:
+* `TauComplex.mul x y = ⟨TauReal.sub (mul x.re y.re) (mul x.im y.im),
+    TauReal.add (mul x.re y.im) (mul x.im y.re)⟩`
+* `TauReal.sub a b = a.add b.negate`, so `.approx m` is `TauRat.add ...
+  (TauRat.negate ...)` = `TauRat.sub ... ...` (also rfl).
+* `TauReal.add` and `TauReal.mul` unfold pointwise to `TauRat.add` and
+  `TauRat.mul`.
+
+These will be combined with `sum_re_approx`/`sum_im_approx` in Part 3c.4
+to express `(TauComplex.cauchyDiag a b n).{re,im}.approx m` as a TauRat
+sum of TauRat sums/sub/mul expressions, then bounded via
+`TauRat.cauchy_product_bound` componentwise. -/
+
+/-- **TauComplex.mul_re_approx**: real-part-of-mul as TauRat `sub-of-mul`.
+
+    `(x · y).re.approx m = (x.re · y.re).approx m - (x.im · y.im).approx m`,
+    where each `(_ · _).approx m` reduces to `TauRat.mul (_.approx m)
+    (_.approx m)` by `TauReal.mul`'s pointwise definition. -/
+theorem TauComplex.mul_re_approx (x y : TauComplex) (m : Nat) :
+    (TauComplex.mul x y).re.approx m
+      = TauRat.sub (TauRat.mul (x.re.approx m) (y.re.approx m))
+                   (TauRat.mul (x.im.approx m) (y.im.approx m)) := rfl
+
+/-- **TauComplex.mul_im_approx**: imaginary-part-of-mul as TauRat `add-of-mul`.
+
+    `(x · y).im.approx m = (x.re · y.im).approx m + (x.im · y.re).approx m`. -/
+theorem TauComplex.mul_im_approx (x y : TauComplex) (m : Nat) :
+    (TauComplex.mul x y).im.approx m
+      = TauRat.add (TauRat.mul (x.re.approx m) (y.im.approx m))
+                   (TauRat.mul (x.im.approx m) (y.re.approx m)) := rfl
+
 end Tau.Boundary
