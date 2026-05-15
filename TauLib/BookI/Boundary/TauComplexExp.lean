@@ -4649,4 +4649,54 @@ theorem TauComplex.add_pow_zero_re_im_approx_toRat (z₁ z₂ : TauComplex) (m :
     show (0 : Rat) = TauRat.one.toRat * TauRat.zero.toRat + TauRat.zero.toRat * TauRat.one.toRat
     rw [toRat_one, toRat_zero]; ring
 
+-- ============================================================
+-- PART 46: PHASE 3C PART 3g.2c — Helpers for Pascal step
+-- ============================================================
+
+/-! ## Helpers for the Pascal step
+
+Three TauRat helper lemmas:
+* `TauRat.sum_split_first_toRat`: peel off the first term `f 0` from
+  a sum, exposing the shifted sum `(fun i => f (i+1))`.
+* `TauRat.sum_const_mul_toRat`: distribute a fixed scalar multiplication
+  across a sum at toRat level.
+* `nat_choose_succ_succ_toRat`: Pascal's rule cast to `Rat`. -/
+
+/-- **TauRat sum split-first (toRat)**: peel off `f 0` from the sum's start.
+
+    `(TauRat.sum f (n+1)).toRat = (f 0).toRat + (TauRat.sum (fun i => f (i+1)) n).toRat` -/
+theorem TauRat.sum_split_first_toRat (f : Nat → TauRat) (n : Nat) :
+    (TauRat.sum f (n + 1)).toRat
+      = (f 0).toRat + (TauRat.sum (fun i => f (i + 1)) n).toRat := by
+  induction n with
+  | zero =>
+    show (TauRat.sum f 1).toRat = (f 0).toRat + (TauRat.sum (fun i => f (i + 1)) 0).toRat
+    rw [TauRat.sum_succ, TauRat.sum_zero, toRat_add, toRat_zero, zero_add]
+    rw [TauRat.sum_zero, toRat_zero, add_zero]
+  | succ n ih =>
+    -- LHS: TauRat.sum f (n+2) = (TauRat.sum f (n+1)).add (f (n+1))
+    -- RHS: (f 0).toRat + (TauRat.sum (fun i => f (i+1)) (n+1)).toRat
+    --      = (f 0).toRat + ((TauRat.sum (fun i => f (i+1)) n).add ((fun i => f (i+1)) n)).toRat
+    --      = (f 0).toRat + (TauRat.sum (fun i => f (i+1)) n).toRat + (f (n+1)).toRat
+    rw [TauRat.sum_succ, toRat_add, ih]
+    -- Apply sum_succ to the (n+1)-sized shifted sum on the RHS
+    conv_rhs => rw [TauRat.sum_succ, toRat_add]
+    ring
+
+/-- **TauRat sum const-mul (toRat)**: distribute a fixed scalar across a sum.
+
+    `((TauRat.sum f n).mul c).toRat = (TauRat.sum f n).toRat * c.toRat`
+
+    Trivial via `toRat_mul`, included as a named lemma for proof clarity. -/
+theorem TauRat.sum_mul_const_toRat (f : Nat → TauRat) (c : TauRat) (n : Nat) :
+    ((TauRat.sum f n).mul c).toRat = (TauRat.sum f n).toRat * c.toRat :=
+  toRat_mul _ _
+
+/-- **Pascal at Rat level**: `C(n+1, k+1) = C(n, k) + C(n, k+1)`. -/
+theorem nat_choose_succ_succ_toRat (n k : Nat) :
+    ((Nat.choose (n + 1) (k + 1) : Nat) : Rat)
+      = ((Nat.choose n k : Nat) : Rat) + ((Nat.choose n (k + 1) : Nat) : Rat) := by
+  have h := Nat.choose_succ_succ n k
+  exact_mod_cast h
+
 end Tau.Boundary
