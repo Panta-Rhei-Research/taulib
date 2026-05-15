@@ -3902,4 +3902,42 @@ theorem TauComplex.cauchyPStar_im_approx (a b : Nat → TauComplex) (N m : Nat) 
   show (TauComplex.sum (TauComplex.cauchyDiag a b) N).im.approx m = _
   rw [TauComplex.sum_im_approx]
 
+-- ============================================================
+-- PART 37: PHASE 3C PART 3c.4 — TauRat.sum distribution at toRat level
+-- ============================================================
+
+/-! ## TauRat sum distribution over add/sub at toRat level
+
+To express the `.re.approx m .toRat` (resp. `.im`) of TauComplex's
+Cauchy product as a difference (resp. sum) of two genuine TauRat
+`cauchyPStar`s, we need basic sum-distribution lemmas at toRat level:
+
+* `TauRat.sum_add_toRat`: `(Σᵢ (fᵢ + gᵢ)).toRat = (Σᵢ fᵢ).toRat + (Σᵢ gᵢ).toRat`
+* `TauRat.sum_sub_toRat`: `(Σᵢ (fᵢ − gᵢ)).toRat = (Σᵢ fᵢ).toRat − (Σᵢ gᵢ).toRat`
+
+Both proved by induction on `n`, using `TauRat.sum_succ`,
+`TauRat.toRat_add`, `TauRat.toRat_sub`, and `ring`. -/
+
+/-- **TauRat sum add-distribution at toRat level**. -/
+theorem TauRat.sum_add_toRat (f g : Nat → TauRat) (n : Nat) :
+    (TauRat.sum (fun i => (f i).add (g i)) n).toRat
+      = (TauRat.sum f n).toRat + (TauRat.sum g n).toRat := by
+  induction n with
+  | zero => simp [TauRat.sum_zero, toRat_zero]
+  | succ n ih =>
+    simp only [TauRat.sum_succ, toRat_add]
+    rw [ih]
+    ring
+
+/-- **TauRat sum sub-distribution at toRat level**. -/
+theorem TauRat.sum_sub_toRat (f g : Nat → TauRat) (n : Nat) :
+    (TauRat.sum (fun i => (f i).sub (g i)) n).toRat
+      = (TauRat.sum f n).toRat - (TauRat.sum g n).toRat := by
+  induction n with
+  | zero => simp [TauRat.sum_zero, toRat_zero]
+  | succ n ih =>
+    simp only [TauRat.sum_succ, toRat_add, toRat_sub]
+    rw [ih]
+    ring
+
 end Tau.Boundary
