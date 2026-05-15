@@ -3714,4 +3714,74 @@ def TauComplex.exp (z : TauComplex) : TauComplex :=
 @[simp] theorem TauComplex.exp_im_approx (z : TauComplex) (n : Nat) :
     (TauComplex.exp z).im.approx n = (TauComplex.exp_partial z n).im.approx n := rfl
 
+-- ============================================================
+-- PART 34: PHASE 3C PART 3c.1 — TauComplex.sum approx-bridge to TauRat.sum
+-- ============================================================
+
+/-! ## Foundation for the Cauchy product bound at TauComplex (Part 3c)
+
+The next M3 milestone is the **Cauchy product bound at TauComplex** —
+a componentwise lift of `TauRat.cauchy_product_bound` (TauRealSum.lean
+line 339). To make that lift work, we first need a structural bridge:
+`TauComplex.sum`'s `.re.approx m` (resp. `.im.approx m`) coincides
+pointwise with `TauRat.sum` applied to the componentwise approximation
+sequence.
+
+### The bridge
+
+`(TauComplex.sum f n).re.approx m = TauRat.sum (fun i => (f i).re.approx m) n`
+`(TauComplex.sum f n).im.approx m = TauRat.sum (fun i => (f i).im.approx m) n`
+
+Both follow by induction on `n`:
+* **Base** `n = 0`: both sides are `TauRat.zero` by rfl (TauComplex.zero
+  unfolds to `⟨TauReal.zero, TauReal.zero⟩` and `TauReal.zero.approx _
+  = TauRat.zero`).
+* **Step** `n + 1`: both sides reduce to `TauRat.add (recursive_part)
+  ((f n).re.approx m)` by unfolding `TauComplex.add` → `TauReal.add`
+  → `TauRat.add`; the recursive parts agree by IH.
+
+### Why this matters
+
+Once we have this bridge, we can chain through:
+1. `(TauComplex.exp_partial z₁ n).re.approx m * (TauComplex.exp_partial z₂ n).re.approx m`
+   → unfold via `.re.approx`-of-mul → componentwise TauRat products
+   → applying `TauRat.cauchy_product_bound` componentwise.
+2. The TauRat-level bound transfers back to TauReal-level bound via
+   `TauReal.lt_of_approx_bound` and similar magnitude lemmas.
+3. The componentwise TauReal bound combines into a `TauComplex.abs`
+   bound for the full Cauchy product, which is the structural shape
+   of the M3 endpoint.
+
+This is the structural prerequisite for Part 3c.2 (Cauchy-product
+approx-bridge) through Part 3c.4 (the full bound). -/
+
+/-- **TauComplex.sum_re_approx**: real-part-of-partial-sum bridge.
+
+    The real-part-then-approximate of a TauComplex partial sum equals
+    the TauRat partial sum of the real-part-then-approximate sequence.
+
+    Proof: induction on `n`; both sides reduce to `TauRat.add` of the
+    recursive part with `(f n).re.approx m` by unfolding `TauComplex.add`
+    → `TauReal.add` → `TauRat.add`. The recursive parts agree by IH. -/
+theorem TauComplex.sum_re_approx (f : Nat → TauComplex) (n m : Nat) :
+    (TauComplex.sum f n).re.approx m = TauRat.sum (fun i => (f i).re.approx m) n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    show TauRat.add ((TauComplex.sum f n).re.approx m) ((f n).re.approx m)
+       = TauRat.add (TauRat.sum (fun i => (f i).re.approx m) n) ((f n).re.approx m)
+    rw [ih]
+
+/-- **TauComplex.sum_im_approx**: imaginary-part-of-partial-sum bridge.
+
+    Symmetric to `sum_re_approx`. Same proof strategy. -/
+theorem TauComplex.sum_im_approx (f : Nat → TauComplex) (n m : Nat) :
+    (TauComplex.sum f n).im.approx m = TauRat.sum (fun i => (f i).im.approx m) n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    show TauRat.add ((TauComplex.sum f n).im.approx m) ((f n).im.approx m)
+       = TauRat.add (TauRat.sum (fun i => (f i).im.approx m) n) ((f n).im.approx m)
+    rw [ih]
+
 end Tau.Boundary
