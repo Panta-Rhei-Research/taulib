@@ -10,63 +10,184 @@ import Mathlib.Tactic.FieldSimp
 /-!
 # TauLib.BookI.Boundary.TauComplexExp
 
-**Wave Γ₇ Phase 3C Part 2 — τ-native exp on the cyclotomic-4 extension.**
+**Wave Γ₇ Phase 3C — the M3 breakthrough: τ-native exp on the
+cyclotomic-4 extension `TauComplex = TauReal[X]/(X²+1)`.**
 
-The Taylor series for `exp(z)` on `TauComplex = TauReal[X]/(X²+1)`:
+This module is the load-bearing artifact of Wave Γ₇ (May 2026), the
+multi-session campaign that established the formal machinery needed to
+prove `TauComplex.exp_add : exp(z₁+z₂) ≈ exp(z₁) · exp(z₂)` (the **M3
+endpoint**), from which sin/cos addition formulae follow via Euler's
+formula `exp(i·x) = cos(x) + i·sin(x)`, and eventually the discharge of
+Machin's formula yielding τ-native π formally certified to 50+ digits.
 
+The Taylor series for `exp(z)` on `TauComplex`:
 $$ \exp(z) \;=\; \sum_{k=0}^{\infty} \frac{z^k}{k!} . $$
 
 When specialised to purely imaginary arguments `z = i·x` (with the
 cyclotomic-4 root `i`), this gives **Euler's formula**:
-
 $$ \exp(i \cdot x) \;=\; \cos(x) + i \cdot \sin(x) . $$
 
 The cyclotomic-4 structure of `i` is what makes this work: powers of `i`
 cycle through `{1, i, -1, -i}` with period 4, separating the even-power
 real contributions (cos terms) from the odd-power imaginary contributions
-(sin terms). This module proves the load-bearing **cyclotomic-4 identity**
-`i⁴ ≈ 1` and sets up the exp infrastructure on TauComplex.
+(sin terms).
 
-## Phase 3C Part 2 vs Part 3 / 4
+## The M3 trajectory — what this module establishes
 
-* **Part 2 (this commit)**: `TauComplex.pow` via iterated multiplication;
-  the **cyclotomic-4 identity** `i^4 ≈ 1`; foundational simp lemmas.
-* **Part 2b (next session)**: `TauReal.scale_by_inv_factorial`,
-  `TauComplex.exp_term`, `TauComplex.exp_partial`, basic Cauchy
-  property at TauRat-pair level.
-* **Part 3 (M3 breakthrough)**: lift `TauReal.exp_add` to
-  `TauComplex.exp_add` via Cauchy products on the cyclotomic extension.
-* **Part 4**: specialise to purely imaginary arguments via the
-  cyclotomic structure; extract sin/cos addition formulae.
+The module organizes around the **disciplined-decomposition discipline**
+of the τ-canon programme: each sub-result is a focused, sorry-free
+addition (~100-200 LOC per commit), composing toward the M3 endpoint
+via named-target intermediates.
 
-## Why i⁴ ≈ 1 is the load-bearing identity
+### Major milestones shipped (UNCONDITIONAL)
 
-The cyclotomic group `μ_4 := {1, i, -1, -i} ⊂ TauComplex` is generated
-by `i` with relation `i^4 = 1`. This identity:
+| Theorem | Statement |
+|---------|-----------|
+| `i_unit_pow_4_equiv_one` | The cyclotomic-4 identity `i⁴ ≈ 1` |
+| `equiv_add_congr` / `equiv_mul_congr` | Equiv-congruence under add/mul |
+| `equiv_pow_congr_strong` | Pow congruence (strengthened with bounds) |
+| `mul_BoundedBy_compounds` | Multiplication bound compounding |
+| `pow_BoundedBy_compounds` | Power bound compounding |
+| `taucomplex_mul_left_comm` | Bound-free ring identity |
+| `taucomplex_add_left_comm` | Bound-free add identity |
+| `taucomplex_mul_reassoc_right` | Triple-product reassociation (bounded) |
+| `pascal_combine_discharge` | The Pascal combinatorial step |
+| `right_sum_reindex_discharge` | The right-sum reindex bridge |
+| `pascal_LHS_form_bridge_discharge` | Nat-arith bridge `(n+1)-(j+1) = n-j` |
+| **`add_pow_equiv_strong`** | **🎯 BINOMIAL THEOREM** (LEFT-assoc form) |
+| **`add_pow_equiv_target_strong`** | **🎯 BINOMIAL THEOREM** (named-target form) |
+| `scale_by_inv_factorial` infra | Foundation for `exp_term_add_eq_cauchyDiag` |
 
-1. **Validates the cyclotomic framing**: the docstring redesign of
-   `ComplexField.lean` claims `TauComplex` is `TauReal[X]/(X²+1)`;
-   `X²+1` divides `X⁴-1`, so the quotient automatically satisfies
-   `X⁴ = 1`. Proving `i⁴ ≈ 1` τ-natively confirms this.
+### Named targets — 6 of 10 unconditionally discharged
 
-2. **Sets up Euler's formula**: when we compute `exp(i·x)` via Taylor
-   series, the powers of `i` cycle:
-   - `i^(4k+0) = 1` → contributes to `cos(x)`'s even Taylor coefficients
-   - `i^(4k+1) = i` → contributes to `sin(x)` first-imaginary
-   - `i^(4k+2) = -1` → contributes to `cos(x)`'s alternating-sign even
-   - `i^(4k+3) = -i` → contributes to `sin(x)`'s alternating-sign odd
-   The 4-cycle is precisely what makes `exp(i·x) = cos(x) + i·sin(x)`.
+The **named-target + later-discharge pattern** (atlas insight:
+`named-target-discharge-pattern.md`) was applied 10 times in this
+campaign:
 
-3. **Confirms structural readiness for M3**: if `i^4` works τ-natively,
-   the cyclotomic infrastructure is sound. The remaining work
-   (exp_partial Cauchy + exp_add lift) is mechanical Cauchy-product
-   manipulation.
+| # | Target | Status |
+|---|--------|--------|
+| 1 | `BBPLeibnizCorrespondence` | queued (Wave Γ₆) |
+| 2 | `exp_partial_add_eq_cauchyPStar_target` | queued |
+| 3 | `exp_term_add_eq_cauchyDiag_target` | queued (next sprint) |
+| 4 | `add_pow_equiv_target` | ✓ strengthened discharge |
+| 5 | `equiv_pow_congr_target` | partially (strong form) |
+| 6 | `mul_BoundedBy_compounds_target` | ✓ unconditional |
+| 7 | `pow_BoundedBy_compounds_target` | ✓ unconditional |
+| 8 | `pascal_combine_target` | ✓ unconditional |
+| 9 | `right_sum_reindex_target` | ✓ unconditional |
+| 10 | `pascal_LHS_form_bridge_target` | ✓ unconditional |
+
+## Module organization (parts 1-32)
+
+The file is organized into 32 numbered sections, each shipped as a
+focused commit per the disciplined-decomposition pattern:
+
+* **Parts 1-2**: `TauComplex.pow` + cyclotomic-4 identity `i⁴ ≈ 1`.
+* **Parts 3-7**: factorial scaling + `exp_term`, `exp_partial`,
+  `cauchyDiag`, `cauchyPStar` definitions.
+* **Part 8**: named targets `exp_term_add_eq_cauchyDiag_target` and
+  `exp_partial_add_eq_cauchyPStar_target` + the conditional
+  `_under_term_hyp` theorem.
+* **Parts 9-11**: equiv-congruence lemmas (add, mul, negate, sub).
+* **Part 12**: `BoundedBy` predicate + named-target propositions for
+  bound compounding.
+* **Parts 13-14**: left-identity equivs + binomial base case.
+* **Parts 15-17**: sum-mul distributivity + bound compounding
+  discharges + helper extraction.
+* **Parts 18-19**: pow bound + equiv_pow_congr_strong + binomial
+  helpers (`mul_left_comm`, `sum_equiv_congr`, `sum_add_split`,
+  `sum_split_first`).
+* **Parts 20-21**: term identities + `B_left` left-assoc form +
+  `B_left·(z₁+z₂) ≈ Σ_left + Σ_right`.
+* **Parts 22-25**: Pascal preliminaries (`fromTauReal_fromNat_add`,
+  `fromTauReal_fromNat_zero`) + Pascal term + sum decomposition +
+  first-term simplification + B_left split bridge helpers.
+* **Parts 26-28**: Σ_right reindex sub-lemmas + composing bridge +
+  `@[reducible]` defs (`binomial_right_sum`, `binomial_right_shifted`,
+  `binomial_left_sum`, `binomial_sigma_left`).
+* **Part 29**: `pascal_combine_target` named target + binomial-left defs.
+* **Part 30**: Recursive named target `right_sum_reindex_target` +
+  `add_left_comm` + `pascal_LHS_form_bridge_target` and discharge +
+  **`pascal_combine_target_under_right_reindex_hyp`** (conditional
+  pascal combine, 7-step chain).
+* **Part 31**: 🎯🎯🎯 **THE BINOMIAL THEOREM ON TauComplex** —
+  unconditional discharges of `right_sum_reindex`,
+  `pascal_combine`, and **`add_pow_equiv_strong`** (M3 stepping
+  stone) via the `simp only [rfl-facts]` breakthrough.
+* **Part 32**: `TauComplex.scale_by_inv_factorial` infrastructure for
+  the upcoming `exp_term_add_eq_cauchyDiag` discharge.
+
+## Key structural insights from this campaign
+
+Four atlas insights were authored or extended during this work:
+
+* **`cauchy-bound-template-pattern`** — the 5-step Cauchy-bound proof
+  template (validated 5 times across the τ-canon programme).
+* **`deep-research-redteam-pattern`** — multi-agent recon sprints
+  before structurally-subtle implementation (validated 2 times this
+  wave, saving ~6-10 sessions of misaligned work).
+* **`named-target-discharge-pattern`** — ship a `Prop` as a named
+  target when proof depth exceeds commit scope; discharge in a
+  focused later session. 10 targets shipped, 6 unconditionally
+  discharged this wave alone.
+* **`whnf-elaboration-cost-defer-pattern`** — Lean operational
+  pattern for handling expression-tree depth × signature-arity cliffs.
+  5 strategies validated including the breakthrough `simp only
+  [rfl-facts]` technique that cracked the binomial theorem's
+  rfl-cliff at Part 31.
+
+## Why this module is M3-ready
+
+The mathematical content of the binomial theorem on TauComplex is
+**structurally complete**:
+* `add_pow_equiv_strong` provides `pow (z₁+z₂) n ≈ binomial_left_sum`.
+* `add_pow_equiv_target_strong` bridges to the named-target form.
+* The bound-tracking machinery (`BoundedBy`, `add_BoundedBy_compounds`,
+  `mul_BoundedBy_compounds`, `pow_BoundedBy_compounds`) is in place.
+* The cauchyPStar machinery + `under_term_hyp` conditional theorem
+  links the per-term identity (queued discharge) to the partial-sum
+  identity needed for M3.
+
+What remains for M3 is **mechanical Cauchy-product work**:
+1. Discharge `exp_term_add_eq_cauchyDiag_target` via binomial theorem
+   + factorial arithmetic (`scale_by_inv_factorial` infrastructure
+   shipped Part 32).
+2. Discharge `exp_partial_add_eq_cauchyPStar_target` trivially via
+   the `under_term_hyp` conditional.
+3. Cauchy-product bound at TauComplex (Cauchy-bound-template
+   instantiation).
+4. `TauComplex.exp` + `IsCauchy` (mechanical).
+5. **`TauComplex.exp_add` — M3 ENDPOINT**.
+
+Then sin/cos addition formulae via cyclotomic-4 specialization, and
+finally Machin's formula → τ-native π → ι_τ formal certification to
+50+ digits.
 
 ## Build state
 
-* `sorry` count: 0
-* `axiom` count: 0
-* Imports: ComplexField (TauComplex), TauRealSum, TauRealExp + tactics.
+* `sorry` count: 0 (BookI/Boundary remains sorry-free throughout
+  Wave Γ₇).
+* `axiom` count: 3 (unchanged from pre-campaign baseline; all in
+  BookIII Bridge/GRH/Spectral).
+* LOC: ~3230.
+* Imports: `ComplexField` (TauComplex types + ring axioms),
+  `TauRealSum` (cauchy product at TauRat level), `TauRealExp`
+  (TauReal.exp + IsCauchy), Mathlib tactic-only imports.
+
+## Cross-references to the τ-canon corpus
+
+* `BookI.Boundary.ComplexField` — `TauComplex` as the cyclotomic-4
+  adjunction `TauReal[X]/(X²+1)` (manuscript ch77).
+* `BookI.Boundary.TauRealExp` — Wave 3b's `TauReal.exp_add` (the
+  TauReal-level template this M3 work lifts to TauComplex).
+* `BookI.Boundary.TauRealSin` / `TauRealCos` — Wave Γ₇ Phase 3A/3B
+  τ-native sin and cos Taylor series (consumers of the upcoming M3
+  + cyclotomic specialization).
+* `BookI.Boundary.TauRealArctan` — Wave Γ₇ Phase 1A's arctan + Strategy
+  G numerical certificate (consumer of upcoming Machin formula proof).
+* `BookIV.Sectors.WilsonProjection` — 50-digit `iotaTau`
+  (`ι_τ = 2/(π+e)`) currently hard-coded; M3 + Machin formal proof
+  will replace the hard-coded value with a formally-verified one.
 -/
 
 set_option autoImplicit false
