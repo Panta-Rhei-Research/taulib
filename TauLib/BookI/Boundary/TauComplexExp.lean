@@ -3940,4 +3940,120 @@ theorem TauRat.sum_sub_toRat (f g : Nat → TauRat) (n : Nat) :
     rw [ih]
     ring
 
+-- ============================================================
+-- PART 38: PHASE 3C PART 3c.5 — TauComplex Cauchy toRat-level splits
+-- ============================================================
+
+/-! ## TauComplex cauchyDiag / cauchyPStar toRat-level splits
+
+Combining Part 3c.3 (componentwise expansions) with Part 3c.4
+(sum_add/sub_toRat distributivity), we obtain the **toRat-level
+structural splits** — the key identities that express the real (resp.
+imaginary) part of TauComplex's Cauchy product at `.toRat` level as a
+**difference** (resp. **sum**) of two genuine `TauRat.cauchyDiag` /
+`cauchyPStar` `.toRat` expressions.
+
+These identities are exactly what allows `TauRat.cauchy_product_bound`
+(TauRealSum.lean line 339) to apply componentwise:
+
+* `(TauComplex.cauchyDiag a b k).re.approx m .toRat
+    = (TauRat.cauchyDiag re_a re_b k).toRat − (TauRat.cauchyDiag im_a im_b k).toRat`
+* `(TauComplex.cauchyDiag a b k).im.approx m .toRat
+    = (TauRat.cauchyDiag re_a im_b k).toRat + (TauRat.cauchyDiag im_a re_b k).toRat`
+* analogous for `cauchyPStar`.
+
+Where `re_a m i := (a i).re.approx m`, etc. -/
+
+/-- **cauchyDiag real-part toRat split**: the re-part of TauComplex
+    cauchyDiag at toRat level is a difference of two TauRat cauchyDiags. -/
+theorem TauComplex.cauchyDiag_re_toRat_split (a b : Nat → TauComplex) (k m : Nat) :
+    ((TauComplex.cauchyDiag a b k).re.approx m).toRat
+      = (TauRat.cauchyDiag (fun i => (a i).re.approx m)
+          (fun i => (b i).re.approx m) k).toRat
+        - (TauRat.cauchyDiag (fun i => (a i).im.approx m)
+            (fun i => (b i).im.approx m) k).toRat := by
+  rw [TauComplex.cauchyDiag_re_approx, TauRat.sum_sub_toRat]
+  rfl
+
+/-- **cauchyDiag imaginary-part toRat split**: the im-part of TauComplex
+    cauchyDiag at toRat level is a sum of two TauRat cauchyDiags. -/
+theorem TauComplex.cauchyDiag_im_toRat_split (a b : Nat → TauComplex) (k m : Nat) :
+    ((TauComplex.cauchyDiag a b k).im.approx m).toRat
+      = (TauRat.cauchyDiag (fun i => (a i).re.approx m)
+          (fun i => (b i).im.approx m) k).toRat
+        + (TauRat.cauchyDiag (fun i => (a i).im.approx m)
+            (fun i => (b i).re.approx m) k).toRat := by
+  rw [TauComplex.cauchyDiag_im_approx, TauRat.sum_add_toRat]
+  rfl
+
+/-- **cauchyPStar real-part toRat split**: the re-part of TauComplex
+    cauchyPStar at toRat level is a difference of two TauRat cauchyPStars. -/
+theorem TauComplex.cauchyPStar_re_toRat_split (a b : Nat → TauComplex) (N m : Nat) :
+    ((TauComplex.cauchyPStar a b N).re.approx m).toRat
+      = (TauRat.cauchyPStar (fun i => (a i).re.approx m)
+          (fun i => (b i).re.approx m) N).toRat
+        - (TauRat.cauchyPStar (fun i => (a i).im.approx m)
+            (fun i => (b i).im.approx m) N).toRat := by
+  rw [TauComplex.cauchyPStar_re_approx]
+  induction N with
+  | zero => simp [TauRat.sum_zero, TauRat.cauchyPStar, toRat_zero]
+  | succ N ih =>
+    rw [TauRat.sum_succ, toRat_add, ih]
+    rw [TauComplex.cauchyDiag_re_toRat_split]
+    have h_re_unfold : (TauRat.cauchyPStar (fun i => (a i).re.approx m)
+                          (fun i => (b i).re.approx m) (N + 1)).toRat
+                    = (TauRat.cauchyPStar (fun i => (a i).re.approx m)
+                          (fun i => (b i).re.approx m) N).toRat
+                        + (TauRat.cauchyDiag (fun i => (a i).re.approx m)
+                            (fun i => (b i).re.approx m) N).toRat := by
+      show (TauRat.sum (TauRat.cauchyDiag _ _) (N + 1)).toRat = _
+      rw [TauRat.sum_succ, toRat_add]
+      rfl
+    have h_im_unfold : (TauRat.cauchyPStar (fun i => (a i).im.approx m)
+                          (fun i => (b i).im.approx m) (N + 1)).toRat
+                    = (TauRat.cauchyPStar (fun i => (a i).im.approx m)
+                          (fun i => (b i).im.approx m) N).toRat
+                        + (TauRat.cauchyDiag (fun i => (a i).im.approx m)
+                            (fun i => (b i).im.approx m) N).toRat := by
+      show (TauRat.sum (TauRat.cauchyDiag _ _) (N + 1)).toRat = _
+      rw [TauRat.sum_succ, toRat_add]
+      rfl
+    rw [h_re_unfold, h_im_unfold]
+    ring
+
+/-- **cauchyPStar imaginary-part toRat split**: the im-part of TauComplex
+    cauchyPStar at toRat level is a sum of two TauRat cauchyPStars. -/
+theorem TauComplex.cauchyPStar_im_toRat_split (a b : Nat → TauComplex) (N m : Nat) :
+    ((TauComplex.cauchyPStar a b N).im.approx m).toRat
+      = (TauRat.cauchyPStar (fun i => (a i).re.approx m)
+          (fun i => (b i).im.approx m) N).toRat
+        + (TauRat.cauchyPStar (fun i => (a i).im.approx m)
+            (fun i => (b i).re.approx m) N).toRat := by
+  rw [TauComplex.cauchyPStar_im_approx]
+  induction N with
+  | zero => simp [TauRat.sum_zero, TauRat.cauchyPStar, toRat_zero]
+  | succ N ih =>
+    rw [TauRat.sum_succ, toRat_add, ih]
+    rw [TauComplex.cauchyDiag_im_toRat_split]
+    have h_re_im : (TauRat.cauchyPStar (fun i => (a i).re.approx m)
+                          (fun i => (b i).im.approx m) (N + 1)).toRat
+                    = (TauRat.cauchyPStar (fun i => (a i).re.approx m)
+                          (fun i => (b i).im.approx m) N).toRat
+                        + (TauRat.cauchyDiag (fun i => (a i).re.approx m)
+                            (fun i => (b i).im.approx m) N).toRat := by
+      show (TauRat.sum (TauRat.cauchyDiag _ _) (N + 1)).toRat = _
+      rw [TauRat.sum_succ, toRat_add]
+      rfl
+    have h_im_re : (TauRat.cauchyPStar (fun i => (a i).im.approx m)
+                          (fun i => (b i).re.approx m) (N + 1)).toRat
+                    = (TauRat.cauchyPStar (fun i => (a i).im.approx m)
+                          (fun i => (b i).re.approx m) N).toRat
+                        + (TauRat.cauchyDiag (fun i => (a i).im.approx m)
+                            (fun i => (b i).re.approx m) N).toRat := by
+      show (TauRat.sum (TauRat.cauchyDiag _ _) (N + 1)).toRat = _
+      rw [TauRat.sum_succ, toRat_add]
+      rfl
+    rw [h_re_im, h_im_re]
+    ring
+
 end Tau.Boundary
