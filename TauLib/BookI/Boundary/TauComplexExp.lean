@@ -4487,4 +4487,59 @@ theorem nat_to_taurat_toRat (k : Nat) : (nat_to_taurat k).toRat = (k : Rat) := b
 @[simp] theorem TauReal.fromNat_approx (k m : Nat) :
     (TauReal.fromNat k).approx m = nat_to_taurat k := rfl
 
+-- ============================================================
+-- PART 44: PHASE 3C PART 3g.2a — TauComplex.pow recurrence at toRat level
+-- ============================================================
+
+/-! ## TauComplex.pow recurrence at toRat level
+
+Both LHS (`pow (z₁+z₂) n`) and RHS (binomial sum) of the toRat-level
+binomial theorem satisfy the same recurrence:
+
+`R(value (n+1)) = R(value n) · R(z₁+z₂) − I(value n) · I(z₁+z₂)`
+
+If we prove this recurrence for BOTH the LHS and the RHS, then by
+induction (with matching base case `n=0`), they're toRat-equal at every
+depth `n`.
+
+### The LHS recurrence
+
+`(pow (z₁+z₂) (n+1)).re.approx m .toRat
+  = (pow (z₁+z₂) n .re.approx m).toRat · ((z₁+z₂).re.approx m).toRat
+    − (pow (z₁+z₂) n .im.approx m).toRat · ((z₁+z₂).im.approx m).toRat`
+
+This follows from `pow_succ` + `mul_re_approx` + `toRat_sub/mul`. -/
+
+/-- **`pow.re.approx.toRat` recurrence**: `pow z (n+1) .re.approx m .toRat`
+    expressed as Rat-arithmetic on `.re/.im.approx m .toRat` values. -/
+theorem TauComplex.pow_succ_re_approx_toRat (z : TauComplex) (n m : Nat) :
+    ((TauComplex.pow z (n + 1)).re.approx m).toRat
+      = ((TauComplex.pow z n).re.approx m).toRat * ((z.re.approx m).toRat)
+        - ((TauComplex.pow z n).im.approx m).toRat * ((z.im.approx m).toRat) := by
+  rw [TauComplex.pow_succ, TauComplex.mul_re_approx, toRat_sub, toRat_mul, toRat_mul]
+
+/-- **`pow.im.approx.toRat` recurrence**: `pow z (n+1) .im.approx m .toRat`
+    expressed as Rat-arithmetic on `.re/.im.approx m .toRat` values. -/
+theorem TauComplex.pow_succ_im_approx_toRat (z : TauComplex) (n m : Nat) :
+    ((TauComplex.pow z (n + 1)).im.approx m).toRat
+      = ((TauComplex.pow z n).re.approx m).toRat * ((z.im.approx m).toRat)
+        + ((TauComplex.pow z n).im.approx m).toRat * ((z.re.approx m).toRat) := by
+  rw [TauComplex.pow_succ, TauComplex.mul_im_approx, toRat_add, toRat_mul, toRat_mul]
+
+/-- **`(z₁+z₂).re.approx m .toRat = R z₁ + R z₂`** — `add` componentwise
+    bridge at toRat level. -/
+theorem TauComplex.add_re_approx_toRat (z₁ z₂ : TauComplex) (m : Nat) :
+    ((z₁.add z₂).re.approx m).toRat
+      = ((z₁.re.approx m).toRat) + ((z₂.re.approx m).toRat) := by
+  show (TauRat.add (z₁.re.approx m) (z₂.re.approx m)).toRat = _
+  rw [toRat_add]
+
+/-- **`(z₁+z₂).im.approx m .toRat = I z₁ + I z₂`** — `add` componentwise
+    bridge at toRat level. -/
+theorem TauComplex.add_im_approx_toRat (z₁ z₂ : TauComplex) (m : Nat) :
+    ((z₁.add z₂).im.approx m).toRat
+      = ((z₁.im.approx m).toRat) + ((z₂.im.approx m).toRat) := by
+  show (TauRat.add (z₁.im.approx m) (z₂.im.approx m)).toRat = _
+  rw [toRat_add]
+
 end Tau.Boundary
