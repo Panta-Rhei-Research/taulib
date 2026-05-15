@@ -4356,4 +4356,92 @@ theorem TauComplex.exp_term_re_im_abs_le (z : TauComplex) (M : Nat)
     rw [h_fact_abs]
     exact div_le_div_of_nonneg_right h_pow_im (le_of_lt h_fact_pos)
 
+-- ============================================================
+-- PART 42: PHASE 3C PART 3f — Bridge to C/2^k form via 4^k ≤ 11·k!
+-- ============================================================
+
+/-! ## Algebraic bridge: 4^k ≤ 11 · k!
+
+The cauchy_product_bound hypothesis requires componentwise bounds in the
+geometric form `≤ C / 2^k` with a fixed constant `C`. From Part 3e we
+have `|(exp_term z k).{re,im}.approx m .toRat| ≤ (2M)^k / k!`. For the
+common τ-canon case `M = 1` (Nat-BoundedBy 1), this is `2^k / k!`, and
+converting to `C / 2^k` form requires:
+
+`2^k / k! ≤ C / 2^k  ⟺  4^k ≤ C · k!`
+
+The minimal `C` is `max_k (4^k / k!) ≈ 10.67` (achieved at k=3,4). The
+next integer `C = 11` suffices.
+
+### Proof structure for `4^k ≤ 11 · k!`
+
+Case split on `k ≤ 3` vs `k ≥ 4`:
+* Small cases (k = 0,1,2,3): direct numerical verification.
+  - 1 ≤ 11, 4 ≤ 11, 16 ≤ 22, 64 ≤ 66.
+* Inductive step (k ≥ 3): `4^(k+1) = 4 · 4^k ≤ 4 · 11 · k! = 44 · k!`.
+  Want `≤ 11 · (k+1)! = 11 · (k+1) · k!`. Suffices `4 ≤ k+1`, i.e., `k ≥ 3`. ✓ -/
+
+/-- **Algebraic bridge**: `4^k ≤ 11 · k!` for all natural `k`. -/
+theorem four_pow_le_eleven_factorial (k : Nat) :
+    (4 : Rat) ^ k ≤ 11 * (k.factorial : Rat) := by
+  induction k with
+  | zero => norm_num [Nat.factorial]
+  | succ k ih =>
+    by_cases hk : k ≥ 3
+    · -- Inductive step for k ≥ 3
+      have h_succ : ((k + 1).factorial : Rat) = ((k + 1 : Nat) : Rat) * (k.factorial : Rat) := by
+        rw [Nat.factorial_succ]; push_cast; ring
+      have h_fact_nn : (0 : Rat) ≤ (k.factorial : Rat) := by
+        exact_mod_cast Nat.factorial_pos k |>.le
+      have h_k1_ge_4 : (4 : Rat) ≤ ((k + 1 : Nat) : Rat) := by
+        have : (4 : Nat) ≤ k + 1 := by omega
+        exact_mod_cast this
+      calc (4 : Rat) ^ (k + 1)
+          = 4 * (4 : Rat) ^ k := by ring
+        _ ≤ 4 * (11 * (k.factorial : Rat)) :=
+            mul_le_mul_of_nonneg_left ih (by norm_num)
+        _ = 11 * (4 * (k.factorial : Rat)) := by ring
+        _ ≤ 11 * (((k + 1 : Nat) : Rat) * (k.factorial : Rat)) :=
+            mul_le_mul_of_nonneg_left
+              (mul_le_mul_of_nonneg_right h_k1_ge_4 h_fact_nn) (by norm_num)
+        _ = 11 * ((k + 1).factorial : Rat) := by rw [h_succ]
+    · -- Small cases: k ∈ {0, 1, 2}. Manual case split avoiding `interval_cases`.
+      push_neg at hk
+      -- k < 3, so k = 0, 1, or 2; k + 1 = 1, 2, or 3.
+      match k, hk with
+      | 0, _ => norm_num [Nat.factorial]
+      | 1, _ => norm_num [Nat.factorial]
+      | 2, _ => norm_num [Nat.factorial]
+
+/-- **TauComplex.exp_term geometric magnitude bound (M=1 case)**.
+
+    For `TauComplex.BoundedBy z 1`, both `.re.approx m .toRat` and
+    `.im.approx m .toRat` of `exp_term z k` are bounded by `11 / 2^k`.
+
+    This is the exact form `cauchy_product_bound_re/im` accepts as input
+    for the per-term geometric bound `C / 2^k` with `C = 11`. -/
+theorem TauComplex.exp_term_re_im_geom_bound (z : TauComplex)
+    (h : TauComplex.BoundedBy z 1) (k m : Nat) :
+    |((TauComplex.exp_term z k).re.approx m).toRat| ≤ (11 : Rat) / (2 : Rat) ^ k ∧
+    |((TauComplex.exp_term z k).im.approx m).toRat| ≤ (11 : Rat) / (2 : Rat) ^ k := by
+  obtain ⟨h_re, h_im⟩ := TauComplex.exp_term_re_im_abs_le z 1 h k m
+  -- Bound: |.| ≤ (2 · 1)^k / k.factorial = 2^k / k.factorial
+  -- Convert to 11 / 2^k: 2^k / k.factorial ≤ 11 / 2^k iff 4^k ≤ 11 · k.factorial
+  have h_2pow_pos : (0 : Rat) < (2 : Rat) ^ k := by positivity
+  have h_fact_pos : (0 : Rat) < (k.factorial : Rat) := by
+    exact_mod_cast Nat.factorial_pos k
+  have h_4pow_le : (4 : Rat) ^ k ≤ 11 * (k.factorial : Rat) := four_pow_le_eleven_factorial k
+  have h_2k_to_rat : ((2 * 1 : Nat) : Rat) = 2 := by norm_num
+  have h_bound_2k : ((2 * 1 : Nat) : Rat) ^ k / (k.factorial : Rat) ≤ (11 : Rat) / (2 : Rat) ^ k := by
+    rw [h_2k_to_rat]
+    -- 2^k / k! ≤ 11 / 2^k ⟺ 2^k · 2^k ≤ 11 · k! (by cross-mul)
+    rw [div_le_div_iff₀ h_fact_pos h_2pow_pos]
+    have h_pow_two : (2 : Rat) ^ k * (2 : Rat) ^ k = (4 : Rat) ^ k := by
+      have h1 : (2 : Rat) ^ k * (2 : Rat) ^ k = (2 : Rat) ^ (k + k) := by rw [pow_add]
+      have h2 : (2 : Rat) ^ (k + k) = ((2 : Rat) * 2) ^ k := by
+        rw [show k + k = 2 * k from by ring, pow_mul]; ring_nf
+      rw [h1, h2]; norm_num
+    linarith [h_4pow_le, h_pow_two]
+  exact ⟨le_trans h_re h_bound_2k, le_trans h_im h_bound_2k⟩
+
 end Tau.Boundary
