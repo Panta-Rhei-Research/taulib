@@ -4056,4 +4056,145 @@ theorem TauComplex.cauchyPStar_im_toRat_split (a b : Nat → TauComplex) (N m : 
     rw [h_re_im, h_im_re]
     ring
 
+-- ============================================================
+-- PART 39: PHASE 3C PART 3c.6 — TauComplex Cauchy product bound (re-part)
+-- ============================================================
+
+/-! ## TauComplex Cauchy product bound — real part
+
+This is the **componentwise lift** of `TauRat.cauchy_product_bound`
+(TauRealSum.lean line 339) to the real part of TauComplex partial
+products.
+
+### The statement
+
+Under componentwise geometric bounds `|(a i).re.approx m .toRat|`,
+`|(a i).im.approx m .toRat| ≤ C / 2^i` (and same for `b`), we have:
+
+`|((sum a n).mul (sum b n)).re.approx m .toRat − (cauchyPStar a b n).re.approx m .toRat|
+   ≤ 2 · n · C² / 2^(n-1)`
+
+The factor of 2 (vs. TauRat's 1) reflects that the real part of the
+TauComplex Cauchy product splits into a **difference** of two TauRat
+Cauchy products (one for `re·re`, one for `im·im`), each of which
+satisfies the TauRat bound `n · C² / 2^(n-1)`. Triangle inequality
+gives the doubled constant.
+
+### Proof strategy
+
+1. Expand `((sum a n).mul (sum b n)).re.approx m .toRat` via
+   `mul_re_approx` + `sum_re_approx` + `sum_im_approx` + `toRat_mul`.
+2. Expand `(cauchyPStar a b n).re.approx m .toRat` via
+   `cauchyPStar_re_toRat_split`.
+3. Re-group via `ring` into `(re-Cauchy-diff) − (im-Cauchy-diff)`.
+4. Triangle inequality + `TauRat.cauchy_product_bound` twice. -/
+
+/-- **TauComplex Cauchy product bound (real part)**.
+
+    Componentwise lift of `TauRat.cauchy_product_bound`. The factor of 2
+    comes from the triangle inequality applied to the re-im split. -/
+theorem TauComplex.cauchy_product_bound_re
+    (a b : Nat → TauComplex) (C : Rat) (hC : 0 < C)
+    (h_a_re : ∀ i m, |((a i).re.approx m).toRat| ≤ C / (2 : Rat) ^ i)
+    (h_a_im : ∀ i m, |((a i).im.approx m).toRat| ≤ C / (2 : Rat) ^ i)
+    (h_b_re : ∀ j m, |((b j).re.approx m).toRat| ≤ C / (2 : Rat) ^ j)
+    (h_b_im : ∀ j m, |((b j).im.approx m).toRat| ≤ C / (2 : Rat) ^ j)
+    (n : Nat) (hn : 1 ≤ n) (m : Nat) :
+    |(((TauComplex.sum a n).mul (TauComplex.sum b n)).re.approx m).toRat
+      - ((TauComplex.cauchyPStar a b n).re.approx m).toRat|
+      ≤ 2 * (n : Rat) * C ^ 2 / (2 : Rat) ^ (n - 1) := by
+  -- Set names for componentwise sequences
+  set ra : Nat → TauRat := fun i => (a i).re.approx m with hra_def
+  set rb : Nat → TauRat := fun j => (b j).re.approx m with hrb_def
+  set ia : Nat → TauRat := fun i => (a i).im.approx m with hia_def
+  set ib : Nat → TauRat := fun j => (b j).im.approx m with hib_def
+  -- Step 1: expand LHS to a sum/diff of TauRat Cauchy expressions
+  have h_expand :
+      (((TauComplex.sum a n).mul (TauComplex.sum b n)).re.approx m).toRat
+        - ((TauComplex.cauchyPStar a b n).re.approx m).toRat
+      = ((TauRat.sum ra n).toRat * (TauRat.sum rb n).toRat
+          - (TauRat.cauchyPStar ra rb n).toRat)
+        - ((TauRat.sum ia n).toRat * (TauRat.sum ib n).toRat
+            - (TauRat.cauchyPStar ia ib n).toRat) := by
+    rw [TauComplex.mul_re_approx, toRat_sub, toRat_mul, toRat_mul,
+        TauComplex.sum_re_approx, TauComplex.sum_re_approx,
+        TauComplex.sum_im_approx, TauComplex.sum_im_approx,
+        TauComplex.cauchyPStar_re_toRat_split]
+    ring
+  rw [h_expand]
+  -- Step 2: triangle inequality
+  have h_tri := abs_sub
+      ((TauRat.sum ra n).toRat * (TauRat.sum rb n).toRat
+        - (TauRat.cauchyPStar ra rb n).toRat)
+      ((TauRat.sum ia n).toRat * (TauRat.sum ib n).toRat
+        - (TauRat.cauchyPStar ia ib n).toRat)
+  -- Step 3: TauRat.cauchy_product_bound twice
+  have h_re_bound := TauRat.cauchy_product_bound ra rb C hC
+                       (fun i => h_a_re i m) (fun j => h_b_re j m) n hn
+  have h_im_bound := TauRat.cauchy_product_bound ia ib C hC
+                       (fun i => h_a_im i m) (fun j => h_b_im j m) n hn
+  -- Step 4: combine via linarith
+  have h_2nC2 : 2 * (n : Rat) * C ^ 2 / (2 : Rat) ^ (n - 1)
+              = (n : Rat) * C ^ 2 / (2 : Rat) ^ (n - 1)
+                + (n : Rat) * C ^ 2 / (2 : Rat) ^ (n - 1) := by ring
+  rw [h_2nC2]
+  linarith
+
+/-- **TauComplex Cauchy product bound (imaginary part)**.
+
+    Componentwise lift of `TauRat.cauchy_product_bound`. The factor of 2
+    comes from the triangle inequality applied to the re·im + im·re split. -/
+theorem TauComplex.cauchy_product_bound_im
+    (a b : Nat → TauComplex) (C : Rat) (hC : 0 < C)
+    (h_a_re : ∀ i m, |((a i).re.approx m).toRat| ≤ C / (2 : Rat) ^ i)
+    (h_a_im : ∀ i m, |((a i).im.approx m).toRat| ≤ C / (2 : Rat) ^ i)
+    (h_b_re : ∀ j m, |((b j).re.approx m).toRat| ≤ C / (2 : Rat) ^ j)
+    (h_b_im : ∀ j m, |((b j).im.approx m).toRat| ≤ C / (2 : Rat) ^ j)
+    (n : Nat) (hn : 1 ≤ n) (m : Nat) :
+    |(((TauComplex.sum a n).mul (TauComplex.sum b n)).im.approx m).toRat
+      - ((TauComplex.cauchyPStar a b n).im.approx m).toRat|
+      ≤ 2 * (n : Rat) * C ^ 2 / (2 : Rat) ^ (n - 1) := by
+  set ra : Nat → TauRat := fun i => (a i).re.approx m with hra_def
+  set rb : Nat → TauRat := fun j => (b j).re.approx m with hrb_def
+  set ia : Nat → TauRat := fun i => (a i).im.approx m with hia_def
+  set ib : Nat → TauRat := fun j => (b j).im.approx m with hib_def
+  -- Step 1: expand LHS to two TauRat Cauchy diffs that sum
+  have h_expand :
+      (((TauComplex.sum a n).mul (TauComplex.sum b n)).im.approx m).toRat
+        - ((TauComplex.cauchyPStar a b n).im.approx m).toRat
+      = ((TauRat.sum ra n).toRat * (TauRat.sum ib n).toRat
+          - (TauRat.cauchyPStar ra ib n).toRat)
+        + ((TauRat.sum ia n).toRat * (TauRat.sum rb n).toRat
+            - (TauRat.cauchyPStar ia rb n).toRat) := by
+    rw [TauComplex.mul_im_approx, toRat_add, toRat_mul, toRat_mul,
+        TauComplex.sum_re_approx, TauComplex.sum_re_approx,
+        TauComplex.sum_im_approx, TauComplex.sum_im_approx,
+        TauComplex.cauchyPStar_im_toRat_split]
+    ring
+  rw [h_expand]
+  -- Step 2: triangle inequality (abs of sum ≤ sum of abs)
+  have h_tri := abs_add_le
+      ((TauRat.sum ra n).toRat * (TauRat.sum ib n).toRat
+        - (TauRat.cauchyPStar ra ib n).toRat)
+      ((TauRat.sum ia n).toRat * (TauRat.sum rb n).toRat
+        - (TauRat.cauchyPStar ia rb n).toRat)
+  -- Step 3: TauRat.cauchy_product_bound twice
+  have h_reim_bound := TauRat.cauchy_product_bound ra ib C hC
+                         (fun i => h_a_re i m) (fun j => h_b_im j m) n hn
+  have h_imre_bound := TauRat.cauchy_product_bound ia rb C hC
+                         (fun i => h_a_im i m) (fun j => h_b_re j m) n hn
+  -- Step 4: combine via calc
+  calc |(TauRat.sum ra n).toRat * (TauRat.sum ib n).toRat
+          - (TauRat.cauchyPStar ra ib n).toRat
+        + ((TauRat.sum ia n).toRat * (TauRat.sum rb n).toRat
+            - (TauRat.cauchyPStar ia rb n).toRat)|
+      ≤ |(TauRat.sum ra n).toRat * (TauRat.sum ib n).toRat
+              - (TauRat.cauchyPStar ra ib n).toRat|
+          + |(TauRat.sum ia n).toRat * (TauRat.sum rb n).toRat
+              - (TauRat.cauchyPStar ia rb n).toRat| := h_tri
+    _ ≤ (n : Rat) * C ^ 2 / (2 : Rat) ^ (n - 1)
+        + (n : Rat) * C ^ 2 / (2 : Rat) ^ (n - 1) := by
+        linarith [h_reim_bound, h_imre_bound]
+    _ = 2 * (n : Rat) * C ^ 2 / (2 : Rat) ^ (n - 1) := by ring
+
 end Tau.Boundary
