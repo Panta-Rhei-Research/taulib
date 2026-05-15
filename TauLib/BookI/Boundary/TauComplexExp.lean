@@ -2894,7 +2894,21 @@ theorem TauComplex.binomial_right_sum_split (z₁ z₂ : TauComplex) (n : Nat) :
     ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
       (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ ((n - i) + 1))) n
 
-/-! ### Bridge attempts deferred — rfl-cliff observed
+/-- **After-first bridge** in def-name form:
+    `binomial_right_after_first z₁ z₂ n ≈ binomial_right_shifted z₁ z₂ n`.
+
+    Both sides @[reducible]-unfold to exactly the LHS and RHS of
+    `right_after_first_to_shifted`'s signature — no rfl-bridge needed
+    (shapes match syntactically). -/
+theorem TauComplex.binomial_right_after_first_to_shifted_def
+    (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z1 : TauComplex.BoundedBy z₁ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    (TauComplex.binomial_right_after_first z₁ z₂ n).equiv
+    (TauComplex.binomial_right_shifted z₁ z₂ n) :=
+  TauComplex.right_after_first_to_shifted z₁ z₂ M hM h_bound_z1 h_bound_z2 n
+
+/-! ### Bridge attempts deferred — rfl-cliff observed (for first_term only)
 
 Two natural bridge theorems would close the chain:
 * `binomial_right_first_term z₁ z₂ n ≈ pow z₂ (n+1)` via `first_term_simplify`.
