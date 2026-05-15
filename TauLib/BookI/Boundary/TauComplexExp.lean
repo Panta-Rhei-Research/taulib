@@ -3671,4 +3671,47 @@ theorem TauComplex.exp_partial_add_eq_cauchyPStar_target_strong
     exact TauComplex.equiv_add_congr ih
       (TauComplex.exp_term_add_eq_cauchyDiag_target_strong z₁ z₂ M hM h_bound_z1 h_bound_z2 n)
 
+-- ============================================================
+-- PART 33: PHASE 3C — TauComplex.exp diagonal construction
+-- ============================================================
+
+/-! ## TauComplex.exp via diagonal construction
+
+Toward Part 3e (M3 endpoint), we define `TauComplex.exp z` via the
+diagonal-sequence construction that mirrors `TauReal.exp` (TauRealExp.lean
+line 150).
+
+### The construction
+
+`TauReal.exp a := ⟨fun n => TauRat.exp_partial (a.approx n) n⟩` — the
+n-th approximation uses `a`'s n-th value AND truncates the Taylor
+series at depth `n`. As both advance, the partial sum converges to
+exp(a).
+
+For `TauComplex.exp z`, we lift componentwise:
+* `(TauComplex.exp z).re.approx n = (TauComplex.exp_partial z n).re.approx n`.
+* `(TauComplex.exp z).im.approx n = (TauComplex.exp_partial z n).im.approx n`.
+
+So each component is a TauReal whose n-th approximation is the
+diagonal `(exp_partial z n).{re,im}.approx n`.
+-/
+
+/-- **TauComplex exp: diagonal construction.**
+
+    `(exp z).re.approx n = (exp_partial z n).re.approx n`
+    `(exp z).im.approx n = (exp_partial z n).im.approx n`
+
+    Mirrors `TauReal.exp` (TauRealExp.lean) componentwise. Both the
+    Taylor depth and the TauReal approximation advance with n, giving
+    a diagonal sequence that converges to the genuine `exp z`. -/
+def TauComplex.exp (z : TauComplex) : TauComplex :=
+  ⟨⟨fun n => (TauComplex.exp_partial z n).re.approx n⟩,
+   ⟨fun n => (TauComplex.exp_partial z n).im.approx n⟩⟩
+
+@[simp] theorem TauComplex.exp_re_approx (z : TauComplex) (n : Nat) :
+    (TauComplex.exp z).re.approx n = (TauComplex.exp_partial z n).re.approx n := rfl
+
+@[simp] theorem TauComplex.exp_im_approx (z : TauComplex) (n : Nat) :
+    (TauComplex.exp z).im.approx n = (TauComplex.exp_partial z n).im.approx n := rfl
+
 end Tau.Boundary
