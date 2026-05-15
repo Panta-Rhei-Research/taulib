@@ -3507,4 +3507,76 @@ theorem TauRat.choose_div_factorial_eq (n i : Nat) (h : i ≤ n) :
   field_simp
   linear_combination h_rat
 
+/-- **Term-wise scale-binom equals cauchyDiag-term** (strengthened with
+    `i ≤ n` hypothesis to use `choose_div_factorial_eq`):
+
+    `scale (c_{n,i} · (pow z₁ i · pow z₂ (n-i))) n ≈
+     exp_term z₁ i · exp_term z₂ (n-i)`
+
+    where `c_{n,i} = fromTauReal (fromNat (Nat.choose n i))`.
+
+    The key arithmetic identity: at TauRat toRat level, both sides
+    reduce to `(X.re·Y.re - X.im·Y.im) / (i!·(n-i)!)` for .re, where
+    X = pow z₁ i and Y = pow z₂ (n-i). The bridge uses
+    `choose_div_factorial_eq`. -/
+theorem TauComplex.scale_binom_term_eq_cauchyDiag_term
+    (z₁ z₂ : TauComplex) (n i : Nat) (h_le : i ≤ n) :
+    (TauComplex.scale_by_inv_factorial
+      ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+        ((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i)))) n).equiv
+    ((TauComplex.exp_term z₁ i).mul (TauComplex.exp_term z₂ (n - i))) := by
+  -- Helper: `(nat_to_taurat k).toRat = k` as a Rat (not a named simp lemma in core).
+  have h_nat_to_taurat : ∀ k : Nat, (nat_to_taurat k).toRat = (k : Rat) := by
+    intro k
+    simp only [nat_to_taurat, int_to_taurat, nat_to_tauint, TauRat.toRat,
+               TauInt.toInt, TauInt.fromNat]
+    push_cast; ring
+  -- Nat-level combinatorial identity, cast to Rat.
+  have h_combinatorial : Nat.choose n i * i.factorial * (n - i).factorial = n.factorial :=
+    Nat.choose_mul_factorial_mul_factorial h_le
+  have h_mul : (Nat.choose n i : Rat) * (i.factorial : Rat) * ((n - i).factorial : Rat)
+             = (n.factorial : Rat) := by exact_mod_cast h_combinatorial
+  have hn_pos : (0 : Rat) < (n.factorial : Rat) := by
+    have := Nat.factorial_pos n; exact_mod_cast this
+  have hi_pos : (0 : Rat) < (i.factorial : Rat) := by
+    have := Nat.factorial_pos i; exact_mod_cast this
+  have hni_pos : (0 : Rat) < ((n - i).factorial : Rat) := by
+    have := Nat.factorial_pos (n - i); exact_mod_cast this
+  refine ⟨?_, ?_⟩
+  · -- Real part: prove via pointwise TauRat toRat equality.
+    apply TauReal.equiv_of_pointwise
+    intro m
+    rw [equiv_iff_toRat_eq]
+    simp only [TauComplex.scale_by_inv_factorial_re, TauComplex.exp_term_re,
+               TauComplex.exp_term_im, TauComplex.mul, TauComplex.fromTauReal,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
+               TauReal.zero, TauReal.one,
+               TauReal.scale_by_inv_factorial_approx, TauRat.scale_by_inv_factorial_toRat,
+               TauReal.fromNat, TauReal.fromTauRat,
+               toRat_sub, toRat_add, toRat_mul, toRat_negate, toRat_zero,
+               h_nat_to_taurat]
+    field_simp
+    linear_combination
+      (((TauComplex.pow z₁ i).re.approx m).toRat * ((TauComplex.pow z₂ (n - i)).re.approx m).toRat
+       - ((TauComplex.pow z₁ i).im.approx m).toRat * ((TauComplex.pow z₂ (n - i)).im.approx m).toRat)
+      * h_mul
+  · -- Imag part: similar.
+    apply TauReal.equiv_of_pointwise
+    intro m
+    rw [equiv_iff_toRat_eq]
+    simp only [TauComplex.scale_by_inv_factorial_im, TauComplex.exp_term_re,
+               TauComplex.exp_term_im, TauComplex.mul, TauComplex.fromTauReal,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate,
+               TauReal.zero,
+               TauReal.scale_by_inv_factorial_approx, TauRat.scale_by_inv_factorial_toRat,
+               TauReal.fromNat, TauReal.fromTauRat,
+               toRat_sub, toRat_add, toRat_mul, toRat_negate, toRat_zero,
+               h_nat_to_taurat]
+    simp only [mul_zero, zero_mul, zero_add, add_zero, sub_zero, zero_sub]
+    field_simp
+    linear_combination
+      (((TauComplex.pow z₁ i).re.approx m).toRat * ((TauComplex.pow z₂ (n - i)).im.approx m).toRat
+       + ((TauComplex.pow z₁ i).im.approx m).toRat * ((TauComplex.pow z₂ (n - i)).re.approx m).toRat)
+      * h_mul
+
 end Tau.Boundary
