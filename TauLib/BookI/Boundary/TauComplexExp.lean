@@ -3179,4 +3179,52 @@ theorem TauComplex.add_pow_equiv_target_strong
     (TauComplex.add_pow_equiv_strong z₁ z₂ M hM h_bound_z1 h_bound_z2 n)
     (TauComplex.binomial_left_sum_eq_B_target z₁ z₂ n)
 
+-- ============================================================
+-- PART 32: PHASE 3C — TauComplex.scale_by_inv_factorial infrastructure
+-- ============================================================
+
+/-! ## Toward `exp_term_add_eq_cauchyDiag_target` discharge
+
+The next M3 step is discharging
+`exp_term_add_eq_cauchyDiag_target`:
+   `exp_term (z₁+z₂) n ≈ cauchyDiag (exp_term z₁) (exp_term z₂) n`
+
+The proof structure (using the now-shipped binomial theorem):
+1. `pow (z₁+z₂) n ≈ Σ_{i=0}^n c_{n,i} · pow z₁ i · pow z₂ (n-i)`
+   [add_pow_equiv_target_strong, just shipped].
+2. Scale both sides by `1/n!` componentwise:
+   LHS becomes `exp_term (z₁+z₂) n`.
+   RHS becomes `Σ_{i=0}^n (c_{n,i}/n!) · pow z₁ i · pow z₂ (n-i)`.
+3. Use `c_{n,i}/n! = 1/(i!·(n-i)!)` via factorial arithmetic.
+4. Reorganize RHS into `Σ_{i=0}^n (pow z₁ i / i!) · (pow z₂ (n-i) / (n-i)!)`.
+5. Recognize the RHS as `cauchyDiag (exp_term z₁) (exp_term z₂) n`.
+
+This part ships the TauComplex-level `scale_by_inv_factorial`
+infrastructure (currently exp_term uses TauReal.scale_by_inv_factorial
+componentwise).
+-/
+
+/-- **TauComplex scale-by-inverse-factorial** (componentwise lift):
+    `scale_by_inv_factorial z k = ⟨scale (z.re) k, scale (z.im) k⟩`.
+
+    This makes `exp_term z k = scale_by_inv_factorial (pow z k) k` by
+    definitional rfl. Used in the discharge of
+    `exp_term_add_eq_cauchyDiag_target` to factor out the factorial
+    scaling. -/
+def TauComplex.scale_by_inv_factorial (z : TauComplex) (k : Nat) : TauComplex :=
+  ⟨TauReal.scale_by_inv_factorial z.re k, TauReal.scale_by_inv_factorial z.im k⟩
+
+@[simp] theorem TauComplex.scale_by_inv_factorial_re (z : TauComplex) (k : Nat) :
+    (TauComplex.scale_by_inv_factorial z k).re = TauReal.scale_by_inv_factorial z.re k := rfl
+
+@[simp] theorem TauComplex.scale_by_inv_factorial_im (z : TauComplex) (k : Nat) :
+    (TauComplex.scale_by_inv_factorial z k).im = TauReal.scale_by_inv_factorial z.im k := rfl
+
+/-- **`exp_term` unfolds to `scale_by_inv_factorial (pow z k) k`** —
+    definitional rfl. Makes the factorial-scaling structure of exp_term
+    explicit, which is needed to compose with the binomial theorem
+    discharge. -/
+theorem TauComplex.exp_term_eq_scale_pow (z : TauComplex) (k : Nat) :
+    TauComplex.exp_term z k = TauComplex.scale_by_inv_factorial (TauComplex.pow z k) k := rfl
+
 end Tau.Boundary
