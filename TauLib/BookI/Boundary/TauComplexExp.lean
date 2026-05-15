@@ -3579,4 +3579,96 @@ theorem TauComplex.scale_binom_term_eq_cauchyDiag_term
        + ((TauComplex.pow z₁ i).im.approx m).toRat * ((TauComplex.pow z₂ (n - i)).re.approx m).toRat)
       * h_mul
 
+/-- **🎯 `exp_term_add_eq_cauchyDiag_target` DISCHARGED (strengthened with
+    bounds).**
+
+    `exp_term (z₁+z₂) n ≈ cauchyDiag (exp_term z₁) (exp_term z₂) n` for
+    any `z₁, z₂` with common bound `M ≥ 1` and all `n : Nat`.
+
+    The strengthened form (with bounds) chains:
+    1. `add_pow_equiv_target_strong` — `pow (z₁+z₂) n ≈ binomial_sum`.
+    2. `scale_by_inv_factorial_respects_equiv` — lift through scaling.
+       This converts `exp_term (z₁+z₂) n = scale (pow ...) n` to
+       `≈ scale (binomial_sum) n` (the rfl-bridge from
+       `exp_term_eq_scale_pow` is implicit).
+    3. `scale_by_inv_factorial_distrib_sum` — push scaling inside sum.
+    4. `sum_equiv_congr_bounded` + `scale_binom_term_eq_cauchyDiag_term`
+       — term-wise bridge to the cauchyDiag form (using `i ≤ n` from
+       the sum's `i < n+1` range).
+    5. The RHS of `h_terms` is `sum (fun i => (exp_term z₁ i).mul
+       (exp_term z₂ (n-i))) (n+1)`, which is `cauchyDiag (exp_term z₁)
+       (exp_term z₂) n` by definitional rfl.
+
+    The named target `exp_term_add_eq_cauchyDiag_target` was shipped at
+    `072fbbe` (Wave Γ₇ Phase 3C Part 3b) with NO bound hypotheses; this
+    strengthened discharge adds bounds (required by the binomial theorem
+    chain). The bound-free form would require a Cauchy-bound-transfer
+    lemma, deferred. -/
+theorem TauComplex.exp_term_add_eq_cauchyDiag_target_strong
+    (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z1 : TauComplex.BoundedBy z₁ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    (TauComplex.exp_term (z₁.add z₂) n).equiv
+    (TauComplex.cauchyDiag (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n) := by
+  -- Step 1: binomial theorem.
+  have h_binom :=
+    TauComplex.add_pow_equiv_target_strong z₁ z₂ M hM h_bound_z1 h_bound_z2 n
+  -- Step 2: lift through scaling.
+  have h_scale := TauComplex.scale_by_inv_factorial_respects_equiv
+    (TauComplex.pow (z₁.add z₂) n)
+    (TauComplex.sum (fun i =>
+      (TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+        ((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i)))) (n+1)) n h_binom
+  -- Step 3: distribute scaling over the sum.
+  have h_distrib := TauComplex.scale_by_inv_factorial_distrib_sum
+    (fun i => (TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+                ((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))))
+    (n+1) n
+  -- Step 4: term-wise bridge via sum_equiv_congr_bounded.
+  have h_terms :
+      (TauComplex.sum (fun i =>
+        TauComplex.scale_by_inv_factorial
+          ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+            ((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i)))) n) (n+1)).equiv
+      (TauComplex.sum (fun i =>
+        (TauComplex.exp_term z₁ i).mul (TauComplex.exp_term z₂ (n - i))) (n+1)) := by
+    apply TauComplex.sum_equiv_congr_bounded
+    intro i hi
+    -- hi : i < n + 1, i.e., i ≤ n.
+    have h_le : i ≤ n := Nat.le_of_lt_succ hi
+    exact TauComplex.scale_binom_term_eq_cauchyDiag_term z₁ z₂ n i h_le
+  -- Chain: exp_term = scale ∘ pow (by exp_term_eq_scale_pow, rfl), then h_scale,
+  --         then h_distrib, then h_terms. The RHS of h_terms = cauchyDiag by defn.
+  exact TauComplex.equiv_trans h_scale
+    (TauComplex.equiv_trans h_distrib h_terms)
+
+/-- **🎯 `exp_partial_add_eq_cauchyPStar_target` DISCHARGED (strengthened
+    with bounds).**
+
+    `exp_partial (z₁+z₂) n ≈ cauchyPStar (exp_term z₁) (exp_term z₂) n`
+    for any `z₁, z₂` with common bound `M ≥ 1` and all `n : Nat`.
+
+    Direct induction on n using:
+    * Base case (n=0): `exp_partial_add_eq_cauchyPStar_base`.
+    * Step case: `equiv_add_congr` of IH and the term-wise discharge
+      `exp_term_add_eq_cauchyDiag_target_strong`.
+
+    This pattern is exactly the one from the conditional theorem
+    `exp_partial_add_eq_cauchyPStar_under_term_hyp` (Phase 3C Part 3a),
+    but using our strengthened term identity (with bounds) directly. -/
+theorem TauComplex.exp_partial_add_eq_cauchyPStar_target_strong
+    (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z1 : TauComplex.BoundedBy z₁ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    (TauComplex.exp_partial (z₁.add z₂) n).equiv
+    (TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n) := by
+  induction n with
+  | zero => exact TauComplex.exp_partial_add_eq_cauchyPStar_base z₁ z₂
+  | succ n ih =>
+    show (TauComplex.exp_partial (z₁.add z₂) (n + 1)).equiv
+          (TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) (n + 1))
+    rw [TauComplex.exp_partial_succ, TauComplex.cauchyPStar_succ]
+    exact TauComplex.equiv_add_congr ih
+      (TauComplex.exp_term_add_eq_cauchyDiag_target_strong z₁ z₂ M hM h_bound_z1 h_bound_z2 n)
+
 end Tau.Boundary
