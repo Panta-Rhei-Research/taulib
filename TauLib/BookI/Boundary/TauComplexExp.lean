@@ -3348,4 +3348,60 @@ def TauComplex.scale_by_inv_factorial (z : TauComplex) (k : Nat) : TauComplex :=
 theorem TauComplex.exp_term_eq_scale_pow (z : TauComplex) (k : Nat) :
     TauComplex.exp_term z k = TauComplex.scale_by_inv_factorial (TauComplex.pow z k) k := rfl
 
+/-- **TauReal.scale_by_inv_factorial respects Cauchy equivalence.**
+
+    If `a ≈ b` (Cauchy-equiv at TauReal level), then `scale a k ≈
+    scale b k` with the SAME modulus. The proof: at the toRat level,
+    `|scale a k .approx n - scale b k .approx n| = |a.approx n -
+    b.approx n| / k!`. Since `k! ≥ 1`, dividing only tightens the
+    bound — same modulus suffices. -/
+theorem TauReal.scale_by_inv_factorial_respects_equiv
+    (a b : TauReal) (k : Nat) (h : TauReal.equiv a b) :
+    TauReal.equiv (TauReal.scale_by_inv_factorial a k) (TauReal.scale_by_inv_factorial b k) := by
+  obtain ⟨μ, hm⟩ := h
+  refine ⟨μ, fun k' n hn => ?_⟩
+  have h_step := hm k' n hn
+  unfold TauRat.lt at h_step ⊢
+  rw [TauRat.toRat_abs, toRat_sub] at h_step
+  rw [TauRat.toRat_abs, toRat_sub]
+  rw [TauRat.ofNatRecip_toRat] at h_step ⊢
+  -- Substitute scale.approx n .toRat = (.approx n).toRat / k!
+  have h_a : ((TauReal.scale_by_inv_factorial a k).approx n).toRat =
+              (a.approx n).toRat / (k.factorial : Rat) :=
+    TauRat.scale_by_inv_factorial_toRat (a.approx n) k
+  have h_b : ((TauReal.scale_by_inv_factorial b k).approx n).toRat =
+              (b.approx n).toRat / (k.factorial : Rat) :=
+    TauRat.scale_by_inv_factorial_toRat (b.approx n) k
+  rw [h_a, h_b]
+  -- Goal: |a.toRat/k! - b.toRat/k!| < 1/(k'+1)
+  have hk_fac_pos : (0 : Rat) < (k.factorial : Rat) := by
+    have := Nat.factorial_pos k; exact_mod_cast this
+  have hk_fac_ge_one : (1 : Rat) ≤ (k.factorial : Rat) := by
+    have h1 : 1 ≤ k.factorial := Nat.factorial_pos k
+    exact_mod_cast h1
+  -- |a/c - b/c| = |a-b|/c when c > 0
+  have h_split :
+      |(a.approx n).toRat / (k.factorial : Rat) - (b.approx n).toRat / (k.factorial : Rat)|
+      = |(a.approx n).toRat - (b.approx n).toRat| / (k.factorial : Rat) := by
+    rw [← sub_div, abs_div, abs_of_pos hk_fac_pos]
+  rw [h_split]
+  -- |...|/k! ≤ |...| since k! ≥ 1
+  have h_abs_nn : (0 : Rat) ≤ |(a.approx n).toRat - (b.approx n).toRat| := by positivity
+  have h_le : |(a.approx n).toRat - (b.approx n).toRat| / (k.factorial : Rat)
+              ≤ |(a.approx n).toRat - (b.approx n).toRat| :=
+    div_le_self h_abs_nn hk_fac_ge_one
+  linarith
+
+/-- **TauComplex.scale_by_inv_factorial respects equiv** (componentwise
+    lift of the TauReal version).
+
+    If `z ≈ z'` (TauComplex.equiv, i.e., componentwise TauReal.equiv on
+    re and im), then `scale z k ≈ scale z' k`. Componentwise via
+    `TauReal.scale_by_inv_factorial_respects_equiv`. -/
+theorem TauComplex.scale_by_inv_factorial_respects_equiv
+    (z z' : TauComplex) (k : Nat) (h : z.equiv z') :
+    (TauComplex.scale_by_inv_factorial z k).equiv (TauComplex.scale_by_inv_factorial z' k) :=
+  ⟨TauReal.scale_by_inv_factorial_respects_equiv z.re z'.re k h.1,
+   TauReal.scale_by_inv_factorial_respects_equiv z.im z'.im k h.2⟩
+
 end Tau.Boundary
