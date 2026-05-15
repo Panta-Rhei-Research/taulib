@@ -3139,4 +3139,44 @@ theorem TauComplex.add_pow_equiv_strong
   TauComplex.add_pow_equiv_strong_under_pascal_hyp
     TauComplex.pascal_combine_discharge z₁ z₂ M hM h_bound_z1 h_bound_z2 n
 
+/-- **Bridge `binomial_left_sum ≈ B_target`** — converts the LEFT-assoc
+    internal binomial form to the RIGHT-assoc form of the named target
+    `add_pow_equiv_target`.
+
+    Term-wise application of `taucomplex_mul_assoc` (bound-free ring
+    axiom: `(a·b)·c ≈ a·(b·c)`) lifted to sums via `sum_equiv_congr`. -/
+theorem TauComplex.binomial_left_sum_eq_B_target (z₁ z₂ : TauComplex) (n : Nat) :
+    (TauComplex.binomial_left_sum z₁ z₂ n).equiv
+    (TauComplex.sum (fun i =>
+      (TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+        ((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i)))) (n+1)) := by
+  apply TauComplex.sum_equiv_congr
+  intro i
+  exact taucomplex_mul_assoc _ _ _
+
+/-- **🎯 `add_pow_equiv_target` DISCHARGED (strengthened, with bounds).**
+
+    `pow (z₁+z₂) n ≈ sum (fun i => c · (z₁^i · z₂^(n-i))) (n+1)`.
+
+    This is the named-target form (right-assoc inner) of the binomial
+    theorem on TauComplex. Composes `add_pow_equiv_strong` (in left-assoc
+    form) with `binomial_left_sum_eq_B_target` (the bridge).
+
+    Note: the original `add_pow_equiv_target` (Part 3b'') had NO bound
+    hypotheses. This discharge adds the bound hypotheses (which are
+    needed for the proof structure). The bound-free form would require
+    a Cauchy-bound-transfer lemma we don't have yet (similar to
+    `equiv_pow_congr_target` deferred earlier). -/
+theorem TauComplex.add_pow_equiv_target_strong
+    (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z1 : TauComplex.BoundedBy z₁ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    (TauComplex.pow (z₁.add z₂) n).equiv
+    (TauComplex.sum (fun i =>
+      (TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+        ((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i)))) (n+1)) :=
+  TauComplex.equiv_trans
+    (TauComplex.add_pow_equiv_strong z₁ z₂ M hM h_bound_z1 h_bound_z2 n)
+    (TauComplex.binomial_left_sum_eq_B_target z₁ z₂ n)
+
 end Tau.Boundary
