@@ -4444,4 +4444,47 @@ theorem TauComplex.exp_term_re_im_geom_bound (z : TauComplex)
     linarith [h_4pow_le, h_pow_two]
   exact ⟨le_trans h_re h_bound_2k, le_trans h_im h_bound_2k⟩
 
+-- ============================================================
+-- PART 43: PHASE 3C PART 3g.1 — Helpers for toRat-level binomial theorem
+-- ============================================================
+
+/-! ## Foundational helpers for the toRat-level binomial theorem (Part 3g)
+
+To prove the M3 endpoint, we follow **Approach A**: prove a toRat-level
+binomial identity at TauComplex by direct induction, **without** Mathlib's
+`add_pow` / `CommRing` infrastructure. This preserves the τ-canon
+discipline of using Mathlib only for tactics (`ring`, `linarith`,
+`norm_num`, etc.).
+
+This Part ships foundational rfl-level lemmas that the induction will
+build on:
+
+* `nat_to_taurat_toRat`: `(nat_to_taurat k).toRat = (k : Rat)` —
+  promoted from a local `have` (line ~3529) to a public lemma.
+* `TauComplex.fromTauReal_re_approx` / `_im_approx`: rfl-bridges showing
+  `(fromTauReal r).re.approx m = r.approx m` and `.im.approx m = TauRat.zero`.
+* `TauReal.fromNat_approx`: `(TauReal.fromNat k).approx m = nat_to_taurat k`.
+
+All four are rfl or short proofs. -/
+
+/-- **`nat_to_taurat k .toRat = k` as a Rat.** Promoted from local use to
+    a public lemma since it's needed throughout the toRat-level binomial
+    proof. -/
+theorem nat_to_taurat_toRat (k : Nat) : (nat_to_taurat k).toRat = (k : Rat) := by
+  simp only [nat_to_taurat, int_to_taurat, nat_to_tauint, TauRat.toRat,
+             TauInt.toInt, TauInt.fromNat]
+  push_cast; ring
+
+/-- **`(fromTauReal r).re.approx m = r.approx m`** — rfl-bridge. -/
+@[simp] theorem TauComplex.fromTauReal_re_approx (r : TauReal) (m : Nat) :
+    (TauComplex.fromTauReal r).re.approx m = r.approx m := rfl
+
+/-- **`(fromTauReal r).im.approx m = TauRat.zero`** — rfl-bridge. -/
+@[simp] theorem TauComplex.fromTauReal_im_approx (r : TauReal) (m : Nat) :
+    (TauComplex.fromTauReal r).im.approx m = TauRat.zero := rfl
+
+/-- **`(TauReal.fromNat k).approx m = nat_to_taurat k`** — rfl-bridge. -/
+@[simp] theorem TauReal.fromNat_approx (k m : Nat) :
+    (TauReal.fromNat k).approx m = nat_to_taurat k := rfl
+
 end Tau.Boundary
