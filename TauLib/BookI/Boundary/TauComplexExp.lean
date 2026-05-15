@@ -4542,4 +4542,111 @@ theorem TauComplex.add_im_approx_toRat (z₁ z₂ : TauComplex) (m : Nat) :
   show (TauRat.add (z₁.im.approx m) (z₂.im.approx m)).toRat = _
   rw [toRat_add]
 
+-- ============================================================
+-- PART 45: PHASE 3C PART 3g.2b — Binomial sum recurrence (Pascal at toRat)
+-- ============================================================
+
+/-! ## Binomial sum recurrence at toRat level
+
+The toRat-level binomial theorem says
+`((pow (z₁+z₂) n).re.approx m).toRat = ((binomial_sum n).re.approx m).toRat`
+(and `.im` analog), where `binomial_sum n` is the explicit binomial sum
+of `(fromTauReal (fromNat C(n,i))) · (pow z₁ i · pow z₂ (n-i))` for
+`i = 0..n`.
+
+The proof is by induction on `n`. Both LHS and RHS satisfy the SAME
+recurrence at toRat level:
+* LHS: `R(pow (z₁+z₂) (n+1)) = R(pow (z₁+z₂) n) · R(z₁+z₂) − I(pow (z₁+z₂) n) · I(z₁+z₂)`
+  (Part 3g.2a, `pow_succ_re_approx_toRat`)
+* RHS: same recurrence — this is the **Pascal step** (this Part 3g.2b).
+
+The RHS recurrence:
+`R(binomial_sum (n+1)) = R(binomial_sum n) · R(z₁+z₂) − I(binomial_sum n) · I(z₁+z₂)`
+
+requires proving that the binomial sum at depth `n+1` equals
+(`binomial_sum n` `·` `(z₁+z₂)`) at toRat-level re/im. This is the
+Pascal regrouping identity, formalized as a TauRat sum manipulation.
+
+### Helper: the binomial-term sequences as TauRat-valued functions
+
+We work with the explicit binomial sum:
+```
+binom_sum_re z₁ z₂ n m :=
+  TauRat.sum (fun i =>
+    (nat_to_taurat (n.choose i)).mul
+      (((pow z₁ i).mul (pow z₂ (n - i))).re.approx m)) (n+1)
+binom_sum_im z₁ z₂ n m := analog with `.im`
+```
+
+The theorem states the Pascal recurrence at `.toRat` level:
+`(binom_sum_re z₁ z₂ (n+1) m).toRat = (binom_sum_re z₁ z₂ n m).toRat · ((z₁+z₂).re.approx m).toRat
+                                       - (binom_sum_im z₁ z₂ n m).toRat · ((z₁+z₂).im.approx m).toRat`
+
+(and `.im` analog with `+` and swapped components). -/
+
+/-- **TauComplex binomial-term sum (re part)** at `.approx m .toRat` level.
+
+    Definition shorthand for the explicit binomial sum's `.re.approx m`. -/
+def TauComplex.binom_sum_re (z₁ z₂ : TauComplex) (n m : Nat) : TauRat :=
+  TauRat.sum (fun i =>
+    (nat_to_taurat (n.choose i)).mul
+      (((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).re.approx m)) (n + 1)
+
+/-- **TauComplex binomial-term sum (im part)** at `.approx m .toRat` level. -/
+def TauComplex.binom_sum_im (z₁ z₂ : TauComplex) (n m : Nat) : TauRat :=
+  TauRat.sum (fun i =>
+    (nat_to_taurat (n.choose i)).mul
+      (((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).im.approx m)) (n + 1)
+
+/-- **Base case `n = 0`** of the binomial theorem at toRat level.
+
+    `(pow (z₁+z₂) 0).{re,im}.approx m .toRat = (binom_sum_{re,im} 0).toRat`. -/
+theorem TauComplex.add_pow_zero_re_im_approx_toRat (z₁ z₂ : TauComplex) (m : Nat) :
+    ((TauComplex.pow (z₁.add z₂) 0).re.approx m).toRat
+      = (TauComplex.binom_sum_re z₁ z₂ 0 m).toRat ∧
+    ((TauComplex.pow (z₁.add z₂) 0).im.approx m).toRat
+      = (TauComplex.binom_sum_im z₁ z₂ 0 m).toRat := by
+  refine ⟨?_, ?_⟩
+  · -- LHS_re at n=0: (one.re.approx m).toRat = 1
+    -- RHS_re at n=0: TauRat.sum (fun i => 1 · (one.mul one).re.approx m) 1 .toRat
+    show ((TauComplex.one.re.approx m).toRat) = _
+    show TauRat.one.toRat = _
+    rw [toRat_one]
+    show (1 : Rat) = (TauComplex.binom_sum_re z₁ z₂ 0 m).toRat
+    -- Unfold binom_sum_re at n=0
+    show (1 : Rat) = (TauRat.sum (fun i =>
+            (nat_to_taurat (Nat.choose 0 i)).mul
+              (((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (0 - i))).re.approx m)) 1).toRat
+    rw [TauRat.sum_succ, TauRat.sum_zero, toRat_add, toRat_zero, zero_add]
+    -- Inner term at i=0: (nat_to_taurat (Nat.choose 0 0)).mul ((pow z₁ 0).mul (pow z₂ 0)).re.approx m
+    -- = (nat_to_taurat 1).mul ((one.mul one).re.approx m)
+    -- .toRat = 1 · 1 = 1
+    rw [toRat_mul, nat_to_taurat_toRat]
+    show 1 = (1 : Rat) * (((TauComplex.pow z₁ 0).mul (TauComplex.pow z₂ 0)).re.approx m).toRat
+    rw [one_mul]
+    -- ((pow z₁ 0).mul (pow z₂ 0)).re.approx m = (one.mul one).re.approx m
+    show (1 : Rat) = ((TauComplex.one.mul TauComplex.one).re.approx m).toRat
+    rw [TauComplex.mul_re_approx, toRat_sub, toRat_mul, toRat_mul]
+    show (1 : Rat) = (TauComplex.one.re.approx m).toRat * (TauComplex.one.re.approx m).toRat
+                    - (TauComplex.one.im.approx m).toRat * (TauComplex.one.im.approx m).toRat
+    show (1 : Rat) = TauRat.one.toRat * TauRat.one.toRat - TauRat.zero.toRat * TauRat.zero.toRat
+    rw [toRat_one, toRat_zero]; ring
+  · -- LHS_im at n=0: (one.im.approx m).toRat = 0
+    show ((TauComplex.one.im.approx m).toRat) = _
+    show TauRat.zero.toRat = _
+    rw [toRat_zero]
+    -- RHS_im at n=0
+    show (0 : Rat) = (TauComplex.binom_sum_im z₁ z₂ 0 m).toRat
+    show (0 : Rat) = (TauRat.sum (fun i =>
+            (nat_to_taurat (Nat.choose 0 i)).mul
+              (((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (0 - i))).im.approx m)) 1).toRat
+    rw [TauRat.sum_succ, TauRat.sum_zero, toRat_add, toRat_zero, zero_add]
+    rw [toRat_mul, nat_to_taurat_toRat]
+    show 0 = (1 : Rat) * (((TauComplex.pow z₁ 0).mul (TauComplex.pow z₂ 0)).im.approx m).toRat
+    rw [one_mul]
+    show (0 : Rat) = ((TauComplex.one.mul TauComplex.one).im.approx m).toRat
+    rw [TauComplex.mul_im_approx, toRat_add, toRat_mul, toRat_mul]
+    show (0 : Rat) = TauRat.one.toRat * TauRat.zero.toRat + TauRat.zero.toRat * TauRat.one.toRat
+    rw [toRat_one, toRat_zero]; ring
+
 end Tau.Boundary
