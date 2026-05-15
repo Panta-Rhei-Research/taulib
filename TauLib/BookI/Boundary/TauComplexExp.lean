@@ -4305,4 +4305,55 @@ theorem TauComplex.pow_re_im_abs_le (z : TauComplex) (M : Nat)
         _ = ((2 * M : Nat) : Rat) ^ (k + 1) := by
               rw [h_cast]; ring
 
+-- ============================================================
+-- PART 41: PHASE 3C PART 3e — TauComplex.exp_term componentwise abs bound
+-- ============================================================
+
+/-! ## TauComplex exp_term componentwise abs bound
+
+Combining `pow_re_im_abs_le` (Part 3d) with `scale_by_inv_factorial_toRat`
+gives the componentwise magnitude bound on `exp_term z k`:
+
+`|(exp_term z k).{re,im}.approx m .toRat| ≤ (2M)^k / k!`
+
+The conversion to `cauchy_product_bound`-input form `C / 2^k` requires
+the auxiliary inequality `(4M)^k ≤ C · k!` for some constant `C`. For
+the common case `M = 1` (Nat-BoundedBy 1), `4^k ≤ 11 · k!` works
+(max of `4^k / k!` is ~10.67 at k=3,4). -/
+
+/-- **TauComplex.exp_term componentwise magnitude bound (simultaneous re+im).**
+
+    `|(exp_term z k).{re,im}.approx m .toRat| ≤ (2M)^k / k!` given
+    `TauComplex.BoundedBy z M`.
+
+    Direct application: pow bound + scale_by_inv_factorial. -/
+theorem TauComplex.exp_term_re_im_abs_le (z : TauComplex) (M : Nat)
+    (h : TauComplex.BoundedBy z M) (k m : Nat) :
+    |((TauComplex.exp_term z k).re.approx m).toRat|
+      ≤ ((2 * M : Nat) : Rat) ^ k / (k.factorial : Rat) ∧
+    |((TauComplex.exp_term z k).im.approx m).toRat|
+      ≤ ((2 * M : Nat) : Rat) ^ k / (k.factorial : Rat) := by
+  obtain ⟨h_pow_re, h_pow_im⟩ := TauComplex.pow_re_im_abs_le z M h k m
+  have h_fact_pos : (0 : Rat) < (k.factorial : Rat) := by
+    exact_mod_cast Nat.factorial_pos k
+  refine ⟨?_, ?_⟩
+  · -- re part
+    show |((TauReal.scale_by_inv_factorial (TauComplex.pow z k).re k).approx m).toRat|
+       ≤ ((2 * M : Nat) : Rat) ^ k / (k.factorial : Rat)
+    rw [TauReal.scale_by_inv_factorial_approx, TauRat.scale_by_inv_factorial_toRat]
+    rw [abs_div]
+    have h_fact_abs : |(k.factorial : Rat)| = (k.factorial : Rat) :=
+      abs_of_pos h_fact_pos
+    rw [h_fact_abs]
+    exact div_le_div_of_nonneg_right h_pow_re (le_of_lt h_fact_pos)
+  · -- im part
+    show |((TauReal.scale_by_inv_factorial (TauComplex.pow z k).im k).approx m).toRat|
+       ≤ ((2 * M : Nat) : Rat) ^ k / (k.factorial : Rat)
+    rw [TauReal.scale_by_inv_factorial_approx, TauRat.scale_by_inv_factorial_toRat]
+    rw [abs_div]
+    have h_fact_abs : |(k.factorial : Rat)| = (k.factorial : Rat) :=
+      abs_of_pos h_fact_pos
+    rw [h_fact_abs]
+    exact div_le_div_of_nonneg_right h_pow_im (le_of_lt h_fact_pos)
+
 end Tau.Boundary
