@@ -2865,6 +2865,60 @@ def TauComplex.right_sum_reindex_target : Prop :=
     (TauComplex.binomial_right_sum z₁ z₂ n).equiv
     ((TauComplex.pow z₂ (n+1)).add (TauComplex.binomial_right_shifted z₁ z₂ n))
 
+/-- **First term of `binomial_right_sum`** (def-name for the i=0 term
+    after `sum_split_first`):
+    `((fromTauReal (fromNat (Nat.choose n 0))).mul (pow z₁ 0)).mul (pow z₂ ((n-0)+1))`. -/
+@[reducible] def TauComplex.binomial_right_first_term (z₁ z₂ : TauComplex) (n : Nat) : TauComplex :=
+  ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n 0))).mul
+    (TauComplex.pow z₁ 0)).mul (TauComplex.pow z₂ ((n - 0) + 1))
+
+/-- **After-first-term sum of `binomial_right_sum`** (def-name for the
+    i ≥ 1 part after `sum_split_first`):
+    `sum (fun i => ((c_{n,i+1}) · z₁^(i+1)) · z₂^((n-(i+1))+1)) n`. -/
+@[reducible] def TauComplex.binomial_right_after_first (z₁ z₂ : TauComplex) (n : Nat) : TauComplex :=
+  TauComplex.sum (fun i =>
+    ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n (i+1)))).mul
+      (TauComplex.pow z₁ (i+1))).mul (TauComplex.pow z₂ ((n - (i+1)) + 1))) n
+
+/-- **Sum-split decomposition of `binomial_right_sum`** into def-name
+    intermediates: `binomial_right_sum z₁ z₂ n ≈ first_term + after_first`.
+
+    Direct application of `sum_split_first` to the unfolded form of
+    `binomial_right_sum`. `@[reducible]` unfolding makes the RHS match
+    `sum_split_first`'s output. -/
+theorem TauComplex.binomial_right_sum_split (z₁ z₂ : TauComplex) (n : Nat) :
+    (TauComplex.binomial_right_sum z₁ z₂ n).equiv
+    ((TauComplex.binomial_right_first_term z₁ z₂ n).add
+      (TauComplex.binomial_right_after_first z₁ z₂ n)) :=
+  TauComplex.sum_split_first (fun i =>
+    ((TauComplex.fromTauReal (TauReal.fromNat (Nat.choose n i))).mul
+      (TauComplex.pow z₁ i)).mul (TauComplex.pow z₂ ((n - i) + 1))) n
+
+/-! ### Bridge attempts deferred — rfl-cliff observed
+
+Two natural bridge theorems would close the chain:
+* `binomial_right_first_term z₁ z₂ n ≈ pow z₂ (n+1)` via `first_term_simplify`.
+* `binomial_right_after_first z₁ z₂ n ≈ binomial_right_shifted z₁ z₂ n`
+  via `right_after_first_to_shifted`.
+
+Both hit a **rfl-bridge cliff**: the `@[reducible]` unfolded form of
+`binomial_right_first_term` is rfl-equal to `first_term_simplify`'s LHS
+(via `Nat.choose n 0 = 1` + `pow z₁ 0 = one` + `(n-0)+1 = n+1`, all rfl
+in Lean 4 core), but the chained rfl-reductions during unification of
+heavy expressions exhaust the whnf budget (timed out at 200K, even at
+400K from the earlier attempt).
+
+The disciplined response: ship `binomial_right_sum_split` (which works
+because `sum_split_first`'s output already uses the rfl-unfolded form
+that matches the def names), defer the bridges to a future commit
+with a more targeted approach — likely:
+* Add a `change` tactic to force Lean's whnf to the explicit form
+  before applying the sub-lemma, OR
+* Add custom `simp` lemmas that explicitly state the rfl-bridges,
+  letting `simp only [...]` perform them stepwise rather than via
+  one big whnf call.
+-/
+
 /-- **TauComplex add-left-comm** (unconditional ring identity):
     `a + (b + c) ≈ b + (a + c)`.
 
