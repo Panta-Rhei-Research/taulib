@@ -2908,6 +2908,49 @@ theorem TauComplex.binomial_right_after_first_to_shifted_def
     (TauComplex.binomial_right_shifted z₁ z₂ n) :=
   TauComplex.right_after_first_to_shifted z₁ z₂ M hM h_bound_z1 h_bound_z2 n
 
+/-- **First-term bridge** in def-name form (via `simp only` rfl-rewrites):
+    `binomial_right_first_term z₁ z₂ n ≈ pow z₂ (n+1)`.
+
+    The @[reducible]-unfolded form has `Nat.choose n 0`, `pow z₁ 0`,
+    `(n-0)+1` which need to rfl-reduce to `1`, `one`, `n+1` for
+    `first_term_simplify` to apply. Earlier `exact`/`apply` attempts
+    hit whnf-cliff under heavy context. The `simp only` approach
+    applies the rfl rewrites stepwise as targeted simp args,
+    distributing the cost across smaller normalization passes. -/
+theorem TauComplex.binomial_right_first_term_to_pow
+    (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    (TauComplex.binomial_right_first_term z₁ z₂ n).equiv (TauComplex.pow z₂ (n+1)) := by
+  unfold TauComplex.binomial_right_first_term
+  simp only [Nat.choose_zero_right, TauComplex.pow_zero, Nat.sub_zero]
+  exact TauComplex.first_term_simplify z₂ M hM h_bound_z2 n
+
+/-- **🎯 `right_sum_reindex_target` DISCHARGED!**
+
+    Composes `binomial_right_sum_split` + `equiv_add_congr` of
+    `binomial_right_first_term_to_pow` and
+    `binomial_right_after_first_to_shifted_def`. All three sub-lemmas
+    are in def-name form (signature stays compact), and the chain
+    elaborates within budget.
+
+    This unlocks the cascade:
+    1. `pascal_combine_discharge` via
+       `pascal_combine_target_under_right_reindex_hyp` applied to this.
+    2. `add_pow_equiv_strong` (the binomial theorem on TauComplex,
+       unconditional) via `add_pow_equiv_strong_under_pascal_hyp`
+       applied to (1).
+    3. Final B_left ↔ B_target bridge → `add_pow_equiv_target_discharged`. -/
+theorem TauComplex.right_sum_reindex_discharge :
+    TauComplex.right_sum_reindex_target := by
+  intro z₁ z₂ M hM h_bound_z1 h_bound_z2 n
+  exact TauComplex.equiv_trans
+    (TauComplex.binomial_right_sum_split z₁ z₂ n)
+    (TauComplex.equiv_add_congr
+      (TauComplex.binomial_right_first_term_to_pow z₁ z₂ M hM h_bound_z2 n)
+      (TauComplex.binomial_right_after_first_to_shifted_def z₁ z₂ M hM h_bound_z1 h_bound_z2 n))
+
+
+
 /-! ### Bridge attempts deferred — rfl-cliff observed (for first_term only)
 
 Two natural bridge theorems would close the chain:
@@ -3059,5 +3102,41 @@ theorem TauComplex.pascal_combine_target_under_right_reindex_hyp
     (TauComplex.equiv_trans h_reorg
       (TauComplex.equiv_trans h_lift2
         (TauComplex.equiv_trans h_lift3 h_BL_sym)))
+
+-- ============================================================
+-- PART 31: PHASE 3C — 🎯🎯🎯 THE BINOMIAL THEOREM ON TauComplex! 🎯🎯🎯
+-- ============================================================
+
+/-- **🎯 `pascal_combine_target` DISCHARGED (unconditional).**
+
+    Direct application of `pascal_combine_target_under_right_reindex_hyp`
+    (Part 3b'''''''''''''''''') to the now-shipped
+    `right_sum_reindex_discharge`. -/
+theorem TauComplex.pascal_combine_discharge : TauComplex.pascal_combine_target :=
+  TauComplex.pascal_combine_target_under_right_reindex_hyp
+    TauComplex.right_sum_reindex_discharge
+
+/-- **🎯🎯🎯 BINOMIAL THEOREM ON TauComplex — UNCONDITIONAL!**
+
+    `pow (z₁ + z₂) n ≈ binomial_left_sum z₁ z₂ n` for any `z₁, z₂` with
+    common bound `M` (1 ≤ M) and all `n : Nat`.
+
+    Direct application of `add_pow_equiv_strong_under_pascal_hyp`
+    (Part 3b''''''''''''''''') to the now-discharged
+    `pascal_combine_discharge`. The strengthened form (with bound
+    hypothesis) is the one needed downstream for `TauComplex.exp_add`
+    (M3 endpoint).
+
+    The bridge to the named-target form `add_pow_equiv_target` (using
+    right-assoc inner `c · (z₁^i · z₂^(n-i))`) is queued for the next
+    part — it's a term-wise application of `taucomplex_mul_assoc`
+    lifted via `sum_equiv_congr`, bound-free. -/
+theorem TauComplex.add_pow_equiv_strong
+    (z₁ z₂ : TauComplex) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_z1 : TauComplex.BoundedBy z₁ M)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ M) (n : Nat) :
+    (TauComplex.pow (z₁.add z₂) n).equiv (TauComplex.binomial_left_sum z₁ z₂ n) :=
+  TauComplex.add_pow_equiv_strong_under_pascal_hyp
+    TauComplex.pascal_combine_discharge z₁ z₂ M hM h_bound_z1 h_bound_z2 n
 
 end Tau.Boundary
