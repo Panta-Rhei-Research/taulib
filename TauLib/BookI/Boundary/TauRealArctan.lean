@@ -599,4 +599,252 @@ theorem TauReal.pi_machin_isCauchy : TauReal.pi_machin.IsCauchy := by
     · exact TauReal.IsCauchy_fromNat 4
     · exact TauReal.arctan_reciprocal_isCauchy 239 (by norm_num)
 
+-- ============================================================
+-- PART 11: GENERALIZED arctan_of_rat (for general |x.toRat| ≤ 1/2)
+-- ============================================================
+
+/-! ## Phase 2.6.A — Generalized arctan_of_rat
+
+The `arctan_reciprocal q hq` infrastructure handles `arctan(1/q)` for
+`q ≥ 2 : Nat`. For Machin's identity, intermediate values arise via the
+arctan addition formula:
+
+  arctan(1/5) + arctan(1/5) = arctan(5/12)   (5/12 ≈ 0.417 < 1/2)
+  arctan(5/12) + arctan(5/12) = arctan(120/119)   (> 1, queued for later)
+
+This part generalizes to `TauReal.arctan_of_rat (x : TauRat) (hx : |x.toRat| · 2 ≤ 1) :
+TauReal`, handling any rational argument with `|x| ≤ 1/2`. -/
+
+/-- Helper: divide a TauRat by a positive Nat. Constructs `q/n` by
+    multiplying the denominator. -/
+def TauRat.div_pos_nat (q : TauRat) (n : Nat) (hn : 0 < n) : TauRat :=
+  ⟨q.num, q.den * n, Nat.mul_pos q.den_pos hn⟩
+
+theorem TauRat.div_pos_nat_toRat (q : TauRat) (n : Nat) (hn : 0 < n) :
+    (TauRat.div_pos_nat q n hn).toRat = q.toRat / (n : Rat) := by
+  unfold TauRat.div_pos_nat TauRat.toRat
+  have h_q_den_pos : (0 : Rat) < (q.den : Rat) := by exact_mod_cast q.den_pos
+  have h_n_pos : (0 : Rat) < (n : Rat) := by exact_mod_cast hn
+  push_cast
+  field_simp
+
+/-- **General arctan paired term** at TauRat level (signed):
+    `pair_term x k = x^(4k+1)/(4k+1) - x^(4k+3)/(4k+3)`. -/
+def TauRat.arctan_pair_term (x : TauRat) (k : Nat) : TauRat :=
+  (TauRat.div_pos_nat (TauRat.pow x (4*k+1)) (4*k+1) (by omega)).sub
+    (TauRat.div_pos_nat (TauRat.pow x (4*k+3)) (4*k+3) (by omega))
+
+/-- Rat-level companion. -/
+def arctan_pair_term_rat (x : Rat) (k : Nat) : Rat :=
+  x^(4*k+1)/(4*k+1) - x^(4*k+3)/(4*k+3)
+
+/-- Bridge: TauRat construction = Rat companion under `.toRat`. -/
+theorem TauRat.arctan_pair_term_toRat (x : TauRat) (k : Nat) :
+    (TauRat.arctan_pair_term x k).toRat = arctan_pair_term_rat x.toRat k := by
+  unfold TauRat.arctan_pair_term arctan_pair_term_rat
+  rw [toRat_sub, TauRat.div_pos_nat_toRat, TauRat.div_pos_nat_toRat,
+      TauRat.pow_toRat, TauRat.pow_toRat]
+  push_cast
+  ring
+
+/-- **General arctan partial sum** at TauRat level. -/
+def TauRat.arctan_partial (x : TauRat) (n : Nat) : TauRat :=
+  TauRat.sum (fun k => TauRat.arctan_pair_term x k) n
+
+@[simp] theorem TauRat.arctan_partial_zero (x : TauRat) :
+    TauRat.arctan_partial x 0 = TauRat.zero := rfl
+
+@[simp] theorem TauRat.arctan_partial_succ (x : TauRat) (n : Nat) :
+    TauRat.arctan_partial x (n + 1) =
+      (TauRat.arctan_partial x n).add (TauRat.arctan_pair_term x n) := rfl
+
+/-- Rat-level companion partial sum. -/
+def arctan_partial_rat (x : Rat) : Nat → Rat
+  | 0 => 0
+  | n + 1 => arctan_partial_rat x n + arctan_pair_term_rat x n
+
+@[simp] theorem arctan_partial_rat_zero (x : Rat) : arctan_partial_rat x 0 = 0 := rfl
+
+@[simp] theorem arctan_partial_rat_succ (x : Rat) (n : Nat) :
+    arctan_partial_rat x (n + 1) = arctan_partial_rat x n + arctan_pair_term_rat x n := rfl
+
+/-- Bridge for partial sums. -/
+theorem TauRat.arctan_partial_toRat (x : TauRat) (n : Nat) :
+    (TauRat.arctan_partial x n).toRat = arctan_partial_rat x.toRat n := by
+  induction n with
+  | zero =>
+    simp [TauRat.arctan_partial_zero, arctan_partial_rat_zero, toRat_zero]
+  | succ n ih =>
+    rw [TauRat.arctan_partial_succ, toRat_add, ih, TauRat.arctan_pair_term_toRat,
+        arctan_partial_rat_succ]
+
+-- ============================================================
+-- PART 12: PER-TERM BOUND for general arctan (|x| ≤ 1/2)
+-- ============================================================
+
+/-- **Geometric per-term bound**: for `|x| ≤ 1/2`,
+    `|arctan_pair_term_rat x k| ≤ 2/2^k`.
+
+    Proof: `|x^(4k+1)/(4k+1)| ≤ |x|^(4k+1) ≤ (1/2)^(4k+1) ≤ (1/2)^k`,
+    and similarly for the second sub-term. Triangle inequality: sum ≤ 2/2^k. -/
+theorem arctan_pair_term_rat_abs_bound_geom (x : Rat) (hx : 2 * |x| ≤ 1) (k : Nat) :
+    |arctan_pair_term_rat x k| ≤ 2 / (2 : Rat)^k := by
+  unfold arctan_pair_term_rat
+  -- |x^(4k+1)/(4k+1)| ≤ |x|^(4k+1) and similarly for second term
+  have h_abs_x_le_half : |x| ≤ 1/2 := by linarith
+  have h_abs_x_nn : (0 : Rat) ≤ |x| := abs_nonneg _
+  have h_4k1_pos : (0 : Rat) < ((4*k+1 : Nat) : Rat) := by
+    have : 0 < 4*k+1 := by omega
+    exact_mod_cast this
+  have h_4k3_pos : (0 : Rat) < ((4*k+3 : Nat) : Rat) := by
+    have : 0 < 4*k+3 := by omega
+    exact_mod_cast this
+  have h_4k1_ge_1 : (1 : Rat) ≤ ((4*k+1 : Nat) : Rat) := by
+    have : 1 ≤ 4*k+1 := by omega
+    exact_mod_cast this
+  have h_4k3_ge_1 : (1 : Rat) ≤ ((4*k+3 : Nat) : Rat) := by
+    have : 1 ≤ 4*k+3 := by omega
+    exact_mod_cast this
+  have h_2_pow_k_pos : (0 : Rat) < (2 : Rat)^k := by positivity
+  -- |x^(4k+1)| ≤ (1/2)^(4k+1) ≤ 1/2^(k+1) ≤ 1/2^k
+  have h_x_pow_le : |x|^(4*k+1) ≤ (1 : Rat) / (2 : Rat)^(k+1) := by
+    calc |x|^(4*k+1)
+        ≤ (1/2 : Rat)^(4*k+1) := pow_le_pow_left₀ h_abs_x_nn h_abs_x_le_half _
+      _ = 1 / (2 : Rat)^(4*k+1) := by rw [div_pow, one_pow]
+      _ ≤ 1 / (2 : Rat)^(k+1) := by
+          apply one_div_le_one_div_of_le
+          · positivity
+          · apply pow_le_pow_right₀ (by norm_num : (1 : Rat) ≤ 2); omega
+  have h_x_pow_3_le : |x|^(4*k+3) ≤ (1 : Rat) / (2 : Rat)^(k+1) := by
+    calc |x|^(4*k+3)
+        ≤ (1/2 : Rat)^(4*k+3) := pow_le_pow_left₀ h_abs_x_nn h_abs_x_le_half _
+      _ = 1 / (2 : Rat)^(4*k+3) := by rw [div_pow, one_pow]
+      _ ≤ 1 / (2 : Rat)^(k+1) := by
+          apply one_div_le_one_div_of_le
+          · positivity
+          · apply pow_le_pow_right₀ (by norm_num : (1 : Rat) ≤ 2); omega
+  -- |x^(4k+1)/(4k+1)| ≤ |x|^(4k+1) (since (4k+1) ≥ 1)
+  have h_first_abs : |x^(4*k+1) / ((4*k+1 : Nat) : Rat)|
+                      ≤ 1 / (2 : Rat)^(k+1) := by
+    rw [abs_div]
+    rw [show |((4*k+1 : Nat) : Rat)| = ((4*k+1 : Nat) : Rat) from abs_of_pos h_4k1_pos]
+    calc |x^(4*k+1)| / ((4*k+1 : Nat) : Rat)
+        ≤ |x^(4*k+1)| / 1 := by
+          apply div_le_div_of_nonneg_left (abs_nonneg _) (by norm_num : (0:Rat) < 1) h_4k1_ge_1
+      _ = |x^(4*k+1)| := by ring
+      _ = |x|^(4*k+1) := abs_pow x (4*k+1)
+      _ ≤ 1 / (2 : Rat)^(k+1) := h_x_pow_le
+  have h_second_abs : |x^(4*k+3) / ((4*k+3 : Nat) : Rat)|
+                       ≤ 1 / (2 : Rat)^(k+1) := by
+    rw [abs_div]
+    rw [show |((4*k+3 : Nat) : Rat)| = ((4*k+3 : Nat) : Rat) from abs_of_pos h_4k3_pos]
+    calc |x^(4*k+3)| / ((4*k+3 : Nat) : Rat)
+        ≤ |x^(4*k+3)| / 1 := by
+          apply div_le_div_of_nonneg_left (abs_nonneg _) (by norm_num : (0:Rat) < 1) h_4k3_ge_1
+      _ = |x^(4*k+3)| := by ring
+      _ = |x|^(4*k+3) := abs_pow x (4*k+3)
+      _ ≤ 1 / (2 : Rat)^(k+1) := h_x_pow_3_le
+  -- Triangle: |sum| ≤ |first| + |second| ≤ 2/2^(k+1) = 1/2^k ≤ 2/2^k
+  have h_tri : |x^(4*k+1) / ((4*k+1 : Nat) : Rat) - x^(4*k+3) / ((4*k+3 : Nat) : Rat)|
+              ≤ |x^(4*k+1) / ((4*k+1 : Nat) : Rat)| + |x^(4*k+3) / ((4*k+3 : Nat) : Rat)| := by
+    have := abs_sub (x^(4*k+1) / ((4*k+1 : Nat) : Rat)) (x^(4*k+3) / ((4*k+3 : Nat) : Rat))
+    exact this
+  have h_sum_le : (1 : Rat) / (2 : Rat)^(k+1) + 1 / (2 : Rat)^(k+1) = 1 / (2 : Rat)^k := by
+    have h_pow_succ : (2 : Rat)^(k+1) = 2 * (2 : Rat)^k := by rw [pow_succ]; ring
+    rw [h_pow_succ]
+    field_simp
+    ring
+  have h_one_le_two : (1 : Rat) / (2 : Rat)^k ≤ 2 / (2 : Rat)^k := by
+    rw [div_le_div_iff₀ h_2_pow_k_pos h_2_pow_k_pos]
+    nlinarith
+  have h_step : |x^(4*k+1) / ((4*k+1 : Nat) : Rat) - x^(4*k+3) / ((4*k+3 : Nat) : Rat)|
+              ≤ 1 / (2 : Rat)^(k+1) + 1 / (2 : Rat)^(k+1) := by linarith
+  push_cast at h_step
+  linarith
+
+-- ============================================================
+-- PART 13: CAUCHY TAIL BOUND for general arctan (|x| ≤ 1/2)
+-- ============================================================
+
+/-- **Cauchy tail bound for general arctan**: for `|x| ≤ 1/2`,
+    `|arctan_partial_rat x m − arctan_partial_rat x n| ≤ 4/2^n − 4/2^m`
+    for `n ≤ m`. Telescoping inductive proof. -/
+theorem arctan_partial_rat_cauchy_bound_exact
+    (x : Rat) (hx : 2 * |x| ≤ 1) (m n : Nat) (hnm : n ≤ m) :
+    |arctan_partial_rat x m - arctan_partial_rat x n|
+      ≤ 4 / (2 : Rat)^n - 4 / (2 : Rat)^m := by
+  induction m, hnm using Nat.le_induction with
+  | base => simp
+  | succ m hnm ih =>
+    rw [arctan_partial_rat_succ]
+    have h_diff : arctan_partial_rat x m + arctan_pair_term_rat x m - arctan_partial_rat x n
+                  = (arctan_partial_rat x m - arctan_partial_rat x n)
+                    + arctan_pair_term_rat x m := by ring
+    rw [h_diff]
+    have h_tri : |(arctan_partial_rat x m - arctan_partial_rat x n) + arctan_pair_term_rat x m|
+                  ≤ |arctan_partial_rat x m - arctan_partial_rat x n|
+                    + |arctan_pair_term_rat x m| := abs_add_le _ _
+    have h_term := arctan_pair_term_rat_abs_bound_geom x hx m
+    have h_2_m_pos : (0 : Rat) < (2 : Rat)^m := by positivity
+    have h_pow_succ : (2 : Rat)^(m+1) = 2 * (2 : Rat)^m := by rw [pow_succ]; ring
+    have h_algebra :
+        4 / (2 : Rat)^n - 4 / (2 : Rat)^m + 2 / (2 : Rat)^m
+          = 4 / (2 : Rat)^n - 4 / (2 : Rat)^(m+1) := by
+      rw [h_pow_succ]
+      have h_2_n_pos : (0 : Rat) < (2 : Rat)^n := by positivity
+      field_simp; ring
+    linarith
+
+/-- **Loose Cauchy tail bound** for general arctan: drop the subtractive term. -/
+theorem arctan_partial_rat_cauchy_bound
+    (x : Rat) (hx : 2 * |x| ≤ 1) (m n : Nat) (hnm : n ≤ m) :
+    |arctan_partial_rat x m - arctan_partial_rat x n| ≤ 4 / (2 : Rat)^n := by
+  have h_exact := arctan_partial_rat_cauchy_bound_exact x hx m n hnm
+  have h_subtract_nn : (0 : Rat) ≤ 4 / (2 : Rat)^m := by
+    apply div_nonneg (by norm_num : (0 : Rat) ≤ 4)
+    positivity
+  linarith
+
+-- ============================================================
+-- PART 14: TauReal.arctan_of_rat AND IsCauchy
+-- ============================================================
+
+/-- **[I.D-Arctan-General]** General τ-native `arctan(x)` as a TauReal, for
+    any `x : TauRat` with `|x.toRat| ≤ 1/2`. -/
+def TauReal.arctan_of_rat (x : TauRat) (_ : 2 * |x.toRat| ≤ 1) : TauReal :=
+  ⟨TauRat.arctan_partial x⟩
+
+@[simp] theorem TauReal.arctan_of_rat_approx (x : TauRat) (hx : 2 * |x.toRat| ≤ 1) (n : Nat) :
+    (TauReal.arctan_of_rat x hx).approx n = TauRat.arctan_partial x n := rfl
+
+/-- **[I.T-Arctan-General-IsCauchy]** General `arctan_of_rat` is Cauchy with
+    modulus `λ k => k + 3` for `|x.toRat| ≤ 1/2`. -/
+theorem TauReal.arctan_of_rat_isCauchy (x : TauRat) (hx : 2 * |x.toRat| ≤ 1) :
+    (TauReal.arctan_of_rat x hx).IsCauchy := by
+  refine ⟨fun k => k + 3, ?_⟩
+  intro k m n hm hn
+  change k + 3 ≤ m at hm
+  change k + 3 ≤ n at hn
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |((TauRat.arctan_partial x m).toRat - (TauRat.arctan_partial x n).toRat)|
+         < 1 / ((k : Rat) + 1)
+  rw [TauRat.arctan_partial_toRat, TauRat.arctan_partial_toRat]
+  by_cases h_le : n ≤ m
+  · have h_bound := arctan_partial_rat_cauchy_bound x.toRat hx m n h_le
+    have h_four_lt := Rat.four_div_two_pow_lt_recip k n hn
+    linarith
+  · push_neg at h_le
+    have h_m_le_n : m ≤ n := Nat.le_of_lt h_le
+    have h_swap_abs :
+        |arctan_partial_rat x.toRat m - arctan_partial_rat x.toRat n|
+          = |arctan_partial_rat x.toRat n - arctan_partial_rat x.toRat m| := by
+      rw [show arctan_partial_rat x.toRat m - arctan_partial_rat x.toRat n
+            = -(arctan_partial_rat x.toRat n - arctan_partial_rat x.toRat m) from by ring,
+          abs_neg]
+    rw [h_swap_abs]
+    have h_bound := arctan_partial_rat_cauchy_bound x.toRat hx n m h_m_le_n
+    have h_four_lt := Rat.four_div_two_pow_lt_recip k m hm
+    linarith
+
 end Tau.Boundary
