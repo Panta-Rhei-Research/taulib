@@ -395,4 +395,93 @@ theorem exp_term_pureIm_im_approx_toRat (x : TauRat) (k n : Nat) :
       TauRat.scale_by_inv_factorial_toRat,
       (pureIm_pow_re_im_approx_toRat x k n).2]
 
+-- ============================================================
+-- PART 7: Rat-LEVEL INTERMEDIATE + ALIGNMENT AT DEPTH 4m
+-- ============================================================
+
+/-- **[I.D-ExpPartial-PureIm-Re-Rat]** Rat-level intermediate for
+    `((exp_partial (pureIm x) k).re.approx _).toRat`.
+
+    Recursively defined from `pureIm_pow_re_im_rat` divided by `k!`. The
+    bridge theorem below shows this matches the actual TauReal-level value
+    at any approximation depth. -/
+def expPartial_pureIm_re_rat (xR : Rat) : Nat → Rat
+  | 0     => 0
+  | k + 1 => expPartial_pureIm_re_rat xR k
+              + (pureIm_pow_re_im_rat xR k).1 / (k.factorial : Rat)
+
+@[simp] theorem expPartial_pureIm_re_rat_zero (xR : Rat) :
+    expPartial_pureIm_re_rat xR 0 = 0 := rfl
+
+@[simp] theorem expPartial_pureIm_re_rat_succ (xR : Rat) (k : Nat) :
+    expPartial_pureIm_re_rat xR (k+1)
+      = expPartial_pureIm_re_rat xR k
+          + (pureIm_pow_re_im_rat xR k).1 / (k.factorial : Rat) := rfl
+
+/-- **[I.T-ExpPartial-PureIm-Re-Bridge]** Bridge to TauReal: the
+    `((exp_partial (pureIm x) k).re.approx m_a).toRat` matches the Rat
+    intermediate at any approximation depth `m_a`. -/
+theorem expPartial_pureIm_re_approx_toRat_eq_rat (x : TauRat) (k m_a : Nat) :
+    ((TauComplex.exp_partial (TauComplex.pureIm x) k).re.approx m_a).toRat
+      = expPartial_pureIm_re_rat x.toRat k := by
+  induction k with
+  | zero =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm x) 0).re.approx m_a).toRat
+        = expPartial_pureIm_re_rat x.toRat 0
+    rw [TauComplex.exp_partial_zero, expPartial_pureIm_re_rat_zero]
+    -- (TauComplex.zero).re.approx m_a = (TauReal.zero).approx m_a = TauRat.zero
+    show (TauRat.zero).toRat = 0
+    exact toRat_zero
+  | succ k IH =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm x) (k+1)).re.approx m_a).toRat
+        = expPartial_pureIm_re_rat x.toRat (k+1)
+    rw [TauComplex.exp_partial_succ, expPartial_pureIm_re_rat_succ]
+    -- LHS now: ((exp_partial _ k).add (exp_term _ k)).re.approx m_a .toRat
+    -- (a.add b).re.approx m_a = TauRat.add (a.re.approx m_a) (b.re.approx m_a) by def
+    show (TauRat.add
+            ((TauComplex.exp_partial (TauComplex.pureIm x) k).re.approx m_a)
+            ((TauComplex.exp_term (TauComplex.pureIm x) k).re.approx m_a)).toRat
+        = expPartial_pureIm_re_rat x.toRat k
+          + (pureIm_pow_re_im_rat x.toRat k).1 / (k.factorial : Rat)
+    rw [toRat_add, IH, exp_term_pureIm_re_approx_toRat]
+
+/-- **[I.T-ExpPartial-PureIm-Re-Rat-At-4m]** At Rat-level depth `4m`, the
+    intermediate `expPartial_pureIm_re_rat` equals `cos_partial_rat`.
+
+    Cyclotomic-4 closed-form alignment with the τ-native paired-cosine
+    series: at every 4-step the recurrence picks up one `cos_pair_term`. -/
+theorem expPartial_pureIm_re_rat_at_4m (xR : Rat) (m : Nat) :
+    expPartial_pureIm_re_rat xR (4*m) = cos_partial_rat xR m := by
+  induction m with
+  | zero => rfl
+  | succ m IH =>
+    show expPartial_pureIm_re_rat xR (4*(m+1)) = cos_partial_rat xR (m+1)
+    have hstep : 4*(m+1) = ((((4*m)+1)+1)+1)+1 := by ring
+    rw [hstep, expPartial_pureIm_re_rat_succ, expPartial_pureIm_re_rat_succ,
+        expPartial_pureIm_re_rat_succ, expPartial_pureIm_re_rat_succ, IH]
+    -- Now expanded form has 4 terms: cos_partial_rat xR m + (pair (4m)).1/(4m)!
+    --   + (pair (4m+1)).1/(4m+1)! + (pair (4m+2)).1/(4m+2)! + (pair (4m+3)).1/(4m+3)!
+    -- Substitute cyclotomic-4 closed forms.
+    obtain ⟨h0, h1, h2, h3⟩ := pureIm_pow_re_im_rat_cyclo4 xR m
+    rw [h0, h1, h2, h3]
+    -- Now: cos_partial_rat xR m + xR^(4m)/(4m)! + 0/(4m+1)! + (-xR^(4m+2))/(4m+2)! + 0/(4m+3)!
+    -- RHS: cos_partial_rat xR (m+1) = cos_partial_rat xR m + cos_pair_term_rat xR m
+    --    = cos_partial_rat xR m + xR^(4m)/(4m)! - xR^(4m+2)/(4m+2)!
+    rw [cos_partial_rat_succ]
+    -- Unfold cos_pair_term_rat
+    unfold cos_pair_term_rat
+    -- Goal: cos_partial_rat + xR^4m/(4m)! + 0/(4m+1)! + (-xR^(4m+2))/(4m+2)! + 0/(4m+3)!
+    --     = cos_partial_rat + (xR^(4m)/(4m)! - xR^(4m+2)/(4m+2)!)
+    -- Simplify Prod.fst on RHS of cyclo4 substitutions then ring
+    simp only [Prod.fst, Prod.snd]
+    ring
+
+/-- **[I.T-ExpPartial-PureIm-Re-At-4m]** The TauReal-level alignment at
+    depth `4m`: the `(exp_partial (pureIm x) (4m)).re.approx m_a` at toRat
+    level equals `cos_partial_rat x.toRat m`. -/
+theorem exp_partial_pureIm_re_approx_toRat_at_4m (x : TauRat) (m m_a : Nat) :
+    ((TauComplex.exp_partial (TauComplex.pureIm x) (4*m)).re.approx m_a).toRat
+      = cos_partial_rat x.toRat m := by
+  rw [expPartial_pureIm_re_approx_toRat_eq_rat, expPartial_pureIm_re_rat_at_4m]
+
 end Tau.Boundary
