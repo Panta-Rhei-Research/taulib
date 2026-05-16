@@ -1136,4 +1136,118 @@ theorem exp_pureIm_sum_im_equiv (x₁ x₂ : TauRat) :
       rw [TauComplex.pureIm_im_approx, TauComplex.pureIm_im_approx, toRat_add]
   rw [h_lhs, h_rhs]
 
+-- ============================================================
+-- PART 15: ABSOLUTE BOUNDS for cos/sin/exp partial sums
+-- ============================================================
+
+/-- `|cos_partial_rat x n| ≤ 4` for `|x| ≤ 1`. Derived from
+    `cos_partial_rat_cauchy_bound` with `n=0` (cos_partial_rat _ 0 = 0). -/
+theorem cos_partial_rat_abs_le_4 (x : Rat) (hx : |x| ≤ 1) (n : Nat) :
+    |cos_partial_rat x n| ≤ 4 := by
+  have h_bound : |cos_partial_rat x n - cos_partial_rat x 0| ≤ 4 / (2 : Rat)^0 :=
+    cos_partial_rat_cauchy_bound x hx n 0 (Nat.zero_le _)
+  rw [show cos_partial_rat x 0 = 0 from rfl, sub_zero] at h_bound
+  have h_simp : (4 : Rat) / (2 : Rat)^0 = 4 := by norm_num
+  rw [h_simp] at h_bound
+  exact h_bound
+
+/-- `|sin_partial_rat x n| ≤ 4` for `|x| ≤ 1`. -/
+theorem sin_partial_rat_abs_le_4 (x : Rat) (hx : |x| ≤ 1) (n : Nat) :
+    |sin_partial_rat x n| ≤ 4 := by
+  have h_bound : |sin_partial_rat x n - sin_partial_rat x 0| ≤ 4 / (2 : Rat)^0 :=
+    sin_partial_rat_cauchy_bound x hx n 0 (Nat.zero_le _)
+  rw [show sin_partial_rat x 0 = 0 from rfl, sub_zero] at h_bound
+  have h_simp : (4 : Rat) / (2 : Rat)^0 = 4 := by norm_num
+  rw [h_simp] at h_bound
+  exact h_bound
+
+/-- `(cos_of_rat x).approx n .abs.toRat ≤ 4`. -/
+theorem cos_of_rat_approx_abs_toRat_le_4 (x : TauRat) (hx : |x.toRat| ≤ 1) (n : Nat) :
+    ((TauReal.cos_of_rat x).approx n).abs.toRat ≤ 4 := by
+  rw [TauReal.cos_of_rat_approx, TauRat.toRat_abs, TauRat.cos_partial_toRat]
+  exact cos_partial_rat_abs_le_4 x.toRat hx n
+
+/-- `(sin_of_rat x).approx n .abs.toRat ≤ 4`. -/
+theorem sin_of_rat_approx_abs_toRat_le_4 (x : TauRat) (hx : |x.toRat| ≤ 1) (n : Nat) :
+    ((TauReal.sin_of_rat x).approx n).abs.toRat ≤ 4 := by
+  rw [TauReal.sin_of_rat_approx, TauRat.toRat_abs, TauRat.sin_partial_toRat]
+  exact sin_partial_rat_abs_le_4 x.toRat hx n
+
+/-- `(exp (pureIm x)).re.approx n .abs.toRat ≤ 8` via triangle inequality
+    through Phase 1C alignment + `cos_partial_rat_abs_le_4` + residual bound. -/
+theorem exp_pureIm_re_approx_abs_toRat_le_8 (x : TauRat) (hx : |x.toRat| ≤ 1) (n : Nat) :
+    ((TauComplex.exp (TauComplex.pureIm x)).re.approx n).abs.toRat ≤ 8 := by
+  rw [TauRat.toRat_abs, TauComplex.exp_re_approx,
+      expPartial_pureIm_re_approx_toRat_eq_rat]
+  -- Goal: |expPartial_pureIm_re_rat x.toRat n| ≤ 8
+  set m := n / 4
+  set r := n % 4
+  have hr_lt : r < 4 := Nat.mod_lt n (by norm_num)
+  have hr_le : r ≤ 3 := by omega
+  have h_n_eq : n = 4*m + r := (Nat.div_add_mod n 4).symm
+  rw [h_n_eq]
+  -- |expPartial xR (4m+r)| ≤ |expPartial xR (4m+r) - cos_partial xR m| + |cos_partial xR m|
+  have rearr : expPartial_pureIm_re_rat x.toRat (4*m + r)
+              = (expPartial_pureIm_re_rat x.toRat (4*m + r) - cos_partial_rat x.toRat m)
+                + cos_partial_rat x.toRat m := by ring
+  rw [rearr]
+  have h_tri := abs_add_le
+    (expPartial_pureIm_re_rat x.toRat (4*m + r) - cos_partial_rat x.toRat m)
+    (cos_partial_rat x.toRat m)
+  have h_residual : |expPartial_pureIm_re_rat x.toRat (4*m + r) - cos_partial_rat x.toRat m|
+                  ≤ (r : Rat) / (Nat.factorial (4*m) : Rat) :=
+    expPartial_pureIm_re_rat_residual_le x.toRat hx m r hr_le
+  have h_cos : |cos_partial_rat x.toRat m| ≤ 4 := cos_partial_rat_abs_le_4 x.toRat hx m
+  have h_r_le_3 : (r : Rat) ≤ 3 := by exact_mod_cast hr_le
+  have h_fac_pos : (0 : Rat) < (Nat.factorial (4*m) : Rat) := by
+    have := Nat.factorial_pos (4*m); exact_mod_cast this
+  have h_fac_ge_1 : (1 : Rat) ≤ (Nat.factorial (4*m) : Rat) := by
+    have h := Nat.factorial_pos (4*m)
+    have h2 : 1 ≤ Nat.factorial (4*m) := h
+    exact_mod_cast h2
+  have h_residual_le_3 : (r : Rat) / (Nat.factorial (4*m) : Rat) ≤ 3 := by
+    have h1 : (r : Rat) / (Nat.factorial (4*m) : Rat) ≤ 3 / (Nat.factorial (4*m) : Rat) := by
+      rw [div_le_div_iff₀ h_fac_pos h_fac_pos]; nlinarith
+    have h2 : (3 : Rat) / (Nat.factorial (4*m) : Rat) ≤ 3 / 1 := by
+      rw [div_le_div_iff₀ h_fac_pos (by norm_num : (0:Rat) < 1)]; nlinarith
+    linarith
+  linarith
+
+/-- `(exp (pureIm x)).im.approx n .abs.toRat ≤ 8` (parallel to .re). -/
+theorem exp_pureIm_im_approx_abs_toRat_le_8 (x : TauRat) (hx : |x.toRat| ≤ 1) (n : Nat) :
+    ((TauComplex.exp (TauComplex.pureIm x)).im.approx n).abs.toRat ≤ 8 := by
+  rw [TauRat.toRat_abs, TauComplex.exp_im_approx,
+      expPartial_pureIm_im_approx_toRat_eq_rat]
+  set m := n / 4
+  set r := n % 4
+  have hr_lt : r < 4 := Nat.mod_lt n (by norm_num)
+  have hr_le : r ≤ 3 := by omega
+  have h_n_eq : n = 4*m + r := (Nat.div_add_mod n 4).symm
+  rw [h_n_eq]
+  have rearr : expPartial_pureIm_im_rat x.toRat (4*m + r)
+              = (expPartial_pureIm_im_rat x.toRat (4*m + r) - sin_partial_rat x.toRat m)
+                + sin_partial_rat x.toRat m := by ring
+  rw [rearr]
+  have h_tri := abs_add_le
+    (expPartial_pureIm_im_rat x.toRat (4*m + r) - sin_partial_rat x.toRat m)
+    (sin_partial_rat x.toRat m)
+  have h_residual : |expPartial_pureIm_im_rat x.toRat (4*m + r) - sin_partial_rat x.toRat m|
+                  ≤ (r : Rat) / (Nat.factorial (4*m) : Rat) :=
+    expPartial_pureIm_im_rat_residual_le x.toRat hx m r hr_le
+  have h_sin : |sin_partial_rat x.toRat m| ≤ 4 := sin_partial_rat_abs_le_4 x.toRat hx m
+  have h_r_le_3 : (r : Rat) ≤ 3 := by exact_mod_cast hr_le
+  have h_fac_pos : (0 : Rat) < (Nat.factorial (4*m) : Rat) := by
+    have := Nat.factorial_pos (4*m); exact_mod_cast this
+  have h_residual_le_3 : (r : Rat) / (Nat.factorial (4*m) : Rat) ≤ 3 := by
+    have h1 : (r : Rat) / (Nat.factorial (4*m) : Rat) ≤ 3 / (Nat.factorial (4*m) : Rat) := by
+      rw [div_le_div_iff₀ h_fac_pos h_fac_pos]; nlinarith
+    have h2 : (3 : Rat) / (Nat.factorial (4*m) : Rat) ≤ 3 / 1 := by
+      rw [div_le_div_iff₀ h_fac_pos (by norm_num : (0:Rat) < 1)]
+      have h_fac_ge_1 : (1 : Rat) ≤ (Nat.factorial (4*m) : Rat) := by
+        have h := Nat.factorial_pos (4*m); have h2 : 1 ≤ Nat.factorial (4*m) := h
+        exact_mod_cast h2
+      nlinarith
+    linarith
+  linarith
+
 end Tau.Boundary
