@@ -5200,4 +5200,39 @@ theorem TauComplex.binom_sum_im_succ_step (z₁ z₂ : TauComplex) (n m : Nat) :
     ring
   linarith [h_A, h_B, h_C, h_first_match]
 
+-- ============================================================
+-- PART 48: PHASE 3C PART 3g.2e — Main toRat binomial theorem
+-- ============================================================
+
+/-- **🎯🎯🎯 The toRat-level binomial theorem on TauComplex**.
+
+    `((pow (z₁ + z₂) n).{re,im}.approx m).toRat = (binom_sum_{re,im} z₁ z₂ n m).toRat`
+
+    Proved by simultaneous induction on `n` (re + im) using:
+    * Base case `n = 0` (Part 3g.2b, `add_pow_zero_re_im_approx_toRat`).
+    * Pascal step `n → n+1` (Parts 3g.2d-D and 3g.2d-E,
+      `binom_sum_re/im_succ_step`).
+
+    Each inductive step: expand `(pow (z₁+z₂) (n+1)).{re,im}.approx m .toRat`
+    via `pow_succ_{re,im}_approx_toRat`, substitute IH (re + im), then
+    apply the Pascal step in reverse direction. -/
+theorem TauComplex.add_pow_re_im_approx_toRat (z₁ z₂ : TauComplex) (n m : Nat) :
+    ((TauComplex.pow (z₁.add z₂) n).re.approx m).toRat
+      = (TauComplex.binom_sum_re z₁ z₂ n m).toRat ∧
+    ((TauComplex.pow (z₁.add z₂) n).im.approx m).toRat
+      = (TauComplex.binom_sum_im z₁ z₂ n m).toRat := by
+  induction n with
+  | zero => exact TauComplex.add_pow_zero_re_im_approx_toRat z₁ z₂ m
+  | succ n ih =>
+    obtain ⟨ih_re, ih_im⟩ := ih
+    refine ⟨?_, ?_⟩
+    · -- .re at n+1
+      rw [TauComplex.pow_succ_re_approx_toRat]
+      rw [ih_re, ih_im]
+      exact (TauComplex.binom_sum_re_succ_step z₁ z₂ n m).symm
+    · -- .im at n+1
+      rw [TauComplex.pow_succ_im_approx_toRat]
+      rw [ih_re, ih_im]
+      exact (TauComplex.binom_sum_im_succ_step z₁ z₂ n m).symm
+
 end Tau.Boundary
