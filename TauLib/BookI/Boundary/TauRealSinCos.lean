@@ -484,4 +484,243 @@ theorem exp_partial_pureIm_re_approx_toRat_at_4m (x : TauRat) (m m_a : Nat) :
       = cos_partial_rat x.toRat m := by
   rw [expPartial_pureIm_re_approx_toRat_eq_rat, expPartial_pureIm_re_rat_at_4m]
 
+-- ============================================================
+-- PART 8: MAGNITUDE + FACTORIAL HELPERS
+-- ============================================================
+
+/-- **Helper**: `(4m)! ≥ 2^m`. The 4 factors `(4m+1), (4m+2), (4m+3), (4m+4)`
+    multiply to at least 2, while `2^m` doubles per step. Used to bound the
+    residual in the Cauchy modulus discharge. -/
+theorem factorial_4m_ge_two_pow_m (m : Nat) : 2^m ≤ Nat.factorial (4*m) := by
+  induction m with
+  | zero => simp
+  | succ m ih =>
+    have h_4mp1 : 4*(m+1) = 4*m + 4 := by ring
+    have h_step : Nat.factorial (4*(m+1))
+                = (4*m+4) * ((4*m+3) * ((4*m+2) * ((4*m+1) * Nat.factorial (4*m)))) := by
+      rw [h_4mp1]
+      rw [show 4*m+4 = (4*m+3)+1 from rfl, Nat.factorial_succ,
+          show 4*m+3 = (4*m+2)+1 from rfl, Nat.factorial_succ,
+          show 4*m+2 = (4*m+1)+1 from rfl, Nat.factorial_succ,
+          show 4*m+1 = (4*m)+1 from rfl, Nat.factorial_succ]
+    have h_prod_ge_2 : (2 : Nat) ≤ (4*m+4) * ((4*m+3) * ((4*m+2) * (4*m+1))) := by
+      have h_inner_pos : 0 < (4*m+3) * ((4*m+2) * (4*m+1)) := by positivity
+      have h_inner_ge_1 : 1 ≤ (4*m+3) * ((4*m+2) * (4*m+1)) := h_inner_pos
+      have h_4_ge : 2 ≤ 4*m+4 := by omega
+      calc (2 : Nat) = 2 * 1 := by ring
+        _ ≤ (4*m+4) * ((4*m+3) * ((4*m+2) * (4*m+1))) :=
+            Nat.mul_le_mul h_4_ge h_inner_ge_1
+    have h_assoc : (4*m+4) * ((4*m+3) * ((4*m+2) * ((4*m+1) * Nat.factorial (4*m))))
+                 = ((4*m+4) * ((4*m+3) * ((4*m+2) * (4*m+1)))) * Nat.factorial (4*m) := by
+      ring
+    calc 2^(m+1)
+        = 2 * 2^m := by ring
+      _ ≤ 2 * Nat.factorial (4*m) := Nat.mul_le_mul_left 2 ih
+      _ ≤ ((4*m+4) * ((4*m+3) * ((4*m+2) * (4*m+1)))) * Nat.factorial (4*m) :=
+          Nat.mul_le_mul_right _ h_prod_ge_2
+      _ = (4*m+4) * ((4*m+3) * ((4*m+2) * ((4*m+1) * Nat.factorial (4*m)))) := h_assoc.symm
+      _ = Nat.factorial (4*(m+1)) := h_step.symm
+
+/-- **Helper**: joint magnitude bound `|(pair k).{1,2}| ≤ |xR|^k`,
+    by joint induction on k using the cyclotomic-4 recurrence. -/
+theorem pureIm_pow_re_im_rat_abs_le_pow (xR : Rat) (k : Nat) :
+    |(pureIm_pow_re_im_rat xR k).1| ≤ |xR|^k ∧
+    |(pureIm_pow_re_im_rat xR k).2| ≤ |xR|^k := by
+  induction k with
+  | zero =>
+    refine ⟨?_, ?_⟩
+    · show |(1 : Rat)| ≤ |xR|^0; simp
+    · show |(0 : Rat)| ≤ |xR|^0; simp
+  | succ k IH =>
+    obtain ⟨ih_re, ih_im⟩ := IH
+    refine ⟨?_, ?_⟩
+    · show |(-(pureIm_pow_re_im_rat xR k).2 * xR)| ≤ |xR|^(k+1)
+      rw [abs_mul, abs_neg, pow_succ]
+      exact mul_le_mul ih_im le_rfl (abs_nonneg _) (by positivity)
+    · show |((pureIm_pow_re_im_rat xR k).1 * xR)| ≤ |xR|^(k+1)
+      rw [abs_mul, pow_succ]
+      exact mul_le_mul ih_re le_rfl (abs_nonneg _) (by positivity)
+
+/-- Corollary: under `|xR| ≤ 1`, `|(pair k).1| ≤ 1`. -/
+theorem pureIm_pow_re_im_rat_re_abs_le_one (xR : Rat) (hxR : |xR| ≤ 1) (k : Nat) :
+    |(pureIm_pow_re_im_rat xR k).1| ≤ 1 := by
+  have h := (pureIm_pow_re_im_rat_abs_le_pow xR k).1
+  have h_pow_one : |xR|^k ≤ 1 := pow_le_one₀ (abs_nonneg _) hxR
+  linarith
+
+-- ============================================================
+-- PART 9: RESIDUAL BOUND
+-- ============================================================
+
+/-- **Residual bound**: at depth `4m + r` with `r ≤ 3`, the difference from
+    the alignment value `cos_partial_rat xR m` is bounded by `r/(4m)!`.
+
+    Proof: induction on r. At each step, `expPartial_succ` peels off one
+    `(pair (4m+r)).1 / (4m+r)!` term, bounded by `1/(4m)!`. -/
+theorem expPartial_pureIm_re_rat_residual_le (xR : Rat) (hxR : |xR| ≤ 1)
+    (m r : Nat) (hr : r ≤ 3) :
+    |expPartial_pureIm_re_rat xR (4*m + r) - cos_partial_rat xR m|
+      ≤ (r : Rat) / (Nat.factorial (4*m) : Rat) := by
+  induction r with
+  | zero =>
+    have h_fac_pos : (0 : Rat) < (Nat.factorial (4*m) : Rat) := by
+      have := Nat.factorial_pos (4*m); exact_mod_cast this
+    rw [Nat.add_zero, expPartial_pureIm_re_rat_at_4m, sub_self, abs_zero,
+        Nat.cast_zero, zero_div]
+  | succ r ih =>
+    have hr_le : r ≤ 3 := by omega
+    have ih' := ih hr_le
+    have h_step : 4*m + (r+1) = (4*m + r) + 1 := by ring
+    rw [h_step, expPartial_pureIm_re_rat_succ]
+    -- LHS = (expPartial (4m+r) + (pair (4m+r)).1 / (4m+r)!) - cos_partial m
+    --     = (expPartial (4m+r) - cos_partial m) + (pair (4m+r)).1 / (4m+r)!
+    have rearr : expPartial_pureIm_re_rat xR (4*m + r)
+                  + (pureIm_pow_re_im_rat xR (4*m + r)).1 / (Nat.factorial (4*m + r) : Rat)
+                  - cos_partial_rat xR m
+                = (expPartial_pureIm_re_rat xR (4*m + r) - cos_partial_rat xR m)
+                  + (pureIm_pow_re_im_rat xR (4*m + r)).1 / (Nat.factorial (4*m + r) : Rat) := by
+      ring
+    rw [rearr]
+    have h_tri := abs_add_le
+      (expPartial_pureIm_re_rat xR (4*m + r) - cos_partial_rat xR m)
+      ((pureIm_pow_re_im_rat xR (4*m + r)).1 / (Nat.factorial (4*m + r) : Rat))
+    -- Bound the second piece: |term| ≤ 1/(4m+r)! ≤ 1/(4m)!
+    have h_fac_pos_4m : (0 : Rat) < (Nat.factorial (4*m) : Rat) := by
+      have := Nat.factorial_pos (4*m); exact_mod_cast this
+    have h_fac_pos_4mr : (0 : Rat) < (Nat.factorial (4*m + r) : Rat) := by
+      have := Nat.factorial_pos (4*m + r); exact_mod_cast this
+    have h_fac_le : (Nat.factorial (4*m) : Rat) ≤ (Nat.factorial (4*m + r) : Rat) := by
+      have := Nat.factorial_le (show 4*m ≤ 4*m + r by omega); exact_mod_cast this
+    have h_term_abs :
+        |(pureIm_pow_re_im_rat xR (4*m + r)).1 / (Nat.factorial (4*m + r) : Rat)|
+          ≤ 1 / (Nat.factorial (4*m) : Rat) := by
+      rw [abs_div, abs_of_pos h_fac_pos_4mr]
+      rw [div_le_div_iff₀ h_fac_pos_4mr h_fac_pos_4m]
+      have h_num : |(pureIm_pow_re_im_rat xR (4*m + r)).1| ≤ 1 :=
+        pureIm_pow_re_im_rat_re_abs_le_one xR hxR (4*m + r)
+      nlinarith
+    have h_sum : (r : Rat) / (Nat.factorial (4*m) : Rat) + 1 / (Nat.factorial (4*m) : Rat)
+              = ((r + 1 : Nat) : Rat) / (Nat.factorial (4*m) : Rat) := by
+      push_cast; field_simp
+    linarith
+
+-- ============================================================
+-- PART 10: 🎯 CAUCHY MODULUS DISCHARGE — exp_pureIm_re_eq_cos
+-- ============================================================
+
+/-- **🎯 [I.T-EulerRe]** The Euler bridge for `.re`: for `|x.toRat| ≤ 1`,
+    `(TauComplex.exp (pureIm x)).re ≈ TauReal.cos_of_rat x` at TauReal
+    equivalence level.
+
+    **Modulus**: `λ k => 8*k + 19`. For `n ≥ 8k+19`, decompose `n = 4m + r`
+    with `m = n/4 ≥ 2k+4` and `r ≤ 3`.
+
+    **Bound assembly**:
+    * Residual: `|expPartial xR (4m+r) − Cp(m)| ≤ r/(4m)! ≤ 3/(4m)! ≤ 4/2^m`
+      (using `(4m)! ≥ 2^m`).
+    * Cos tail: `|Cp(m) − Cp(n)| ≤ 4/2^m` (`cos_partial_rat_cauchy_bound`).
+    * Each ≤ `4/2^m < 1/(2(k+1))` for `m ≥ 2k+4` (apply `Rat.four_div_two_pow_lt_recip`
+      with shifted index `2k+1`).
+    * Triangle: total `< 2 · 1/(2(k+1)) = 1/(k+1)`. -/
+theorem exp_pureIm_re_eq_cos (x : TauRat) (hx : |x.toRat| ≤ 1) :
+    TauReal.equiv (TauComplex.exp (TauComplex.pureIm x)).re (TauReal.cos_of_rat x) := by
+  refine ⟨fun k => 8*k + 19, fun k n hn => ?_⟩
+  -- hn : 8*k + 19 ≤ n. Decompose n = 4m + r with m ≥ 2k+4, r ≤ 3.
+  have hr_lt : n % 4 < 4 := Nat.mod_lt n (by norm_num)
+  have hr_le : n % 4 ≤ 3 := by omega
+  have h_n_eq : n = 4*(n/4) + n%4 := (Nat.div_add_mod n 4).symm
+  have h_m_ge : 2*k + 4 ≤ n / 4 := by
+    have h1 : 8*k + 16 ≤ n := by linarith
+    have h_div : (8*k + 16) / 4 ≤ n / 4 := Nat.div_le_div_right h1
+    have h_compute : (8*k + 16) / 4 = 2*k + 4 := by omega
+    linarith
+  -- Set local abbreviations
+  set m := n / 4
+  set r := n % 4
+  -- Unfold TauRat.lt
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |((TauComplex.exp (TauComplex.pureIm x)).re.approx n).toRat
+        - ((TauReal.cos_of_rat x).approx n).toRat| < 1 / ((k : Rat) + 1)
+  rw [TauComplex.exp_re_approx, expPartial_pureIm_re_approx_toRat_eq_rat,
+      TauReal.cos_of_rat_approx, TauRat.cos_partial_toRat]
+  -- Goal: |expPartial_pureIm_re_rat xR n - cos_partial_rat xR n| < 1/(k+1)
+  rw [h_n_eq]
+  -- Triangle inequality
+  have rearr : expPartial_pureIm_re_rat x.toRat (4*m + r) - cos_partial_rat x.toRat (4*m + r)
+              = (expPartial_pureIm_re_rat x.toRat (4*m + r) - cos_partial_rat x.toRat m)
+                + (cos_partial_rat x.toRat m - cos_partial_rat x.toRat (4*m + r)) := by ring
+  rw [rearr]
+  have h_tri := abs_add_le
+    (expPartial_pureIm_re_rat x.toRat (4*m + r) - cos_partial_rat x.toRat m)
+    (cos_partial_rat x.toRat m - cos_partial_rat x.toRat (4*m + r))
+  -- Bound the residual piece
+  have h_residual : |expPartial_pureIm_re_rat x.toRat (4*m + r) - cos_partial_rat x.toRat m|
+                  ≤ (r : Rat) / (Nat.factorial (4*m) : Rat) :=
+    expPartial_pureIm_re_rat_residual_le x.toRat hx m r hr_le
+  -- Bound the cos-tail piece
+  have h_m_le : m ≤ 4*m + r := by omega
+  have h_cos : |cos_partial_rat x.toRat m - cos_partial_rat x.toRat (4*m + r)|
+              ≤ 4 / (2 : Rat)^m := by
+    have h_swap : cos_partial_rat x.toRat m - cos_partial_rat x.toRat (4*m + r)
+                = -(cos_partial_rat x.toRat (4*m + r) - cos_partial_rat x.toRat m) := by ring
+    rw [h_swap, abs_neg]
+    exact cos_partial_rat_cauchy_bound x.toRat hx (4*m + r) m h_m_le
+  -- Convert residual r/(4m)! to a 4/2^m bound
+  have h_fac_pos : (0 : Rat) < (Nat.factorial (4*m) : Rat) := by
+    have := Nat.factorial_pos (4*m); exact_mod_cast this
+  have h_two_pow_pos : (0 : Rat) < (2 : Rat)^m := by positivity
+  have h_fac_ge_pow : ((2 : Rat))^m ≤ (Nat.factorial (4*m) : Rat) := by
+    have hN := factorial_4m_ge_two_pow_m m
+    have h_cast : ((2^m : Nat) : Rat) = (2 : Rat)^m := by push_cast; ring
+    calc ((2 : Rat))^m
+        = ((2^m : Nat) : Rat) := h_cast.symm
+      _ ≤ (Nat.factorial (4*m) : Rat) := by exact_mod_cast hN
+  have h_residual_le_pow : (r : Rat) / (Nat.factorial (4*m) : Rat) ≤ 4 / (2 : Rat)^m := by
+    have h_r_le_4 : (r : Rat) ≤ 4 := by exact_mod_cast (by omega : r ≤ 4)
+    have h_step1 : (r : Rat) / (Nat.factorial (4*m) : Rat)
+                ≤ 4 / (Nat.factorial (4*m) : Rat) := by
+      rw [div_le_div_iff₀ h_fac_pos h_fac_pos]
+      nlinarith
+    have h_step2 : (4 : Rat) / (Nat.factorial (4*m) : Rat) ≤ 4 / (2 : Rat)^m := by
+      rw [div_le_div_iff₀ h_fac_pos h_two_pow_pos]
+      nlinarith
+    linarith
+  -- Each piece is ≤ 4/2^m.
+  -- Apply Rat.four_div_two_pow_lt_recip with shifted index (2k+1): get
+  -- 4/2^m < 1/(2k+2) for m ≥ (2k+1)+3 = 2k+4.
+  have h_m_ge_shift : (2*k+1) + 3 ≤ m := by omega
+  have h_strict : 4 / (2 : Rat)^m < 1 / (((2*k+1 : Nat) : Rat) + 1) :=
+    Rat.four_div_two_pow_lt_recip (2*k+1) m h_m_ge_shift
+  have h_rhs : 1 / (((2*k+1 : Nat) : Rat) + 1) = 1 / (2 * ((k : Rat) + 1)) := by
+    push_cast; ring
+  rw [h_rhs] at h_strict
+  -- Total ≤ 2 · (4/2^m) < 2 · (1/(2(k+1))) = 1/(k+1)
+  have h_k_plus_1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  have h_double : 1 / (2 * ((k : Rat) + 1)) + 1 / (2 * ((k : Rat) + 1))
+                = 1 / ((k : Rat) + 1) := by
+    field_simp
+    ring
+  -- Assemble: each piece < 1/(2(k+1)); sum < 1/(k+1).
+  have h_resid_strict : (r : Rat) / (Nat.factorial (4*m) : Rat) < 1 / (2 * ((k : Rat) + 1)) := by
+    linarith
+  have h_cos_strict : |cos_partial_rat x.toRat m - cos_partial_rat x.toRat (4*m + r)|
+                    < 1 / (2 * ((k : Rat) + 1)) := by
+    linarith
+  linarith
+
+-- ============================================================
+-- PART 11: NAMED TARGET DISCHARGE
+-- ============================================================
+
+/-- **🎯🎯🎯 Discharge of `TauComplex.exp_pureIm_re_eq_cos_target`** — the
+    Phase 1C named-target proposition (declared in Part 4) is now provable.
+
+    The discharge is `exp_pureIm_re_eq_cos` applied universally. -/
+theorem TauComplex.exp_pureIm_re_eq_cos_target_proof :
+    TauComplex.exp_pureIm_re_eq_cos_target :=
+  fun x hx => exp_pureIm_re_eq_cos x hx
+
 end Tau.Boundary
