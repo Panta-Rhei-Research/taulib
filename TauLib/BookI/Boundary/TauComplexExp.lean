@@ -4889,4 +4889,42 @@ theorem TauComplex.binom_sum_re_succ_peel_first (z₁ z₂ : TauComplex) (n m : 
   intro i _hi
   rw [show (n + 1 - (i + 1)) = (n - i) from Nat.succ_sub_succ_eq_sub n i]
 
+/-- **Pascal step Sub-lemma B (re part)**: Pascal coefficient regroup.
+
+    Convert `C(n+1, i+1) · X_{i+1}` sum into `(C(n,i) + C(n, i+1)) · X_{i+1}`
+    sum via Pascal's rule, then split via `sum_add_toRat`.
+
+    Mirrors the equiv-level cascade's `pascal_term_decompose` + `sum_add_split`
+    pattern (TauComplexExp.lean:2269 + 2319). -/
+theorem TauComplex.binom_pascal_split_re (z₁ z₂ : TauComplex) (n m : Nat) :
+    (TauRat.sum (fun i => (nat_to_taurat (Nat.choose (n + 1) (i + 1))).mul
+        (((TauComplex.pow z₁ (i + 1)).mul
+          (TauComplex.pow z₂ (n - i))).re.approx m)) (n + 1)).toRat
+      = (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n i)).mul
+          (((TauComplex.pow z₁ (i + 1)).mul
+            (TauComplex.pow z₂ (n - i))).re.approx m)) (n + 1)).toRat
+        + (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n (i + 1))).mul
+            (((TauComplex.pow z₁ (i + 1)).mul
+              (TauComplex.pow z₂ (n - i))).re.approx m)) (n + 1)).toRat := by
+  -- Step 1: convert each summand to TauRat.add form via Pascal at toRat
+  rw [TauRat.sum_eq_of_toRat_pointwise
+      (fun i => (nat_to_taurat (Nat.choose (n + 1) (i + 1))).mul
+                  (((TauComplex.pow z₁ (i + 1)).mul
+                    (TauComplex.pow z₂ (n - i))).re.approx m))
+      (fun i => ((nat_to_taurat (Nat.choose n i)).mul
+                  (((TauComplex.pow z₁ (i + 1)).mul
+                    (TauComplex.pow z₂ (n - i))).re.approx m)).add
+                ((nat_to_taurat (Nat.choose n (i + 1))).mul
+                  (((TauComplex.pow z₁ (i + 1)).mul
+                    (TauComplex.pow z₂ (n - i))).re.approx m)))
+      (n + 1)
+      (by
+        intro i _hi
+        rw [toRat_mul, toRat_add, toRat_mul, toRat_mul]
+        rw [nat_to_taurat_toRat, nat_to_taurat_toRat, nat_to_taurat_toRat]
+        rw [nat_choose_succ_succ_toRat]
+        ring)]
+  -- Step 2: split sum-of-add into two sums
+  rw [TauRat.sum_add_toRat]
+
 end Tau.Boundary
