@@ -185,4 +185,214 @@ def TauComplex.sin_add_target : Prop :=
                   ((TauReal.sin_of_rat x₁).mul (TauReal.cos_of_rat x₂)
                     |>.add ((TauReal.cos_of_rat x₁).mul (TauReal.sin_of_rat x₂)))
 
+-- ============================================================
+-- PART 5: CYCLOTOMIC-4 STRUCTURE OF (pureIm x).pow k AT toRat LEVEL
+-- ============================================================
+
+/-! ## Phase 1C — Cyclotomic-4 structural lemmas for `(pureIm x).pow k`
+
+For `pureIm x = ⟨0, x⟩` (the τ-canon lift of `i · x`), iterated powers cycle
+at TauRat-toRat level through the four-element pattern:
+
+  k % 4 = 0  →  .re_toRat =  x^k,   .im_toRat =  0
+  k % 4 = 1  →  .re_toRat =  0,     .im_toRat =  x^k
+  k % 4 = 2  →  .re_toRat = -x^k,   .im_toRat =  0
+  k % 4 = 3  →  .re_toRat =  0,     .im_toRat = -x^k
+
+The recurrence underneath, via `TauComplex.mul (pow k) (pureIm x)` expansion
++ the rfl simp lemmas `pureIm_re_approx`/`pureIm_im_approx`, is:
+
+  (r_(k+1), i_(k+1)) = (-i_k · x.toRat, r_k · x.toRat)
+
+with base `(r_0, i_0) = (1, 0)` from `TauComplex.one = ⟨TauReal.one, TauReal.zero⟩`.
+
+The cyclotomic-4 closed form follows by `k = 4j+r` case analysis (Part 5b). -/
+
+/-- **[I.D-PureImPow-RatPair]** Recurrence-defined Rat-level expected pair
+    `(r_k, i_k)` for the `.re_toRat`/`.im_toRat` of `((pureIm x).pow k)` at
+    any TauRat approximation depth. -/
+def pureIm_pow_re_im_rat (xR : Rat) : Nat → Rat × Rat
+  | 0     => (1, 0)
+  | k + 1 =>
+    let p := pureIm_pow_re_im_rat xR k
+    (-p.2 * xR, p.1 * xR)
+
+@[simp] theorem pureIm_pow_re_im_rat_zero (xR : Rat) :
+    pureIm_pow_re_im_rat xR 0 = (1, 0) := rfl
+
+@[simp] theorem pureIm_pow_re_im_rat_succ (xR : Rat) (k : Nat) :
+    pureIm_pow_re_im_rat xR (k+1)
+      = (-(pureIm_pow_re_im_rat xR k).2 * xR,
+         (pureIm_pow_re_im_rat xR k).1 * xR) := rfl
+
+/-- **[I.T-PureImPow-Recurrence-Re]** The .re-toRat of `((pureIm x).pow (k+1))`
+    equals `-(.im-toRat of (pureIm x).pow k) · x.toRat`.
+
+    Unfolds `TauComplex.mul` + `pureIm_re_approx`/`pureIm_im_approx` (rfl
+    simp lemmas) + toRat operations. -/
+theorem pureIm_pow_succ_re_approx_toRat (x : TauRat) (k n : Nat) :
+    (((TauComplex.pureIm x).pow (k+1)).re.approx n).toRat
+      = -(((TauComplex.pureIm x).pow k).im.approx n).toRat * x.toRat := by
+  -- pow (k+1) = (pow k).mul (pureIm x) by pow_succ (rfl)
+  -- (a.mul b).re.approx n = TauRat.sub (mul a.re.approx n b.re.approx n)
+  --                                    (mul a.im.approx n b.im.approx n)
+  -- by unfolding TauComplex.mul + TauReal.sub/mul defs
+  show (TauRat.sub
+          (TauRat.mul (((TauComplex.pureIm x).pow k).re.approx n)
+                      ((TauComplex.pureIm x).re.approx n))
+          (TauRat.mul (((TauComplex.pureIm x).pow k).im.approx n)
+                      ((TauComplex.pureIm x).im.approx n))).toRat
+       = -(((TauComplex.pureIm x).pow k).im.approx n).toRat * x.toRat
+  rw [TauComplex.pureIm_re_approx, TauComplex.pureIm_im_approx,
+      toRat_sub, toRat_mul, toRat_mul, toRat_zero]
+  ring
+
+/-- **[I.T-PureImPow-Recurrence-Im]** The .im-toRat of `((pureIm x).pow (k+1))`
+    equals `(.re-toRat of (pureIm x).pow k) · x.toRat`. -/
+theorem pureIm_pow_succ_im_approx_toRat (x : TauRat) (k n : Nat) :
+    (((TauComplex.pureIm x).pow (k+1)).im.approx n).toRat
+      = (((TauComplex.pureIm x).pow k).re.approx n).toRat * x.toRat := by
+  show (TauRat.add
+          (TauRat.mul (((TauComplex.pureIm x).pow k).re.approx n)
+                      ((TauComplex.pureIm x).im.approx n))
+          (TauRat.mul (((TauComplex.pureIm x).pow k).im.approx n)
+                      ((TauComplex.pureIm x).re.approx n))).toRat
+       = (((TauComplex.pureIm x).pow k).re.approx n).toRat * x.toRat
+  rw [TauComplex.pureIm_re_approx, TauComplex.pureIm_im_approx,
+      toRat_add, toRat_mul, toRat_mul, toRat_zero]
+  ring
+
+/-- **[I.T-PureImPow-Base-Re]** The .re-toRat of `((pureIm x).pow 0) = 1`. -/
+theorem pureIm_pow_zero_re_approx_toRat (x : TauRat) (n : Nat) :
+    (((TauComplex.pureIm x).pow 0).re.approx n).toRat = 1 := by
+  show ((TauReal.one).approx n).toRat = 1
+  show (TauRat.one).toRat = 1
+  exact toRat_one
+
+/-- **[I.T-PureImPow-Base-Im]** The .im-toRat of `((pureIm x).pow 0) = 0`. -/
+theorem pureIm_pow_zero_im_approx_toRat (x : TauRat) (n : Nat) :
+    (((TauComplex.pureIm x).pow 0).im.approx n).toRat = 0 := by
+  show ((TauReal.zero).approx n).toRat = 0
+  show (TauRat.zero).toRat = 0
+  exact toRat_zero
+
+/-- **[I.T-PureImPow-Bridge]** `((pureIm x).pow k).re.approx n .toRat` and
+    `.im.approx n .toRat` match the recurrence pair `pureIm_pow_re_im_rat`.
+
+    Joint induction on k using the recurrence theorems + base cases. -/
+theorem pureIm_pow_re_im_approx_toRat (x : TauRat) (k n : Nat) :
+    (((TauComplex.pureIm x).pow k).re.approx n).toRat
+      = (pureIm_pow_re_im_rat x.toRat k).1 ∧
+    (((TauComplex.pureIm x).pow k).im.approx n).toRat
+      = (pureIm_pow_re_im_rat x.toRat k).2 := by
+  induction k with
+  | zero =>
+    refine ⟨?_, ?_⟩
+    · rw [pureIm_pow_zero_re_approx_toRat]; rfl
+    · rw [pureIm_pow_zero_im_approx_toRat]; rfl
+  | succ k IH =>
+    obtain ⟨ih_re, ih_im⟩ := IH
+    refine ⟨?_, ?_⟩
+    · rw [pureIm_pow_succ_re_approx_toRat, ih_im, pureIm_pow_re_im_rat_succ]
+    · rw [pureIm_pow_succ_im_approx_toRat, ih_re, pureIm_pow_re_im_rat_succ]
+
+-- ============================================================
+-- PART 5b: CYCLOTOMIC-4 CLOSED FORMS for pureIm_pow_re_im_rat
+-- ============================================================
+
+/-- Helper: one-step recurrence with explicit Prod components.
+
+    `pair (k+1) = (-i_k · xR, r_k · xR)` where `(r_k, i_k) = pair k`. -/
+private theorem pair_succ_eq_iff (xR : Rat) (k : Nat) (a b : Rat)
+    (h : pureIm_pow_re_im_rat xR k = (a, b)) :
+    pureIm_pow_re_im_rat xR (k+1) = (-b * xR, a * xR) := by
+  rw [pureIm_pow_re_im_rat_succ, h]
+
+/-- **[I.T-PureImPow-Closed-4j]** The four-step closed form of the
+    `pureIm_pow_re_im_rat` recurrence, proved by simultaneous induction on j.
+
+    At indices `4j, 4j+1, 4j+2, 4j+3` the recurrence cycles through:
+        (xR^(4j), 0)  →  (0, xR^(4j+1))  →  (-xR^(4j+2), 0)  →  (0, -xR^(4j+3))
+    and the next 4-step begins with `(xR^(4(j+1)), 0)`. -/
+theorem pureIm_pow_re_im_rat_cyclo4 (xR : Rat) (j : Nat) :
+    pureIm_pow_re_im_rat xR (4*j) = (xR^(4*j), 0) ∧
+    pureIm_pow_re_im_rat xR (4*j+1) = (0, xR^(4*j+1)) ∧
+    pureIm_pow_re_im_rat xR (4*j+2) = (-(xR^(4*j+2)), 0) ∧
+    pureIm_pow_re_im_rat xR (4*j+3) = (0, -(xR^(4*j+3))) := by
+  induction j with
+  | zero =>
+    refine ⟨?_, ?_, ?_, ?_⟩
+    · show pureIm_pow_re_im_rat xR 0 = (xR^0, 0)
+      rw [pureIm_pow_re_im_rat_zero, pow_zero]
+    · show pureIm_pow_re_im_rat xR 1 = (0, xR^1)
+      rw [pair_succ_eq_iff xR 0 1 0 (by rw [pureIm_pow_re_im_rat_zero])]
+      ext <;> simp <;> ring
+    · show pureIm_pow_re_im_rat xR 2 = (-(xR^2), 0)
+      have h1 : pureIm_pow_re_im_rat xR 1 = (0, xR^1) := by
+        rw [pair_succ_eq_iff xR 0 1 0 (by rw [pureIm_pow_re_im_rat_zero])]
+        ext <;> simp <;> ring
+      rw [pair_succ_eq_iff xR 1 0 (xR^1) h1]
+      ext <;> simp <;> ring
+    · show pureIm_pow_re_im_rat xR 3 = (0, -(xR^3))
+      have h1 : pureIm_pow_re_im_rat xR 1 = (0, xR^1) := by
+        rw [pair_succ_eq_iff xR 0 1 0 (by rw [pureIm_pow_re_im_rat_zero])]
+        ext <;> simp <;> ring
+      have h2 : pureIm_pow_re_im_rat xR 2 = (-(xR^2), 0) := by
+        rw [pair_succ_eq_iff xR 1 0 (xR^1) h1]
+        ext <;> simp <;> ring
+      rw [pair_succ_eq_iff xR 2 (-(xR^2)) 0 h2]
+      ext <;> simp <;> ring
+  | succ j IH =>
+    obtain ⟨h0, h1, h2, h3⟩ := IH
+    -- Build h4, h5, h6, h7 via the one-step recurrence helper.
+    have h4 : pureIm_pow_re_im_rat xR (4*j+4) = (xR^(4*j+4), 0) := by
+      have step : 4*j+4 = (4*j+3)+1 := by ring
+      rw [step, pair_succ_eq_iff xR (4*j+3) 0 (-(xR^(4*j+3))) h3]
+      ext <;> simp <;> ring
+    have h5 : pureIm_pow_re_im_rat xR (4*j+5) = (0, xR^(4*j+5)) := by
+      have step : 4*j+5 = (4*j+4)+1 := by ring
+      rw [step, pair_succ_eq_iff xR (4*j+4) (xR^(4*j+4)) 0 h4]
+      ext <;> simp <;> ring
+    have h6 : pureIm_pow_re_im_rat xR (4*j+6) = (-(xR^(4*j+6)), 0) := by
+      have step : 4*j+6 = (4*j+5)+1 := by ring
+      rw [step, pair_succ_eq_iff xR (4*j+5) 0 (xR^(4*j+5)) h5]
+      ext <;> simp <;> ring
+    have h7 : pureIm_pow_re_im_rat xR (4*j+7) = (0, -(xR^(4*j+7))) := by
+      have step : 4*j+7 = (4*j+6)+1 := by ring
+      rw [step, pair_succ_eq_iff xR (4*j+6) (-(xR^(4*j+6))) 0 h6]
+      ext <;> simp <;> ring
+    refine ⟨?_, ?_, ?_, ?_⟩
+    · show pureIm_pow_re_im_rat xR (4*(j+1)) = (xR^(4*(j+1)), 0)
+      rw [show 4*(j+1) = 4*j+4 from by ring, h4]
+    · show pureIm_pow_re_im_rat xR (4*(j+1)+1) = (0, xR^(4*(j+1)+1))
+      rw [show 4*(j+1)+1 = 4*j+5 from by ring, h5]
+    · show pureIm_pow_re_im_rat xR (4*(j+1)+2) = (-(xR^(4*(j+1)+2)), 0)
+      rw [show 4*(j+1)+2 = 4*j+6 from by ring, h6]
+    · show pureIm_pow_re_im_rat xR (4*(j+1)+3) = (0, -(xR^(4*(j+1)+3)))
+      rw [show 4*(j+1)+3 = 4*j+7 from by ring, h7]
+
+-- ============================================================
+-- PART 6: exp_term (pureIm x) k AT toRat LEVEL
+-- ============================================================
+
+/-- **[I.T-ExpTerm-PureIm-Re]** The real-part of `exp_term (pureIm x) k`'s
+    n-th TauRat approximation, at toRat level: cyclotomic-4 pair's `.1`
+    component divided by `k!`. -/
+theorem exp_term_pureIm_re_approx_toRat (x : TauRat) (k n : Nat) :
+    ((TauComplex.exp_term (TauComplex.pureIm x) k).re.approx n).toRat
+      = (pureIm_pow_re_im_rat x.toRat k).1 / (k.factorial : Rat) := by
+  rw [TauComplex.exp_term_re, TauReal.scale_by_inv_factorial_approx,
+      TauRat.scale_by_inv_factorial_toRat,
+      (pureIm_pow_re_im_approx_toRat x k n).1]
+
+/-- **[I.T-ExpTerm-PureIm-Im]** The imaginary-part of `exp_term (pureIm x) k`'s
+    n-th TauRat approximation, at toRat level: cyclotomic-4 pair's `.2`
+    component divided by `k!`. -/
+theorem exp_term_pureIm_im_approx_toRat (x : TauRat) (k n : Nat) :
+    ((TauComplex.exp_term (TauComplex.pureIm x) k).im.approx n).toRat
+      = (pureIm_pow_re_im_rat x.toRat k).2 / (k.factorial : Rat) := by
+  rw [TauComplex.exp_term_im, TauReal.scale_by_inv_factorial_approx,
+      TauRat.scale_by_inv_factorial_toRat,
+      (pureIm_pow_re_im_approx_toRat x k n).2]
+
 end Tau.Boundary
