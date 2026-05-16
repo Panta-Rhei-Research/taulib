@@ -1591,4 +1591,56 @@ theorem TauComplex.pureIm_of_real_fromTauRat_eq_pureIm (a : TauRat) :
     intro n
     exact TauRat.equiv_refl _
 
+-- ============================================================
+-- PART 19: Phase 2.6.B.2.β.2 — cisTauReal (cis at TauReal angles)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.2 — `cisTauReal` definition + Euler bridge specialization
+
+`cisTauReal x := TauComplex.exp (pureIm_of_real x)` for any TauReal angle `x`.
+This generalises the cyclotomic-4 cis function from TauRat arguments to
+general TauReal angles, leveraging `pureIm_of_real` from β.1.
+
+**Key bridges shipped**:
+- `cisTauReal (fromTauRat a) = TauComplex.exp (pureIm a)` (definitional `rfl`).
+- `(cisTauReal (fromTauRat a)).re ≈ cos_of_rat a` for `|a.toRat| ≤ 1` (via Phase 1C).
+- `(cisTauReal (fromTauRat a)).im ≈ sin_of_rat a` for `|a.toRat| ≤ 1` (via Phase 1C).
+
+These are the foundational hooks downstream sub-pieces β.3 and β.4 will use. -/
+
+/-- **[I.D-CisTauReal]** Complex exponential of a pure-imaginary TauReal:
+    `cisTauReal x := exp(i · x)` where the embedding is via `pureIm_of_real`. -/
+def TauComplex.cisTauReal (x : TauReal) : TauComplex :=
+  TauComplex.exp (TauComplex.pureIm_of_real x)
+
+/-- **Definitional bridge to TauRat-level cis**: for a TauRat `a`,
+    `cisTauReal (fromTauRat a) = exp (pureIm a)` (literally, by definition).
+
+    Holds because `pureIm_of_real (fromTauRat a) = ⟨TauReal.zero, fromTauRat a⟩ = pureIm a`
+    is definitionally equal. -/
+theorem TauComplex.cisTauReal_fromTauRat_eq (a : TauRat) :
+    TauComplex.cisTauReal (TauReal.fromTauRat a)
+      = TauComplex.exp (TauComplex.pureIm a) := rfl
+
+/-- **🎯 Euler bridge for cisTauReal at TauRat input — real part**:
+    for `|a.toRat| ≤ 1`,
+        `(cisTauReal (fromTauRat a)).re ≈ cos_of_rat a`.
+
+    Direct corollary of the Phase 1C Euler bridge `exp_pureIm_re_eq_cos`
+    via the definitional bridge above. -/
+theorem TauComplex.cisTauReal_fromTauRat_re_eq_cos (a : TauRat) (ha : |a.toRat| ≤ 1) :
+    TauReal.equiv ((TauComplex.cisTauReal (TauReal.fromTauRat a)).re)
+                  (TauReal.cos_of_rat a) := by
+  show TauReal.equiv ((TauComplex.exp (TauComplex.pureIm a)).re) (TauReal.cos_of_rat a)
+  exact exp_pureIm_re_eq_cos a ha
+
+/-- **🎯 Euler bridge for cisTauReal at TauRat input — imaginary part**:
+    for `|a.toRat| ≤ 1`,
+        `(cisTauReal (fromTauRat a)).im ≈ sin_of_rat a`. -/
+theorem TauComplex.cisTauReal_fromTauRat_im_eq_sin (a : TauRat) (ha : |a.toRat| ≤ 1) :
+    TauReal.equiv ((TauComplex.cisTauReal (TauReal.fromTauRat a)).im)
+                  (TauReal.sin_of_rat a) := by
+  show TauReal.equiv ((TauComplex.exp (TauComplex.pureIm a)).im) (TauReal.sin_of_rat a)
+  exact exp_pureIm_im_eq_sin a ha
+
 end Tau.Boundary
