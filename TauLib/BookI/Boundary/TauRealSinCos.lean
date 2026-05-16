@@ -117,4 +117,72 @@ theorem TauComplex.pureIm_add (x₁ x₂ : TauRat) :
     intro n
     exact TauRat.equiv_refl _
 
+-- ============================================================
+-- PART 4: NAMED TARGETS for Euler bridge + sin/cos addition formulae
+-- ============================================================
+
+/-! ## Phase 1C-1D — Named targets (recursive discharge pattern)
+
+The Euler bridge `(exp (pureIm x)).re ≈ cos_of_rat x, .im ≈ sin_of_rat x`
+and the resulting sin/cos addition formulae are queued for focused
+follow-up commits. They are stated here as **named target propositions**
+(per the `named-target-discharge-pattern` from atlas/insights), which
+allows downstream consumers to assume them while the discharge is
+underway.
+
+The named-target pattern has been validated 10+ times in the τ-canon
+programme; each target is paired with a conditional theorem that
+discharges when the target is later proved. -/
+
+/-- **[I.D-EulerRe-Target]** The Euler bridge for the real part.
+
+    For `|x.toRat| ≤ 1`, the real part of `exp(i·x)` matches the τ-native
+    cosine series `TauReal.cos_of_rat x` as TauReal equivalence.
+
+    **Discharge strategy** (Phase 1C, queued): expand
+    `(exp (pureIm x)).re.approx n = (exp_partial (pureIm x) n).re.approx n`
+    via the diagonal construction, then use the cyclotomic-4 cycle
+    (Phase 1A) to identify even-power terms with `cos_partial` paired
+    sums. Modulus `k + 3` follows the standard Cauchy-bound template. -/
+def TauComplex.exp_pureIm_re_eq_cos_target : Prop :=
+  ∀ (x : TauRat), |x.toRat| ≤ 1 →
+    TauReal.equiv (TauComplex.exp (TauComplex.pureIm x)).re (TauReal.cos_of_rat x)
+
+/-- **[I.D-EulerIm-Target]** The Euler bridge for the imaginary part.
+
+    For `|x.toRat| ≤ 1`, the imaginary part of `exp(i·x)` matches the
+    τ-native sine series `TauReal.sin_of_rat x` as TauReal equivalence.
+
+    Discharge strategy parallel to `exp_pureIm_re_eq_cos_target`, using
+    the cyclotomic-4 cycle to identify odd-power terms with `sin_partial`
+    paired sums. -/
+def TauComplex.exp_pureIm_im_eq_sin_target : Prop :=
+  ∀ (x : TauRat), |x.toRat| ≤ 1 →
+    TauReal.equiv (TauComplex.exp (TauComplex.pureIm x)).im (TauReal.sin_of_rat x)
+
+/-- **[I.D-CosAdd-Target]** Cosine addition formula.
+
+    For `|x₁.toRat|, |x₂.toRat| ≤ 1` (Machin's formula uses arguments
+    `arctan(1/5) ≈ 0.197` and `arctan(1/239) ≈ 0.004`, well within bounds),
+    `cos(x₁+x₂) ≈ cos x₁ · cos x₂ − sin x₁ · sin x₂`.
+
+    **Conditional discharge** (queued): given
+    `exp_pureIm_re_eq_cos_target ∧ exp_pureIm_im_eq_sin_target`, derive
+    from `TauComplex.exp_add` applied to `pureIm x₁` and `pureIm x₂`,
+    then project to `.re` via componentwise `TauReal.equiv`. -/
+def TauComplex.cos_add_target : Prop :=
+  ∀ (x₁ x₂ : TauRat), |x₁.toRat| ≤ 1 → |x₂.toRat| ≤ 1 →
+    TauReal.equiv (TauReal.cos_of_rat (x₁.add x₂))
+                  ((TauReal.cos_of_rat x₁).mul (TauReal.cos_of_rat x₂)
+                    |>.sub ((TauReal.sin_of_rat x₁).mul (TauReal.sin_of_rat x₂)))
+
+/-- **[I.D-SinAdd-Target]** Sine addition formula.
+
+    `sin(x₁+x₂) ≈ sin x₁ · cos x₂ + cos x₁ · sin x₂`. -/
+def TauComplex.sin_add_target : Prop :=
+  ∀ (x₁ x₂ : TauRat), |x₁.toRat| ≤ 1 → |x₂.toRat| ≤ 1 →
+    TauReal.equiv (TauReal.sin_of_rat (x₁.add x₂))
+                  ((TauReal.sin_of_rat x₁).mul (TauReal.cos_of_rat x₂)
+                    |>.add ((TauReal.cos_of_rat x₁).mul (TauReal.sin_of_rat x₂)))
+
 end Tau.Boundary
