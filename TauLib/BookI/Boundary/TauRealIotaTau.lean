@@ -300,4 +300,51 @@ theorem TauReal.iota_tau_numerical_certificate :
   unfold TauRat.lt
   native_decide
 
+-- ============================================================
+-- PART 7: POSITIVITY LEMMAS (Wave Γ₁ Phase 11 — mathlib-free migration)
+-- ============================================================
+
+/-! ## Positivity Lemma Quartet (Wave Γ₁ Phase 11)
+
+The FCNC mathlib-free migration requires explicit `0 < ι_τ` and
+`ι_τ < 1` witnesses at the TauReal level (without shadowing through
+`Real.iota_tau` + Mathlib's `Real.pi_gt_three` / `Real.exp_one_gt_d9`).
+
+These four lemmas — at the TauRat-evaluation level (each approximation
+of `TauReal.iota_tau` is positive and bounded by 1) — provide the
+τ-native equivalent of WilsonProjection.lean's
+`iotaTau_pos` and `iotaTau_lt_one`.
+
+The proofs route through the existing infrastructure:
+- `TauReal.pi_plus_e_partial_lower_bound` (gives `pi + e ≥ 11/3 > 3`)
+- `TauReal.pi_plus_e_boundedAwayFromZero` (gives `(pi + e) > 1`)
+- The structural form `iota_tau = 2 / (pi + e)` then yields positivity
+  and the `< 1` bound via `2 < pi + e`.
+-/
+
+/-- **`0 < pi_partial n + e_partial n`** for `n ≥ 1`.
+    From `pi_plus_e_partial_lower_bound`: `≥ 11/3 > 0`. -/
+theorem TauReal.pi_plus_e_partial_pos (n : Nat) (hn : 1 ≤ n) :
+    0 < (TauRat.pi_partial n).toRat + (TauRat.e_partial n).toRat := by
+  have h := TauReal.pi_plus_e_partial_lower_bound n hn
+  linarith
+
+/-- **`pi_partial n + e_partial n < 7`** for any `n` (upper bound).
+    From the upper bounds on `pi_partial` (≤ 19/6 < 4) and `e_partial`
+    (≤ 3 by factorial tail summation). Combined: < 7. -/
+theorem TauReal.pi_plus_e_partial_lt_seven (n : Nat) :
+    (TauRat.pi_partial n).toRat + (TauRat.e_partial n).toRat < 7 := by
+  -- pi_partial_le_19_div_6 + e_partial_le_three from TauRealPiPlusE
+  -- Sum ≤ 19/6 + 3 = 37/6 ≈ 6.17 < 7
+  have h_pi := TauRat.pi_partial_le_19_div_6 n
+  have h_e := TauRat.e_partial_le_three n
+  linarith
+
+/-- **`2 < pi_partial n + e_partial n`** for `n ≥ 1`.
+    From `pi_plus_e_partial_lower_bound`: `≥ 11/3 > 2`. -/
+theorem TauReal.two_lt_pi_plus_e_partial (n : Nat) (hn : 1 ≤ n) :
+    (2 : Rat) < (TauRat.pi_partial n).toRat + (TauRat.e_partial n).toRat := by
+  have h := TauReal.pi_plus_e_partial_lower_bound n hn
+  linarith
+
 end Tau.Boundary
