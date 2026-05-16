@@ -422,4 +422,131 @@ theorem pi_machin_close_to_pi_leibniz_K5M50 :
     |pi_machin_partial_rat 5 - (TauRat.pi_partial 50).toRat| < 1 / 80 := by
   native_decide
 
+-- ============================================================
+-- PART 7: GEOMETRIC PER-TERM BOUND (q ≥ 2)
+-- ============================================================
+
+/-- **Geometric per-term bound** for `q ≥ 2`: each arctan(1/q) paired term
+    is bounded by `2/2^k` in absolute value.
+
+    Derived from `arctan_reciprocal_pair_term_rat_abs_bound (|.| ≤ 2/q^(4k+1))`
+    plus `q^(4k+1) ≥ 2^k` for `q ≥ 2`, since `4k+1 ≥ k` for all k. -/
+theorem arctan_reciprocal_pair_term_rat_abs_bound_geom
+    (q k : Nat) (hq : 2 ≤ q) :
+    |arctan_reciprocal_pair_term_rat q k| ≤ 2 / (2 : Rat)^k := by
+  have hq1 : 1 ≤ q := by omega
+  have h_orig := arctan_reciprocal_pair_term_rat_abs_bound q k hq1
+  -- |pair_k| ≤ 2/q^(4k+1) ≤ 2/2^k
+  have h_q_ge_2 : (2 : Rat) ≤ (q : Rat) := by exact_mod_cast hq
+  have h_q_pow_ge : (2 : Rat)^(4*k+1) ≤ (q : Rat)^(4*k+1) :=
+    pow_le_pow_left₀ (by norm_num : (0 : Rat) ≤ 2) h_q_ge_2 _
+  have h_2_pow_4k1_ge_k : (2 : Rat)^k ≤ (2 : Rat)^(4*k+1) := by
+    apply pow_le_pow_right₀ (by norm_num : (1 : Rat) ≤ 2)
+    omega
+  have h_q_pow_pos : (0 : Rat) < (q : Rat)^(4*k+1) := by
+    apply pow_pos
+    have : (0 : Nat) < q := by omega
+    exact_mod_cast this
+  have h_2_pow_k_pos : (0 : Rat) < (2 : Rat)^k := by positivity
+  have h_2_div_q_pow_le : (2 : Rat) / (q : Rat)^(4*k+1) ≤ 2 / (2 : Rat)^k := by
+    rw [div_le_div_iff₀ h_q_pow_pos h_2_pow_k_pos]
+    have h_chain : (2 : Rat)^k ≤ (q : Rat)^(4*k+1) :=
+      le_trans h_2_pow_4k1_ge_k h_q_pow_ge
+    nlinarith
+  linarith
+
+-- ============================================================
+-- PART 8: CAUCHY TAIL BOUND (q ≥ 2)
+-- ============================================================
+
+/-- **Exact Cauchy tail bound** for arctan(1/q) with `q ≥ 2`:
+    `|partial m − partial n| ≤ 4/2^n − 4/2^m` for `n ≤ m`.
+
+    Proof: telescoping inductive bound using the geometric per-term bound.
+    Mirrors `cos_partial_rat_cauchy_bound_exact` template. -/
+theorem arctan_reciprocal_partial_rat_cauchy_bound_exact
+    (q : Nat) (hq : 2 ≤ q) (m n : Nat) (hnm : n ≤ m) :
+    |arctan_reciprocal_partial_rat q m - arctan_reciprocal_partial_rat q n|
+      ≤ 4 / (2 : Rat)^n - 4 / (2 : Rat)^m := by
+  induction m, hnm using Nat.le_induction with
+  | base => simp
+  | succ m hnm ih =>
+    rw [arctan_reciprocal_partial_rat_succ]
+    have h_diff : arctan_reciprocal_partial_rat q m + arctan_reciprocal_pair_term_rat q m
+                  - arctan_reciprocal_partial_rat q n
+                  = (arctan_reciprocal_partial_rat q m - arctan_reciprocal_partial_rat q n)
+                    + arctan_reciprocal_pair_term_rat q m := by ring
+    rw [h_diff]
+    have h_tri : |(arctan_reciprocal_partial_rat q m - arctan_reciprocal_partial_rat q n)
+                  + arctan_reciprocal_pair_term_rat q m|
+                  ≤ |arctan_reciprocal_partial_rat q m - arctan_reciprocal_partial_rat q n|
+                    + |arctan_reciprocal_pair_term_rat q m| := abs_add_le _ _
+    have h_term := arctan_reciprocal_pair_term_rat_abs_bound_geom q m hq
+    have h_2_m_pos : (0 : Rat) < (2 : Rat)^m := by positivity
+    have h_pow_succ : (2 : Rat)^(m+1) = 2 * (2 : Rat)^m := by rw [pow_succ]; ring
+    have h_algebra :
+        4 / (2 : Rat)^n - 4 / (2 : Rat)^m + 2 / (2 : Rat)^m
+          = 4 / (2 : Rat)^n - 4 / (2 : Rat)^(m+1) := by
+      rw [h_pow_succ]
+      have h_2_n_pos : (0 : Rat) < (2 : Rat)^n := by positivity
+      field_simp; ring
+    linarith
+
+/-- **Loose Cauchy tail bound** for arctan(1/q): `≤ 4/2^n` (drops the
+    subtractive 4/2^m term). Matches the standard Cauchy-bound template. -/
+theorem arctan_reciprocal_partial_rat_cauchy_bound
+    (q : Nat) (hq : 2 ≤ q) (m n : Nat) (hnm : n ≤ m) :
+    |arctan_reciprocal_partial_rat q m - arctan_reciprocal_partial_rat q n|
+      ≤ 4 / (2 : Rat)^n := by
+  have h_exact := arctan_reciprocal_partial_rat_cauchy_bound_exact q hq m n hnm
+  have h_subtract_nn : (0 : Rat) ≤ 4 / (2 : Rat)^m := by
+    apply div_nonneg (by norm_num : (0 : Rat) ≤ 4)
+    positivity
+  linarith
+
+-- ============================================================
+-- PART 9: TauReal.arctan_reciprocal AND IsCauchy
+-- ============================================================
+
+/-- **[I.D-Arctan-Reciprocal]** `TauReal.arctan_reciprocal q hq` — the
+    τ-native arctan(1/q) as a TauReal, for `q ≥ 2`. -/
+def TauReal.arctan_reciprocal (q : Nat) (hq : 2 ≤ q) : TauReal :=
+  ⟨TauRat.arctan_reciprocal_partial q (by omega : 1 ≤ q)⟩
+
+@[simp] theorem TauReal.arctan_reciprocal_approx (q : Nat) (hq : 2 ≤ q) (n : Nat) :
+    (TauReal.arctan_reciprocal q hq).approx n =
+      TauRat.arctan_reciprocal_partial q (by omega : 1 ≤ q) n := rfl
+
+/-- **[I.T-Arctan-Reciprocal-IsCauchy]** `TauReal.arctan_reciprocal q hq` is
+    Cauchy with explicit modulus `λ k => k + 3`, mirroring the cos/sin/π
+    Cauchy template. -/
+theorem TauReal.arctan_reciprocal_isCauchy (q : Nat) (hq : 2 ≤ q) :
+    (TauReal.arctan_reciprocal q hq).IsCauchy := by
+  refine ⟨fun k => k + 3, ?_⟩
+  intro k m n hm hn
+  change k + 3 ≤ m at hm
+  change k + 3 ≤ n at hn
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |((TauRat.arctan_reciprocal_partial q (by omega : 1 ≤ q) m).toRat
+          - (TauRat.arctan_reciprocal_partial q (by omega : 1 ≤ q) n).toRat)|
+         < 1 / ((k : Rat) + 1)
+  rw [TauRat.arctan_reciprocal_partial_toRat, TauRat.arctan_reciprocal_partial_toRat]
+  by_cases h_le : n ≤ m
+  · have h_bound := arctan_reciprocal_partial_rat_cauchy_bound q hq m n h_le
+    have h_four_lt := Rat.four_div_two_pow_lt_recip k n hn
+    linarith
+  · push_neg at h_le
+    have h_m_le_n : m ≤ n := Nat.le_of_lt h_le
+    have h_swap_abs :
+        |arctan_reciprocal_partial_rat q m - arctan_reciprocal_partial_rat q n|
+          = |arctan_reciprocal_partial_rat q n - arctan_reciprocal_partial_rat q m| := by
+      rw [show arctan_reciprocal_partial_rat q m - arctan_reciprocal_partial_rat q n
+            = -(arctan_reciprocal_partial_rat q n - arctan_reciprocal_partial_rat q m) from by ring,
+          abs_neg]
+    rw [h_swap_abs]
+    have h_bound := arctan_reciprocal_partial_rat_cauchy_bound q hq n m h_m_le_n
+    have h_four_lt := Rat.four_div_two_pow_lt_recip k m hm
+    linarith
+
 end Tau.Boundary
