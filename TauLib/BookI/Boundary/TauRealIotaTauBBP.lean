@@ -120,4 +120,42 @@ theorem TauReal.iota_tau_bbp_certified_50d :
   unfold TauRat.lt
   native_decide
 
+-- ============================================================
+-- PART 4: 100-DIGIT BENCHMARK — empirical scaling test
+-- ============================================================
+
+/-- The 100-decimal-place truncation of `ι_τ` (mpmath-computed at dps=120).
+
+    Value: `0.34130423887521951564286718664378341086894393637510904818
+            00369165800909516527670272858922962930308826`. -/
+def TauRat.iota_tau_fiat_100d : TauRat :=
+  ⟨⟨3413042388752195156428671866437834108689439363751090481800369165800909516527670272858922962930308826, 0⟩,
+   10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+   by positivity⟩
+
+/-- **🎯 100-digit ι_τ certificate** — empirical scaling benchmark.
+
+    `|TauReal.iota_tau_bbp.approx 400 − TauRat.iota_tau_fiat_100d| < 10⁻⁹⁹`.
+
+    **Witness-depth choice (400)**:
+    * `e.approx 400` error: `≤ 4/2^400 ≈ 10⁻¹²¹` (well past 100 digits).
+    * `pi_bbp.approx 400` error: `≤ 6/16^400` (astronomically small).
+    * Propagated error in `iota_tau_bbp.approx 400`: `≈ 10⁻¹²¹`,
+      far inside the `10⁻⁹⁹` tolerance.
+
+    **Computational cost**:
+    * `e_partial 400` denominator: `399!` ≈ 10⁸⁶⁹ (~870 digits).
+    * `pi_bbp_partial 400` denominator: bounded by `16⁴⁰⁰ · small factors`.
+    * Rat arithmetic on ~870-digit numbers via gmp Karatsuba/Toom-Cook:
+      polynomial in digit count, typically 5-30 seconds on M-series Mac.
+
+    Tests whether `native_decide` scales to 100-digit certification
+    within feasible interactive-development runtime budget. -/
+theorem TauReal.iota_tau_bbp_certified_100d :
+    TauRat.lt
+      (((TauReal.iota_tau_bbp.approx 400).sub TauRat.iota_tau_fiat_100d).abs)
+      (TauRat.ofNatRecip (10^99 - 1)) := by
+  unfold TauRat.lt
+  native_decide
+
 end Tau.Boundary
