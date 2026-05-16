@@ -1514,4 +1514,81 @@ theorem TauComplex.scaledCis_mul_identity (a b z w : TauRat)
         toRat_one, toRat_zero]
     linarith
 
+-- ============================================================
+-- PART 18: Phase 2.6.B.2.β.1 — pureIm_of_real (TauReal-arg pureIm)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.1 — `pureIm_of_real` foundations
+
+Extends `TauComplex.pureIm` from TauRat arguments to general TauReal
+arguments. This is the structural prerequisite for `cisTauReal := exp ∘
+pureIm_of_real`, which lifts the Euler bridge to TauReal angles
+(needed for `cisTauReal(arctan_of_rat a)` in the eventual arctan
+addition proof). -/
+
+/-- **[I.D-PureImOfReal]** The pure-imaginary embedding of a TauReal:
+    `pureIm_of_real x := ⟨TauReal.zero, x⟩`.
+
+    Generalises `TauComplex.pureIm (x : TauRat) = ⟨TauReal.zero, fromTauRat x⟩`
+    to any TauReal `x`. -/
+def TauComplex.pureIm_of_real (x : TauReal) : TauComplex :=
+  ⟨TauReal.zero, x⟩
+
+@[simp] theorem TauComplex.pureIm_of_real_re_approx (x : TauReal) (n : Nat) :
+    (TauComplex.pureIm_of_real x).re.approx n = TauRat.zero := rfl
+
+@[simp] theorem TauComplex.pureIm_of_real_im_approx (x : TauReal) (n : Nat) :
+    (TauComplex.pureIm_of_real x).im.approx n = x.approx n := rfl
+
+/-- **Boundedness lifting**: if every approximation of `x` is bounded by `M`,
+    then `pureIm_of_real x` has `BoundedBy M`. -/
+theorem TauComplex.pureIm_of_real_BoundedBy
+    (x : TauReal) (M : Nat) (hM : 1 ≤ M)
+    (h_bound : ∀ n, (x.approx n).abs.toRat ≤ M) :
+    TauComplex.BoundedBy (TauComplex.pureIm_of_real x) M := by
+  refine ⟨?_, ?_⟩
+  · -- Real part: all approximations are TauRat.zero, abs.toRat = 0 ≤ M
+    intro n
+    show (TauRat.zero.abs.toRat) ≤ ((M : Nat) : Rat)
+    rw [TauRat.toRat_abs, toRat_zero, abs_zero]
+    exact_mod_cast Nat.zero_le M
+  · -- Imaginary part: approximations are x.approx n, bounded by M
+    intro n
+    exact h_bound n
+
+/-- **Distributes over TauReal.add**: `pureIm_of_real (x+y) ≈ (pureIm_of_real x) + (pureIm_of_real y)`. -/
+theorem TauComplex.pureIm_of_real_add (x y : TauReal) :
+    TauComplex.equiv (TauComplex.pureIm_of_real (TauReal.add x y))
+                     ((TauComplex.pureIm_of_real x).add (TauComplex.pureIm_of_real y)) := by
+  refine ⟨?_, ?_⟩
+  · -- Real parts: LHS.re = TauReal.zero; RHS.re = TauReal.add zero zero
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    show (TauRat.zero).toRat
+        = (TauRat.add ((TauComplex.pureIm_of_real x).re.approx n)
+                      ((TauComplex.pureIm_of_real y).re.approx n)).toRat
+    show (TauRat.zero).toRat = (TauRat.add TauRat.zero TauRat.zero).toRat
+    rw [toRat_add, toRat_zero]
+    ring
+  · -- Imaginary parts: LHS.im = TauReal.add x y; RHS.im = TauReal.add x y (definitionally)
+    apply TauReal.equiv_of_pointwise
+    intro n
+    exact TauRat.equiv_refl _
+
+/-- **Bridge to TauRat-level `pureIm`**: for a TauRat `a`,
+    `pureIm_of_real (fromTauRat a)` and `pureIm a` are TauComplex-equivalent. -/
+theorem TauComplex.pureIm_of_real_fromTauRat_eq_pureIm (a : TauRat) :
+    TauComplex.equiv (TauComplex.pureIm_of_real (TauReal.fromTauRat a))
+                     (TauComplex.pureIm a) := by
+  refine ⟨?_, ?_⟩
+  · -- Real parts: both are TauReal.zero
+    apply TauReal.equiv_of_pointwise
+    intro n
+    exact TauRat.equiv_refl _
+  · -- Imaginary parts: both are constant TauReal at a (= fromTauRat a)
+    apply TauReal.equiv_of_pointwise
+    intro n
+    exact TauRat.equiv_refl _
+
 end Tau.Boundary
