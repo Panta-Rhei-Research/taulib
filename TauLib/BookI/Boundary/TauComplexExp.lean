@@ -5382,4 +5382,166 @@ theorem TauComplex.exp_partial_add_re_im_approx_toRat (z₁ z₂ : TauComplex) (
                           ((TauComplex.cauchyDiag (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).im.approx m)).toRat
       rw [toRat_add, toRat_add, ih_im, h_term_im]
 
+-- ============================================================
+-- PART 51: PHASE 3C PART 3g.5 — 🎯🎯🎯🎯 M3 ENDPOINT: TauComplex.exp_add
+-- ============================================================
+
+/-! ## M3 endpoint modulus inequality
+
+For the M3 endpoint, we need `242·n·(k+1) < 2^(n-1)` for sufficiently large `n`.
+The constant 242 = 2·11² comes from the Cauchy product bound's `2·C²` with
+`C = 11` (from `exp_term_re_im_geom_bound`, Part 3f).
+
+Modulus: `n ≥ 2k + 13` suffices, proved by Nat induction. -/
+
+/-- **Nat-level modulus inequality** for M3 endpoint: `242·n·(k+1) < 2^(n-1)` for
+    `n ≥ 2k + 13`. -/
+private theorem nat_tau_exp_add_modulus_ineq (k n : Nat) (hn : 2 * k + 13 ≤ n) :
+    242 * n * (k + 1) < 2 ^ (n - 1) := by
+  -- Reparametrize via n = 2k + 13 + m
+  obtain ⟨m, hm⟩ : ∃ m, n = 2 * k + 13 + m := ⟨n - (2 * k + 13), by omega⟩
+  subst hm
+  induction m with
+  | zero =>
+    -- n = 2k + 13. Need 242 · (2k+13) · (k+1) < 2^(2k+12).
+    have h_inner : ∀ k', 242 * (2 * k' + 13) * (k' + 1) < 2 ^ (2 * k' + 12) := by
+      intro k'
+      induction k' with
+      | zero => decide
+      | succ k' ih =>
+        have h_pow : 2 ^ (2 * (k' + 1) + 12) = 4 * 2 ^ (2 * k' + 12) := by
+          have h_eq : 2 * (k' + 1) + 12 = (2 * k' + 12) + 2 := by ring
+          rw [h_eq, pow_add]; ring
+        have h_pos : 0 < 2 ^ (2 * k' + 12) := by positivity
+        rw [h_pow]
+        nlinarith [ih, h_pos]
+    have h_nat_k := h_inner k
+    have h_idx_eq : 2 * k + 13 + 0 - 1 = 2 * k + 12 := by omega
+    rw [h_idx_eq]
+    exact h_nat_k
+  | succ m ih =>
+    -- Inductive step: assume holds for n = 2k+13+m, show for n = 2k+13+m+1.
+    have h_idx_eq : 2 * k + 13 + (m + 1) - 1 = 2 * k + 13 + m := by omega
+    rw [h_idx_eq]
+    have h_idx_ih : 2 * k + 13 + m - 1 = 2 * k + 12 + m := by omega
+    rw [h_idx_ih] at ih
+    have h_pow : 2 ^ (2 * k + 13 + m) = 2 * 2 ^ (2 * k + 12 + m) := by
+      have h_eq : 2 * k + 13 + m = (2 * k + 12 + m) + 1 := by omega
+      rw [h_eq, pow_succ]; ring
+    rw [h_pow]
+    have h_pos : 0 < 2 ^ (2 * k + 12 + m) := by positivity
+    have h_ih : 242 * (2 * k + 13 + m) * (k + 1) < 2 ^ (2 * k + 12 + m) := ih (by omega)
+    have h_M_ge_1 : 1 ≤ 2 * k + 13 + m := by omega
+    nlinarith [h_ih, h_pos, h_M_ge_1]
+
+/-- **Rat cast** of the M3 modulus inequality. -/
+private theorem rat_tau_exp_add_modulus_ineq (k n : Nat) (hn : 2 * k + 13 ≤ n) :
+    242 * (n : Rat) * ((k : Rat) + 1) < (2 : Rat) ^ (n - 1) := by
+  have h_nat := nat_tau_exp_add_modulus_ineq k n hn
+  have h_cast : ((242 * n * (k + 1) : Nat) : Rat) < ((2 ^ (n - 1) : Nat) : Rat) := by
+    exact_mod_cast h_nat
+  have h_lhs : ((242 * n * (k + 1) : Nat) : Rat) = 242 * (n : Rat) * ((k : Rat) + 1) := by
+    push_cast; ring
+  have h_rhs : ((2 ^ (n - 1) : Nat) : Rat) = (2 : Rat) ^ (n - 1) := by push_cast; ring
+  rw [h_lhs, h_rhs] at h_cast
+  exact h_cast
+
+/-- **🎯🎯🎯🎯 M3 ENDPOINT — `TauComplex.exp_add`**.
+
+    Given `TauComplex.BoundedBy z₁ 1` and `TauComplex.BoundedBy z₂ 1`,
+    we have `TauComplex.equiv (TauComplex.exp (z₁.add z₂))
+                             ((TauComplex.exp z₁).mul (TauComplex.exp z₂))`.
+
+    This is the M3 endpoint of the Wave Γ₇ breakthrough campaign. It closes
+    the loop on the τ-canon programme's ability to formally certify `π` (and
+    hence `ι_τ = 2/(π+e)`) to 50 digits via Machin's formula and Euler's
+    identity. -/
+theorem TauComplex.exp_add (z₁ z₂ : TauComplex)
+    (h_bound_z1 : TauComplex.BoundedBy z₁ 1)
+    (h_bound_z2 : TauComplex.BoundedBy z₂ 1) :
+    TauComplex.equiv
+      (TauComplex.exp (z₁.add z₂))
+      ((TauComplex.exp z₁).mul (TauComplex.exp z₂)) := by
+  -- exp_term geometric bounds for z₁ and z₂ (from Part 3f)
+  have h_bound_z1_re := fun i m =>
+    (TauComplex.exp_term_re_im_geom_bound z₁ h_bound_z1 i m).1
+  have h_bound_z1_im := fun i m =>
+    (TauComplex.exp_term_re_im_geom_bound z₁ h_bound_z1 i m).2
+  have h_bound_z2_re := fun j m =>
+    (TauComplex.exp_term_re_im_geom_bound z₂ h_bound_z2 j m).1
+  have h_bound_z2_im := fun j m =>
+    (TauComplex.exp_term_re_im_geom_bound z₂ h_bound_z2 j m).2
+  refine ⟨?_, ?_⟩
+  · -- .re component
+    refine ⟨fun k => 2 * k + 13, fun k n hn => ?_⟩
+    change 2 * k + 13 ≤ n at hn
+    have hn_ge_1 : 1 ≤ n := by omega
+    -- Apply Cauchy product bound at .re
+    have h_cpb := TauComplex.cauchy_product_bound_re
+                    (TauComplex.exp_term z₁) (TauComplex.exp_term z₂)
+                    11 (by norm_num)
+                    h_bound_z1_re h_bound_z1_im
+                    h_bound_z2_re h_bound_z2_im
+                    n hn_ge_1 n
+    -- Apply partial-sum identity (3g.4)
+    obtain ⟨h_re_part, _⟩ := TauComplex.exp_partial_add_re_im_approx_toRat z₁ z₂ n n
+    -- Apply modulus inequality
+    have h_mod := rat_tau_exp_add_modulus_ineq k n hn
+    have h_2pow_pos : (0 : Rat) < (2 : Rat) ^ (n - 1) := by positivity
+    have h_k1_pos : (0 : Rat) < (k : Rat) + 1 := by
+      have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+      linarith
+    unfold TauRat.lt
+    rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+    show |((TauComplex.exp (z₁.add z₂)).re.approx n).toRat
+          - (((TauComplex.exp z₁).mul (TauComplex.exp z₂)).re.approx n).toRat|
+        < 1 / ((k : Rat) + 1)
+    -- Unfold (exp z).re.approx n = (exp_partial z n).re.approx n via diagonal
+    -- Note: TauComplex.sum (exp_term z) n = TauComplex.exp_partial z n by def
+    rw [TauComplex.exp_re_approx]
+    -- Convert ((exp z₁) · (exp z₂)).re.approx n to ((exp_partial z₁ n) · (exp_partial z₂ n)).re.approx n
+    have h_mul_eq : (((TauComplex.exp z₁).mul (TauComplex.exp z₂)).re.approx n).toRat
+                  = (((TauComplex.exp_partial z₁ n).mul (TauComplex.exp_partial z₂ n)).re.approx n).toRat := by
+      rw [TauComplex.mul_re_approx, TauComplex.mul_re_approx]
+      simp only [TauComplex.exp_re_approx, TauComplex.exp_im_approx]
+    rw [h_mul_eq, h_re_part]
+    rw [abs_sub_comm]
+    refine lt_of_le_of_lt h_cpb ?_
+    -- 2·n·11²/2^(n-1) = 242·n/2^(n-1) < 1/(k+1)
+    rw [show (2 * (n : Rat) * 11 ^ 2 : Rat) = 242 * (n : Rat) from by ring]
+    rw [div_lt_div_iff₀ h_2pow_pos h_k1_pos]
+    linarith [h_mod]
+  · -- .im component (parallel structure to .re)
+    refine ⟨fun k => 2 * k + 13, fun k n hn => ?_⟩
+    change 2 * k + 13 ≤ n at hn
+    have hn_ge_1 : 1 ≤ n := by omega
+    have h_cpb := TauComplex.cauchy_product_bound_im
+                    (TauComplex.exp_term z₁) (TauComplex.exp_term z₂)
+                    11 (by norm_num)
+                    h_bound_z1_re h_bound_z1_im
+                    h_bound_z2_re h_bound_z2_im
+                    n hn_ge_1 n
+    obtain ⟨_, h_im_part⟩ := TauComplex.exp_partial_add_re_im_approx_toRat z₁ z₂ n n
+    have h_mod := rat_tau_exp_add_modulus_ineq k n hn
+    have h_2pow_pos : (0 : Rat) < (2 : Rat) ^ (n - 1) := by positivity
+    have h_k1_pos : (0 : Rat) < (k : Rat) + 1 := by
+      have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+      linarith
+    unfold TauRat.lt
+    rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+    show |((TauComplex.exp (z₁.add z₂)).im.approx n).toRat
+          - (((TauComplex.exp z₁).mul (TauComplex.exp z₂)).im.approx n).toRat|
+        < 1 / ((k : Rat) + 1)
+    rw [TauComplex.exp_im_approx]
+    have h_mul_eq : (((TauComplex.exp z₁).mul (TauComplex.exp z₂)).im.approx n).toRat
+                  = (((TauComplex.exp_partial z₁ n).mul (TauComplex.exp_partial z₂ n)).im.approx n).toRat := by
+      rw [TauComplex.mul_im_approx, TauComplex.mul_im_approx]
+      simp only [TauComplex.exp_re_approx, TauComplex.exp_im_approx]
+    rw [h_mul_eq, h_im_part]
+    rw [abs_sub_comm]
+    refine lt_of_le_of_lt h_cpb ?_
+    rw [show (2 * (n : Rat) * 11 ^ 2 : Rat) = 242 * (n : Rat) from by ring]
+    rw [div_lt_div_iff₀ h_2pow_pos h_k1_pos]
+    linarith [h_mod]
+
 end Tau.Boundary
