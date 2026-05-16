@@ -1067,4 +1067,73 @@ theorem pureIm_like_expPartial_im_approx_toRat
           + (pureIm_pow_re_im_rat xR k).2 / (k.factorial : Rat)
     rw [toRat_add, IH, pureIm_like_exp_term_im_approx_toRat z xR h_re h_im]
 
+-- ============================================================
+-- PART 14: PUREIM-SUM BRIDGE (pointwise-toRat-equal)
+-- ============================================================
+
+/-- **Bridge lemma**: `exp (pureIm (x₁+x₂)).re` and
+    `exp ((pureIm x₁).add (pureIm x₂)).re` are TauReal-equivalent.
+
+    Proof: at every approx depth `n`, both sides have the same toRat value
+    (`= expPartial_pureIm_re_rat (x₁.toRat + x₂.toRat) n`). The LHS uses the
+    Phase 1C-specific bridge; the RHS uses the generalized bridge with
+    `(pureIm x₁).add (pureIm x₂)` having
+    `.re-toRat = 0+0 = 0` and `.im-toRat = x₁.toRat + x₂.toRat`. -/
+theorem exp_pureIm_sum_re_equiv (x₁ x₂ : TauRat) :
+    TauReal.equiv (TauComplex.exp (TauComplex.pureIm (x₁.add x₂))).re
+                  (TauComplex.exp ((TauComplex.pureIm x₁).add (TauComplex.pureIm x₂))).re := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  rw [TauComplex.exp_re_approx, TauComplex.exp_re_approx]
+  -- LHS: ((exp_partial (pureIm (x₁+x₂)) n).re.approx n).toRat
+  have h_lhs : ((TauComplex.exp_partial (TauComplex.pureIm (x₁.add x₂)) n).re.approx n).toRat
+              = expPartial_pureIm_re_rat (x₁.toRat + x₂.toRat) n := by
+    rw [expPartial_pureIm_re_approx_toRat_eq_rat, toRat_add]
+  -- RHS: via generalized bridge
+  have h_rhs : ((TauComplex.exp_partial ((TauComplex.pureIm x₁).add (TauComplex.pureIm x₂)) n).re.approx n).toRat
+              = expPartial_pureIm_re_rat (x₁.toRat + x₂.toRat) n := by
+    apply pureIm_like_expPartial_re_approx_toRat
+    · -- h_re: .re.approx n' .toRat = 0 (both pureIm.re are TauReal.zero)
+      intro n'
+      show (TauRat.add
+              ((TauComplex.pureIm x₁).re.approx n')
+              ((TauComplex.pureIm x₂).re.approx n')).toRat = 0
+      rw [TauComplex.pureIm_re_approx, TauComplex.pureIm_re_approx, toRat_add, toRat_zero]
+      ring
+    · -- h_im: .im.approx n' .toRat = x₁.toRat + x₂.toRat
+      intro n'
+      show (TauRat.add
+              ((TauComplex.pureIm x₁).im.approx n')
+              ((TauComplex.pureIm x₂).im.approx n')).toRat = x₁.toRat + x₂.toRat
+      rw [TauComplex.pureIm_im_approx, TauComplex.pureIm_im_approx, toRat_add]
+  rw [h_lhs, h_rhs]
+
+/-- **Bridge lemma for .im**: parallel of `exp_pureIm_sum_re_equiv`. -/
+theorem exp_pureIm_sum_im_equiv (x₁ x₂ : TauRat) :
+    TauReal.equiv (TauComplex.exp (TauComplex.pureIm (x₁.add x₂))).im
+                  (TauComplex.exp ((TauComplex.pureIm x₁).add (TauComplex.pureIm x₂))).im := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  rw [TauComplex.exp_im_approx, TauComplex.exp_im_approx]
+  have h_lhs : ((TauComplex.exp_partial (TauComplex.pureIm (x₁.add x₂)) n).im.approx n).toRat
+              = expPartial_pureIm_im_rat (x₁.toRat + x₂.toRat) n := by
+    rw [expPartial_pureIm_im_approx_toRat_eq_rat, toRat_add]
+  have h_rhs : ((TauComplex.exp_partial ((TauComplex.pureIm x₁).add (TauComplex.pureIm x₂)) n).im.approx n).toRat
+              = expPartial_pureIm_im_rat (x₁.toRat + x₂.toRat) n := by
+    apply pureIm_like_expPartial_im_approx_toRat
+    · intro n'
+      show (TauRat.add
+              ((TauComplex.pureIm x₁).re.approx n')
+              ((TauComplex.pureIm x₂).re.approx n')).toRat = 0
+      rw [TauComplex.pureIm_re_approx, TauComplex.pureIm_re_approx, toRat_add, toRat_zero]
+      ring
+    · intro n'
+      show (TauRat.add
+              ((TauComplex.pureIm x₁).im.approx n')
+              ((TauComplex.pureIm x₂).im.approx n')).toRat = x₁.toRat + x₂.toRat
+      rw [TauComplex.pureIm_im_approx, TauComplex.pureIm_im_approx, toRat_add]
+  rw [h_lhs, h_rhs]
+
 end Tau.Boundary
