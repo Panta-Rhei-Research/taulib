@@ -1643,4 +1643,58 @@ theorem TauComplex.cisTauReal_fromTauRat_im_eq_sin (a : TauRat) (ha : |a.toRat| 
   show TauReal.equiv ((TauComplex.exp (TauComplex.pureIm a)).im) (TauReal.sin_of_rat a)
   exact exp_pureIm_im_eq_sin a ha
 
+-- ============================================================
+-- PART 20: Phase 2.6.B.2.β.3 starter — cisTauReal multiplicativity (TauRat inputs)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.3 starter — cisTauReal multiplicativity for TauRat inputs
+
+Combines Phase 1D's `exp_pureIm_sum_{re,im}_equiv` (Part 14) into a full
+TauComplex.equiv bridge, then chains with the M3 endpoint to get
+multiplicativity of `cisTauReal` for TauRat-input angles:
+
+    cisTauReal(fromTauRat (a + b)) ≈ cisTauReal(fromTauRat a) · cisTauReal(fromTauRat b)
+
+for `|a.toRat|, |b.toRat| ≤ 1`.
+
+This is the **TauRat-input case** of the eventual cisTauReal_add for
+TauReal angles. The full TauReal case (e.g., for arctan_of_rat outputs)
+requires further generalization of the underlying bridge — deferred. -/
+
+/-- **Combined TauComplex.equiv bridge** (Phase 1D Part 14 packaged):
+
+        exp(pureIm (a + b)) ≈ exp((pureIm a).add (pureIm b))
+
+    Direct combination of `exp_pureIm_sum_re_equiv` and `exp_pureIm_sum_im_equiv`. -/
+theorem TauComplex.exp_pureIm_sum_equiv (a b : TauRat) :
+    TauComplex.equiv
+      (TauComplex.exp (TauComplex.pureIm (a.add b)))
+      (TauComplex.exp ((TauComplex.pureIm a).add (TauComplex.pureIm b))) :=
+  ⟨exp_pureIm_sum_re_equiv a b, exp_pureIm_sum_im_equiv a b⟩
+
+/-- **🎯 cisTauReal multiplicativity at TauRat inputs**:
+    for `|a|, |b| ≤ 1`,
+        `cisTauReal(fromTauRat (a + b)) ≈ cisTauReal(fromTauRat a) · cisTauReal(fromTauRat b)`.
+
+    Proof chain:
+    1. `cisTauReal(fromTauRat x) = exp(pureIm x)` (definitional bridge).
+    2. `exp(pureIm (a+b)) ≈ exp((pureIm a).add (pureIm b))` (Part 14 bridge).
+    3. `exp((pureIm a).add (pureIm b)) ≈ exp(pureIm a) · exp(pureIm b)` (M3 endpoint). -/
+theorem TauComplex.cisTauReal_fromTauRat_add_eq_mul
+    (a b : TauRat) (ha : |a.toRat| ≤ 1) (hb : |b.toRat| ≤ 1) :
+    TauComplex.equiv
+      (TauComplex.cisTauReal (TauReal.fromTauRat (a.add b)))
+      ((TauComplex.cisTauReal (TauReal.fromTauRat a)).mul
+        (TauComplex.cisTauReal (TauReal.fromTauRat b))) := by
+  -- By definitional bridge: cisTauReal(fromTauRat x) = exp(pureIm x).
+  show TauComplex.equiv
+        (TauComplex.exp (TauComplex.pureIm (a.add b)))
+        ((TauComplex.exp (TauComplex.pureIm a)).mul
+          (TauComplex.exp (TauComplex.pureIm b)))
+  -- Chain: bridge then M3
+  apply TauComplex.equiv_trans (TauComplex.exp_pureIm_sum_equiv a b)
+  exact TauComplex.exp_add _ _
+    (TauComplex.pureIm_BoundedBy_1 a ha)
+    (TauComplex.pureIm_BoundedBy_1 b hb)
+
 end Tau.Boundary
