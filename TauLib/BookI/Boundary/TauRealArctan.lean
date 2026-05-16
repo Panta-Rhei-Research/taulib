@@ -549,4 +549,54 @@ theorem TauReal.arctan_reciprocal_isCauchy (q : Nat) (hq : 2 ≤ q) :
     have h_four_lt := Rat.four_div_two_pow_lt_recip k m hm
     linarith
 
+-- ============================================================
+-- PART 10: TauReal.pi_machin AND IsCauchy
+-- ============================================================
+
+/-- **Constants are Cauchy**: `(TauReal.fromTauRat q).IsCauchy` for any `q`.
+    The approximation sequence is constant at `q`, so all differences are 0. -/
+theorem TauReal.IsCauchy_fromTauRat (q : TauRat) :
+    (TauReal.fromTauRat q).IsCauchy := by
+  refine ⟨fun _ => 0, fun k _ _ _ _ => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |q.toRat - q.toRat| < 1 / ((k : Rat) + 1)
+  rw [sub_self, abs_zero]
+  have h_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  positivity
+
+/-- **Nat embeddings are Cauchy**: `(TauReal.fromNat n).IsCauchy`. -/
+theorem TauReal.IsCauchy_fromNat (n : Nat) : (TauReal.fromNat n).IsCauchy :=
+  TauReal.IsCauchy_fromTauRat _
+
+/-- **[I.D-Pi-Machin]** Machin's formula at TauReal level:
+    `pi_machin = 16 · arctan(1/5) − 4 · arctan(1/239)`.
+
+    The classical identity `π/4 = 4·arctan(1/5) − arctan(1/239)` rearranges
+    to `π = 16·arctan(1/5) − 4·arctan(1/239)`, the form we encode. -/
+def TauReal.pi_machin : TauReal :=
+  ((TauReal.fromNat 16).mul (TauReal.arctan_reciprocal 5 (by norm_num))).sub
+    ((TauReal.fromNat 4).mul (TauReal.arctan_reciprocal 239 (by norm_num)))
+
+/-- **[I.T-Pi-Machin-IsCauchy]** `TauReal.pi_machin.IsCauchy` — derived
+    compositionally from each `arctan_reciprocal` being Cauchy plus the
+    standard TauReal arithmetic lift lemmas (`IsCauchy_add`, `IsCauchy_mul`,
+    `IsCauchy_negate`, `IsCauchy_fromNat`). -/
+theorem TauReal.pi_machin_isCauchy : TauReal.pi_machin.IsCauchy := by
+  show (((TauReal.fromNat 16).mul (TauReal.arctan_reciprocal 5 (by norm_num))).sub
+        ((TauReal.fromNat 4).mul (TauReal.arctan_reciprocal 239 (by norm_num)))).IsCauchy
+  unfold TauReal.sub
+  apply TauReal.IsCauchy_add
+  · -- (fromNat 16).mul (arctan_reciprocal 5) IsCauchy
+    apply TauReal.IsCauchy_mul
+    · exact TauReal.IsCauchy_fromNat 16
+    · exact TauReal.arctan_reciprocal_isCauchy 5 (by norm_num)
+  · -- ((fromNat 4).mul (arctan_reciprocal 239)).negate IsCauchy
+    apply TauReal.IsCauchy_negate
+    apply TauReal.IsCauchy_mul
+    · exact TauReal.IsCauchy_fromNat 4
+    · exact TauReal.arctan_reciprocal_isCauchy 239 (by norm_num)
+
 end Tau.Boundary
