@@ -723,4 +723,219 @@ theorem TauComplex.exp_pureIm_re_eq_cos_target_proof :
     TauComplex.exp_pureIm_re_eq_cos_target :=
   fun x hx => exp_pureIm_re_eq_cos x hx
 
+-- ============================================================
+-- PART 12: PARALLEL .im DISCHARGE — exp(i·x).im ≈ sin_of_rat x
+-- ============================================================
+
+/-! ## Phase 1C.6 — Euler bridge for the imaginary part
+
+Mirror structure of Parts 7-10 with `.re ↔ .im` swapped. The cyclotomic-4
+closed forms and the recurrence helpers (Parts 5-6) apply equally to .im;
+only the alignment with `sin_partial` (instead of `cos_partial`) differs.
+
+Specifically: `(pair (4j)).2 = 0`, `(pair (4j+1)).2 = xR^(4j+1)`,
+`(pair (4j+2)).2 = 0`, `(pair (4j+3)).2 = -xR^(4j+3)`. Pairing (4j+1, 4j+3)
+gives `sin_pair_term_rat`. -/
+
+/-- Rat-level intermediate for `((exp_partial (pureIm x) k).im.approx _).toRat`. -/
+def expPartial_pureIm_im_rat (xR : Rat) : Nat → Rat
+  | 0     => 0
+  | k + 1 => expPartial_pureIm_im_rat xR k
+              + (pureIm_pow_re_im_rat xR k).2 / (k.factorial : Rat)
+
+@[simp] theorem expPartial_pureIm_im_rat_zero (xR : Rat) :
+    expPartial_pureIm_im_rat xR 0 = 0 := rfl
+
+@[simp] theorem expPartial_pureIm_im_rat_succ (xR : Rat) (k : Nat) :
+    expPartial_pureIm_im_rat xR (k+1)
+      = expPartial_pureIm_im_rat xR k
+          + (pureIm_pow_re_im_rat xR k).2 / (k.factorial : Rat) := rfl
+
+/-- Bridge: TauReal-level `(.im.approx m_a).toRat` matches Rat intermediate. -/
+theorem expPartial_pureIm_im_approx_toRat_eq_rat (x : TauRat) (k m_a : Nat) :
+    ((TauComplex.exp_partial (TauComplex.pureIm x) k).im.approx m_a).toRat
+      = expPartial_pureIm_im_rat x.toRat k := by
+  induction k with
+  | zero =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm x) 0).im.approx m_a).toRat
+        = expPartial_pureIm_im_rat x.toRat 0
+    rw [TauComplex.exp_partial_zero, expPartial_pureIm_im_rat_zero]
+    show (TauRat.zero).toRat = 0
+    exact toRat_zero
+  | succ k IH =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm x) (k+1)).im.approx m_a).toRat
+        = expPartial_pureIm_im_rat x.toRat (k+1)
+    rw [TauComplex.exp_partial_succ, expPartial_pureIm_im_rat_succ]
+    show (TauRat.add
+            ((TauComplex.exp_partial (TauComplex.pureIm x) k).im.approx m_a)
+            ((TauComplex.exp_term (TauComplex.pureIm x) k).im.approx m_a)).toRat
+        = expPartial_pureIm_im_rat x.toRat k
+          + (pureIm_pow_re_im_rat x.toRat k).2 / (k.factorial : Rat)
+    rw [toRat_add, IH, exp_term_pureIm_im_approx_toRat]
+
+/-- At Rat-level depth `4m`, `expPartial_pureIm_im_rat` equals `sin_partial_rat`.
+
+    Cyclotomic-4 alignment with the τ-native paired-sine series. -/
+theorem expPartial_pureIm_im_rat_at_4m (xR : Rat) (m : Nat) :
+    expPartial_pureIm_im_rat xR (4*m) = sin_partial_rat xR m := by
+  induction m with
+  | zero => rfl
+  | succ m IH =>
+    show expPartial_pureIm_im_rat xR (4*(m+1)) = sin_partial_rat xR (m+1)
+    have hstep : 4*(m+1) = ((((4*m)+1)+1)+1)+1 := by ring
+    rw [hstep, expPartial_pureIm_im_rat_succ, expPartial_pureIm_im_rat_succ,
+        expPartial_pureIm_im_rat_succ, expPartial_pureIm_im_rat_succ, IH]
+    obtain ⟨h0, h1, h2, h3⟩ := pureIm_pow_re_im_rat_cyclo4 xR m
+    rw [h0, h1, h2, h3]
+    rw [sin_partial_rat_succ]
+    unfold sin_pair_term_rat
+    simp only [Prod.fst, Prod.snd]
+    ring
+
+/-- TauReal-level alignment at depth 4m for .im. -/
+theorem exp_partial_pureIm_im_approx_toRat_at_4m (x : TauRat) (m m_a : Nat) :
+    ((TauComplex.exp_partial (TauComplex.pureIm x) (4*m)).im.approx m_a).toRat
+      = sin_partial_rat x.toRat m := by
+  rw [expPartial_pureIm_im_approx_toRat_eq_rat, expPartial_pureIm_im_rat_at_4m]
+
+/-- Joint magnitude bound corollary for .im. -/
+theorem pureIm_pow_re_im_rat_im_abs_le_one (xR : Rat) (hxR : |xR| ≤ 1) (k : Nat) :
+    |(pureIm_pow_re_im_rat xR k).2| ≤ 1 := by
+  have h := (pureIm_pow_re_im_rat_abs_le_pow xR k).2
+  have h_pow_one : |xR|^k ≤ 1 := pow_le_one₀ (abs_nonneg _) hxR
+  linarith
+
+/-- Residual bound for .im, parallel to the .re version. -/
+theorem expPartial_pureIm_im_rat_residual_le (xR : Rat) (hxR : |xR| ≤ 1)
+    (m r : Nat) (hr : r ≤ 3) :
+    |expPartial_pureIm_im_rat xR (4*m + r) - sin_partial_rat xR m|
+      ≤ (r : Rat) / (Nat.factorial (4*m) : Rat) := by
+  induction r with
+  | zero =>
+    have h_fac_pos : (0 : Rat) < (Nat.factorial (4*m) : Rat) := by
+      have := Nat.factorial_pos (4*m); exact_mod_cast this
+    rw [Nat.add_zero, expPartial_pureIm_im_rat_at_4m, sub_self, abs_zero,
+        Nat.cast_zero, zero_div]
+  | succ r ih =>
+    have hr_le : r ≤ 3 := by omega
+    have ih' := ih hr_le
+    have h_step : 4*m + (r+1) = (4*m + r) + 1 := by ring
+    rw [h_step, expPartial_pureIm_im_rat_succ]
+    have rearr : expPartial_pureIm_im_rat xR (4*m + r)
+                  + (pureIm_pow_re_im_rat xR (4*m + r)).2 / (Nat.factorial (4*m + r) : Rat)
+                  - sin_partial_rat xR m
+                = (expPartial_pureIm_im_rat xR (4*m + r) - sin_partial_rat xR m)
+                  + (pureIm_pow_re_im_rat xR (4*m + r)).2 / (Nat.factorial (4*m + r) : Rat) := by
+      ring
+    rw [rearr]
+    have h_tri := abs_add_le
+      (expPartial_pureIm_im_rat xR (4*m + r) - sin_partial_rat xR m)
+      ((pureIm_pow_re_im_rat xR (4*m + r)).2 / (Nat.factorial (4*m + r) : Rat))
+    have h_fac_pos_4m : (0 : Rat) < (Nat.factorial (4*m) : Rat) := by
+      have := Nat.factorial_pos (4*m); exact_mod_cast this
+    have h_fac_pos_4mr : (0 : Rat) < (Nat.factorial (4*m + r) : Rat) := by
+      have := Nat.factorial_pos (4*m + r); exact_mod_cast this
+    have h_fac_le : (Nat.factorial (4*m) : Rat) ≤ (Nat.factorial (4*m + r) : Rat) := by
+      have := Nat.factorial_le (show 4*m ≤ 4*m + r by omega); exact_mod_cast this
+    have h_term_abs :
+        |(pureIm_pow_re_im_rat xR (4*m + r)).2 / (Nat.factorial (4*m + r) : Rat)|
+          ≤ 1 / (Nat.factorial (4*m) : Rat) := by
+      rw [abs_div, abs_of_pos h_fac_pos_4mr]
+      rw [div_le_div_iff₀ h_fac_pos_4mr h_fac_pos_4m]
+      have h_num : |(pureIm_pow_re_im_rat xR (4*m + r)).2| ≤ 1 :=
+        pureIm_pow_re_im_rat_im_abs_le_one xR hxR (4*m + r)
+      nlinarith
+    have h_sum : (r : Rat) / (Nat.factorial (4*m) : Rat) + 1 / (Nat.factorial (4*m) : Rat)
+              = ((r + 1 : Nat) : Rat) / (Nat.factorial (4*m) : Rat) := by
+      push_cast; field_simp
+    linarith
+
+/-- **🎯 [I.T-EulerIm]** The Euler bridge for `.im`: for `|x.toRat| ≤ 1`,
+    `(TauComplex.exp (pureIm x)).im ≈ TauReal.sin_of_rat x` at TauReal
+    equivalence level.
+
+    Modulus and proof structure parallel `exp_pureIm_re_eq_cos`, using
+    `sin_partial_rat_cauchy_bound` (which exists in TauRealSin.lean) and
+    `expPartial_pureIm_im_rat_residual_le`. -/
+theorem exp_pureIm_im_eq_sin (x : TauRat) (hx : |x.toRat| ≤ 1) :
+    TauReal.equiv (TauComplex.exp (TauComplex.pureIm x)).im (TauReal.sin_of_rat x) := by
+  refine ⟨fun k => 8*k + 19, fun k n hn => ?_⟩
+  have hr_lt : n % 4 < 4 := Nat.mod_lt n (by norm_num)
+  have hr_le : n % 4 ≤ 3 := by omega
+  have h_n_eq : n = 4*(n/4) + n%4 := (Nat.div_add_mod n 4).symm
+  have h_m_ge : 2*k + 4 ≤ n / 4 := by
+    have h1 : 8*k + 16 ≤ n := by linarith
+    have h_div : (8*k + 16) / 4 ≤ n / 4 := Nat.div_le_div_right h1
+    have h_compute : (8*k + 16) / 4 = 2*k + 4 := by omega
+    linarith
+  set m := n / 4
+  set r := n % 4
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |((TauComplex.exp (TauComplex.pureIm x)).im.approx n).toRat
+        - ((TauReal.sin_of_rat x).approx n).toRat| < 1 / ((k : Rat) + 1)
+  rw [TauComplex.exp_im_approx, expPartial_pureIm_im_approx_toRat_eq_rat,
+      TauReal.sin_of_rat_approx, TauRat.sin_partial_toRat]
+  rw [h_n_eq]
+  have rearr : expPartial_pureIm_im_rat x.toRat (4*m + r) - sin_partial_rat x.toRat (4*m + r)
+              = (expPartial_pureIm_im_rat x.toRat (4*m + r) - sin_partial_rat x.toRat m)
+                + (sin_partial_rat x.toRat m - sin_partial_rat x.toRat (4*m + r)) := by ring
+  rw [rearr]
+  have h_tri := abs_add_le
+    (expPartial_pureIm_im_rat x.toRat (4*m + r) - sin_partial_rat x.toRat m)
+    (sin_partial_rat x.toRat m - sin_partial_rat x.toRat (4*m + r))
+  have h_residual : |expPartial_pureIm_im_rat x.toRat (4*m + r) - sin_partial_rat x.toRat m|
+                  ≤ (r : Rat) / (Nat.factorial (4*m) : Rat) :=
+    expPartial_pureIm_im_rat_residual_le x.toRat hx m r hr_le
+  have h_m_le : m ≤ 4*m + r := by omega
+  have h_sin : |sin_partial_rat x.toRat m - sin_partial_rat x.toRat (4*m + r)|
+              ≤ 4 / (2 : Rat)^m := by
+    have h_swap : sin_partial_rat x.toRat m - sin_partial_rat x.toRat (4*m + r)
+                = -(sin_partial_rat x.toRat (4*m + r) - sin_partial_rat x.toRat m) := by ring
+    rw [h_swap, abs_neg]
+    exact sin_partial_rat_cauchy_bound x.toRat hx (4*m + r) m h_m_le
+  have h_fac_pos : (0 : Rat) < (Nat.factorial (4*m) : Rat) := by
+    have := Nat.factorial_pos (4*m); exact_mod_cast this
+  have h_two_pow_pos : (0 : Rat) < (2 : Rat)^m := by positivity
+  have h_fac_ge_pow : ((2 : Rat))^m ≤ (Nat.factorial (4*m) : Rat) := by
+    have hN := factorial_4m_ge_two_pow_m m
+    have h_cast : ((2^m : Nat) : Rat) = (2 : Rat)^m := by push_cast; ring
+    calc ((2 : Rat))^m
+        = ((2^m : Nat) : Rat) := h_cast.symm
+      _ ≤ (Nat.factorial (4*m) : Rat) := by exact_mod_cast hN
+  have h_residual_le_pow : (r : Rat) / (Nat.factorial (4*m) : Rat) ≤ 4 / (2 : Rat)^m := by
+    have h_r_le_4 : (r : Rat) ≤ 4 := by exact_mod_cast (by omega : r ≤ 4)
+    have h_step1 : (r : Rat) / (Nat.factorial (4*m) : Rat)
+                ≤ 4 / (Nat.factorial (4*m) : Rat) := by
+      rw [div_le_div_iff₀ h_fac_pos h_fac_pos]
+      nlinarith
+    have h_step2 : (4 : Rat) / (Nat.factorial (4*m) : Rat) ≤ 4 / (2 : Rat)^m := by
+      rw [div_le_div_iff₀ h_fac_pos h_two_pow_pos]
+      nlinarith
+    linarith
+  have h_m_ge_shift : (2*k+1) + 3 ≤ m := by omega
+  have h_strict : 4 / (2 : Rat)^m < 1 / (((2*k+1 : Nat) : Rat) + 1) :=
+    Rat.four_div_two_pow_lt_recip (2*k+1) m h_m_ge_shift
+  have h_rhs : 1 / (((2*k+1 : Nat) : Rat) + 1) = 1 / (2 * ((k : Rat) + 1)) := by
+    push_cast; ring
+  rw [h_rhs] at h_strict
+  have h_k_plus_1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  have h_double : 1 / (2 * ((k : Rat) + 1)) + 1 / (2 * ((k : Rat) + 1))
+                = 1 / ((k : Rat) + 1) := by
+    field_simp
+    ring
+  have h_resid_strict : (r : Rat) / (Nat.factorial (4*m) : Rat) < 1 / (2 * ((k : Rat) + 1)) := by
+    linarith
+  have h_sin_strict : |sin_partial_rat x.toRat m - sin_partial_rat x.toRat (4*m + r)|
+                    < 1 / (2 * ((k : Rat) + 1)) := by
+    linarith
+  linarith
+
+/-- **🎯🎯🎯 Discharge of `TauComplex.exp_pureIm_im_eq_sin_target`**. -/
+theorem TauComplex.exp_pureIm_im_eq_sin_target_proof :
+    TauComplex.exp_pureIm_im_eq_sin_target :=
+  fun x hx => exp_pureIm_im_eq_sin x hx
+
 end Tau.Boundary
