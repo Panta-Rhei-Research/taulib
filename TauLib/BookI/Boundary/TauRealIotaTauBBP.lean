@@ -158,4 +158,62 @@ theorem TauReal.iota_tau_bbp_certified_100d :
   unfold TauRat.lt
   native_decide
 
+-- ============================================================
+-- PART 5: 200-DIGIT BENCHMARK — scaling test (depth 750)
+-- ============================================================
+
+/-- The 200-decimal-place truncation of `ι_τ` (mpmath at dps=220). -/
+def TauRat.iota_tau_fiat_200d : TauRat :=
+  ⟨⟨34130423887521951564286718664378341086894393637510904818003691658009095165276702728589229629303088268768677955337480163821322454498662992755157639881191243163085249672803234964830198132129070978856477, 0⟩,
+   100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+   by positivity⟩
+
+/-- **🎯 200-digit ι_τ certificate** — scaling test at depth N=750.
+
+    * N=750 ⇒ e.approx 750 error ≤ 4/2^750 ≈ 10⁻²²⁶ — past 200 digits.
+    * pi_bbp.approx 750 error ≤ 6/16^750 — astronomically small.
+    * Tolerance: 1/10¹⁹⁹.
+    * Computational cost: `749!` ≈ 10¹⁸²⁰ (~1820-digit denominators).
+
+    **Empirical runtime**: the whole module (50d + 100d + 200d certificates)
+    elaborates in ~10 seconds on M-series Mac. The 200d certificate alone is
+    well under 10s — `native_decide` on compiled Lean is dramatically more
+    efficient than the worst-case estimate suggested, scaling roughly
+    polynomially in digit count rather than super-polynomially. -/
+theorem TauReal.iota_tau_bbp_certified_200d :
+    TauRat.lt
+      (((TauReal.iota_tau_bbp.approx 750).sub TauRat.iota_tau_fiat_200d).abs)
+      (TauRat.ofNatRecip (10^199 - 1)) := by
+  unfold TauRat.lt
+  native_decide
+
+-- ============================================================
+-- PART 6: 500-DIGIT BENCHMARK — far-scaling test (depth 1850)
+-- ============================================================
+
+/-- The 500-decimal-place truncation of `ι_τ` (mpmath at dps=550). -/
+def TauRat.iota_tau_fiat_500d : TauRat :=
+  ⟨⟨34130423887521951564286718664378341086894393637510904818003691658009095165276702728589229629303088268768677955337480163821322454498662992755157639881191243163085249672803234964830198132129070978856477772608443755896796903665609636850725858723143816030872543523548483804147698537798907500359834443551683098664852627542439307519843149671123394479061404329674502750483976061195589307666712826855874466041221462057920789586113370388715473998924207161556204773114555242921226680674605025344909065372549261, 0⟩,
+   100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+   by positivity⟩
+
+/-- **🎯 500-digit ι_τ certificate** — far-scaling test at depth N=1850.
+
+    * e.approx 1850 error ≤ 4/2^1850 ≈ 10⁻⁵⁵⁷ — past 500 digits.
+    * pi_bbp.approx 1850 error ≤ 6/16^1850 — astronomically small.
+    * Tolerance: 1/10⁴⁹⁹.
+    * Computational cost: `1849!` ≈ 10⁵²⁵⁸ (~5260-digit denominators).
+
+    **Empirical runtime**: adding this 500d certificate raised the full module
+    elaboration from ~10s (50d+100d+200d) to ~47s — so the 500d alone is ~37s
+    of `native_decide` on compiled Lean. Each doubling of target digits roughly
+    multiplies cost by 4-8×, suggesting 1000d ≈ 5-10 min and 2000d ≈ 30-60 min
+    are still interactively feasible. Beyond ~5000 digits, expect hours. -/
+theorem TauReal.iota_tau_bbp_certified_500d :
+    TauRat.lt
+      (((TauReal.iota_tau_bbp.approx 1850).sub TauRat.iota_tau_fiat_500d).abs)
+      (TauRat.ofNatRecip (10^499 - 1)) := by
+  unfold TauRat.lt
+  native_decide
+
 end Tau.Boundary
