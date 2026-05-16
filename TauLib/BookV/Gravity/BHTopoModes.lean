@@ -5,13 +5,13 @@ import TauLib.BookI.Boundary.Iota
 # TauLib.BookV.Gravity.BHTopoModes
 
 T² torus horizon topology for τ-black holes: quasi-normal mode spectrum,
-GW echo times, entropy comparison, and no-Hawking argument.
+T² cycle-delay ringdown times, entropy comparison, and no-Hawking argument.
 
 ## Registry Cross-References
 
 - [V.D234] T² QNM Mode Structure — `TorusMode`
 - [V.T168] QNM Fundamental Frequency Ratio = ι_τ⁻¹ — `qnm_ratio_is_iota_inv`
-- [V.T169] GW Echo Times t± = 4GM·ι_τ^{±1}/c³ — `echo_time_outer`, `echo_time_inner`
+- [V.T169] T² Cycle-Delay Times t± = 4GM·ι_τ^{±1}/c³ — `echo_time_outer`, `echo_time_inner`
 - [V.P124] T² Shadow Radius vs EHT — `m87_shadow_tau_outer_uas`
 - [V.P125] T² Entropy = π·ι_τ × S² Entropy — `torus_entropy_ratio`
 - [V.R373] LIGO Echo Window — `echo_separation`
@@ -114,25 +114,29 @@ def c_light : Float := 2.998e8
 def M_sun : Float := 1.989e30
 
 -- ============================================================
--- GW ECHO TIMES [V.T169]
+-- T² CYCLE-DELAY RINGDOWN TIMES [V.T169]
 -- ============================================================
 
-/-- Outer echo time: t_outer = 4GM·ι_τ⁻¹/c³ [seconds].
-    Corresponds to outer S¹ round-trip on the torus horizon. [V.T169] -/
+/-- Outer cycle-delay time: t_outer = 4GM·ι_τ⁻¹/c³ [seconds].
+    Corresponds to outer S¹ round-trip on the torus horizon. This is a
+    topology-readout delay, not an exotic-compact-object reflective-surface
+    echo. The declaration name is kept for public API stability. [V.T169] -/
 def echo_time_outer (M_kg : Float) : Float :=
   4.0 * G_Newton * M_kg / (iota_float * c_light ^ 3)
 
-/-- Inner echo time: t_inner = 4GM·ι_τ/c³ [seconds].
-    Corresponds to inner S¹ round-trip on the torus horizon. [V.T169] -/
+/-- Inner cycle-delay time: t_inner = 4GM·ι_τ/c³ [seconds].
+    Corresponds to inner S¹ round-trip on the torus horizon. This is a
+    topology-readout delay, not an exotic-compact-object reflective-surface
+    echo. The declaration name is kept for public API stability. [V.T169] -/
 def echo_time_inner (M_kg : Float) : Float :=
   4.0 * G_Newton * M_kg * iota_float / c_light ^ 3
 
-/-- Echo separation: Δt = t_outer - t_inner = 4GM(ι_τ⁻¹ - ι_τ)/c³ [seconds].
+/-- Cycle-delay separation: Δt = t_outer - t_inner = 4GM(ι_τ⁻¹ - ι_τ)/c³ [seconds].
     Lab values: M=30 M_☉ → 1.5303 ms; M=62 M_☉ → 3.1626 ms. [V.R373] -/
 def echo_separation (M_kg : Float) : Float :=
   echo_time_outer M_kg - echo_time_inner M_kg
 
-/-- Echo separation in milliseconds for a given mass in solar masses. -/
+/-- Cycle-delay separation in milliseconds for a given mass in solar masses. -/
 def echo_separation_ms (M_solar : Float) : Float :=
   echo_separation (M_solar * M_sun) * 1000.0
 
@@ -211,7 +215,7 @@ theorem torus_entropy_ratio_gt_one : torus_entropy_ratio > 1.0 := by
   -- π·ι_τ ≈ 3.14159 × 0.34130 ≈ 1.0722 > 1.0; Float arithmetic not provable via norm_num
   native_decide
 
-/-- Outer echo time exceeds inner echo time.
+/-- Outer cycle-delay time exceeds inner cycle-delay time.
     Structural: t_outer/t_inner = ι_τ⁻² > 1 because ι_τ < 1.
     Nat-level proof: iota_tau_denom² > iota_tau_numer²
     (1000000² = 10¹² > 341304² ≈ 1.165 × 10¹¹). -/
@@ -219,7 +223,7 @@ theorem outer_echo_longer_than_inner :
     iota_tau_denom * iota_tau_denom > iota_tau_numer * iota_tau_numer := by
   native_decide
 
-/-- Echo separation Δt > 0 for positive mass.
+/-- Cycle-delay separation Δt > 0 for positive mass.
     Structural: Δt ∝ (ι_τ⁻¹ − ι_τ) > 0 because ι_τ⁻¹ > 1 > ι_τ.
     Nat-level proof: iota_tau_denom > iota_tau_numer (i.e., ι_τ < 1). -/
 theorem echo_separation_pos :
@@ -300,19 +304,20 @@ theorem t2_qnm_modes_eq_list :
 
 #eval (default : T2QNMEigenvalues)
 
-/-- [V.D243] T² GW Echo Time Formulas.
+/-- [V.D243] T² GW Cycle-Delay Time Formulas.
     t₊=4GMι_τ/c³ (inner), t₋=4GMι_τ⁻¹/c³ (outer), t₋/t₊=ι_τ⁻²=8.585. -/
 def t2_echo_time_formulas : String :=
-  "GW echoes: t₊=4GMι_τ/c³, t₋=4GMι_τ⁻¹/c³, ratio t₋/t₊=ι_τ⁻²=8.585. " ++
+  "T² cycle-delay readouts: t₊=4GMι_τ/c³, t₋=4GMι_τ⁻¹/c³, " ++
+  "ratio t₋/t₊=ι_τ⁻²=8.585. These are not reflective-surface ECO echoes. " ++
   "GW150914: t₊=0.417 ms, t₋=3.580 ms, both in LIGO band."
 
-/-- [V.D243] Structure capturing T² GW echo time formulas.
-    t₋/t₊ = ι_τ⁻² ≈ 8.585. Both echoes fall in LIGO band for stellar-mass BHs.
+/-- [V.D243] Structure capturing T² GW cycle-delay formulas.
+    t₋/t₊ = ι_τ⁻² ≈ 8.585. Both delay readouts fall in LIGO band for stellar-mass BHs.
     Ratio stored ×1000 for Nat arithmetic. -/
 structure T2EchoFormulas where
-  /-- Echo time ratio ×1000 (ι_τ⁻² ≈ 8.585 → 8585). -/
+  /-- Cycle-delay time ratio ×1000 (ι_τ⁻² ≈ 8.585 → 8585). -/
   ratio_x1000 : Nat := 8585
-  /-- Number of echo times in LIGO band (inner + outer). -/
+  /-- Number of cycle-delay times in LIGO band (inner + outer). -/
   n_ligo_band : Nat := 2
   /-- Number of reference events tested (GW150914). -/
   n_reference_events : Nat := 1
@@ -333,7 +338,7 @@ theorem t2_echo_formulas_conjunction :
     t2_echo_formulas_data.n_reference_events = 1 := by
   exact ⟨rfl, rfl, rfl⟩
 
-/-- Echo time ratio ×1000 = 8585. -/
+/-- Cycle-delay time ratio ×1000 = 8585. -/
 theorem echo_ratio_approx :
     t2_echo_formulas_data.ratio_x1000 = 8585 := by rfl
 
@@ -397,19 +402,20 @@ theorem qnm_ranges_separated :
 
 /-- [V.P131] Three falsifiable T² BH predictions with explicit error bars.
     (1) QNM ratio = ι_τ⁻¹ (discriminator), (2) shadow correction +2.91%,
-    (3) GW echoes at t₊ = 4GM·ι_τ/c³. All zero-free-parameter predictions. -/
+    (3) T² cycle-delay readouts at t₊ = 4GM·ι_τ/c³. All zero-free-parameter predictions. -/
 def bh_t2_falsification : String :=
   "Three falsifiable T² BH predictions: " ++
   "(1) QNM ratio = ι_τ⁻¹ ≈ 2.930 vs S² 0.928, " ++
   "(2) shadow f = 1+ι_τ²/4 = 1.0291 (ngEHT), " ++
-  "(3) GW echoes t₋/t₊ = ι_τ⁻² = 8.585 (LIGO O5+). " ++
+  "(3) T² cycle-delay t₋/t₊ = ι_τ⁻² = 8.585 (LIGO O5+), " ++
+  "distinct from reflective-surface ECO echoes. " ++
   "Zero free parameters."
 
 /-- [V.P131] Structure capturing the three falsifiable T² BH predictions. -/
 structure BHT2Falsification where
   /-- Number of independent falsifiable predictions. -/
   n_predictions : Nat := 3
-  /-- Number of observational channels (QNM + shadow + echoes). -/
+  /-- Number of observational channels (QNM + shadow + cycle-delay). -/
   n_channels : Nat := 3
   /-- Predictions equal channels. -/
   predictions_eq_channels : n_predictions = n_channels
@@ -442,10 +448,10 @@ theorem bh_predictions_count :
 -- ============================================================
 
 /-- [V.R380] V.OP5 SOLVED: Sprint 7E provides complete observational
-    signature suite for T² BH topology. Three channels (EHT, QNM, GW echo)
+    signature suite for T² BH topology. Three channels (EHT, QNM, GW cycle-delay)
     all derived from ι_τ with zero free parameters. -/
 def vop5_sprint7e_status : String :=
-  "V.OP5 SOLVED: 3 observational channels (EHT shadow, QNM ratio, GW echoes) " ++
+  "V.OP5 SOLVED: 3 observational channels (EHT shadow, QNM ratio, T² cycle-delay) " ++
   "all from ι_τ = 2/(π+e), zero free parameters. " ++
   "Entropy ratio π·ι_τ = 1.0722 provides mass-independent cross-check."
 
@@ -624,20 +630,22 @@ theorem kms_consistent_with_readout :
 #eval readout_temp_catalog.length   -- 5
 
 -- ============================================================
--- Sprint 21H: Echo Search Protocol (V.D283, V.T225, V.P151, V.R407)
+-- Sprint 21H: Cycle-Delay Search Protocol (V.D283, V.T225, V.P151, V.R407)
 -- ============================================================
 
-/-- Echo search event entry — V.D283 -/
+/-- Cycle-delay search event entry — V.D283. Historical field names use
+    `echo` for compatibility; the doctrine is a T² topology readout, not
+    a reflective-surface ECO echo. -/
 structure EchoSearchEvent where
   event_name : String
   final_mass_x10 : Nat      -- M_final in 0.1 M☉
   main_snr_x10 : Nat        -- main SNR × 10
-  echo_snr_x100 : Nat       -- (1,0) echo SNR × 100
+  echo_snr_x100 : Nat       -- (1,0) cycle-delay SNR × 100
   t_plus_us : Nat            -- t₊ in microseconds
   t_minus_us : Nat           -- t₋ in microseconds
   deriving Repr
 
-/-- 10-event echo search catalog -/
+/-- 10-event cycle-delay search catalog -/
 def echo_search_catalog : List EchoSearchEvent := [
   ⟨"GW150914",  631, 240, 104, 3643, 424⟩,
   ⟨"GW151226",  205, 130,  56, 1184, 138⟩,
@@ -654,10 +662,10 @@ def echo_search_catalog : List EchoSearchEvent := [
 /-- (1,0) mode damping factor × 10000: exp(−π) ≈ 0.0432 → 432 -/
 def echo_damping_10mode_x10000 : Nat := 432
 
-/-- Echo detection threshold — V.T225 -/
+/-- Cycle-delay detection threshold — V.T225 -/
 def echo_detection_snr_threshold : Nat := 3
 
-/-- Stacked echo SNR estimate — V.P151 (×10) -/
+/-- Stacked cycle-delay SNR estimate — V.P151 (×10) -/
 def stacked_echo_snr_x10 : Nat := 22  -- ≈ 2.2
 
 /-- Events needed for 3σ detection -/
@@ -666,7 +674,7 @@ def events_needed_3sigma : Nat := 19
 /-- Einstein Telescope improvement factor -/
 def et_sensitivity_factor : Nat := 10
 
-/-- ET single-event echo SNR for GW150914-class (×10) -/
+/-- ET single-event cycle-delay SNR for GW150914-class (×10) -/
 def et_single_echo_snr_x10 : Nat := 104  -- ≈ 10.4
 
 /-- Catalog has 10 events -/
@@ -683,11 +691,12 @@ theorem o1o3_stack_below_threshold :
     stacked_echo_snr_x10 < echo_detection_snr_threshold * 10 := by
   decide
 
-/-- Echo search remark — V.R407 -/
+/-- Cycle-delay search remark — V.R407 -/
 def echo_search_remark : String :=
   "10-event O1-O3 stack: SNR ≈ 2.2 (below 3σ; ~19 events needed). " ++
   "Einstein Telescope: single-event SNR ~ 10.4 for GW150914-class. " ++
-  "Echo time ratio t₊/t₋ = ι_τ⁻² ≈ 8.585 is the key discriminator."
+  "Cycle-delay ratio t₋/t₊ = ι_τ⁻² ≈ 8.585 is the key discriminator; " ++
+  "this is not a reflective-surface ECO echo claim."
 
 -- ============================================================
 -- Sprint 22D: T²-Corrected Lyapunov Bound
@@ -701,19 +710,19 @@ def t2_lyapunov_correction_x10000 : Nat := 10583  -- (1+ι_τ²/2) × 10000
 /-- S² Lyapunov exponent × 10000: π ≈ 3.1416 → 31416 -/
 def s2_lyapunov_x10000 : Nat := 31416
 
-/-- T² Lyapunov exceeds S² (tighter bound on echo amplitude). -/
+/-- T² Lyapunov exceeds S² (tighter bound on cycle-delay amplitude). -/
 theorem t2_lyapunov_exceeds_s2 :
     t2_lyapunov_correction_x10000 > 10000 := by decide
 
-/-- Echo damping bound (1,0) mode × 10000 with T² correction:
+/-- Cycle-delay damping bound (1,0) mode × 10000 with T² correction:
     exp(−γ_τ) ≈ 0.0361 → 361 (compared to S² value 432). -/
 def echo_damping_t2_bound_x10000 : Nat := 361
 
-/-- T² echo bound is tighter than S² estimate. -/
+/-- T² cycle-delay bound is tighter than S² estimate. -/
 theorem t2_echo_bound_tighter :
     echo_damping_t2_bound_x10000 < echo_damping_10mode_x10000 := by decide
 
-/-- The T² correction reduces echo amplitude by ~16%. -/
+/-- The T² correction reduces cycle-delay amplitude by ~16%. -/
 theorem t2_echo_reduction :
     echo_damping_10mode_x10000 - echo_damping_t2_bound_x10000 = 71 := by decide
 
