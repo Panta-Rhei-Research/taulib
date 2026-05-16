@@ -4772,4 +4772,66 @@ theorem TauComplex.binom_sum_re_mul_distrib (z₁ z₂ z : TauComplex) (n m : Na
   unfold TauComplex.binom_sum_re TauComplex.binom_sum_im
   exact TauComplex.binom_sum_re_mul_distrib_aux z₁ z₂ z n m (n + 1)
 
+/-- **Binomial sum mul-distrib (im part)**: aux + main.
+
+    `binom_sum_re_n · I z + binom_sum_im_n · R z = Σᵢ C(n,i) · I((pow z₁ i · pow z₂ (n-i)) · z)` -/
+private theorem TauComplex.binom_sum_im_mul_distrib_aux
+    (z₁ z₂ z : TauComplex) (n m k : Nat) :
+    (TauRat.sum (fun i =>
+        (nat_to_taurat (Nat.choose n i)).mul
+          (((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).re.approx m)) k).toRat
+        * ((z.im.approx m).toRat)
+      + (TauRat.sum (fun i =>
+          (nat_to_taurat (Nat.choose n i)).mul
+            (((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).im.approx m)) k).toRat
+        * ((z.re.approx m).toRat)
+      = (TauRat.sum (fun i =>
+          (nat_to_taurat (Nat.choose n i)).mul
+            ((((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).mul z).im.approx m)) k).toRat := by
+  induction k with
+  | zero => simp [TauRat.sum_zero, toRat_zero]
+  | succ k ih =>
+    rw [TauRat.sum_succ, TauRat.sum_succ, TauRat.sum_succ]
+    rw [toRat_add, toRat_add, toRat_add]
+    set S_re := (TauRat.sum (fun i =>
+        (nat_to_taurat (Nat.choose n i)).mul
+          (((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).re.approx m)) k).toRat
+    set S_im := (TauRat.sum (fun i =>
+        (nat_to_taurat (Nat.choose n i)).mul
+          (((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).im.approx m)) k).toRat
+    set S_h := (TauRat.sum (fun i =>
+        (nat_to_taurat (Nat.choose n i)).mul
+          ((((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).mul z).im.approx m)) k).toRat
+    set R_z := (z.re.approx m).toRat
+    set I_z := (z.im.approx m).toRat
+    set C_k := (nat_to_taurat (Nat.choose n k)).toRat
+    set P_re := (((TauComplex.pow z₁ k).mul (TauComplex.pow z₂ (n - k))).re.approx m).toRat
+    set P_im := (((TauComplex.pow z₁ k).mul (TauComplex.pow z₂ (n - k))).im.approx m).toRat
+    have h_head_re : ((nat_to_taurat (Nat.choose n k)).mul
+                       (((TauComplex.pow z₁ k).mul (TauComplex.pow z₂ (n - k))).re.approx m)).toRat
+                   = C_k * P_re := by rw [toRat_mul]
+    have h_head_im : ((nat_to_taurat (Nat.choose n k)).mul
+                       (((TauComplex.pow z₁ k).mul (TauComplex.pow z₂ (n - k))).im.approx m)).toRat
+                   = C_k * P_im := by rw [toRat_mul]
+    have h_head_pz : ((nat_to_taurat (Nat.choose n k)).mul
+                       ((((TauComplex.pow z₁ k).mul (TauComplex.pow z₂ (n - k))).mul z).im.approx m)).toRat
+                   = C_k * (((((TauComplex.pow z₁ k).mul (TauComplex.pow z₂ (n - k))).mul z).im.approx m).toRat) := by
+      rw [toRat_mul]
+    rw [h_head_re, h_head_im, h_head_pz]
+    have h_pz_im : ((((TauComplex.pow z₁ k).mul (TauComplex.pow z₂ (n - k))).mul z).im.approx m).toRat
+                 = P_re * I_z + P_im * R_z := by
+      rw [TauComplex.mul_im_approx, toRat_add, toRat_mul, toRat_mul]
+    rw [h_pz_im]
+    linarith [ih]
+
+/-- **Binomial sum mul-distrib (im part)**: main statement. -/
+theorem TauComplex.binom_sum_im_mul_distrib (z₁ z₂ z : TauComplex) (n m : Nat) :
+    (TauComplex.binom_sum_re z₁ z₂ n m).toRat * ((z.im.approx m).toRat)
+      + (TauComplex.binom_sum_im z₁ z₂ n m).toRat * ((z.re.approx m).toRat)
+    = (TauRat.sum (fun i =>
+        (nat_to_taurat (Nat.choose n i)).mul
+          ((((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).mul z).im.approx m)) (n + 1)).toRat := by
+  unfold TauComplex.binom_sum_re TauComplex.binom_sum_im
+  exact TauComplex.binom_sum_im_mul_distrib_aux z₁ z₂ z n m (n + 1)
+
 end Tau.Boundary
