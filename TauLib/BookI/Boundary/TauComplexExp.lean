@@ -276,6 +276,52 @@ theorem TauComplex.i_unit_pow_3_equiv_neg_i :
     try push_cast
     try ring
 
+/-- **`i^1 ≈ i`** — completing the cyclotomic-4 cycle. -/
+theorem TauComplex.i_unit_pow_1_equiv_i :
+    (TauComplex.pow TauComplex.i_unit 1).equiv TauComplex.i_unit := by
+  refine ⟨?_, ?_⟩
+  · apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.pow, TauComplex.mul, TauComplex.i_unit, TauComplex.one,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate, TauReal.zero, TauReal.one]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate, TauRat.zero, TauRat.one]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+  · apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.pow, TauComplex.mul, TauComplex.i_unit, TauComplex.one,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate, TauReal.zero, TauReal.one]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate, TauRat.zero, TauRat.one]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+
+/-- **`i^2 ≈ -1`** — the defining cyclotomic-4 relation, in pow form. -/
+theorem TauComplex.i_unit_pow_2_equiv_neg_one :
+    (TauComplex.pow TauComplex.i_unit 2).equiv (TauComplex.negate TauComplex.one) := by
+  refine ⟨?_, ?_⟩
+  · apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.pow, TauComplex.mul, TauComplex.i_unit, TauComplex.negate, TauComplex.one,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate, TauReal.zero, TauReal.one]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate, TauRat.zero, TauRat.one]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+  · apply TauReal.equiv_of_pointwise
+    intro n
+    simp only [TauComplex.pow, TauComplex.mul, TauComplex.i_unit, TauComplex.negate, TauComplex.one,
+               TauReal.sub, TauReal.add, TauReal.mul, TauReal.negate, TauReal.zero, TauReal.one]
+    simp only [TauRat.equiv, TauRat.add, TauRat.mul, TauRat.negate, TauRat.zero, TauRat.one]
+    try rw [equiv_iff_toInt_eq]
+    try simp only [toInt_add, toInt_mul, toInt_negate, toInt_fromNat, toInt_zero, toInt_one]
+    try push_cast
+    try ring
+
 -- ============================================================
 -- PART 3: SCALE-BY-INVERSE-FACTORIAL HELPER (TauRat level)
 -- ============================================================
