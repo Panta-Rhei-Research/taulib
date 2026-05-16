@@ -5052,4 +5052,152 @@ theorem TauComplex.binom_sum_re_succ_step (z₁ z₂ : TauComplex) (n m : Nat) :
   -- Combine all four identities via linarith
   linarith [h_A, h_B, h_C, h_first_match]
 
+-- ============================================================
+-- PART 47 (continued): Symmetric .im Pascal step (3g.2d-E)
+-- ============================================================
+
+/-- **Pascal step Sub-lemma A_im** (peel `i=0` boundary, simplify Nat-arith
+    in the shifted sum). Symmetric to `binom_sum_re_succ_peel_first`. -/
+theorem TauComplex.binom_sum_im_succ_peel_first (z₁ z₂ : TauComplex) (n m : Nat) :
+    (TauComplex.binom_sum_im z₁ z₂ (n + 1) m).toRat
+      = ((nat_to_taurat (Nat.choose (n + 1) 0)).mul
+          (((TauComplex.pow z₁ 0).mul (TauComplex.pow z₂ (n + 1))).im.approx m)).toRat
+        + (TauRat.sum (fun i => (nat_to_taurat (Nat.choose (n + 1) (i + 1))).mul
+            (((TauComplex.pow z₁ (i + 1)).mul
+              (TauComplex.pow z₂ (n - i))).im.approx m)) (n + 1)).toRat := by
+  unfold TauComplex.binom_sum_im
+  rw [TauRat.sum_split_first_toRat]
+  congr 1
+  apply TauRat.sum_eq_of_toRat_pointwise
+  intro i _hi
+  rw [show (n + 1 - (i + 1)) = (n - i) from Nat.succ_sub_succ_eq_sub n i]
+
+/-- **Pascal step Sub-lemma B_im**: Pascal coefficient regroup for `.im`. -/
+theorem TauComplex.binom_pascal_split_im (z₁ z₂ : TauComplex) (n m : Nat) :
+    (TauRat.sum (fun i => (nat_to_taurat (Nat.choose (n + 1) (i + 1))).mul
+        (((TauComplex.pow z₁ (i + 1)).mul
+          (TauComplex.pow z₂ (n - i))).im.approx m)) (n + 1)).toRat
+      = (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n i)).mul
+          (((TauComplex.pow z₁ (i + 1)).mul
+            (TauComplex.pow z₂ (n - i))).im.approx m)) (n + 1)).toRat
+        + (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n (i + 1))).mul
+            (((TauComplex.pow z₁ (i + 1)).mul
+              (TauComplex.pow z₂ (n - i))).im.approx m)) (n + 1)).toRat := by
+  rw [TauRat.sum_eq_of_toRat_pointwise
+      (fun i => (nat_to_taurat (Nat.choose (n + 1) (i + 1))).mul
+                  (((TauComplex.pow z₁ (i + 1)).mul
+                    (TauComplex.pow z₂ (n - i))).im.approx m))
+      (fun i => ((nat_to_taurat (Nat.choose n i)).mul
+                  (((TauComplex.pow z₁ (i + 1)).mul
+                    (TauComplex.pow z₂ (n - i))).im.approx m)).add
+                ((nat_to_taurat (Nat.choose n (i + 1))).mul
+                  (((TauComplex.pow z₁ (i + 1)).mul
+                    (TauComplex.pow z₂ (n - i))).im.approx m)))
+      (n + 1)
+      (by
+        intro i _hi
+        rw [toRat_mul, toRat_add, toRat_mul, toRat_mul]
+        rw [nat_to_taurat_toRat, nat_to_taurat_toRat, nat_to_taurat_toRat]
+        rw [nat_choose_succ_succ_toRat]
+        ring)]
+  rw [TauRat.sum_add_toRat]
+
+/-- **Pascal step Sub-lemma C_im**: boundary + second sum = Sum_B_im. -/
+theorem TauComplex.binom_boundary_plus_second_eq_SumB_im
+    (z₁ z₂ : TauComplex) (n m : Nat) :
+    ((nat_to_taurat (Nat.choose (n + 1) 0)).mul
+        (((TauComplex.pow z₁ 0).mul (TauComplex.pow z₂ (n + 1))).im.approx m)).toRat
+      + (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n (i + 1))).mul
+          (((TauComplex.pow z₁ (i + 1)).mul
+            (TauComplex.pow z₂ (n - i))).im.approx m)) (n + 1)).toRat
+    = (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n i)).mul
+          ((((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).mul z₂).im.approx m))
+        (n + 1)).toRat := by
+  have h_peel : (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n (i + 1))).mul
+                  (((TauComplex.pow z₁ (i + 1)).mul
+                    (TauComplex.pow z₂ (n - i))).im.approx m)) (n + 1)).toRat
+              = (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n (i + 1))).mul
+                  (((TauComplex.pow z₁ (i + 1)).mul
+                    (TauComplex.pow z₂ (n - i))).im.approx m)) n).toRat := by
+    rw [TauRat.sum_succ, toRat_add]
+    have h_last_zero : ((nat_to_taurat (Nat.choose n (n + 1))).mul
+                          (((TauComplex.pow z₁ (n + 1)).mul
+                            (TauComplex.pow z₂ (n - n))).im.approx m)).toRat = 0 := by
+      rw [toRat_mul, nat_to_taurat_toRat]
+      rw [Nat.choose_eq_zero_of_lt (Nat.lt_succ_self n)]
+      simp
+    linarith
+  rw [h_peel]
+  rw [TauRat.sum_split_first_toRat]
+
+  have h_bound : ((nat_to_taurat (Nat.choose (n + 1) 0)).mul
+                    (((TauComplex.pow z₁ 0).mul (TauComplex.pow z₂ (n + 1))).im.approx m)).toRat
+               = ((nat_to_taurat (Nat.choose n 0)).mul
+                    ((((TauComplex.pow z₁ 0).mul (TauComplex.pow z₂ (n - 0))).mul z₂).im.approx m)).toRat := by
+    rw [toRat_mul, toRat_mul, nat_to_taurat_toRat, nat_to_taurat_toRat]
+    simp only [Nat.choose_zero_right, Nat.cast_one, one_mul, Nat.sub_zero]
+    rw [TauComplex.mul_im_approx (TauComplex.pow z₁ 0) (TauComplex.pow z₂ (n + 1))]
+    rw [toRat_add, toRat_mul, toRat_mul]
+    rw [TauComplex.pow_succ_re_approx_toRat z₂ n m]
+    rw [TauComplex.pow_succ_im_approx_toRat z₂ n m]
+    rw [TauComplex.mul_im_approx ((TauComplex.pow z₁ 0).mul (TauComplex.pow z₂ n)) z₂]
+    rw [toRat_add, toRat_mul, toRat_mul]
+    rw [TauComplex.mul_re_approx (TauComplex.pow z₁ 0) (TauComplex.pow z₂ n)]
+    rw [TauComplex.mul_im_approx (TauComplex.pow z₁ 0) (TauComplex.pow z₂ n)]
+    rw [toRat_sub, toRat_add, toRat_mul, toRat_mul, toRat_mul, toRat_mul]
+    ring
+
+  have h_shifted : (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n (i + 1))).mul
+                      (((TauComplex.pow z₁ (i + 1)).mul
+                        (TauComplex.pow z₂ (n - i))).im.approx m)) n).toRat
+                 = (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n (i + 1))).mul
+                      ((((TauComplex.pow z₁ (i + 1)).mul
+                          (TauComplex.pow z₂ (n - (i + 1)))).mul z₂).im.approx m)) n).toRat := by
+    apply TauRat.sum_eq_of_toRat_pointwise
+    intro i hi
+    have h_sub_succ : n - i = (n - (i + 1)) + 1 := by omega
+    rw [h_sub_succ]
+    simp only [toRat_mul, toRat_sub, toRat_add,
+               TauComplex.mul_re_approx, TauComplex.mul_im_approx,
+               TauComplex.pow_succ_re_approx_toRat, TauComplex.pow_succ_im_approx_toRat]
+    ring
+
+  linarith [h_bound, h_shifted]
+
+/-- **🎯 Pascal step (Main, im part)**: the multiplicative recurrence for
+    `binom_sum_im` at toRat level. -/
+theorem TauComplex.binom_sum_im_succ_step (z₁ z₂ : TauComplex) (n m : Nat) :
+    (TauComplex.binom_sum_im z₁ z₂ (n + 1) m).toRat
+      = (TauComplex.binom_sum_re z₁ z₂ n m).toRat * (((z₁.add z₂).im.approx m).toRat)
+        + (TauComplex.binom_sum_im z₁ z₂ n m).toRat * (((z₁.add z₂).re.approx m).toRat) := by
+  have h_A := TauComplex.binom_sum_im_succ_peel_first z₁ z₂ n m
+  have h_B := TauComplex.binom_pascal_split_im z₁ z₂ n m
+  have h_C := TauComplex.binom_boundary_plus_second_eq_SumB_im z₁ z₂ n m
+  rw [TauComplex.add_re_approx_toRat, TauComplex.add_im_approx_toRat]
+  have h_dist : (TauComplex.binom_sum_re z₁ z₂ n m).toRat
+                  * ((z₁.im.approx m).toRat + (z₂.im.approx m).toRat)
+                + (TauComplex.binom_sum_im z₁ z₂ n m).toRat
+                  * ((z₁.re.approx m).toRat + (z₂.re.approx m).toRat)
+              = ((TauComplex.binom_sum_re z₁ z₂ n m).toRat * (z₁.im.approx m).toRat
+                  + (TauComplex.binom_sum_im z₁ z₂ n m).toRat * (z₁.re.approx m).toRat)
+                + ((TauComplex.binom_sum_re z₁ z₂ n m).toRat * (z₂.im.approx m).toRat
+                  + (TauComplex.binom_sum_im z₁ z₂ n m).toRat * (z₂.re.approx m).toRat) := by ring
+  rw [h_dist]
+  rw [TauComplex.binom_sum_im_mul_distrib z₁ z₂ z₁ n m]
+  rw [TauComplex.binom_sum_im_mul_distrib z₁ z₂ z₂ n m]
+  have h_first_match :
+      (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n i)).mul
+          (((TauComplex.pow z₁ (i + 1)).mul
+            (TauComplex.pow z₂ (n - i))).im.approx m)) (n + 1)).toRat
+      = (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n i)).mul
+          ((((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).mul z₁).im.approx m))
+            (n + 1)).toRat := by
+    apply TauRat.sum_eq_of_toRat_pointwise
+    intro i _hi
+    simp only [toRat_mul, toRat_sub, toRat_add,
+               TauComplex.mul_re_approx, TauComplex.mul_im_approx,
+               TauComplex.pow_succ_re_approx_toRat, TauComplex.pow_succ_im_approx_toRat]
+    ring
+  linarith [h_A, h_B, h_C, h_first_match]
+
 end Tau.Boundary
