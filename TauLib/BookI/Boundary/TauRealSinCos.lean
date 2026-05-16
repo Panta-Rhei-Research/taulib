@@ -1427,4 +1427,91 @@ theorem sin_add (x₁ x₂ : TauRat)
     taureal_add_comm _ _
   exact TauReal.equiv_trans h_chain1 (TauReal.equiv_trans h_add h_reorder)
 
+-- ============================================================
+-- PART 17: Phase 2.6.B.2.α — scaledCis ALGEBRAIC IDENTITY
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.α — `scaledCis` multiplicative identity
+
+The classical fact:
+
+    (1, a) · (1, b) = (1 − ab, a + b)   at complex level
+
+encodes the geometric content of "arguments add when complex numbers
+multiply". Combined with `(a + b) = (1 − ab) · z` for `z = (a+b)/(1−ab)`,
+this gives:
+
+    scaledCis(a) · scaledCis(b) ≈ (1 − ab) · scaledCis(z)
+
+where `scaledCis(a) := ⟨1, a⟩` (TauComplex with TauReal.one as real part
+and `fromTauRat a` as imaginary part). **Sqrt-free** — no normalization
+needed.
+
+This is the algebraic core of arctan addition: it expresses the
+multiplicative structure of arctan-images at TauComplex level without
+needing `cos_of_TauReal` infrastructure. Phase 2.6.B.2.β will bridge
+this algebraic identity to the actual TauReal arctan addition.
+-/
+
+/-- **[I.D-ScaledCis]** The unnormalized `cis(arctan a) · √(1+a²)`: the
+    TauComplex `(1, a)` whose argument is classically `arctan(a)`.
+
+    Direct struct constructor with `re = TauReal.one`, `im = fromTauRat a`. -/
+def TauComplex.scaledCis (a : TauRat) : TauComplex :=
+  ⟨TauReal.one, TauReal.fromTauRat a⟩
+
+@[simp] theorem TauComplex.scaledCis_re_approx (a : TauRat) (n : Nat) :
+    (TauComplex.scaledCis a).re.approx n = TauRat.one := rfl
+
+@[simp] theorem TauComplex.scaledCis_im_approx (a : TauRat) (n : Nat) :
+    (TauComplex.scaledCis a).im.approx n = a := rfl
+
+/-- **[I.T-ScaledCis-Mul-Identity]** The algebraic multiplication identity:
+
+        scaledCis(a) · scaledCis(b) ≈ fromTauReal(w) · scaledCis(z)
+
+    given `w.toRat = 1 − a·b` and `z.toRat · w.toRat = a + b` (i.e.,
+    `z = (a+b)/(1−ab)` when `w ≠ 0`).
+
+    **Proof**: componentwise toRat-level identity via `equiv_of_pointwise`.
+    - Real parts: `1·1 − a·b = w` (using `h_w`).
+    - Imaginary parts: `1·b + a·1 = w·z` (using `h_z`). -/
+theorem TauComplex.scaledCis_mul_identity (a b z w : TauRat)
+    (h_w : w.toRat = 1 - a.toRat * b.toRat)
+    (h_z : z.toRat * w.toRat = a.toRat + b.toRat) :
+    TauComplex.equiv
+      ((TauComplex.scaledCis a).mul (TauComplex.scaledCis b))
+      ((TauComplex.fromTauReal (TauReal.fromTauRat w)).mul (TauComplex.scaledCis z)) := by
+  refine ⟨?_, ?_⟩
+  · -- Real parts
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    -- LHS.re.approx n = TauRat.sub (TauRat.mul 1 1) (TauRat.mul a b)
+    -- RHS.re.approx n = TauRat.sub (TauRat.mul w 1) (TauRat.mul 0 z)
+    show (TauRat.sub
+            (TauRat.mul (TauRat.one) (TauRat.one))
+            (TauRat.mul a b)).toRat
+        = (TauRat.sub
+            (TauRat.mul w (TauRat.one))
+            (TauRat.mul (TauRat.zero) z)).toRat
+    rw [toRat_sub, toRat_sub, toRat_mul, toRat_mul, toRat_mul, toRat_mul,
+        toRat_one, toRat_zero]
+    linarith
+  · -- Imaginary parts
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    -- LHS.im.approx n = TauRat.add (TauRat.mul 1 b) (TauRat.mul a 1)
+    -- RHS.im.approx n = TauRat.add (TauRat.mul w z) (TauRat.mul 0 1)
+    show (TauRat.add
+            (TauRat.mul (TauRat.one) b)
+            (TauRat.mul a (TauRat.one))).toRat
+        = (TauRat.add
+            (TauRat.mul w z)
+            (TauRat.mul (TauRat.zero) (TauRat.one))).toRat
+    rw [toRat_add, toRat_add, toRat_mul, toRat_mul, toRat_mul, toRat_mul,
+        toRat_one, toRat_zero]
+    linarith
+
 end Tau.Boundary
