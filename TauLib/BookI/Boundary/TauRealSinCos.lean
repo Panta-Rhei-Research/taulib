@@ -1250,4 +1250,181 @@ theorem exp_pureIm_im_approx_abs_toRat_le_8 (x : TauRat) (hx : |x.toRat| ≤ 1) 
     linarith
   linarith
 
+-- ============================================================
+-- PART 16: BILATERAL MUL-EQUIV HELPER + cos_add
+-- ============================================================
+
+/-- **Bilateral mul-equiv**: with bounds on both `b` and `a'`, equivalence of
+    each factor lifts to equivalence of the product. -/
+theorem TauReal.mul_respects_equiv_both
+    (a a' b b' : TauReal) (M : Nat) (hM : 1 ≤ M)
+    (h_bound_b : ∀ n, (b.approx n).abs.toRat ≤ M)
+    (h_bound_a' : ∀ n, (a'.approx n).abs.toRat ≤ M)
+    (h_a : a.equiv a') (h_b : b.equiv b') :
+    (a.mul b).equiv (a'.mul b') := by
+  -- a · b ≈ a' · b (right-mul: bound on b, equiv on a)
+  have h1 : (a.mul b).equiv (a'.mul b) :=
+    TauReal.mul_respects_equiv_right_of_bound a a' b M hM h_bound_b h_a
+  -- a' · b ≈ a' · b' (via mul_comm + right-mul + mul_comm)
+  have h2 : (a'.mul b).equiv (a'.mul b') := by
+    have h_comm1 : (a'.mul b).equiv (b.mul a') := taureal_mul_comm _ _
+    have h_step : (b.mul a').equiv (b'.mul a') :=
+      TauReal.mul_respects_equiv_right_of_bound b b' a' M hM h_bound_a' h_b
+    have h_comm2 : (b'.mul a').equiv (a'.mul b') := taureal_mul_comm _ _
+    exact TauReal.equiv_trans (TauReal.equiv_trans h_comm1 h_step) h_comm2
+  exact TauReal.equiv_trans h1 h2
+
+/-- **🎯🎯🎯 [I.T-CosAdd] Cosine addition formula** at TauReal equivalence level.
+
+    For `|x₁.toRat|, |x₂.toRat|, |(x₁+x₂).toRat| ≤ 1`:
+        `cos(x₁+x₂) ≈ cos x₁ · cos x₂ − sin x₁ · sin x₂`
+
+    Proof chain (using M3 endpoint + Phase 1C Euler bridge):
+    1. `cos_of_rat (x₁+x₂) ≈ (exp (pureIm (x₁+x₂))).re` (Phase 1C, needs |x₁+x₂| ≤ 1)
+    2. `≈ (exp ((pureIm x₁).add (pureIm x₂))).re` (Part 14 bridge)
+    3. `≈ ((exp (pureIm x₁)).mul (exp (pureIm x₂))).re` (M3 exp_add + .re projection)
+    4. `= (e₁.re.mul e₂.re).sub (e₁.im.mul e₂.im)` (TauComplex.mul def)
+    5. `≈ (cos x₁.mul cos x₂).sub (sin x₁.mul sin x₂)` (Phase 1C + bilateral mul-equiv + equiv_sub_congr) -/
+theorem cos_add (x₁ x₂ : TauRat)
+    (hx₁ : |x₁.toRat| ≤ 1) (hx₂ : |x₂.toRat| ≤ 1)
+    (hsum : |(x₁.add x₂).toRat| ≤ 1) :
+    TauReal.equiv (TauReal.cos_of_rat (x₁.add x₂))
+                  (((TauReal.cos_of_rat x₁).mul (TauReal.cos_of_rat x₂)).sub
+                    ((TauReal.sin_of_rat x₁).mul (TauReal.sin_of_rat x₂))) := by
+  -- Step 1: cos_of_rat (x₁+x₂) ≈ (exp (pureIm (x₁+x₂))).re
+  have h_cos_eq_exp_re : TauReal.equiv
+      (TauReal.cos_of_rat (x₁.add x₂))
+      (TauComplex.exp (TauComplex.pureIm (x₁.add x₂))).re :=
+    TauReal.equiv_symm (exp_pureIm_re_eq_cos (x₁.add x₂) hsum)
+  -- Step 2: ≈ (exp ((pureIm x₁).add (pureIm x₂))).re (Part 14 bridge)
+  have h_bridge : TauReal.equiv
+      (TauComplex.exp (TauComplex.pureIm (x₁.add x₂))).re
+      (TauComplex.exp ((TauComplex.pureIm x₁).add (TauComplex.pureIm x₂))).re :=
+    exp_pureIm_sum_re_equiv x₁ x₂
+  -- Step 3: exp_add applied to (pureIm x₁), (pureIm x₂), then .re projection
+  have h_exp_add : TauComplex.equiv
+      (TauComplex.exp ((TauComplex.pureIm x₁).add (TauComplex.pureIm x₂)))
+      ((TauComplex.exp (TauComplex.pureIm x₁)).mul (TauComplex.exp (TauComplex.pureIm x₂))) :=
+    TauComplex.exp_add _ _ (TauComplex.pureIm_BoundedBy_1 x₁ hx₁)
+                            (TauComplex.pureIm_BoundedBy_1 x₂ hx₂)
+  have h_exp_add_re : TauReal.equiv
+      (TauComplex.exp ((TauComplex.pureIm x₁).add (TauComplex.pureIm x₂))).re
+      ((TauComplex.exp (TauComplex.pureIm x₁)).mul (TauComplex.exp (TauComplex.pureIm x₂))).re :=
+    h_exp_add.1
+  -- Step 4: ((exp e₁).mul (exp e₂)).re = sub (mul re re) (mul im im) by def
+  -- Step 5: (mul re re).sub (mul im im) ≈ (cos · cos).sub (sin · sin)
+  have h_e1_re_cos : TauReal.equiv (TauComplex.exp (TauComplex.pureIm x₁)).re
+                                   (TauReal.cos_of_rat x₁) :=
+    exp_pureIm_re_eq_cos x₁ hx₁
+  have h_e2_re_cos : TauReal.equiv (TauComplex.exp (TauComplex.pureIm x₂)).re
+                                   (TauReal.cos_of_rat x₂) :=
+    exp_pureIm_re_eq_cos x₂ hx₂
+  have h_e1_im_sin : TauReal.equiv (TauComplex.exp (TauComplex.pureIm x₁)).im
+                                   (TauReal.sin_of_rat x₁) :=
+    exp_pureIm_im_eq_sin x₁ hx₁
+  have h_e2_im_sin : TauReal.equiv (TauComplex.exp (TauComplex.pureIm x₂)).im
+                                   (TauReal.sin_of_rat x₂) :=
+    exp_pureIm_im_eq_sin x₂ hx₂
+  -- Bilateral mul-equiv with M = 8 (sufficient for both exp and cos bounds)
+  have h_mul_re_re : TauReal.equiv
+      ((TauComplex.exp (TauComplex.pureIm x₁)).re.mul (TauComplex.exp (TauComplex.pureIm x₂)).re)
+      ((TauReal.cos_of_rat x₁).mul (TauReal.cos_of_rat x₂)) :=
+    TauReal.mul_respects_equiv_both _ _ _ _ 8 (by norm_num)
+      (exp_pureIm_re_approx_abs_toRat_le_8 x₂ hx₂)
+      (fun n => le_trans (cos_of_rat_approx_abs_toRat_le_4 x₁ hx₁ n) (by norm_num : (4 : Rat) ≤ 8))
+      h_e1_re_cos h_e2_re_cos
+  have h_mul_im_im : TauReal.equiv
+      ((TauComplex.exp (TauComplex.pureIm x₁)).im.mul (TauComplex.exp (TauComplex.pureIm x₂)).im)
+      ((TauReal.sin_of_rat x₁).mul (TauReal.sin_of_rat x₂)) :=
+    TauReal.mul_respects_equiv_both _ _ _ _ 8 (by norm_num)
+      (exp_pureIm_im_approx_abs_toRat_le_8 x₂ hx₂)
+      (fun n => le_trans (sin_of_rat_approx_abs_toRat_le_4 x₁ hx₁ n) (by norm_num : (4 : Rat) ≤ 8))
+      h_e1_im_sin h_e2_im_sin
+  -- The .re of (mul e₁ e₂) is sub (mul re re) (mul im im) by TauComplex.mul def.
+  -- Combine via equiv_sub_congr.
+  have h_sub : TauReal.equiv
+      (((TauComplex.exp (TauComplex.pureIm x₁)).re.mul (TauComplex.exp (TauComplex.pureIm x₂)).re).sub
+        ((TauComplex.exp (TauComplex.pureIm x₁)).im.mul (TauComplex.exp (TauComplex.pureIm x₂)).im))
+      (((TauReal.cos_of_rat x₁).mul (TauReal.cos_of_rat x₂)).sub
+        ((TauReal.sin_of_rat x₁).mul (TauReal.sin_of_rat x₂))) :=
+    TauReal.equiv_sub_congr h_mul_re_re h_mul_im_im
+  -- ((exp x₁).mul (exp x₂)).re definitionally equals (sub (mul re re) (mul im im)).
+  -- So h_exp_add_re combined with h_sub gives the conclusion.
+  have h_chain1 : TauReal.equiv
+      (TauReal.cos_of_rat (x₁.add x₂))
+      ((TauComplex.exp (TauComplex.pureIm x₁)).mul (TauComplex.exp (TauComplex.pureIm x₂))).re :=
+    TauReal.equiv_trans h_cos_eq_exp_re (TauReal.equiv_trans h_bridge h_exp_add_re)
+  exact TauReal.equiv_trans h_chain1 h_sub
+
+/-- **🎯🎯🎯 [I.T-SinAdd] Sine addition formula** at TauReal equivalence level.
+
+    For `|x₁.toRat|, |x₂.toRat|, |(x₁+x₂).toRat| ≤ 1`:
+        `sin(x₁+x₂) ≈ sin x₁ · cos x₂ + cos x₁ · sin x₂`
+
+    Parallel proof to `cos_add` using the .im projection of M3 exp_add. -/
+theorem sin_add (x₁ x₂ : TauRat)
+    (hx₁ : |x₁.toRat| ≤ 1) (hx₂ : |x₂.toRat| ≤ 1)
+    (hsum : |(x₁.add x₂).toRat| ≤ 1) :
+    TauReal.equiv (TauReal.sin_of_rat (x₁.add x₂))
+                  (((TauReal.sin_of_rat x₁).mul (TauReal.cos_of_rat x₂)).add
+                    ((TauReal.cos_of_rat x₁).mul (TauReal.sin_of_rat x₂))) := by
+  -- Step 1-4 mirror cos_add for .im
+  have h_sin_eq_exp_im : TauReal.equiv
+      (TauReal.sin_of_rat (x₁.add x₂))
+      (TauComplex.exp (TauComplex.pureIm (x₁.add x₂))).im :=
+    TauReal.equiv_symm (exp_pureIm_im_eq_sin (x₁.add x₂) hsum)
+  have h_bridge : TauReal.equiv
+      (TauComplex.exp (TauComplex.pureIm (x₁.add x₂))).im
+      (TauComplex.exp ((TauComplex.pureIm x₁).add (TauComplex.pureIm x₂))).im :=
+    exp_pureIm_sum_im_equiv x₁ x₂
+  have h_exp_add : TauComplex.equiv
+      (TauComplex.exp ((TauComplex.pureIm x₁).add (TauComplex.pureIm x₂)))
+      ((TauComplex.exp (TauComplex.pureIm x₁)).mul (TauComplex.exp (TauComplex.pureIm x₂))) :=
+    TauComplex.exp_add _ _ (TauComplex.pureIm_BoundedBy_1 x₁ hx₁)
+                            (TauComplex.pureIm_BoundedBy_1 x₂ hx₂)
+  have h_exp_add_im : TauReal.equiv
+      (TauComplex.exp ((TauComplex.pureIm x₁).add (TauComplex.pureIm x₂))).im
+      ((TauComplex.exp (TauComplex.pureIm x₁)).mul (TauComplex.exp (TauComplex.pureIm x₂))).im :=
+    h_exp_add.2
+  -- Phase 1C bridges
+  have h_e1_re_cos := exp_pureIm_re_eq_cos x₁ hx₁
+  have h_e2_re_cos := exp_pureIm_re_eq_cos x₂ hx₂
+  have h_e1_im_sin := exp_pureIm_im_eq_sin x₁ hx₁
+  have h_e2_im_sin := exp_pureIm_im_eq_sin x₂ hx₂
+  -- (mul e₁ e₂).im = add (mul e₁.re e₂.im) (mul e₁.im e₂.re) by TauComplex.mul def
+  -- Need: that ≈ add (sin x₁ . cos x₂) (cos x₁ . sin x₂)
+  have h_mul_re_im : TauReal.equiv
+      ((TauComplex.exp (TauComplex.pureIm x₁)).re.mul (TauComplex.exp (TauComplex.pureIm x₂)).im)
+      ((TauReal.cos_of_rat x₁).mul (TauReal.sin_of_rat x₂)) :=
+    TauReal.mul_respects_equiv_both _ _ _ _ 8 (by norm_num)
+      (exp_pureIm_im_approx_abs_toRat_le_8 x₂ hx₂)
+      (fun n => le_trans (cos_of_rat_approx_abs_toRat_le_4 x₁ hx₁ n) (by norm_num : (4 : Rat) ≤ 8))
+      h_e1_re_cos h_e2_im_sin
+  have h_mul_im_re : TauReal.equiv
+      ((TauComplex.exp (TauComplex.pureIm x₁)).im.mul (TauComplex.exp (TauComplex.pureIm x₂)).re)
+      ((TauReal.sin_of_rat x₁).mul (TauReal.cos_of_rat x₂)) :=
+    TauReal.mul_respects_equiv_both _ _ _ _ 8 (by norm_num)
+      (exp_pureIm_re_approx_abs_toRat_le_8 x₂ hx₂)
+      (fun n => le_trans (sin_of_rat_approx_abs_toRat_le_4 x₁ hx₁ n) (by norm_num : (4 : Rat) ≤ 8))
+      h_e1_im_sin h_e2_re_cos
+  have h_add : TauReal.equiv
+      (((TauComplex.exp (TauComplex.pureIm x₁)).re.mul (TauComplex.exp (TauComplex.pureIm x₂)).im).add
+        ((TauComplex.exp (TauComplex.pureIm x₁)).im.mul (TauComplex.exp (TauComplex.pureIm x₂)).re))
+      (((TauReal.cos_of_rat x₁).mul (TauReal.sin_of_rat x₂)).add
+        ((TauReal.sin_of_rat x₁).mul (TauReal.cos_of_rat x₂))) :=
+    TauReal.equiv_add_congr h_mul_re_im h_mul_im_re
+  have h_chain1 : TauReal.equiv
+      (TauReal.sin_of_rat (x₁.add x₂))
+      ((TauComplex.exp (TauComplex.pureIm x₁)).mul (TauComplex.exp (TauComplex.pureIm x₂))).im :=
+    TauReal.equiv_trans h_sin_eq_exp_im (TauReal.equiv_trans h_bridge h_exp_add_im)
+  -- Reorder: cos·sin + sin·cos = sin·cos + cos·sin via add_comm
+  -- Final result has form (sin · cos).add (cos · sin).
+  have h_reorder : TauReal.equiv
+      (((TauReal.cos_of_rat x₁).mul (TauReal.sin_of_rat x₂)).add
+        ((TauReal.sin_of_rat x₁).mul (TauReal.cos_of_rat x₂)))
+      (((TauReal.sin_of_rat x₁).mul (TauReal.cos_of_rat x₂)).add
+        ((TauReal.cos_of_rat x₁).mul (TauReal.sin_of_rat x₂))) :=
+    taureal_add_comm _ _
+  exact TauReal.equiv_trans h_chain1 (TauReal.equiv_trans h_add h_reorder)
+
 end Tau.Boundary
