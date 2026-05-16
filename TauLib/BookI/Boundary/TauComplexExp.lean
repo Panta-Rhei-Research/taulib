@@ -5235,4 +5235,99 @@ theorem TauComplex.add_pow_re_im_approx_toRat (z₁ z₂ : TauComplex) (n m : Na
       rw [ih_re, ih_im]
       exact (TauComplex.binom_sum_im_succ_step z₁ z₂ n m).symm
 
+-- ============================================================
+-- PART 49: PHASE 3C PART 3g.3 — exp_term_add_re_im_approx_toRat (per-term identity)
+-- ============================================================
+
+/-- **Sum-with-scaling pointwise toRat**: if `(F i).toRat · c = (G i).toRat`
+    pointwise, then `(TauRat.sum F n).toRat · c = (TauRat.sum G n).toRat`. -/
+theorem TauRat.sum_toRat_mul_const_eq (F G : Nat → TauRat) (c : Rat) (n : Nat)
+    (h : ∀ i, i < n → (F i).toRat * c = (G i).toRat) :
+    (TauRat.sum F n).toRat * c = (TauRat.sum G n).toRat := by
+  induction n with
+  | zero => simp [TauRat.sum_zero, toRat_zero]
+  | succ n ih =>
+    rw [TauRat.sum_succ, TauRat.sum_succ, toRat_add, toRat_add]
+    rw [add_mul]
+    rw [ih (fun i hi => h i (Nat.lt_succ_of_lt hi))]
+    rw [h n (Nat.lt_succ_self n)]
+
+/-- **🎯 Per-term identity (Part 3g.3)**: `(exp_term (z₁+z₂) n).{re,im}.approx m .toRat
+    = (cauchyDiag (exp_term z₁) (exp_term z₂) n).{re,im}.approx m .toRat`.
+
+    Combines the main binomial theorem (Part 3g.2e) with scale_by_inv_factorial
+    + `choose_mul_factorial_mul_factorial` to discharge the per-term Rat-level
+    identity. -/
+theorem TauComplex.exp_term_add_re_im_approx_toRat (z₁ z₂ : TauComplex) (n m : Nat) :
+    ((TauComplex.exp_term (z₁.add z₂) n).re.approx m).toRat
+      = ((TauComplex.cauchyDiag (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).re.approx m).toRat ∧
+    ((TauComplex.exp_term (z₁.add z₂) n).im.approx m).toRat
+      = ((TauComplex.cauchyDiag (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).im.approx m).toRat := by
+  obtain ⟨h_re_bin, h_im_bin⟩ := TauComplex.add_pow_re_im_approx_toRat z₁ z₂ n m
+  have h_fact_pos : (0 : Rat) < (n.factorial : Rat) := by exact_mod_cast Nat.factorial_pos n
+  -- The per-term Rat identity (for both re and im):
+  -- (cauchyDiag_term i .toRat) * n.factorial = (binom_term i .toRat)
+  -- This is the heart of the proof. We derive both .re and .im from it.
+  refine ⟨?_, ?_⟩
+  · -- .re identity
+    show ((TauReal.scale_by_inv_factorial (TauComplex.pow (z₁.add z₂) n).re n).approx m).toRat
+        = ((TauComplex.cauchyDiag (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).re.approx m).toRat
+    rw [TauReal.scale_by_inv_factorial_approx, TauRat.scale_by_inv_factorial_toRat]
+    rw [h_re_bin]
+    -- LHS now: (binom_sum_re_n).toRat / n.factorial
+    -- Move n.factorial to RHS via div equality
+    rw [div_eq_iff h_fact_pos.ne']
+    symm
+    -- Goal: (cauchyDiag ... .re.approx m).toRat · n.factorial = (binom_sum_re_n).toRat
+    rw [TauComplex.cauchyDiag_re_approx]
+    unfold TauComplex.binom_sum_re
+    -- Both sides are TauRat.sum's at size n+1. Apply sum_toRat_mul_const_eq.
+    apply TauRat.sum_toRat_mul_const_eq
+    intro i hi
+    have h_le : i ≤ n := by omega
+    -- Per-term identity at Rat:
+    -- (sub (mul exp_term_re exp_term_re) (mul exp_term_im exp_term_im)).toRat · n.factorial
+    --   = (mul (nat_to_taurat C(n, i)) (mul of pows).re.approx m).toRat
+    simp only [TauComplex.exp_term_re, TauComplex.exp_term_im,
+               TauReal.scale_by_inv_factorial_approx, TauRat.scale_by_inv_factorial_toRat,
+               toRat_sub, toRat_mul, nat_to_taurat_toRat,
+               TauComplex.mul_re_approx]
+    -- Use choose_mul_factorial_mul_factorial: C(n, i) · i! · (n-i)! = n!
+    have h_combinatorial : (Nat.choose n i : Rat) * (i.factorial : Rat) * ((n - i).factorial : Rat)
+                         = (n.factorial : Rat) := by
+      have := Nat.choose_mul_factorial_mul_factorial h_le
+      exact_mod_cast this
+    have h_i_fact_pos : (0 : Rat) < (i.factorial : Rat) := by exact_mod_cast Nat.factorial_pos i
+    have h_ni_fact_pos : (0 : Rat) < ((n - i).factorial : Rat) := by exact_mod_cast Nat.factorial_pos (n - i)
+    field_simp
+    linear_combination -(((TauComplex.pow z₁ i).re.approx m).toRat * ((TauComplex.pow z₂ (n - i)).re.approx m).toRat
+                       - ((TauComplex.pow z₁ i).im.approx m).toRat * ((TauComplex.pow z₂ (n - i)).im.approx m).toRat)
+                       * h_combinatorial
+  · -- .im identity
+    show ((TauReal.scale_by_inv_factorial (TauComplex.pow (z₁.add z₂) n).im n).approx m).toRat
+        = ((TauComplex.cauchyDiag (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).im.approx m).toRat
+    rw [TauReal.scale_by_inv_factorial_approx, TauRat.scale_by_inv_factorial_toRat]
+    rw [h_im_bin]
+    rw [div_eq_iff h_fact_pos.ne']
+    symm
+    rw [TauComplex.cauchyDiag_im_approx]
+    unfold TauComplex.binom_sum_im
+    apply TauRat.sum_toRat_mul_const_eq
+    intro i hi
+    have h_le : i ≤ n := by omega
+    simp only [TauComplex.exp_term_re, TauComplex.exp_term_im,
+               TauReal.scale_by_inv_factorial_approx, TauRat.scale_by_inv_factorial_toRat,
+               toRat_add, toRat_mul, nat_to_taurat_toRat,
+               TauComplex.mul_im_approx]
+    have h_combinatorial : (Nat.choose n i : Rat) * (i.factorial : Rat) * ((n - i).factorial : Rat)
+                         = (n.factorial : Rat) := by
+      have := Nat.choose_mul_factorial_mul_factorial h_le
+      exact_mod_cast this
+    have h_i_fact_pos : (0 : Rat) < (i.factorial : Rat) := by exact_mod_cast Nat.factorial_pos i
+    have h_ni_fact_pos : (0 : Rat) < ((n - i).factorial : Rat) := by exact_mod_cast Nat.factorial_pos (n - i)
+    field_simp
+    linear_combination -(((TauComplex.pow z₁ i).re.approx m).toRat * ((TauComplex.pow z₂ (n - i)).im.approx m).toRat
+                       + ((TauComplex.pow z₁ i).im.approx m).toRat * ((TauComplex.pow z₂ (n - i)).re.approx m).toRat)
+                       * h_combinatorial
+
 end Tau.Boundary
