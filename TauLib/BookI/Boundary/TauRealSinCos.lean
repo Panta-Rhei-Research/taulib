@@ -938,4 +938,133 @@ theorem TauComplex.exp_pureIm_im_eq_sin_target_proof :
     TauComplex.exp_pureIm_im_eq_sin_target :=
   fun x hx => exp_pureIm_im_eq_sin x hx
 
+-- ============================================================
+-- PART 13: GENERALIZED EULER BRIDGE for arbitrary TauComplex
+-- ============================================================
+
+/-! ## Phase 1D — Sin/Cos addition formulae
+
+Extends Phase 1C's Euler bridge to work with any TauComplex `z` satisfying
+the toRat-level constraints `(z.re.approx _).toRat = 0` and
+`(z.im.approx _).toRat = xR`. This is needed to bridge `pureIm (x₁+x₂)` and
+`(pureIm x₁).add (pureIm x₂)` — equivalent but not identical (the .re/.im
+components are `TauReal.add zero zero` vs `TauReal.zero`, equal at toRat).
+
+The proof is a direct generalization of the Phase 1C bridge: same joint
+induction on k, but using hypotheses `h_re`, `h_im` instead of the rfl simp
+lemmas `pureIm_re_approx`, `pureIm_im_approx`. -/
+
+/-- **Generalized power-bridge theorem**: for any TauComplex `z` whose .re
+    and .im have toRat 0 and `xR` respectively at every approx depth, the
+    cyclotomic-4 closed forms of `pureIm_pow_re_im_rat` apply. -/
+theorem pureIm_like_pow_re_im_approx_toRat
+    (z : TauComplex) (xR : Rat)
+    (h_re : ∀ n, ((z.re).approx n).toRat = 0)
+    (h_im : ∀ n, ((z.im).approx n).toRat = xR)
+    (k n : Nat) :
+    ((z.pow k).re.approx n).toRat = (pureIm_pow_re_im_rat xR k).1 ∧
+    ((z.pow k).im.approx n).toRat = (pureIm_pow_re_im_rat xR k).2 := by
+  induction k with
+  | zero =>
+    refine ⟨?_, ?_⟩
+    · show ((TauComplex.one).re.approx n).toRat = 1
+      show (TauRat.one).toRat = 1
+      exact toRat_one
+    · show ((TauComplex.one).im.approx n).toRat = 0
+      show (TauRat.zero).toRat = 0
+      exact toRat_zero
+  | succ k IH =>
+    obtain ⟨ih_re, ih_im⟩ := IH
+    refine ⟨?_, ?_⟩
+    · show (TauRat.sub
+              (TauRat.mul ((z.pow k).re.approx n) (z.re.approx n))
+              (TauRat.mul ((z.pow k).im.approx n) (z.im.approx n))).toRat
+          = (pureIm_pow_re_im_rat xR (k+1)).1
+      rw [toRat_sub, toRat_mul, toRat_mul, h_re n, h_im n, ih_re, ih_im,
+          pureIm_pow_re_im_rat_succ]
+      ring
+    · show (TauRat.add
+              (TauRat.mul ((z.pow k).re.approx n) (z.im.approx n))
+              (TauRat.mul ((z.pow k).im.approx n) (z.re.approx n))).toRat
+          = (pureIm_pow_re_im_rat xR (k+1)).2
+      rw [toRat_add, toRat_mul, toRat_mul, h_re n, h_im n, ih_re, ih_im,
+          pureIm_pow_re_im_rat_succ]
+      ring
+
+/-- Generalized exp_term bridge for .re. -/
+theorem pureIm_like_exp_term_re_approx_toRat
+    (z : TauComplex) (xR : Rat)
+    (h_re : ∀ n, ((z.re).approx n).toRat = 0)
+    (h_im : ∀ n, ((z.im).approx n).toRat = xR)
+    (k n : Nat) :
+    ((TauComplex.exp_term z k).re.approx n).toRat
+      = (pureIm_pow_re_im_rat xR k).1 / (k.factorial : Rat) := by
+  rw [TauComplex.exp_term_re, TauReal.scale_by_inv_factorial_approx,
+      TauRat.scale_by_inv_factorial_toRat,
+      (pureIm_like_pow_re_im_approx_toRat z xR h_re h_im k n).1]
+
+/-- Generalized exp_term bridge for .im. -/
+theorem pureIm_like_exp_term_im_approx_toRat
+    (z : TauComplex) (xR : Rat)
+    (h_re : ∀ n, ((z.re).approx n).toRat = 0)
+    (h_im : ∀ n, ((z.im).approx n).toRat = xR)
+    (k n : Nat) :
+    ((TauComplex.exp_term z k).im.approx n).toRat
+      = (pureIm_pow_re_im_rat xR k).2 / (k.factorial : Rat) := by
+  rw [TauComplex.exp_term_im, TauReal.scale_by_inv_factorial_approx,
+      TauRat.scale_by_inv_factorial_toRat,
+      (pureIm_like_pow_re_im_approx_toRat z xR h_re h_im k n).2]
+
+/-- Generalized exp_partial bridge for .re. -/
+theorem pureIm_like_expPartial_re_approx_toRat
+    (z : TauComplex) (xR : Rat)
+    (h_re : ∀ n, ((z.re).approx n).toRat = 0)
+    (h_im : ∀ n, ((z.im).approx n).toRat = xR)
+    (k m_a : Nat) :
+    ((TauComplex.exp_partial z k).re.approx m_a).toRat
+      = expPartial_pureIm_re_rat xR k := by
+  induction k with
+  | zero =>
+    show ((TauComplex.exp_partial z 0).re.approx m_a).toRat
+        = expPartial_pureIm_re_rat xR 0
+    rw [TauComplex.exp_partial_zero, expPartial_pureIm_re_rat_zero]
+    show (TauRat.zero).toRat = 0
+    exact toRat_zero
+  | succ k IH =>
+    show ((TauComplex.exp_partial z (k+1)).re.approx m_a).toRat
+        = expPartial_pureIm_re_rat xR (k+1)
+    rw [TauComplex.exp_partial_succ, expPartial_pureIm_re_rat_succ]
+    show (TauRat.add
+            ((TauComplex.exp_partial z k).re.approx m_a)
+            ((TauComplex.exp_term z k).re.approx m_a)).toRat
+        = expPartial_pureIm_re_rat xR k
+          + (pureIm_pow_re_im_rat xR k).1 / (k.factorial : Rat)
+    rw [toRat_add, IH, pureIm_like_exp_term_re_approx_toRat z xR h_re h_im]
+
+/-- Generalized exp_partial bridge for .im. -/
+theorem pureIm_like_expPartial_im_approx_toRat
+    (z : TauComplex) (xR : Rat)
+    (h_re : ∀ n, ((z.re).approx n).toRat = 0)
+    (h_im : ∀ n, ((z.im).approx n).toRat = xR)
+    (k m_a : Nat) :
+    ((TauComplex.exp_partial z k).im.approx m_a).toRat
+      = expPartial_pureIm_im_rat xR k := by
+  induction k with
+  | zero =>
+    show ((TauComplex.exp_partial z 0).im.approx m_a).toRat
+        = expPartial_pureIm_im_rat xR 0
+    rw [TauComplex.exp_partial_zero, expPartial_pureIm_im_rat_zero]
+    show (TauRat.zero).toRat = 0
+    exact toRat_zero
+  | succ k IH =>
+    show ((TauComplex.exp_partial z (k+1)).im.approx m_a).toRat
+        = expPartial_pureIm_im_rat xR (k+1)
+    rw [TauComplex.exp_partial_succ, expPartial_pureIm_im_rat_succ]
+    show (TauRat.add
+            ((TauComplex.exp_partial z k).im.approx m_a)
+            ((TauComplex.exp_term z k).im.approx m_a)).toRat
+        = expPartial_pureIm_im_rat xR k
+          + (pureIm_pow_re_im_rat xR k).2 / (k.factorial : Rat)
+    rw [toRat_add, IH, pureIm_like_exp_term_im_approx_toRat z xR h_re h_im]
+
 end Tau.Boundary
