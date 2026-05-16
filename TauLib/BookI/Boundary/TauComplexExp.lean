@@ -4834,4 +4834,40 @@ theorem TauComplex.binom_sum_im_mul_distrib (z₁ z₂ z : TauComplex) (n m : Na
   unfold TauComplex.binom_sum_re TauComplex.binom_sum_im
   exact TauComplex.binom_sum_im_mul_distrib_aux z₁ z₂ z n m (n + 1)
 
+-- ============================================================
+-- PART 47: PHASE 3C PART 3g.2d — Pascal step (the big one)
+-- ============================================================
+
+/-! ## Pascal step at toRat level
+
+The climax of the toRat-level binomial proof. Given:
+* `mul_distrib_re/im` (Parts 3g.2d-pre*): the algebraic structure
+  identities relating `binom_sum_n · z` to a single sum of products.
+* `sum_split_first_toRat` (Part 3g.2c): peel first term.
+* `nat_choose_succ_succ_toRat` (Part 3g.2c): Pascal's rule at Rat.
+* `sum_add_toRat` (Part 3c.4): split sum-of-add into two sums.
+
+The Pascal step:
+`(binom_sum_re (n+1)).toRat = binom_sum_re_n.toRat · R(z₁+z₂)
+                              − binom_sum_im_n.toRat · I(z₁+z₂)`
+
+(and `.im` analog).
+
+The proof manipulates LHS via `sum_split_first` + Pascal coefficient
+identity + congruence at toRat level, then splits into the two
+contributions and reindexes via `sum_split_first` (in reverse) to match
+the RHS. -/
+
+/-- **Sum-pointwise-equality at toRat**: if `f` and `g` agree at toRat
+    pointwise, their sums agree at toRat. -/
+theorem TauRat.sum_eq_of_toRat_pointwise (f g : Nat → TauRat) (n : Nat)
+    (h : ∀ i, i < n → (f i).toRat = (g i).toRat) :
+    (TauRat.sum f n).toRat = (TauRat.sum g n).toRat := by
+  induction n with
+  | zero => simp [TauRat.sum_zero, toRat_zero]
+  | succ n ih =>
+    rw [TauRat.sum_succ, TauRat.sum_succ, toRat_add, toRat_add]
+    rw [ih (fun i hi => h i (Nat.lt_succ_of_lt hi))]
+    rw [h n (Nat.lt_succ_self n)]
+
 end Tau.Boundary
