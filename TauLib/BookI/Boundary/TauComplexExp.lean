@@ -4870,4 +4870,23 @@ theorem TauRat.sum_eq_of_toRat_pointwise (f g : Nat → TauRat) (n : Nat)
     rw [ih (fun i hi => h i (Nat.lt_succ_of_lt hi))]
     rw [h n (Nat.lt_succ_self n)]
 
+/-- **Pascal step Sub-lemma A** (peel `i=0` boundary, simplify Nat-arith
+    `(n+1) - (i+1) = n - i` in the shifted sum).
+
+    Mirrors the equiv-level cascade's `B_left_split_first` pattern. -/
+theorem TauComplex.binom_sum_re_succ_peel_first (z₁ z₂ : TauComplex) (n m : Nat) :
+    (TauComplex.binom_sum_re z₁ z₂ (n + 1) m).toRat
+      = ((nat_to_taurat (Nat.choose (n + 1) 0)).mul
+          (((TauComplex.pow z₁ 0).mul (TauComplex.pow z₂ (n + 1))).re.approx m)).toRat
+        + (TauRat.sum (fun i => (nat_to_taurat (Nat.choose (n + 1) (i + 1))).mul
+            (((TauComplex.pow z₁ (i + 1)).mul
+              (TauComplex.pow z₂ (n - i))).re.approx m)) (n + 1)).toRat := by
+  unfold TauComplex.binom_sum_re
+  rw [TauRat.sum_split_first_toRat]
+  -- Convert (n+1)-(i+1) to n-i in the shifted sum via pointwise toRat congruence
+  congr 1
+  apply TauRat.sum_eq_of_toRat_pointwise
+  intro i _hi
+  rw [show (n + 1 - (i + 1)) = (n - i) from Nat.succ_sub_succ_eq_sub n i]
+
 end Tau.Boundary
