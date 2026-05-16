@@ -5330,4 +5330,56 @@ theorem TauComplex.exp_term_add_re_im_approx_toRat (z₁ z₂ : TauComplex) (n m
                        + ((TauComplex.pow z₁ i).im.approx m).toRat * ((TauComplex.pow z₂ (n - i)).re.approx m).toRat)
                        * h_combinatorial
 
+-- ============================================================
+-- PART 50: PHASE 3C PART 3g.4 — exp_partial_add_re_im_approx_toRat (partial-sum identity)
+-- ============================================================
+
+/-- **🎯 Partial-sum identity (Part 3g.4)**: `(exp_partial (z₁+z₂) n).{re,im}.approx m .toRat
+    = (cauchyPStar (exp_term z₁) (exp_term z₂) n).{re,im}.approx m .toRat`.
+
+    By induction on `n` using:
+    * Base `n = 0`: both sides are 0.
+    * Step: `exp_partial_succ`, `cauchyPStar_succ`, IH, per-term identity (3g.3).
+
+    This is the **toRat-level analog** of the equiv-level
+    `exp_partial_add_eq_cauchyPStar_target_strong` (shipped earlier).
+    The toRat version has no modulus dependency, making it directly
+    usable in the M3 endpoint proof. -/
+theorem TauComplex.exp_partial_add_re_im_approx_toRat (z₁ z₂ : TauComplex) (n m : Nat) :
+    ((TauComplex.exp_partial (z₁.add z₂) n).re.approx m).toRat
+      = ((TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).re.approx m).toRat ∧
+    ((TauComplex.exp_partial (z₁.add z₂) n).im.approx m).toRat
+      = ((TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).im.approx m).toRat := by
+  induction n with
+  | zero =>
+    -- Both sides are zero: exp_partial _ 0 = zero, cauchyPStar _ 0 = zero
+    refine ⟨?_, ?_⟩
+    · show ((TauComplex.zero).re.approx m).toRat = ((TauComplex.zero).re.approx m).toRat
+      rfl
+    · show ((TauComplex.zero).im.approx m).toRat = ((TauComplex.zero).im.approx m).toRat
+      rfl
+  | succ n ih =>
+    obtain ⟨ih_re, ih_im⟩ := ih
+    obtain ⟨h_term_re, h_term_im⟩ := TauComplex.exp_term_add_re_im_approx_toRat z₁ z₂ n m
+    refine ⟨?_, ?_⟩
+    · -- .re at n+1
+      show (((TauComplex.exp_partial (z₁.add z₂) n).add (TauComplex.exp_term (z₁.add z₂) n)).re.approx m).toRat
+            = (((TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).add
+               (TauComplex.cauchyDiag (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n)).re.approx m).toRat
+      -- TauComplex.add's .re.approx m = TauRat.add of components
+      show (TauRat.add ((TauComplex.exp_partial (z₁.add z₂) n).re.approx m)
+                       ((TauComplex.exp_term (z₁.add z₂) n).re.approx m)).toRat
+            = (TauRat.add ((TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).re.approx m)
+                          ((TauComplex.cauchyDiag (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).re.approx m)).toRat
+      rw [toRat_add, toRat_add, ih_re, h_term_re]
+    · -- .im at n+1
+      show (((TauComplex.exp_partial (z₁.add z₂) n).add (TauComplex.exp_term (z₁.add z₂) n)).im.approx m).toRat
+            = (((TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).add
+               (TauComplex.cauchyDiag (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n)).im.approx m).toRat
+      show (TauRat.add ((TauComplex.exp_partial (z₁.add z₂) n).im.approx m)
+                       ((TauComplex.exp_term (z₁.add z₂) n).im.approx m)).toRat
+            = (TauRat.add ((TauComplex.cauchyPStar (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).im.approx m)
+                          ((TauComplex.cauchyDiag (TauComplex.exp_term z₁) (TauComplex.exp_term z₂) n).im.approx m)).toRat
+      rw [toRat_add, toRat_add, ih_im, h_term_im]
+
 end Tau.Boundary
