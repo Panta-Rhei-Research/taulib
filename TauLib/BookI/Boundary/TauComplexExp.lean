@@ -5008,4 +5008,48 @@ theorem TauComplex.binom_boundary_plus_second_eq_SumB_re
 
   linarith [h_bound, h_shifted]
 
+/-- **🎯 Pascal step (Main, re part)**: the multiplicative recurrence for
+    `binom_sum_re` at toRat level.
+
+    `(binom_sum_re_(n+1)).toRat = binom_sum_re_n.toRat · R(z₁+z₂) − binom_sum_im_n.toRat · I(z₁+z₂)`
+
+    Chains Sub-lemmas A + B + C with `binom_sum_re_mul_distrib` (twice). -/
+theorem TauComplex.binom_sum_re_succ_step (z₁ z₂ : TauComplex) (n m : Nat) :
+    (TauComplex.binom_sum_re z₁ z₂ (n + 1) m).toRat
+      = (TauComplex.binom_sum_re z₁ z₂ n m).toRat * (((z₁.add z₂).re.approx m).toRat)
+        - (TauComplex.binom_sum_im z₁ z₂ n m).toRat * (((z₁.add z₂).im.approx m).toRat) := by
+  -- Establish the three structural sub-lemmas as `have`s
+  have h_A := TauComplex.binom_sum_re_succ_peel_first z₁ z₂ n m
+  have h_B := TauComplex.binom_pascal_split_re z₁ z₂ n m
+  have h_C := TauComplex.binom_boundary_plus_second_eq_SumB_re z₁ z₂ n m
+  -- Transform RHS: distribute add + apply mul_distrib (twice, z=z₁ and z=z₂)
+  rw [TauComplex.add_re_approx_toRat, TauComplex.add_im_approx_toRat]
+  have h_dist : (TauComplex.binom_sum_re z₁ z₂ n m).toRat
+                  * ((z₁.re.approx m).toRat + (z₂.re.approx m).toRat)
+                - (TauComplex.binom_sum_im z₁ z₂ n m).toRat
+                  * ((z₁.im.approx m).toRat + (z₂.im.approx m).toRat)
+              = ((TauComplex.binom_sum_re z₁ z₂ n m).toRat * (z₁.re.approx m).toRat
+                  - (TauComplex.binom_sum_im z₁ z₂ n m).toRat * (z₁.im.approx m).toRat)
+                + ((TauComplex.binom_sum_re z₁ z₂ n m).toRat * (z₂.re.approx m).toRat
+                  - (TauComplex.binom_sum_im z₁ z₂ n m).toRat * (z₂.im.approx m).toRat) := by ring
+  rw [h_dist]
+  rw [TauComplex.binom_sum_re_mul_distrib z₁ z₂ z₁ n m]
+  rw [TauComplex.binom_sum_re_mul_distrib z₁ z₂ z₂ n m]
+  -- Match the first-sum (`Sum_A_form` from B's first part) with `Sum_A` from mul_distrib(z=z₁)
+  have h_first_match :
+      (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n i)).mul
+          (((TauComplex.pow z₁ (i + 1)).mul
+            (TauComplex.pow z₂ (n - i))).re.approx m)) (n + 1)).toRat
+      = (TauRat.sum (fun i => (nat_to_taurat (Nat.choose n i)).mul
+          ((((TauComplex.pow z₁ i).mul (TauComplex.pow z₂ (n - i))).mul z₁).re.approx m))
+            (n + 1)).toRat := by
+    apply TauRat.sum_eq_of_toRat_pointwise
+    intro i _hi
+    simp only [toRat_mul, toRat_sub, toRat_add,
+               TauComplex.mul_re_approx, TauComplex.mul_im_approx,
+               TauComplex.pow_succ_re_approx_toRat, TauComplex.pow_succ_im_approx_toRat]
+    ring
+  -- Combine all four identities via linarith
+  linarith [h_A, h_B, h_C, h_first_match]
+
 end Tau.Boundary
