@@ -351,6 +351,64 @@ theorem TauReal.IsDerivAt_of_approx_toRat_eq
   exact h_f
 
 -- ============================================================
+-- PART 4b: TauRat POWER + BASIC LEMMAS (Wave 4 infrastructure)
+-- ============================================================
+
+/-! ## Wave 4 — general power rule via Nat-induction
+
+  Ships `TauRat.pow_nat` (recursive) + bound lemmas + the general
+  power rule:
+
+      IsDerivAt (fun x => fromTauRat (x.pow_nat (k+1))) a (powDerivAcc a k)
+
+  where `powDerivAcc a k` is the recursively-built TauReal whose `.toRat`
+  evaluates to `(k+1) · a.toRat^k`.
+
+  Proof by induction on `k`:
+  - **Base k=0**: bridge from `IsDerivAt_id` to `IsDerivAt (pow_nat 1)`
+    via the Wave 3 congruence lemma (since `pow_nat x 1 = x.mul one`
+    is `.toRat`-equal to `x`).
+  - **Step k → k+1**: apply `IsDerivAt_mul` (Leibniz) with `f = id` and
+    `g = pow_nat (k+1)`, bound `M = 2^(k+2)` (covers `(3/2)^(k+2)` and
+    `k+2`). The Leibniz output is structurally `powDerivAcc a (k+1)`.
+
+  This unlocks differentiation of arbitrary polynomial expressions
+  (sums, scalar multiples) at TauRat-input, which Module 3 uses for the
+  arctan partial-sum differentiation.
+-/
+
+/-- `TauRat.pow_nat q k`: the k-th power of `q` as a TauRat. Recursive. -/
+def TauRat.pow_nat (q : TauRat) : Nat → TauRat
+  | 0     => TauRat.one
+  | n + 1 => q.mul (q.pow_nat n)
+
+/-- `q^0 = 1`. -/
+theorem TauRat.pow_nat_zero (q : TauRat) : q.pow_nat 0 = TauRat.one := rfl
+
+/-- `q^(k+1) = q · q^k`. -/
+theorem TauRat.pow_nat_succ (q : TauRat) (k : Nat) :
+    q.pow_nat (k+1) = q.mul (q.pow_nat k) := rfl
+
+/-- `(q^k).toRat = q.toRat^k`. -/
+theorem TauRat.pow_nat_toRat (q : TauRat) (k : Nat) :
+    (q.pow_nat k).toRat = q.toRat ^ k := by
+  induction k with
+  | zero =>
+    show TauRat.one.toRat = q.toRat ^ 0
+    rw [toRat_one, pow_zero]
+  | succ k ih =>
+    show (q.mul (q.pow_nat k)).toRat = q.toRat ^ (k+1)
+    rw [toRat_mul, ih, pow_succ]
+    ring
+
+/-- Bound: `|q^k|.toRat ≤ M^k` when `|q.toRat| ≤ M`. -/
+theorem TauRat.pow_nat_abs_toRat_le (q : TauRat) (M : Rat) (k : Nat)
+    (hq : |q.toRat| ≤ M) :
+    |(q.pow_nat k).toRat| ≤ M^k := by
+  rw [TauRat.pow_nat_toRat, abs_pow]
+  exact pow_le_pow_left₀ (_root_.abs_nonneg _) hq k
+
+-- ============================================================
 -- PART 5: CLEAN-FORM DERIVATIVES VIA CONGRUENCE
 -- ============================================================
 
@@ -380,5 +438,199 @@ theorem TauReal.IsDerivAt_sq_clean (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) :
     simp only [toRat_add, toRat_mul, toRat_one]
     ring
   · exact TauReal.IsDerivAt_sq a ha
+
+-- ============================================================
+-- PART 6: powDerivAcc + GENERAL POWER RULE BY INDUCTION
+-- ============================================================
+
+/-- `powDerivAcc a k`: the Leibniz-form derivative of `x^(k+1)` evaluated
+    at `x = a`. Recursive — at level `k+1`, it's the Leibniz output of
+    applying the product rule to `x · x^(k+1)` (using the previous
+    accumulator at level `k`).
+
+    Mathematically, `(powDerivAcc a k).toRat = (k+1) · a.toRat^k`. -/
+def TauReal.powDerivAcc (a : TauRat) : Nat → TauReal
+  | 0     => TauReal.one
+  | k + 1 => (TauReal.one.mul (TauReal.fromTauRat (a.pow_nat (k+1)))).add
+              ((TauReal.fromTauRat a).mul (TauReal.powDerivAcc a k))
+
+/-- `(powDerivAcc a k).approx N .toRat = (k+1) · a.toRat^k`. -/
+theorem TauReal.powDerivAcc_approx_toRat (a : TauRat) (k : Nat) (N : Nat) :
+    ((TauReal.powDerivAcc a k).approx N).toRat = ((k+1 : Nat) : Rat) * a.toRat^k := by
+  induction k with
+  | zero =>
+    show (TauRat.one).toRat = ((0+1 : Nat) : Rat) * a.toRat^0
+    rw [toRat_one]
+    norm_num
+  | succ k ih =>
+    show (TauRat.add
+            (TauRat.mul TauRat.one (a.pow_nat (k+1)))
+            (TauRat.mul a ((TauReal.powDerivAcc a k).approx N))).toRat
+        = ((k+1+1 : Nat) : Rat) * a.toRat^(k+1)
+    rw [toRat_add, toRat_mul, toRat_mul, toRat_one]
+    rw [TauRat.pow_nat_toRat, ih]
+    have h_cast : ((k+1+1 : Nat) : Rat) = ((k+1 : Nat) : Rat) + 1 := by push_cast; ring
+    rw [h_cast]
+    rw [pow_succ]
+    ring
+
+/-- Bound: `|powDerivAcc a k .approx N|.toRat ≤ (k+1)` when `2·|a.toRat| ≤ 1`. -/
+theorem TauReal.powDerivAcc_abs_approx_toRat_le
+    (a : TauRat) (k : Nat) (N : Nat) (ha : 2 * |a.toRat| ≤ 1) :
+    |((TauReal.powDerivAcc a k).approx N).toRat| ≤ ((k+1 : Nat) : Rat) := by
+  rw [TauReal.powDerivAcc_approx_toRat]
+  rw [abs_mul, abs_pow]
+  have h_a_le_one : |a.toRat| ≤ 1 := by linarith
+  have h_a_nn : (0 : Rat) ≤ |a.toRat| := _root_.abs_nonneg _
+  have h_pow_le_one : |a.toRat|^k ≤ 1 := by
+    have : |a.toRat|^k ≤ (1 : Rat)^k := pow_le_pow_left₀ h_a_nn h_a_le_one k
+    simpa using this
+  have h_cast_nn : (0 : Rat) ≤ ((k+1 : Nat) : Rat) := by exact_mod_cast Nat.zero_le _
+  have h_abs_cast : |((k+1 : Nat) : Rat)| = ((k+1 : Nat) : Rat) := abs_of_nonneg h_cast_nn
+  rw [h_abs_cast]
+  calc ((k+1 : Nat) : Rat) * |a.toRat|^k
+      ≤ ((k+1 : Nat) : Rat) * 1 := by
+        apply mul_le_mul_of_nonneg_left h_pow_le_one h_cast_nn
+    _ = ((k+1 : Nat) : Rat) := by ring
+
+/-- Helper: `k + 1 ≤ 2^(k+1)`. -/
+private theorem succ_le_two_pow_succ (k : Nat) : k + 1 ≤ 2^(k+1) := by
+  induction k with
+  | zero => norm_num
+  | succ k ih =>
+    have h_pow_pos : 1 ≤ 2^(k+1) := Nat.one_le_pow _ _ (by norm_num)
+    calc k + 1 + 1
+        ≤ 2^(k+1) + 2^(k+1) := by omega
+      _ = 2^(k+2) := by ring
+
+/-- Helper: `(3/2 : Rat)^k ≤ 2^k` for any `k`. -/
+private theorem pow_three_half_le_two_pow (k : Nat) : ((3 : Rat)/2)^k ≤ (2 : Rat)^k := by
+  apply pow_le_pow_left₀ (by norm_num : (0 : Rat) ≤ 3/2) (by norm_num : (3 : Rat)/2 ≤ 2)
+
+/-- **[I.T-IsDerivAt-Pow-Zero]** Power rule base case: `IsDerivAt x^1`.
+
+    `pow_nat x 1 = x.mul TauRat.one` differs from `x` structurally but
+    is `.toRat`-equal. The congruence lemma `IsDerivAt_of_approx_toRat_eq`
+    bridges from `IsDerivAt_id`. -/
+theorem TauReal.IsDerivAt_pow_nat_zero (a : TauRat) :
+    TauReal.IsDerivAt (fun x : TauRat => TauReal.fromTauRat (x.pow_nat 1)) a
+                      (TauReal.powDerivAcc a 0) := by
+  apply TauReal.IsDerivAt_of_approx_toRat_eq
+    (f := fun x : TauRat => TauReal.fromTauRat x)
+    (L := TauReal.one)
+  · intro x N
+    show x.toRat = (x.mul TauRat.one).toRat
+    rw [toRat_mul, toRat_one]; ring
+  · intro N; rfl
+  · exact TauReal.IsDerivAt_id a
+
+/-- **[I.T-IsDerivAt-Pow-Step]** Power rule inductive step: from
+    `IsDerivAt x^(k+1)` derive `IsDerivAt x^(k+2)`.
+
+    Applies `IsDerivAt_mul` (Leibniz) with `f = identity`, `g = pow_nat (k+1)`,
+    bound parameter `M = 2^(k+1)`. The Leibniz output is structurally
+    `powDerivAcc a (k+1)` by definition. -/
+theorem TauReal.IsDerivAt_pow_nat_succ_step
+    (a : TauRat) (k : Nat) (ha : 2 * |a.toRat| ≤ 1)
+    (IH : TauReal.IsDerivAt (fun x : TauRat => TauReal.fromTauRat (x.pow_nat (k+1))) a
+                            (TauReal.powDerivAcc a k)) :
+    TauReal.IsDerivAt (fun x : TauRat => TauReal.fromTauRat (x.pow_nat (k+2))) a
+                      (TauReal.powDerivAcc a (k+1)) := by
+  have h_id : TauReal.IsDerivAt (fun x : TauRat => TauReal.fromTauRat x) a TauReal.one :=
+    TauReal.IsDerivAt_id a
+  -- Choose M = 2^(k+1)
+  set M : Nat := 2^(k+1) with hM_def
+  have hM_pos : 1 ≤ M := by
+    simp only [hM_def]
+    exact Nat.one_le_pow _ _ (by norm_num)
+  have h_a_abs_half : |a.toRat| ≤ (1 : Rat)/2 := by linarith
+  have h_a_abs_le_one : |a.toRat| ≤ 1 := by linarith
+  -- M as Rat ≥ 1
+  have hM_rat_pos : (1 : Rat) ≤ (M : Rat) := by exact_mod_cast hM_pos
+  -- M as Rat ≥ k+1
+  have hM_ge_succ : ((k+1 : Nat) : Rat) ≤ (M : Rat) := by
+    have : k + 1 ≤ M := by simp only [hM_def]; exact succ_le_two_pow_succ k
+    exact_mod_cast this
+  -- M as Rat = 2^(k+1)
+  have hM_rat : ((M : Nat) : Rat) = (2 : Rat)^(k+1) := by
+    simp only [hM_def]; push_cast; ring
+  -- Bound: |a.toRat| ≤ M
+  have h_bound_fa : ∀ n, ((TauReal.fromTauRat a).approx n).abs.toRat ≤ (M : Nat) := by
+    intro n
+    rw [fromTauRat_approx_abs_toRat]
+    show |a.toRat| ≤ ((M : Nat) : Rat)
+    linarith
+  -- Bound: |a.pow_nat (k+1)|.toRat ≤ 1 ≤ M
+  have h_bound_ga : ∀ n, ((TauReal.fromTauRat (a.pow_nat (k+1))).approx n).abs.toRat
+                            ≤ (M : Nat) := by
+    intro n
+    rw [fromTauRat_approx_abs_toRat]
+    show |(a.pow_nat (k+1)).toRat| ≤ ((M : Nat) : Rat)
+    have h_a_bound := TauRat.pow_nat_abs_toRat_le a 1 (k+1) h_a_abs_le_one
+    calc |(a.pow_nat (k+1)).toRat|
+        ≤ (1 : Rat)^(k+1) := h_a_bound
+      _ = 1 := one_pow _
+      _ ≤ (M : Rat) := hM_rat_pos
+  -- Bound: |(a + dyad N).pow_nat (k+1)|.toRat ≤ (3/2)^(k+1) ≤ 2^(k+1) = M
+  have h_bound_g_at_steps :
+      ∀ N n, (((fun x : TauRat => TauReal.fromTauRat (x.pow_nat (k+1)))
+                (a.add (TauRat.dyadicStep N))).approx n).abs.toRat ≤ (M : Nat) := by
+    intro N n
+    show ((TauReal.fromTauRat ((a.add (TauRat.dyadicStep N)).pow_nat (k+1))).approx n).abs.toRat
+        ≤ ((M : Nat) : Rat)
+    rw [fromTauRat_approx_abs_toRat]
+    have h_shift := dyadicStep_shift_abs_le a N
+    have h_shift_le_threehalves :
+        |(a.add (TauRat.dyadicStep N)).toRat| ≤ (3 : Rat)/2 := by linarith
+    have h_pow_bound := TauRat.pow_nat_abs_toRat_le
+                          (a.add (TauRat.dyadicStep N)) (3/2) (k+1) h_shift_le_threehalves
+    have h_three_half_le_two : ((3 : Rat)/2)^(k+1) ≤ (2 : Rat)^(k+1) :=
+      pow_three_half_le_two_pow (k+1)
+    rw [hM_rat]
+    linarith
+  -- Bound: |TauReal.one.approx n|.abs.toRat = 1 ≤ M
+  have h_bound_Lf : ∀ n, (TauReal.one.approx n).abs.toRat ≤ (M : Nat) := by
+    intro n
+    show TauRat.one.abs.toRat ≤ ((M : Nat) : Rat)
+    rw [TauRat.toRat_abs, toRat_one]
+    have h_abs : |(1 : Rat)| = 1 := by norm_num
+    rw [h_abs]
+    exact hM_rat_pos
+  -- Bound: |powDerivAcc a k|.toRat ≤ k+1 ≤ M
+  have h_bound_Lg : ∀ n, ((TauReal.powDerivAcc a k).approx n).abs.toRat ≤ (M : Nat) := by
+    intro n
+    rw [TauRat.toRat_abs]
+    have h_bd := TauReal.powDerivAcc_abs_approx_toRat_le a k n ha
+    show |((TauReal.powDerivAcc a k).approx n).toRat| ≤ ((M : Nat) : Rat)
+    linarith
+  -- Apply Leibniz: f = identity, g = pow_nat (k+1)
+  -- Function becomes fun x => fromTauRat (x.pow_nat (k+2)) by definitional equality
+  -- (pow_nat (k+2) = x.mul (pow_nat (k+1))).
+  -- Derivative becomes powDerivAcc a (k+1) by definition.
+  exact TauReal.IsDerivAt_mul
+    (f := fun x : TauRat => TauReal.fromTauRat x)
+    (g := fun x : TauRat => TauReal.fromTauRat (x.pow_nat (k+1)))
+    (a := a) (L_f := TauReal.one) (L_g := TauReal.powDerivAcc a k)
+    M hM_pos
+    h_bound_fa h_bound_ga h_bound_g_at_steps
+    h_bound_Lf h_bound_Lg
+    h_id IH
+
+/-- **[I.T-IsDerivAt-Pow]** General power rule for the TauReal derivative:
+
+    `IsDerivAt (fun x => fromTauRat (x.pow_nat (k+1))) a (powDerivAcc a k)`
+
+    on the disk `2·|a.toRat| ≤ 1`, for every natural number `k`.
+
+    Proof: induction on `k`, using the base case `IsDerivAt_pow_nat_zero`
+    (bridged from `IsDerivAt_id` via the `.toRat`-congruence) and the
+    inductive step `IsDerivAt_pow_nat_succ_step` (Leibniz with growing M). -/
+theorem TauReal.IsDerivAt_pow_nat (a : TauRat) (k : Nat) (ha : 2 * |a.toRat| ≤ 1) :
+    TauReal.IsDerivAt
+      (fun x : TauRat => TauReal.fromTauRat (x.pow_nat (k+1))) a
+      (TauReal.powDerivAcc a k) := by
+  induction k with
+  | zero => exact TauReal.IsDerivAt_pow_nat_zero a
+  | succ k IH => exact TauReal.IsDerivAt_pow_nat_succ_step a k ha IH
 
 end Tau.Boundary
