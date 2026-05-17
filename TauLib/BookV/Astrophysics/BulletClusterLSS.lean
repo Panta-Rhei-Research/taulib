@@ -379,4 +379,31 @@ theorem bao_scale_consistent :
 #eval power_spectrum_canonical.r_s_x10         -- 1475
 #eval power_spectrum_canonical.sigma8_x1000    -- 741
 
+-- ============================================================
+-- Cross-reference: relaxed-cluster substructure (Natarajan 2026)
+-- ============================================================
+
+/-- Cross-reference marker: the **relaxed-cluster member-galaxy
+    substructure** readout (Natarajan, Chiang & Dutra 2026, ApJL
+    1001 L12) lives in `TauLib.BookV.Cosmology.ClusterSubstructure`
+    rather than in this Bullet-Cluster merging-geometry module.
+
+    Rationale: V.T213's five-cluster universality catalog is
+    structurally narrower than F3-light's relaxed-cluster target —
+    the catalog comprises 4 merging clusters (Bullet, A2744,
+    El Gordo, MACS J0025) + 1 relaxed (A1689), at integrated-mass
+    per cluster. The Natarajan three (MACS J0416/J1206/J1149) are
+    all relaxed with substructure-resolved kpc-scale observables,
+    an orthogonal domain. Extension is therefore permitted only as
+    a fresh integrated-mass `[readout]` consistency check on the
+    present Bullet-context module; the substructure-resolved
+    readout lives in `BookV.Cosmology.ClusterSubstructure` with
+    anchors V.D350, V.D351, V.T346, V.T347, V.P212.
+
+    See `corpus/manuscript-sources/book-05/part05/
+    ch46-cluster-substructure.tex` and the F3-light research note
+    (`papers/research-notes/natarajan-cluster-dichotomy-categorical-
+    v1/`) for the manuscript treatment. -/
+def natarajan_relaxed_cluster_cross_ref : Unit := ()
+
 end Tau.BookV.Astrophysics
