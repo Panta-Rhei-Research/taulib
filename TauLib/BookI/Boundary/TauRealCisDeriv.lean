@@ -285,4 +285,76 @@ theorem TauReal.cis_arctan_im_zero_equiv_zero :
     linarith
   exact div_pos (by norm_num : (0 : Rat) < 1) h_pos
 
+-- ============================================================
+-- PART 5: Wave 3 — SMALL-ANGLE EXPANSIONS AT DEPTH 3
+-- ============================================================
+
+/-! ## Wave 3 — small-angle Taylor expansion at depth 3
+
+  Closed-form values of the exp pureIm partial sums at depth 3:
+
+      expPartial_pureIm_re_rat α 3 = 1 − α²/2
+      expPartial_pureIm_im_rat α 3 = α
+
+  These are the EXACT second-order Taylor expansions of cos and sin
+  at depth 3 — there is no truncation error because the depth-3 sum
+  has reached the next-after-leading term in each component.
+
+  These closed forms are foundational for the chain rule analysis:
+  they let us write
+
+      |cisTauReal(δ).re.approx N .toRat − 1| ≤ |α|²/2   (for N = 3)
+      |cisTauReal(δ).im.approx N .toRat − α| = 0         (for N = 3)
+
+  where α = δ.approx N .toRat. Subsequent waves extend these to
+  arbitrary depths via Taylor remainder bounds.
+
+  The cyclotomic-4 structure of `pureIm_pow_re_im_rat`:
+    k=0 → (1, 0)    k=1 → (0, α)    k=2 → (−α², 0)    k=3 → (0, −α³)
+  means the partial sum at depth N gets contributions from .1 only
+  at even k and from .2 only at odd k. -/
+
+/-- **Closed form at depth 3 — real part**:
+    `expPartial_pureIm_re_rat α 3 = 1 − α²/2`. -/
+theorem expPartial_pureIm_re_rat_three (α : Rat) :
+    expPartial_pureIm_re_rat α 3 = 1 - α^2 / 2 := by
+  -- Unfold step by step (avoiding looping `Nat = k+1` rewrites)
+  rw [show (3 : Nat) = 2 + 1 from rfl, expPartial_pureIm_re_rat_succ]
+  rw [show (2 : Nat) = 1 + 1 from rfl, expPartial_pureIm_re_rat_succ,
+      pureIm_pow_re_im_rat_succ]
+  rw [show (1 : Nat) = 0 + 1 from rfl, expPartial_pureIm_re_rat_succ,
+      pureIm_pow_re_im_rat_succ]
+  rw [expPartial_pureIm_re_rat_zero, pureIm_pow_re_im_rat_zero]
+  simp [Nat.factorial, pow_two]
+  ring
+
+/-- **Closed form at depth 3 — imaginary part**:
+    `expPartial_pureIm_im_rat α 3 = α`. -/
+theorem expPartial_pureIm_im_rat_three (α : Rat) :
+    expPartial_pureIm_im_rat α 3 = α := by
+  rw [show (3 : Nat) = 2 + 1 from rfl, expPartial_pureIm_im_rat_succ]
+  rw [show (2 : Nat) = 1 + 1 from rfl, expPartial_pureIm_im_rat_succ,
+      pureIm_pow_re_im_rat_succ]
+  rw [show (1 : Nat) = 0 + 1 from rfl, expPartial_pureIm_im_rat_succ,
+      pureIm_pow_re_im_rat_succ]
+  rw [expPartial_pureIm_im_rat_zero, pureIm_pow_re_im_rat_zero]
+  simp [Nat.factorial]
+
+/-- **Small-angle bound for re at depth 3**:
+    `|expPartial_pureIm_re_rat α 3 − 1| = |α|²/2 ≤ α²` for any `α`. -/
+theorem expPartial_pureIm_re_rat_three_small_angle (α : Rat) :
+    |expPartial_pureIm_re_rat α 3 - 1| = α^2 / 2 := by
+  rw [expPartial_pureIm_re_rat_three]
+  -- |1 - α²/2 - 1| = |-α²/2| = α²/2 (since α² ≥ 0)
+  have h_neg : (1 : Rat) - α^2 / 2 - 1 = -(α^2 / 2) := by ring
+  rw [h_neg, abs_neg]
+  have h_sq_nn : (0 : Rat) ≤ α^2 / 2 := by positivity
+  exact abs_of_nonneg h_sq_nn
+
+/-- **Small-angle exact equality for im at depth 3**:
+    `expPartial_pureIm_im_rat α 3 − α = 0`. -/
+theorem expPartial_pureIm_im_rat_three_small_angle (α : Rat) :
+    expPartial_pureIm_im_rat α 3 - α = 0 := by
+  rw [expPartial_pureIm_im_rat_three]; ring
+
 end Tau.Boundary
