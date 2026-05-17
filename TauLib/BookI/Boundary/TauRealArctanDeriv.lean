@@ -601,4 +601,274 @@ theorem arctan_pair_term_secant_taylor_bound (a h : Rat)
         linarith [h_X_div, h_Y_div]
     _ = h^2 * (4 * (k : Rat) + 2) := h_sum_eq
 
+-- ============================================================
+-- PART 10: Wave 3.C — ASSEMBLY OF IsDerivAt arctan_of_rat
+-- ============================================================
+
+/-! ## Wave 3.C — main IsDerivAt theorem
+
+  Assembles the IsDerivAt arctan_of_rat theorem using:
+  - Wave 3.A monomial bound
+  - Wave 3.B per-pair bound
+  - Wave 3.C.1: arctan_partial secant Taylor bound by induction (sum of pairs)
+  - Wave 3.C.2: polynomial Bernoulli `2^N ≥ N³/6` for `N ≥ 6`
+  - Wave 3.C.3: modulus derivation `2N²(k+1) ≤ 2^N` for `N ≥ 12(k+1)`
+  - Wave 3.C.4: main theorem with modulus `μ(k) = max(12(k+1), 1)`
+-/
+
+-- Wave 3.C.1: SUMMATION LEMMA
+theorem arctan_partial_rat_secant_taylor_bound
+    (a h : Rat) (ha : |a| ≤ 1/2) (hh_nn : 0 ≤ h) (hh : h ≤ 1/2) (N : Nat) :
+    |(arctan_partial_rat (a+h) N - arctan_partial_rat a N)
+        - h * arctan_deriv_partial_rat a N|
+      ≤ h^2 * 2 * (N : Rat)^2 := by
+  induction N with
+  | zero =>
+    show |(arctan_partial_rat (a+h) 0 - arctan_partial_rat a 0)
+            - h * arctan_deriv_partial_rat a 0|
+          ≤ h^2 * 2 * ((0 : Nat) : Rat)^2
+    rw [arctan_partial_rat_zero, arctan_partial_rat_zero, arctan_deriv_partial_rat_zero]
+    have h_zero : (0 : Rat) - 0 - h * 0 = 0 := by ring
+    rw [h_zero, abs_zero]
+    have h_sq_nn : (0 : Rat) ≤ h^2 := sq_nonneg _
+    positivity
+  | succ N ih =>
+    have h_pair := arctan_pair_term_secant_taylor_bound a h ha hh_nn hh N
+    -- Unfold partial and deriv_partial at N+1
+    rw [arctan_partial_rat_succ, arctan_partial_rat_succ, arctan_deriv_partial_rat_succ]
+    -- Restructure: (P + p)_diff = P_diff + p_diff
+    have h_eq :
+        (arctan_partial_rat (a+h) N + arctan_pair_term_rat (a+h) N)
+        - (arctan_partial_rat a N + arctan_pair_term_rat a N)
+        - h * (arctan_deriv_partial_rat a N + arctan_deriv_pair_term_rat a N)
+        = ((arctan_partial_rat (a+h) N - arctan_partial_rat a N)
+              - h * arctan_deriv_partial_rat a N)
+        + ((arctan_pair_term_rat (a+h) N - arctan_pair_term_rat a N)
+              - h * arctan_deriv_pair_term_rat a N) := by ring
+    rw [h_eq]
+    -- Triangle + IH + Wave 3.B
+    have h_tri := abs_add_le
+        ((arctan_partial_rat (a+h) N - arctan_partial_rat a N)
+            - h * arctan_deriv_partial_rat a N)
+        ((arctan_pair_term_rat (a+h) N - arctan_pair_term_rat a N)
+            - h * arctan_deriv_pair_term_rat a N)
+    have h_final :
+        h^2 * 2 * (N : Rat)^2 + h^2 * (4 * (N : Rat) + 2)
+        = h^2 * 2 * ((N+1 : Nat) : Rat)^2 := by push_cast; ring
+    linarith [ih, h_pair, h_tri]
+
+-- Wave 3.C.2: POLYNOMIAL BERNOULLI HELPER
+/-- For `N ≥ 6`, `2^N ≥ N³ / 6` at Rat level. -/
+theorem pow_two_ge_cube_div_six (N : Nat) (hN : 6 ≤ N) :
+    (N : Rat)^3 / 6 ≤ (2 : Rat)^N := by
+  induction N, hN using Nat.le_induction with
+  | base =>
+    show ((6 : Nat) : Rat)^3 / 6 ≤ (2 : Rat)^6
+    norm_num
+  | succ n hn ih =>
+    have h_pow_succ : (2 : Rat)^(n+1) = 2 * 2^n := by ring
+    have h_cube : ((n+1 : Nat) : Rat)^3 = ((n : Nat) : Rat)^3 + 3 * ((n : Nat) : Rat)^2 + 3 * ((n : Nat) : Rat) + 1 := by
+      push_cast; ring
+    rw [h_pow_succ, h_cube]
+    -- Goal: ((n)^3 + 3n² + 3n + 1) / 6 ≤ 2 * 2^n
+    -- From IH: (n)^3 / 6 ≤ 2^n.  So 2 * (n)^3/6 ≤ 2 * 2^n.
+    -- Need: ((n)^3 + 3n² + 3n + 1)/6 ≤ 2 * (n)^3/6, i.e., 3n² + 3n + 1 ≤ (n)^3.
+    -- For n ≥ 6: n³ - 3n² - 3n - 1 ≥ 0?
+    --   n=6: 216 - 108 - 18 - 1 = 89 ≥ 0 ✓
+    have h_n_rat : 6 ≤ ((n : Nat) : Rat) := by exact_mod_cast hn
+    have h_cube_ineq : (((n : Nat) : Rat))^3 ≥ 3 * (((n : Nat) : Rat))^2 + 3 * (((n : Nat) : Rat)) + 1 := by
+      nlinarith [sq_nonneg (((n : Nat) : Rat) - 6), h_n_rat]
+    linarith [ih, h_cube_ineq]
+
+-- Wave 3.C.3: MODULUS DERIVATION (strict)
+/-- For `N ≥ 13(k+1)`, `2N²(k+1) < 2^N` at Rat level (strict).
+
+    The strict inequality is needed for the IsDerivAt comparison
+    `< 1/(k+1)`. We derive strict from the slack between `N ≥ 13(k+1)`
+    and `N ≥ 12(k+1)`: the extra `(k+1)` in N gives enough headroom to
+    upgrade `≤` to `<`. -/
+theorem arctan_modulus_bound (k N : Nat) (hN : 13 * (k+1) ≤ N) :
+    2 * (N : Rat)^2 * ((k+1 : Nat) : Rat) < (2 : Rat)^N := by
+  have hN_ge_6 : 6 ≤ N := by
+    have : 13 * (k + 1) ≥ 13 := by omega
+    omega
+  have hN_ge_3 : 3 ≤ N := by omega
+  have h_bound := pow_two_ge_cube_div_six N hN_ge_6
+  -- N ≥ 13(k+1) at Rat level
+  have hN_rat : (13 * ((k+1 : Nat) : Rat)) ≤ (N : Rat) := by
+    have h_cast_ineq : ((13 * (k+1) : Nat) : Rat) ≤ (N : Rat) := by exact_mod_cast hN
+    have h_cast : ((13 * (k+1) : Nat) : Rat) = 13 * ((k+1 : Nat) : Rat) := by push_cast; ring
+    linarith
+  have h_N_sq_nn : (0 : Rat) ≤ (N : Rat)^2 := sq_nonneg _
+  have h_kp1_nn : (0 : Rat) ≤ ((k+1 : Nat) : Rat) := by exact_mod_cast Nat.zero_le _
+  have h_kp1_pos : (0 : Rat) < ((k+1 : Nat) : Rat) := by
+    have : (0 : Nat) < k+1 := Nat.succ_pos _
+    exact_mod_cast this
+  have h_N_ge_3_rat : (3 : Rat) ≤ (N : Rat) := by exact_mod_cast hN_ge_3
+  have h_N_sq_ge_9 : (9 : Rat) ≤ (N : Rat)^2 := by nlinarith [h_N_ge_3_rat]
+  -- N · N² ≥ 13(k+1) · N², so N³ ≥ 13(k+1) · N² = 12(k+1)·N² + (k+1)·N²
+  have h_cube_bound : 13 * ((k+1 : Nat) : Rat) * (N : Rat)^2 ≤ (N : Rat)^3 := by
+    have h_aux : (N : Rat)^3 = (N : Rat) * (N : Rat)^2 := by ring
+    rw [h_aux]
+    apply mul_le_mul_of_nonneg_right hN_rat h_N_sq_nn
+  -- (k+1) · N² ≥ 9 · 1 = 9 > 6 (since N² ≥ 9 and k+1 ≥ 1)
+  have h_extra : ((k+1 : Nat) : Rat) * (N : Rat)^2 ≥ 9 := by
+    have h_kp1_ge_1 : (1 : Rat) ≤ ((k+1 : Nat) : Rat) := by
+      have : 1 ≤ k+1 := by omega
+      exact_mod_cast this
+    nlinarith [h_N_sq_ge_9, h_kp1_ge_1]
+  -- N³/6 = (12(k+1)·N² + (k+1)·N²)/6 ≥ 2N²(k+1) + 9/6 > 2N²(k+1) + 1
+  -- So 2^N ≥ N³/6 > 2N²(k+1) + 1 > 2N²(k+1)
+  have h_step : (N : Rat)^3 / 6 ≥ 2 * (N : Rat)^2 * ((k+1 : Nat) : Rat) + 1 := by
+    have h1 : (N : Rat)^3 ≥ 12 * ((k+1 : Nat) : Rat) * (N : Rat)^2
+              + ((k+1 : Nat) : Rat) * (N : Rat)^2 := by linarith
+    nlinarith [h_extra, h1]
+  linarith
+
+-- Wave 3.C.4: "RAW" arctan TauReal sequence (defined for all TauRats)
+/-- **[I.D-Arctan-Of-Rat-Seq]** "Raw" arctan TauReal — drops the
+    convergence-domain hypothesis from `arctan_of_rat`, providing a
+    function `TauRat → TauReal` suitable for `IsDerivAt`.
+
+    For `x` in the convergence disk, `arctan_of_rat_seq x = arctan_of_rat x hx`
+    structurally. The IsDerivAt theorem uses this form to avoid the
+    dependent-typing issue of `arctan_of_rat`. -/
+def TauReal.arctan_of_rat_seq (x : TauRat) : TauReal :=
+  ⟨TauRat.arctan_partial x⟩
+
+@[simp] theorem TauReal.arctan_of_rat_seq_approx (x : TauRat) (n : Nat) :
+    (TauReal.arctan_of_rat_seq x).approx n = TauRat.arctan_partial x n := rfl
+
+-- Wave 3.C.5: MAIN IsDerivAt THEOREM
+/-- **[I.T-IsDerivAt-Arctan]** Main capstone theorem of Module 3:
+
+    `IsDerivAt arctan_of_rat_seq a (arctan_deriv_of_rat a ha)`
+
+    for `2·|a.toRat| ≤ 1`.
+
+    The arctan function (in its "raw" partial-sum-sequence form) has
+    derivative equal to the formal-derivative TauReal at every point
+    in the disk `|a| ≤ 1/2`.
+
+    Modulus: `μ(k) = max(12·(k+1), 1)`.
+
+    Proof:
+    - Wave 3.C.1 bounds the polynomial secant Taylor remainder by
+      `h² · 2N²` at every depth `N`.
+    - Wave 3.C.3 bounds `2N²(k+1) ≤ 2^N` for `N ≥ 12(k+1)`, giving
+      `2N²/2^N ≤ 1/(k+1)`.
+    - Multiplying by `1/h = 2^N` gives the scaled difference quotient
+      bound `≤ 2N²/2^N ≤ 1/(k+1)`. -/
+theorem TauReal.IsDerivAt_arctan_of_rat
+    (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) :
+    TauReal.IsDerivAt TauReal.arctan_of_rat_seq a (TauReal.arctan_deriv_of_rat a ha) := by
+  refine ⟨fun k => max (13 * (k+1)) 1, fun k N hN => ?_⟩
+  have hN_13 : 13 * (k+1) ≤ N := le_of_max_le_left hN
+  have hN_1 : 1 ≤ N := le_of_max_le_right hN
+  -- Unfold TauRat.lt + .toRat manipulations
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, TauRat.ofNatRecip_toRat]
+  -- Use the explicit step value throughout (no `set` to avoid form mismatch)
+  have h_step_eq : (TauRat.dyadicStep N).toRat = 1 / (2 : Rat)^N := TauRat.dyadicStep_toRat N
+  have h_step_nn : (0 : Rat) ≤ (TauRat.dyadicStep N).toRat := by
+    rw [h_step_eq]; positivity
+  have h_step_le_half : (TauRat.dyadicStep N).toRat ≤ 1/2 := by
+    rw [h_step_eq]
+    have h_pow_pos : (0 : Rat) < (2 : Rat)^N := by positivity
+    have h_pow_ge_two : (2 : Rat) ≤ (2 : Rat)^N := by
+      calc (2 : Rat) = (2 : Rat)^1 := by ring
+        _ ≤ (2 : Rat)^N := pow_le_pow_right₀ (by norm_num : (1 : Rat) ≤ 2) hN_1
+    rw [div_le_div_iff₀ h_pow_pos (by norm_num : (0 : Rat) < 2)]
+    linarith
+  -- Apply Wave 3.C.1 with the explicit step
+  have h_a_abs_le : |a.toRat| ≤ 1/2 := by linarith
+  have h_summation :=
+    arctan_partial_rat_secant_taylor_bound a.toRat (TauRat.dyadicStep N).toRat
+      h_a_abs_le h_step_nn h_step_le_half N
+  -- The .toRat of the IsDerivAt comparison expression
+  have h_lhs_toRat :
+      (((((TauReal.arctan_of_rat_seq (a.add (TauRat.dyadicStep N))).sub
+            (TauReal.arctan_of_rat_seq a)).mul
+          (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+          (TauReal.arctan_deriv_of_rat a ha)).approx N).toRat
+        = ((arctan_partial_rat (a.toRat + (TauRat.dyadicStep N).toRat) N
+                - arctan_partial_rat a.toRat N) * (2 : Rat)^N
+            - arctan_deriv_partial_rat a.toRat N) := by
+    show (TauRat.add
+            (TauRat.mul
+              (TauRat.add (TauRat.arctan_partial (a.add (TauRat.dyadicStep N)) N)
+                          (TauRat.negate (TauRat.arctan_partial a N)))
+              (TauRat.twoPowN N))
+            (TauRat.negate (TauRat.arctan_deriv_partial a N))).toRat = _
+    rw [toRat_add, toRat_mul, toRat_add, toRat_negate, toRat_negate,
+        TauRat.arctan_partial_toRat, TauRat.arctan_partial_toRat, TauRat.twoPowN_toRat,
+        TauRat.arctan_deriv_partial_toRat, toRat_add]
+    ring
+  rw [h_lhs_toRat]
+  -- Local abbreviation
+  have h_h_2pow_eq : (TauRat.dyadicStep N).toRat * (2 : Rat)^N = 1 := by
+    rw [h_step_eq]
+    have h_pow_pos : (0 : Rat) < (2 : Rat)^N := by positivity
+    field_simp
+  have h_two_pow_pos : (0 : Rat) < (2 : Rat)^N := by positivity
+  -- Rewrite: (P(a+h) - P(a)) * 2^N - P'(a) = ((P(a+h) - P(a)) - h*P'(a)) * 2^N
+  have h_factor_2pow :
+      (arctan_partial_rat (a.toRat + (TauRat.dyadicStep N).toRat) N
+          - arctan_partial_rat a.toRat N) * (2 : Rat)^N
+        - arctan_deriv_partial_rat a.toRat N
+      = ((arctan_partial_rat (a.toRat + (TauRat.dyadicStep N).toRat) N
+            - arctan_partial_rat a.toRat N)
+          - (TauRat.dyadicStep N).toRat * arctan_deriv_partial_rat a.toRat N) * (2 : Rat)^N := by
+    have h_subst : arctan_deriv_partial_rat a.toRat N
+                  = (TauRat.dyadicStep N).toRat * (2 : Rat)^N
+                    * arctan_deriv_partial_rat a.toRat N := by
+      rw [h_h_2pow_eq]; ring
+    calc (arctan_partial_rat (a.toRat + (TauRat.dyadicStep N).toRat) N
+              - arctan_partial_rat a.toRat N) * (2 : Rat)^N
+            - arctan_deriv_partial_rat a.toRat N
+        = (arctan_partial_rat (a.toRat + (TauRat.dyadicStep N).toRat) N
+              - arctan_partial_rat a.toRat N) * (2 : Rat)^N
+            - (TauRat.dyadicStep N).toRat * (2 : Rat)^N
+              * arctan_deriv_partial_rat a.toRat N := by
+          rw [← h_subst]
+      _ = ((arctan_partial_rat (a.toRat + (TauRat.dyadicStep N).toRat) N
+              - arctan_partial_rat a.toRat N)
+            - (TauRat.dyadicStep N).toRat * arctan_deriv_partial_rat a.toRat N) * (2 : Rat)^N := by
+          ring
+  rw [h_factor_2pow]
+  rw [abs_mul]
+  rw [abs_of_pos h_two_pow_pos]
+  -- Goal: |Taylor remainder| · 2^N < 1/(k+1)
+  have h_two_pow_nn : (0 : Rat) ≤ (2 : Rat)^N := h_two_pow_pos.le
+  have h_summ_2pow :
+      |arctan_partial_rat (a.toRat + (TauRat.dyadicStep N).toRat) N
+        - arctan_partial_rat a.toRat N
+        - (TauRat.dyadicStep N).toRat * arctan_deriv_partial_rat a.toRat N| * (2 : Rat)^N
+        ≤ (TauRat.dyadicStep N).toRat^2 * 2 * (N : Rat)^2 * (2 : Rat)^N :=
+    mul_le_mul_of_nonneg_right h_summation h_two_pow_nn
+  -- h² · 2N² · 2^N = (1/2^N)² · 2N² · 2^N = 2N²/2^N
+  have h_step_sq : (TauRat.dyadicStep N).toRat^2 = 1 / (2 : Rat)^N / (2 : Rat)^N := by
+    rw [h_step_eq]; field_simp
+  have h_eq_2N2 :
+      (TauRat.dyadicStep N).toRat^2 * 2 * (N : Rat)^2 * (2 : Rat)^N
+        = 2 * (N : Rat)^2 / (2 : Rat)^N := by
+    rw [h_step_sq]
+    have h_pow_ne : ((2 : Rat)^N) ≠ 0 := ne_of_gt h_two_pow_pos
+    field_simp
+  rw [h_eq_2N2] at h_summ_2pow
+  -- Apply STRICT modulus bound: 2N²(k+1) < 2^N, so 2N²/2^N < 1/(k+1)
+  have h_modulus := arctan_modulus_bound k N hN_13
+  have h_k1_pos : (0 : Rat) < ((k+1 : Nat) : Rat) := by
+    have : (0 : Nat) < k+1 := Nat.succ_pos _
+    exact_mod_cast this
+  -- 2N² / 2^N < 1/(k+1) iff 2N² · (k+1) < 2^N (strict)
+  have h_div_lt : 2 * (N : Rat)^2 / (2 : Rat)^N < 1 / ((k+1 : Nat) : Rat) := by
+    rw [div_lt_div_iff₀ h_two_pow_pos h_k1_pos]
+    linarith
+  -- The final cast: 1/((k+1 : Nat) : Rat) = 1/((k : Rat) + 1)
+  have h_cast_kp1 : ((k+1 : Nat) : Rat) = (k : Rat) + 1 := by push_cast; ring
+  rw [h_cast_kp1] at h_div_lt
+  -- Chain: |Taylor| · 2^N ≤ 2N²/2^N < 1/((k : Rat) + 1)
+  linarith [h_summ_2pow, h_div_lt]
+
 end Tau.Boundary
