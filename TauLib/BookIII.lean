@@ -86,6 +86,7 @@ import TauLib.BookIII.Bridge.G8FiniteApproximants
 import TauLib.BookIII.Bridge.G8CompletionUniqueness
 import TauLib.BookIII.Bridge.G8ZeroDivisorTransfer
 import TauLib.BookIII.Bridge.G8OffCriticalPullback
+import TauLib.BookIII.Bridge.G8OffCriticalPullbackTest
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
@@ -106,7 +107,7 @@ Forces of Mathematics. 50 modules covering the enrichment ladder (E₀⊊E₁⊊
 spectral algebra, all 8 Millennium Problem treatments, computation layer,
 orthodox bridge, and reflective coda.
 
-## Module Count: 71
+## Module Count: 72
 
 ## Key Results
 - III.T04: Canonical Ladder (E₀⊊E₁⊊E₂⊊E₃ unique and saturated)
