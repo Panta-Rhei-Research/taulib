@@ -253,4 +253,99 @@ theorem TauReal.IsDerivAt_id (a₀ : TauRat) :
   have h_pos : (0 : Rat) < (k : Rat) + 1 := by linarith
   exact div_pos (by norm_num : (0 : Rat) < 1) h_pos
 
+-- ============================================================
+-- PART 5: SUM RULE
+-- ============================================================
+
+/-- **Helper**: scaled-difference at depth N split into f-part + g-part (Rat level).
+
+    The sum-rule's key algebraic identity, stated at the Rat-arithmetic
+    level (after all TauReal operations and `.approx N` and `.toRat` have
+    been unfolded). -/
+private theorem scaledDiff_add_split
+    (Fh Ga Fa Gh : TauRat) (Lf Lg : TauRat) (t : TauRat) :
+    (TauRat.add
+        (TauRat.mul
+          (TauRat.add
+            (TauRat.add Fh Gh)
+            (TauRat.negate (TauRat.add Fa Ga)))
+          t)
+        (TauRat.negate (TauRat.add Lf Lg))).toRat
+    = (TauRat.add
+          (TauRat.mul (TauRat.add Fh (TauRat.negate Fa)) t)
+          (TauRat.negate Lf)).toRat
+      + (TauRat.add
+          (TauRat.mul (TauRat.add Gh (TauRat.negate Ga)) t)
+          (TauRat.negate Lg)).toRat := by
+  simp only [toRat_add, toRat_mul, toRat_negate]
+  ring
+
+/-- **[I.T-IsDerivAt-Add]** Sum rule for the TauReal derivative:
+
+        IsDerivAt f a L_f, IsDerivAt g a L_g  ⟹  IsDerivAt (f + g) a (L_f + L_g)
+
+    Modulus: max(μ_f(2k+1), μ_g(2k+1)) using the standard "halve the
+    tolerance" pattern from `TauReal.equiv_trans`. -/
+theorem TauReal.IsDerivAt_add
+    {f g : TauRat → TauReal} {a : TauRat} {L_f L_g : TauReal}
+    (hf : TauReal.IsDerivAt f a L_f) (hg : TauReal.IsDerivAt g a L_g) :
+    TauReal.IsDerivAt (fun x => (f x).add (g x)) a (L_f.add L_g) := by
+  obtain ⟨μ_f, hμ_f⟩ := hf
+  obtain ⟨μ_g, hμ_g⟩ := hg
+  refine ⟨fun k => max (μ_f (2*k+1)) (μ_g (2*k+1)), fun k N hN => ?_⟩
+  have hN_f : μ_f (2*k+1) ≤ N := le_of_max_le_left hN
+  have hN_g : μ_g (2*k+1) ≤ N := le_of_max_le_right hN
+  have h_f := hμ_f (2*k+1) N hN_f
+  have h_g := hμ_g (2*k+1) N hN_g
+  unfold TauRat.lt at h_f h_g ⊢
+  rw [TauRat.toRat_abs, TauRat.ofNatRecip_toRat] at h_f h_g ⊢
+  -- Define short names for the depth-N values
+  set Fh : TauRat := (f (a.add (TauRat.dyadicStep N))).approx N with hFh
+  set Ga : TauRat := (g a).approx N with hGa
+  set Fa : TauRat := (f a).approx N with hFa
+  set Gh : TauRat := (g (a.add (TauRat.dyadicStep N))).approx N with hGh
+  set Lf : TauRat := L_f.approx N with hLf
+  set Lg : TauRat := L_g.approx N with hLg
+  set t : TauRat := (TauReal.fromTauRat (TauRat.twoPowN N)).approx N with ht
+  -- Algebraic split of the sum's toRat
+  have h_split := scaledDiff_add_split Fh Ga Fa Gh Lf Lg t
+  -- The .approx N of TauReal-level expressions matches the TauRat-level form
+  have h_LHS_eq :
+      (((((fun x => (f x).add (g x)) (a.add (TauRat.dyadicStep N))).sub
+            ((fun x => (f x).add (g x)) a)).mul
+          (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+          (L_f.add L_g)).approx N
+      = TauRat.add
+          (TauRat.mul
+            (TauRat.add (TauRat.add Fh Gh) (TauRat.negate (TauRat.add Fa Ga))) t)
+          (TauRat.negate (TauRat.add Lf Lg)) := rfl
+  have h_RHS_f_eq :
+      ((((f (a.add (TauRat.dyadicStep N))).sub (f a)).mul
+          (TauReal.fromTauRat (TauRat.twoPowN N))).sub L_f).approx N
+      = TauRat.add (TauRat.mul (TauRat.add Fh (TauRat.negate Fa)) t)
+                    (TauRat.negate Lf) := rfl
+  have h_RHS_g_eq :
+      ((((g (a.add (TauRat.dyadicStep N))).sub (g a)).mul
+          (TauReal.fromTauRat (TauRat.twoPowN N))).sub L_g).approx N
+      = TauRat.add (TauRat.mul (TauRat.add Gh (TauRat.negate Ga)) t)
+                    (TauRat.negate Lg) := rfl
+  rw [h_LHS_eq]
+  rw [h_RHS_f_eq] at h_f
+  rw [h_RHS_g_eq] at h_g
+  -- h_split: LHS.toRat = f-part.toRat + g-part.toRat
+  rw [h_split]
+  -- Triangle inequality + tolerance arithmetic
+  have h_tri : |(TauRat.add (TauRat.mul (TauRat.add Fh (TauRat.negate Fa)) t)
+                              (TauRat.negate Lf)).toRat
+                + (TauRat.add (TauRat.mul (TauRat.add Gh (TauRat.negate Ga)) t)
+                              (TauRat.negate Lg)).toRat|
+              ≤ |(TauRat.add (TauRat.mul (TauRat.add Fh (TauRat.negate Fa)) t)
+                              (TauRat.negate Lf)).toRat|
+                + |(TauRat.add (TauRat.mul (TauRat.add Gh (TauRat.negate Ga)) t)
+                              (TauRat.negate Lg)).toRat| := abs_add_le _ _
+  have h_eq : (1 : Rat) / (((2*k+1 : Nat) : Rat) + 1) + 1 / (((2*k+1 : Nat) : Rat) + 1)
+              = 1 / ((k : Rat) + 1) := by
+    push_cast; field_simp; ring
+  linarith
+
 end Tau.Boundary
