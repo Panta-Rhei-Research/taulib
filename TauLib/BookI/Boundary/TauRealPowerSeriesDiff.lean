@@ -147,4 +147,133 @@ theorem TauReal.IsDerivAt_sq (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) :
     h_bound_one h_bound_one
     h_id h_id
 
+-- ============================================================
+-- PART 3: THE CUBIC RULE
+-- ============================================================
+
+/-- Helper for the cubic rule: bound on `|q²|` for `|q.toRat| ≤ 3/2`. -/
+private theorem sq_abs_bound_of_le_threehalves
+    (q : TauRat) (h : |q.toRat| ≤ (3 : Rat)/2) :
+    |(q.mul q).toRat| ≤ (9 : Rat)/4 := by
+  rw [toRat_mul]
+  rw [abs_mul]
+  have h_nn : (0 : Rat) ≤ |q.toRat| := _root_.abs_nonneg _
+  have h_le : (3 : Rat)/2 ≥ 0 := by norm_num
+  calc |q.toRat| * |q.toRat|
+      ≤ ((3 : Rat)/2) * |q.toRat| := by
+        apply mul_le_mul_of_nonneg_right h h_nn
+    _ ≤ ((3 : Rat)/2) * ((3 : Rat)/2) := by
+        apply mul_le_mul_of_nonneg_left h h_le
+    _ = (9 : Rat)/4 := by norm_num
+
+/-- **[I.T-IsDerivAt-Cube]** Cubic rule for the TauReal derivative:
+
+    `IsDerivAt (fun x => fromTauRat (x · (x · x))) a (Leibniz-form derivative)`
+
+    on the disk `2·|a.toRat| ≤ 1`. The derivative's `.toRat` evaluates to `3a²`.
+
+    Proof strategy: apply `IsDerivAt_mul` (Leibniz) with `f = fun x => fromTauRat x`
+    (identity, derivative `TauReal.one`) and `g = fun x => fromTauRat (x · x)`
+    (square, derivative from `IsDerivAt_sq`). Bound parameter `M = 4` accommodates
+    the worst-case `|(a + dyadicStep 0)²| ≤ 9/4 ≤ 4`.
+
+    Wave 2 deliverable — demonstrates the Leibniz-iteration pattern for higher
+    monomial degrees. -/
+theorem TauReal.IsDerivAt_cube (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) :
+    TauReal.IsDerivAt
+      (fun x : TauRat => TauReal.fromTauRat (TauRat.mul x (TauRat.mul x x)))
+      a
+      ((TauReal.one.mul (TauReal.fromTauRat (TauRat.mul a a))).add
+        ((TauReal.fromTauRat a).mul
+          ((TauReal.one.mul (TauReal.fromTauRat a)).add
+            ((TauReal.fromTauRat a).mul TauReal.one)))) := by
+  have h_id : TauReal.IsDerivAt (fun x => TauReal.fromTauRat x) a TauReal.one :=
+    TauReal.IsDerivAt_id a
+  have h_sq : TauReal.IsDerivAt (fun x => TauReal.fromTauRat (TauRat.mul x x)) a
+      ((TauReal.one.mul (TauReal.fromTauRat a)).add
+        ((TauReal.fromTauRat a).mul TauReal.one)) := TauReal.IsDerivAt_sq a ha
+  -- Bounds with M = 4:
+  --   |a.toRat| ≤ 1/2 ≤ 4
+  --   |(a + dyadicStep N).toRat| ≤ 3/2 ≤ 4
+  --   |a².toRat| ≤ 1/4 ≤ 4
+  --   |(a + dyad)².toRat| ≤ 9/4 ≤ 4
+  --   |L_f|.abs.toRat = |TauReal.one.approx n|.abs.toRat = 1 ≤ 4
+  --   |L_g|.abs.toRat = 2·|a.toRat| ≤ 1 ≤ 4
+  have h_a_abs : |a.toRat| ≤ (1 : Rat)/2 := by linarith
+  -- Bound: |(fromTauRat a).approx n|.abs.toRat ≤ 4
+  have h_bound_fa : ∀ n, ((TauReal.fromTauRat a).approx n).abs.toRat ≤ (4 : Nat) := by
+    intro n
+    rw [fromTauRat_approx_abs_toRat]
+    show |a.toRat| ≤ ((4 : Nat) : Rat)
+    have : ((4 : Nat) : Rat) = 4 := by norm_num
+    linarith
+  -- Bound: |(fromTauRat (a · a)).approx n|.abs.toRat ≤ 4
+  have h_bound_ga : ∀ n, ((TauReal.fromTauRat (TauRat.mul a a)).approx n).abs.toRat
+                            ≤ (4 : Nat) := by
+    intro n
+    rw [fromTauRat_approx_abs_toRat]
+    show |(a.mul a).toRat| ≤ ((4 : Nat) : Rat)
+    rw [toRat_mul, abs_mul]
+    have : ((4 : Nat) : Rat) = 4 := by norm_num
+    rw [this]
+    have h_nn : (0 : Rat) ≤ |a.toRat| := _root_.abs_nonneg _
+    calc |a.toRat| * |a.toRat|
+        ≤ ((1 : Rat)/2) * |a.toRat| := by
+          apply mul_le_mul_of_nonneg_right h_a_abs h_nn
+      _ ≤ ((1 : Rat)/2) * ((1 : Rat)/2) := by
+          apply mul_le_mul_of_nonneg_left h_a_abs (by norm_num : (0 : Rat) ≤ (1 : Rat)/2)
+      _ ≤ 4 := by norm_num
+  -- Bound: |(fun x => fromTauRat (x · x)) (a + dyad).approx n|.abs.toRat ≤ 4
+  have h_bound_g_at_steps :
+      ∀ N n, (((fun x : TauRat => TauReal.fromTauRat (TauRat.mul x x))
+                (a.add (TauRat.dyadicStep N))).approx n).abs.toRat ≤ (4 : Nat) := by
+    intro N n
+    show ((TauReal.fromTauRat ((a.add (TauRat.dyadicStep N)).mul
+            (a.add (TauRat.dyadicStep N)))).approx n).abs.toRat ≤ ((4 : Nat) : Rat)
+    rw [fromTauRat_approx_abs_toRat]
+    have h_shift := dyadicStep_shift_abs_le a N
+    have h_shift_le_threehalves : |(a.add (TauRat.dyadicStep N)).toRat| ≤ (3 : Rat)/2 := by
+      linarith
+    have h_sq_bound := sq_abs_bound_of_le_threehalves _ h_shift_le_threehalves
+    have : ((4 : Nat) : Rat) = 4 := by norm_num
+    rw [this]
+    linarith
+  -- Bound: |TauReal.one.approx n|.abs.toRat ≤ 4
+  have h_bound_Lf : ∀ n, (TauReal.one.approx n).abs.toRat ≤ (4 : Nat) := by
+    intro n
+    show (TauRat.one.abs).toRat ≤ ((4 : Nat) : Rat)
+    rw [TauRat.toRat_abs, toRat_one]
+    have : ((4 : Nat) : Rat) = 4 := by norm_num
+    rw [this]; norm_num
+  -- Bound: |L_g|.abs.toRat ≤ 4 where L_g is the square rule's derivative.
+  have h_bound_Lg : ∀ n, (((TauReal.one.mul (TauReal.fromTauRat a)).add
+                            ((TauReal.fromTauRat a).mul TauReal.one)).approx n).abs.toRat
+                            ≤ (4 : Nat) := by
+    intro n
+    show (TauRat.add (TauRat.mul TauRat.one a) (TauRat.mul a TauRat.one)).abs.toRat
+            ≤ ((4 : Nat) : Rat)
+    rw [TauRat.toRat_abs, toRat_add, toRat_mul, toRat_mul, toRat_one]
+    have : ((4 : Nat) : Rat) = 4 := by norm_num
+    rw [this]
+    have h_eq : 1 * a.toRat + a.toRat * 1 = 2 * a.toRat := by ring
+    rw [h_eq]
+    have : |2 * a.toRat| = 2 * |a.toRat| := by
+      rw [abs_mul]
+      have h_two_nn : (0 : Rat) ≤ 2 := by norm_num
+      rw [abs_of_nonneg h_two_nn]
+    rw [this]
+    linarith
+  -- Apply Leibniz: f = identity, g = square, M = 4
+  exact TauReal.IsDerivAt_mul
+    (f := fun x => TauReal.fromTauRat x)
+    (g := fun x => TauReal.fromTauRat (TauRat.mul x x))
+    (a := a)
+    (L_f := TauReal.one)
+    (L_g := (TauReal.one.mul (TauReal.fromTauRat a)).add
+              ((TauReal.fromTauRat a).mul TauReal.one))
+    4 (by norm_num : 1 ≤ 4)
+    h_bound_fa h_bound_ga h_bound_g_at_steps
+    h_bound_Lf h_bound_Lg
+    h_id h_sq
+
 end Tau.Boundary
