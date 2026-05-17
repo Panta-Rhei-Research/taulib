@@ -117,4 +117,67 @@ def TauReal.IsDerivAt (f : TauRat → TauReal) (a : TauRat) (L : TauReal) : Prop
             (TauReal.fromTauRat (TauRat.twoPowN N))).sub L).approx N).abs
       (TauRat.ofNatRecip k)
 
+-- ============================================================
+-- PART 3: CONSTANT RULE
+-- ============================================================
+
+/-- **[I.T-IsDerivAt-Const]** The constant function `fun _ => c` has
+    derivative `TauReal.zero` at every point.
+
+    Proof: `(c - c) · 2^N = 0` at TauReal level, so the scaled
+    difference is zero in every approximation. Modulus is `fun _ => 0`. -/
+theorem TauReal.IsDerivAt_const (c : TauReal) (a : TauRat) :
+    TauReal.IsDerivAt (fun _ => c) a TauReal.zero := by
+  refine ⟨fun _ => 0, fun k N _ => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, TauRat.ofNatRecip_toRat]
+  -- Compute the inner .toRat = 0 via step-by-step unfolding
+  -- The expression at depth N: ((c - c) · 2^N - 0).approx N
+  -- = TauRat.add ((c-c).mul ...).approx N (TauRat.negate TauRat.zero)
+  -- = TauRat.add (TauRat.mul ((c-c).approx N) (...)) (...)
+  -- = TauRat.mul (TauRat.add (c.approx N) (TauRat.negate (c.approx N))) ... etc.
+  -- All toRat values cancel to 0.
+  have h_zero : ((((((fun _ : TauRat => c) (a.add (TauRat.dyadicStep N))).sub
+                  ((fun _ : TauRat => c) a)).mul
+                (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+                TauReal.zero).approx N).toRat = 0 := by
+    -- Beta-reduces (fun _ => c) applications
+    show (((((c).sub c).mul
+              (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+            TauReal.zero).approx N).toRat = 0
+    -- Expand (.sub TauReal.zero).approx N
+    show (TauRat.add
+            (((c.sub c).mul (TauReal.fromTauRat (TauRat.twoPowN N))).approx N)
+            ((TauReal.zero.negate).approx N)).toRat = 0
+    rw [toRat_add]
+    -- (TauReal.zero.negate).approx N .toRat = 0
+    have h_neg_zero : ((TauReal.zero.negate).approx N).toRat = 0 := by
+      show (TauRat.negate (TauReal.zero.approx N)).toRat = 0
+      show (TauRat.negate TauRat.zero).toRat = 0
+      rw [toRat_negate, toRat_zero]
+      ring
+    rw [h_neg_zero]
+    -- ((c.sub c).mul ...).approx N .toRat = 0 · ... = 0
+    have h_mul_zero :
+        (((c.sub c).mul (TauReal.fromTauRat (TauRat.twoPowN N))).approx N).toRat = 0 := by
+      show (TauRat.mul ((c.sub c).approx N)
+              ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N)).toRat = 0
+      rw [toRat_mul]
+      -- (c.sub c).approx N .toRat = 0 via add+negate cancellation
+      have h_diff : ((c.sub c).approx N).toRat = 0 := by
+        show ((c.add c.negate).approx N).toRat = 0
+        show (TauRat.add (c.approx N) ((c.negate).approx N)).toRat = 0
+        show (TauRat.add (c.approx N) (TauRat.negate (c.approx N))).toRat = 0
+        rw [toRat_add, toRat_negate]
+        ring
+      rw [h_diff]
+      ring
+    rw [h_mul_zero]
+    ring
+  rw [h_zero, abs_zero]
+  -- Goal: 0 < 1/((k:Rat)+1)
+  have h_k : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+  have h_pos : (0 : Rat) < (k : Rat) + 1 := by linarith
+  exact div_pos (by norm_num : (0 : Rat) < 1) h_pos
+
 end Tau.Boundary
