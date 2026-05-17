@@ -500,4 +500,105 @@ theorem monomial_secant_taylor_bound (a h : Rat) (n : Nat)
                  sq_nonneg (((n+1 : Nat) : Rat))]
     linarith
 
+-- ============================================================
+-- PART 9: Wave 3.B — ARCTAN PAIR-TERM SECANT BOUND
+-- ============================================================
+
+/-! ## Wave 3.B — arctan pair-term secant Taylor remainder bound
+
+  Lifts the Wave 3.A monomial bound to the arctan pair-term level:
+
+      |(pair_term(a+h, k) − pair_term(a, k)) − h · deriv_pair_term(a, k)|
+        ≤ h² · (4k+2)
+
+  Proof: decompose pair_term into its two monomial subtractions
+  `x^(4k+1)/(4k+1) − x^(4k+3)/(4k+3)`. The numerator difference matches
+  the monomial bound at `n = 4k` and `n = 4k+2`. After dividing by
+  `(4k+1)` and `(4k+3)` respectively and triangle-inequalitying:
+
+      |error| ≤ h²·(4k+1)/2 + h²·(4k+3)/2 = h²·(4k+2)
+-/
+
+theorem arctan_pair_term_secant_taylor_bound (a h : Rat)
+    (ha : |a| ≤ 1/2) (hh_nn : 0 ≤ h) (hh : h ≤ 1/2) (k : Nat) :
+    |(arctan_pair_term_rat (a+h) k - arctan_pair_term_rat a k)
+      - h * (arctan_deriv_pair_term_rat a k)|
+      ≤ h^2 * (4 * (k : Rat) + 2) := by
+  -- Apply Wave 3.A at n=4k and n=4k+2
+  have h_mono_4k1 := monomial_secant_taylor_bound a h (4*k) ha hh_nn hh
+  have h_mono_4k3 := monomial_secant_taylor_bound a h (4*k+2) ha hh_nn hh
+  -- Normalize casts to canonical Rat-arithmetic form
+  push_cast at h_mono_4k1 h_mono_4k3
+  -- Normalize (4k+2)+1 ↦ 4k+3 at both Nat and Rat levels
+  rw [show (4 * k + 2 + 1 : Nat) = 4 * k + 3 from by omega] at h_mono_4k3
+  rw [show (4 * (k : Rat) + 2 + 1) = 4 * (k : Rat) + 3 from by ring] at h_mono_4k3
+  -- Normalize (4k+0)+1 ↦ 4k+1 at both Nat and Rat levels (Wave 3.A's n=4k gives n+1=4k+1)
+  rw [show (4 * k + 1 : Nat) = 4 * k + 1 from rfl] at h_mono_4k1
+  -- Denominators positive (Rat-arithmetic form)
+  have h_4k1_pos : (0 : Rat) < 4 * (k : Rat) + 1 := by
+    have h_k_nn : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le _
+    linarith
+  have h_4k3_pos : (0 : Rat) < 4 * (k : Rat) + 3 := by
+    have h_k_nn : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le _
+    linarith
+  -- Unfold definitions
+  unfold arctan_pair_term_rat arctan_deriv_pair_term_rat
+  -- Normalize the unfolded goal
+  push_cast
+  -- The goal now uses canonical Rat-form denominators (4*↑k+1, 4*↑k+3)
+  -- Algebraic identity:
+  have h_4k1_ne : 4 * (k : Rat) + 1 ≠ 0 := ne_of_gt h_4k1_pos
+  have h_4k3_ne : 4 * (k : Rat) + 3 ≠ 0 := ne_of_gt h_4k3_pos
+  have h_split :
+      (a+h)^(4*k+1)/(4 * (k : Rat) + 1) - (a+h)^(4*k+3)/(4 * (k : Rat) + 3)
+      - (a^(4*k+1)/(4 * (k : Rat) + 1) - a^(4*k+3)/(4 * (k : Rat) + 3))
+      - h * (a^(4*k) - a^(4*k+2))
+      = ((a+h)^(4*k+1) - a^(4*k+1) - h * (4 * (k : Rat) + 1) * a^(4*k))
+          / (4 * (k : Rat) + 1)
+        - ((a+h)^(4*k+3) - a^(4*k+3) - h * (4 * (k : Rat) + 3) * a^(4*k+2))
+          / (4 * (k : Rat) + 3) := by
+    field_simp
+    ring
+  rw [h_split]
+  -- Set the bounded pieces
+  set X := (a+h)^(4*k+1) - a^(4*k+1) - h * (4 * (k : Rat) + 1) * a^(4*k) with hX_def
+  set Y := (a+h)^(4*k+3) - a^(4*k+3) - h * (4 * (k : Rat) + 3) * a^(4*k+2) with hY_def
+  have h_X_bound : |X| ≤ h^2 * (4 * (k : Rat) + 1)^2 / 2 := h_mono_4k1
+  have h_Y_bound : |Y| ≤ h^2 * (4 * (k : Rat) + 3)^2 / 2 := h_mono_4k3
+  -- Triangle inequality
+  have h_tri : |X / (4 * (k : Rat) + 1) - Y / (4 * (k : Rat) + 3)|
+              ≤ |X| / (4 * (k : Rat) + 1) + |Y| / (4 * (k : Rat) + 3) := by
+    calc |X / (4 * (k : Rat) + 1) - Y / (4 * (k : Rat) + 3)|
+        ≤ |X / (4 * (k : Rat) + 1)| + |Y / (4 * (k : Rat) + 3)| := abs_sub _ _
+      _ = |X| / (4 * (k : Rat) + 1) + |Y| / (4 * (k : Rat) + 3) := by
+          rw [abs_div, abs_div]
+          rw [abs_of_pos h_4k1_pos, abs_of_pos h_4k3_pos]
+  -- Bound each piece: |X|/(4k+1) ≤ h²·(4k+1)/2 and similarly for Y
+  have h_X_div : |X| / (4 * (k : Rat) + 1) ≤ h^2 * (4 * (k : Rat) + 1) / 2 := by
+    rw [div_le_div_iff₀ h_4k1_pos (by norm_num : (0 : Rat) < 2)]
+    have h_X_bound_x2 : |X| ≤ h^2 * (4 * (k : Rat) + 1)^2 / 2 := h_X_bound
+    have h_pow_2 : (h^2 * (4 * (k : Rat) + 1)^2 / 2) * 2 = h^2 * (4 * (k : Rat) + 1)^2 := by
+      field_simp
+    have h_X_bound' : |X| * 2 ≤ h^2 * (4 * (k : Rat) + 1)^2 := by
+      linarith [mul_le_mul_of_nonneg_right h_X_bound_x2 (by norm_num : (0 : Rat) ≤ 2)]
+    have h_sq : (4 * (k : Rat) + 1)^2 = (4 * (k : Rat) + 1) * (4 * (k : Rat) + 1) := sq _
+    nlinarith [h_X_bound', h_sq]
+  have h_Y_div : |Y| / (4 * (k : Rat) + 3) ≤ h^2 * (4 * (k : Rat) + 3) / 2 := by
+    rw [div_le_div_iff₀ h_4k3_pos (by norm_num : (0 : Rat) < 2)]
+    have h_Y_bound_x2 : |Y| ≤ h^2 * (4 * (k : Rat) + 3)^2 / 2 := h_Y_bound
+    have h_pow_2 : (h^2 * (4 * (k : Rat) + 3)^2 / 2) * 2 = h^2 * (4 * (k : Rat) + 3)^2 := by
+      field_simp
+    have h_Y_bound' : |Y| * 2 ≤ h^2 * (4 * (k : Rat) + 3)^2 := by
+      linarith [mul_le_mul_of_nonneg_right h_Y_bound_x2 (by norm_num : (0 : Rat) ≤ 2)]
+    have h_sq : (4 * (k : Rat) + 3)^2 = (4 * (k : Rat) + 3) * (4 * (k : Rat) + 3) := sq _
+    nlinarith [h_Y_bound', h_sq]
+  -- Final assembly
+  have h_sum_eq : h^2 * (4 * (k : Rat) + 1) / 2 + h^2 * (4 * (k : Rat) + 3) / 2
+                  = h^2 * (4 * (k : Rat) + 2) := by ring
+  calc |X / (4 * (k : Rat) + 1) - Y / (4 * (k : Rat) + 3)|
+      ≤ |X| / (4 * (k : Rat) + 1) + |Y| / (4 * (k : Rat) + 3) := h_tri
+    _ ≤ h^2 * (4 * (k : Rat) + 1) / 2 + h^2 * (4 * (k : Rat) + 3) / 2 := by
+        linarith [h_X_div, h_Y_div]
+    _ = h^2 * (4 * (k : Rat) + 2) := h_sum_eq
+
 end Tau.Boundary
