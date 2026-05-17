@@ -357,4 +357,172 @@ theorem TauReal.cos_of_rat_isCauchy (x : TauRat) (hx : |x.toRat| ≤ 1) :
     have h_four_lt := Rat.four_div_two_pow_lt_recip k m hm
     linarith
 
+-- ============================================================
+-- PART 8: cos_of_rat BOUNDED AWAY FROM ZERO  (Wave Γ₈ Phase 2.6.B.1)
+-- ============================================================
+
+/-! ## Phase 2.6.B.1 — `cos_of_rat_boundedAwayFromZero`
+
+For `|x.toRat| ≤ 1`, `cos_of_rat x` is bounded away from zero at every
+approx depth `n ≥ 1`. This is the foundational prerequisite for the
+arctan addition formula via angle injectivity (Phase 2.6.B.2).
+
+**Proof structure**:
+1. Each `cos_pair_term_rat x k ≥ 0` for `k ≥ 1, |x| ≤ 1` (ratio of consecutive
+   terms `x²/((4k+1)(4k+2)) ≤ 1` for `|x| ≤ 1, k ≥ 1`).
+2. `cos_partial_rat` is monotone non-decreasing on `n ≥ 1` (adds non-negative terms).
+3. `cos_partial_rat x 1 = 1 − x²/2 ≥ 1/2` for `|x| ≤ 1`.
+4. Hence `cos_partial_rat x n ≥ 1/2 > 1/3` for `n ≥ 1, |x| ≤ 1`.
+5. Lift to TauReal: `BoundedAwayFromZero` with witness `k = 2, N = 1`.
+-/
+
+/-- **Non-negativity of cos paired term for k ≥ 1**: for `|x| ≤ 1` and `k ≥ 1`,
+    each `cos_pair_term_rat x k` is non-negative.
+
+    Proof: `pair_k = x^(4k)/(4k)! - x^(4k+2)/(4k+2)!`. Factor common terms:
+    `= x^(4k) · ((4k+1)(4k+2) - x²) / (4k+2)!`. Each factor is non-negative
+    (`x^(4k) = (x²)^(2k) ≥ 0`; `(4k+1)(4k+2) ≥ 30 ≥ x²` for `|x| ≤ 1, k ≥ 1`). -/
+theorem cos_pair_term_rat_nonneg_at_pos_k (x : Rat) (hx : |x| ≤ 1)
+    (k : Nat) (hk : 1 ≤ k) :
+    0 ≤ cos_pair_term_rat x k := by
+  unfold cos_pair_term_rat
+  have h_fac_4k_pos : (0 : Rat) < (Nat.factorial (4*k) : Rat) := by
+    have := Nat.factorial_pos (4*k); exact_mod_cast this
+  have h_fac_4k2_pos : (0 : Rat) < (Nat.factorial (4*k+2) : Rat) := by
+    have := Nat.factorial_pos (4*k+2); exact_mod_cast this
+  have h_x_pow_4k_nn : (0 : Rat) ≤ x^(4*k) := by
+    have h_even : Even (4*k) := ⟨2*k, by ring⟩
+    exact h_even.pow_nonneg x
+  have h_x_sq_le_1 : x^2 ≤ 1 := by
+    rw [show x^2 = |x|^2 from by rw [sq_abs]]
+    have : |x|^2 ≤ 1^2 := pow_le_pow_left₀ (abs_nonneg _) hx 2
+    linarith
+  have h_pow_split : x^(4*k+2) = x^(4*k) * x^2 := by
+    rw [show 4*k+2 = (4*k) + 2 from rfl, pow_add]
+  have h_fac_rel : (Nat.factorial (4*k+2) : Rat)
+                = ((4*k+1 : Nat) : Rat) * ((4*k+2 : Nat) : Rat) * (Nat.factorial (4*k) : Rat) := by
+    have h_nat : Nat.factorial (4*k+2) = (4*k+1) * (4*k+2) * Nat.factorial (4*k) := by
+      rw [show 4*k+2 = ((4*k)+1)+1 from rfl, Nat.factorial_succ, Nat.factorial_succ]
+      ring
+    push_cast [h_nat]
+    ring
+  have h_4k1_ge_5 : 5 ≤ (4*k+1 : Nat) := by omega
+  have h_4k2_ge_6 : 6 ≤ (4*k+2 : Nat) := by omega
+  have h_prod_ge_30 : (30 : Rat) ≤ ((4*k+1 : Nat) : Rat) * ((4*k+2 : Nat) : Rat) := by
+    have h1 : (5 : Rat) ≤ ((4*k+1 : Nat) : Rat) := by exact_mod_cast h_4k1_ge_5
+    have h2 : (6 : Rat) ≤ ((4*k+2 : Nat) : Rat) := by exact_mod_cast h_4k2_ge_6
+    nlinarith
+  -- Show: x^(4k)/(4k)! - x^(4k+2)/(4k+2)! ≥ 0
+  -- Rewrite as a single fraction with denominator (4k+2)!:
+  --   = (x^(4k) · (4k+1)(4k+2) − x^(4k+2)) / (4k+2)!
+  --   = x^(4k) · ((4k+1)(4k+2) − x²) / (4k+2)!  [using h_pow_split]
+  -- Both numerator factors non-negative, denominator positive ⇒ ≥ 0.
+  have h_eq : x^(4*k) / (Nat.factorial (4*k) : Rat) - x^(4*k+2) / (Nat.factorial (4*k+2) : Rat)
+              = x^(4*k) * (((4*k+1 : Nat) : Rat) * ((4*k+2 : Nat) : Rat) - x^2)
+                / (Nat.factorial (4*k+2) : Rat) := by
+    rw [h_pow_split, h_fac_rel]
+    field_simp
+  rw [h_eq]
+  apply div_nonneg
+  · apply mul_nonneg h_x_pow_4k_nn
+    linarith
+  · exact h_fac_4k2_pos.le
+
+/-- **Monotonicity of `cos_partial_rat` from depth 1**: for `|x| ≤ 1` and `n ≥ 1`,
+    `cos_partial_rat x 1 ≤ cos_partial_rat x n`. Proven by induction adding
+    non-negative paired terms. -/
+theorem cos_partial_rat_ge_partial_one (x : Rat) (hx : |x| ≤ 1) (n : Nat) (hn : 1 ≤ n) :
+    cos_partial_rat x 1 ≤ cos_partial_rat x n := by
+  induction n, hn using Nat.le_induction with
+  | base => exact le_refl _
+  | succ n hn ih =>
+    have h_term_nn : 0 ≤ cos_pair_term_rat x n :=
+      cos_pair_term_rat_nonneg_at_pos_k x hx n hn
+    have h_succ_eq : cos_partial_rat x (n + 1) = cos_partial_rat x n + cos_pair_term_rat x n :=
+      cos_partial_rat_succ x n
+    rw [h_succ_eq]
+    linarith
+
+/-- **`cos_partial_rat x 1 = 1 − x²/2`**. -/
+theorem cos_partial_rat_one (x : Rat) : cos_partial_rat x 1 = 1 - x^2 / 2 := by
+  show cos_partial_rat x 0 + cos_pair_term_rat x 0 = 1 - x^2/2
+  rw [cos_partial_rat_zero]
+  unfold cos_pair_term_rat
+  simp
+
+/-- **`cos_partial_rat ≥ 1/2`** for `|x| ≤ 1` and `n ≥ 1`. -/
+theorem cos_partial_rat_ge_half (x : Rat) (hx : |x| ≤ 1) (n : Nat) (hn : 1 ≤ n) :
+    1/2 ≤ cos_partial_rat x n := by
+  have h_mono := cos_partial_rat_ge_partial_one x hx n hn
+  have h_one_eq := cos_partial_rat_one x
+  have h_x_sq_le : x^2 ≤ 1 := by
+    rw [show x^2 = |x|^2 from by rw [sq_abs]]
+    have : |x|^2 ≤ 1^2 := pow_le_pow_left₀ (abs_nonneg _) hx 2
+    linarith
+  linarith
+
+/-- **🎯 [I.T-Cos-BoundedAwayFromZero]** `TauReal.cos_of_rat x` is bounded
+    away from zero for `|x.toRat| ≤ 1`.
+
+    Witness: `k = 2, N = 1`, giving `1/3 < |cos_partial x n .toRat|` for `n ≥ 1`.
+    The lower bound is `1/2` (proven via monotonicity), which strictly exceeds
+    `1/3 = 1/(k+1)`.
+
+    This is the prerequisite for the angle-injectivity lemma in Phase 2.6.B.2,
+    which underpins the arctan addition formula. -/
+theorem TauReal.cos_of_rat_boundedAwayFromZero (x : TauRat) (hx : |x.toRat| ≤ 1) :
+    (TauReal.cos_of_rat x).BoundedAwayFromZero := by
+  refine ⟨2, 1, fun n hn => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.ofNatRecip_toRat, TauRat.toRat_abs, TauReal.cos_of_rat_approx,
+      TauRat.cos_partial_toRat]
+  -- Goal: 1/((2:Rat) + 1) < |cos_partial_rat x.toRat n|
+  have h_ge_half : 1/2 ≤ cos_partial_rat x.toRat n :=
+    cos_partial_rat_ge_half x.toRat hx n hn
+  have h_abs : |cos_partial_rat x.toRat n| = cos_partial_rat x.toRat n :=
+    abs_of_pos (by linarith)
+  rw [h_abs]
+  -- Now: 1/((2:Rat) + 1) < cos_partial_rat x.toRat n. With 1/3 < 1/2 ≤ value, this holds.
+  push_cast
+  linarith
+
+-- ============================================================
+-- PART 9: 🎯 cos is EVEN — parity identity (Phase 2.6.B.2.β.4.5)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.5 — cos parity (even function)
+
+  `cos_pair_term_rat x k = x^(4k)/(4k)! − x^(4k+2)/(4k+2)!`
+
+  Both `4k` and `4k+2` are even, so `(−x)^even = x^even`, giving the
+  per-term identity `cos_pair_term_rat (−x) k = cos_pair_term_rat x k`.
+  Summing: `cos_partial_rat (−x) n = cos_partial_rat x n`. Lifts to TauReal
+  via `equiv_of_pointwise`. -/
+
+/-- **[I.T-CosPairTerm-Even]** `cos_pair_term_rat (−x) k = cos_pair_term_rat x k`. -/
+theorem cos_pair_term_rat_neg (x : Rat) (k : Nat) :
+    cos_pair_term_rat (-x) k = cos_pair_term_rat x k := by
+  unfold cos_pair_term_rat
+  have h_even1 : Even (4*k) := ⟨2*k, by ring⟩
+  have h_even2 : Even (4*k+2) := ⟨2*k+1, by ring⟩
+  rw [Even.neg_pow h_even1, Even.neg_pow h_even2]
+
+/-- **[I.T-CosPartial-Even]** `cos_partial_rat (−x) n = cos_partial_rat x n`. -/
+theorem cos_partial_rat_neg (x : Rat) (n : Nat) :
+    cos_partial_rat (-x) n = cos_partial_rat x n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    rw [cos_partial_rat_succ, ih, cos_pair_term_rat_neg, cos_partial_rat_succ]
+
+/-- **🎯 [I.T-CosOfRat-Even]** `cos_of_rat (negate q) ≈ cos_of_rat q` at TauReal. -/
+theorem TauReal.cos_of_rat_negate (q : TauRat) :
+    TauReal.equiv (TauReal.cos_of_rat (TauRat.negate q)) (TauReal.cos_of_rat q) := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  rw [TauReal.cos_of_rat_approx, TauReal.cos_of_rat_approx,
+      TauRat.cos_partial_toRat, TauRat.cos_partial_toRat, toRat_negate,
+      cos_partial_rat_neg]
+
 end Tau.Boundary
