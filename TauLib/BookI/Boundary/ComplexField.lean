@@ -5,30 +5,122 @@ import Mathlib.Tactic.Ring
 /-!
 # TauLib.BookI.Boundary.ComplexField
 
-The elliptic complex field: TauComplex = TauReal[i]/(i² + 1).
+The elliptic complex field as the **cyclotomic-4 adjunction over TauReal**:
+`TauComplex := TauReal[X] / (X² + 1)`.
+
+The pair-structure `TauComplex = (re, im)` is the **canonical normal-form
+presentation** of that quotient — every element `re + im · X` of the
+quotient is uniquely represented by the pair `(re, im)`, and the quotient
+relation `X² = -1` is automatically satisfied by the multiplication rule
+`(a + bX)(c + dX) = (ac - bd) + (ad + bc)X`.
+
+## Structural framing (Wave Γ₇ Phase 3C reconciliation, 2026-05-14)
+
+τ-canon's **native scalar algebra is split-complex** (`j² = +1`), built
+in `BipolarAlgebra.SplitComplex` and `Boundary/SplitComplex.lean`. The
+relation `j² = +1` is **kernel-forced via I.T10** — it derives from
+the bipolar prime partition demanding idempotents `e_+ · e_- = 0`, and
+only `j² = +1` supplies them. This is paper-anchored in 5+ corpus
+statements; B-physics (BookIV FCNC) runs entirely on split-complex.
+
+**The orthodox complex relation `i² = -1` is NOT native** to τ-canon's
+scalar algebra: Book II ch.08 (lines 88-138) explicitly forbids
+`j² = -1`-type algebra at the τ³-interior layer (three independent
+kernel-level reasons). The 12 FCNC papers have zero mention of `i² = -1`.
+
+Instead, `i` lives in τ-canon as a **cyclotomic extension** —
+specifically, a primitive 4th root of unity adjoined to `TauReal` to
+solve the polynomial `X² + 1 = 0`. This is the standard cyclotomic
+construction `ℝ[X]/(X²+1) = ℝ[ζ₄]` made τ-native, paper-anchored at
+**manuscript ch77** (`ch77-complex-field.tex`).
+
+The structural reading: **`TauComplex` is the elliptic extension of
+TauReal beyond the native split-complex algebra**, with `i` as the
+canonical cyclotomic-4 root. The pair-structure used in this module
+is the normal form of the quotient; the `i² ≈ -1` identity is proved
+as the `taucomplex_i_squared` theorem and serves as the defining
+relation.
+
+## Rigor label
+
+**[NEW EXTENSION]** (Wave Γ₇ Phase 3C reconciliation): the "elliptic
+complex field" appears at I.D85 and is documented at ch77, but the
+explicit framing of `i` as a **cyclotomic-4 adjunction** (the
+structural-credibility narrative tying it to τ-canon's split-complex
+native algebra) is novel to Wave Γ₇. A Book I manuscript paragraph
+titled "The Cyclotomic Adjunction" is queued to close this rigor gap
+at the paper level.
 
 ## Registry Cross-References
 
 - [I.D85] TauComplex — Elliptic complex field over constructive reals
-- [I.D86] Elliptic-Hyperbolic Dichotomy — TauComplex (field) vs SplitComplex (zero divisors)
-- [I.T43] Field Axioms — TauComplex forms a commutative ring (field axioms up to equiv)
+- [I.D86] Elliptic-Hyperbolic Dichotomy — TauComplex (field) vs
+  SplitComplex (zero divisors)
+- [I.T43] Field Axioms — TauComplex forms a commutative ring (field
+  axioms up to equiv)
+- [I.T10] (in `BipolarAlgebra.lean`) — `j² = +1` kernel-forced via
+  bipolar prime partition (the **native** algebra)
+- (Future) `Cyclotomic.lean` — general cyclotomic-tower framework
+- Wave Γ₇ Phase 3C reconciliation sprint:
+  `atlas/sprints/2026-05-14-tau-canonical-complex-redesign/`
 
 ## Ground Truth Sources
-- ch77-complex-field.tex: Complex field construction, i² = -1, ring axioms
+
+- `ch77-complex-field.tex`: Complex field construction as quotient
+  `ℂ_τ := ℝ_τ[x] / (x² + 1)`, ring axioms.
+- `ch08-foundations-of-the-tau-interior.tex` (lines 88-138): the
+  standing reservation against `j² = -1`-type algebra at τ³ interior;
+  motivates treating `i` as a cyclotomic extension rather than a
+  native primary.
+- `BipolarAlgebra.lean` [I.T10]: split-complex paper-forcing.
 
 ## Mathematical Content
 
-TauComplex is the standard complex field built over TauReal: pairs (re, im)
-with multiplication (a + bi)(c + di) = (ac - bd) + (ad + bc)i. The defining
-relation is i² = -1 (elliptic sign), in contrast to SplitComplex where j² = +1
-(hyperbolic sign). This sign difference has profound consequences:
+TauComplex is the standard elliptic complex field built over TauReal:
+pairs `(re, im)` with multiplication
+`(a + bi)(c + di) = (ac - bd) + (ad + bc)i`.
+The defining relation `i² = -1` (elliptic / cyclotomic-4) contrasts
+with SplitComplex `j² = +1` (hyperbolic / paper-forced native).
+This sign difference has profound consequences:
 
-- **TauComplex** (i² = -1): field, no zero divisors, algebraically closed
-- **SplitComplex** (j² = +1): ring with zero divisors, sector decomposition
+- **TauComplex** (`i² = -1`, cyclotomic extension): field, no zero
+  divisors, algebraically closed (in the algebraic-closure sense).
+- **SplitComplex** (`j² = +1`, native): ring with zero divisors,
+  sector decomposition, paper-anchored at the kernel level.
 
-All ring axioms are proved up to TauComplex.equiv (componentwise TauReal.equiv),
-which reduces pointwise to TauRat.equiv, then to TauInt.equiv via
-cross-multiplication, then to Int equality via equiv_iff_toInt_eq.
+All ring axioms are proved up to TauComplex.equiv (componentwise
+TauReal.equiv), which reduces pointwise to TauRat.equiv, then to
+TauInt.equiv via cross-multiplication, then to Int equality via
+`equiv_iff_toInt_eq`.
+
+## Use sites and forward-research targets
+
+* Wave Γ₇ Phase 3C-Part-2+ — `TauComplex.exp_partial` Taylor series
+  + Cauchy property (queued).
+* Wave Γ₇ Phase 3C-Part-3 — `TauComplex.exp_add` lift from
+  `TauReal.exp_add` (the **M3 breakthrough** — sin/cos addition
+  formula via exp-addition + i-structure).
+* Wave Γ₇ Phase 3C-Part-4 — extract sin/cos addition formulae from
+  `cis(α + β) = cis(α) · cis(β)` where `cis(x) := cos(x) + i · sin(x)`.
+
+## Historical note (Wave Γ₇ Phase 3C duplicate cleanup)
+
+Wave Γ₇ Phase 3C Part 1 (commit `529a0af`, 2026-05-14) initially
+shipped a `TauRealComplex.lean` module that duplicated this file.
+The deep-research red-team sprint
+(`atlas/sprints/2026-05-14-tau-canonical-complex-redesign/`)
+caught the duplication and identified that:
+
+1. `TauComplex` in this file already provides the full elliptic
+   complex field with `i² ≈ -1` proved.
+2. The manuscript ch77 already frames the construction as a
+   cyclotomic quotient.
+3. The orthodox `i` is structurally an extension, not a primary type.
+
+The duplicate `TauRealComplex.lean` was removed, and this docstring
+updated to make the cyclotomic-adjunction framing explicit. The
+`TauComplex` infrastructure stands as the canonical Lean carrier
+for the cyclotomic-4 elliptic complex field.
 -/
 
 set_option autoImplicit false

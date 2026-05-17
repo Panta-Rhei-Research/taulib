@@ -2,22 +2,34 @@
 layout: default
 title: "API Documentation"
 permalink: /docs/
+og_image: /assets/og/png/og-docs.png
+og_image_alt: "TauLib API Documentation — generated Lean 4 module docs"
 right_rail:
   related:
     - title: "Home"
       url: /
-    - title: "Panta Rhei Verify"
+    - title: "WP003 — Technical Overview"
+      url: https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/
+    - title: "Verify / TauLib"
       url: https://panta-rhei.site/verify/taulib/
+    - title: "Release Manifest"
+      url: https://panta-rhei.site/verify/release-manifest/
   meta:
     type: "Documentation Index"
     status: "Canonical"
-    updated: "April 2026"
+    updated: "May 2026"
 ---
 
 <div class="hero-card">
   <span class="eyebrow">TauLib &middot; API Reference</span>
   <h1>Module Documentation</h1>
-  <p>Browse generated Lean 4 module documentation organized by book and subject area.</p>
+  <p>Generated Lean 4 module documentation, organized by book and subject area. For release metrics and trust budget, use the Release Manifest and WP003.</p>
+  <div class="btn-group">
+    <a href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" class="btn-primary" {% include cta-attrs.html location="hero" label="WP003" href="https://panta-rhei.site/publications/anchor-documents/wp003-taulib-technical-overview/" variant="wp003" %}>WP003</a>
+    <a href="https://panta-rhei.site/verify/taulib/" class="btn-secondary" {% include cta-attrs.html location="hero" label="Verify / TauLib" href="https://panta-rhei.site/verify/taulib/" variant="verify-taulib" %}>Verify / TauLib</a>
+    <a href="https://panta-rhei.site/verify/release-manifest/" class="btn-tertiary" {% include cta-attrs.html location="hero" label="Release Manifest" href="https://panta-rhei.site/verify/release-manifest/" variant="release-manifest" %}>Release Manifest</a>
+    <a href="https://github.com/Panta-Rhei-Research/taulib" class="btn-lean" target="_blank" rel="noopener" {% include cta-attrs.html location="hero" label="GitHub" href="https://github.com/Panta-Rhei-Research/taulib" variant="taulib-source" %}>GitHub</a>
+  </div>
 </div>
 
 <div class="content-card" markdown="1">
