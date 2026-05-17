@@ -22,10 +22,11 @@ between lemniscate eigenvalues and Riemann zeta zeros. At each finite
 stage k, the correspondence holds (verified by native_decide). The gap
 is the infinite-limit assertion, which cannot be extracted from finite checks.
 
-**III.D94 (YM Gap Persistence):** The τ-gap τ_gap(k) = min(B_k, C_k) is
-positive for all k ≥ 3 and grows monotonically. This is the τ-internal
-analog of the Yang-Mills mass gap. The bridge gap: identification of
-τ_gap with the physical mass gap requires the bridge functor.
+**III.D94 (YM Gap Persistence):** The finite τ-gap τ_gap(k) = min(B_k, C_k)
+is positive across the checked tower and nondecreasing over the persistence
+range. Under the corrected prime-polarity classifier, both B and C prime
+sectors are nonempty from k ≥ 4. The bridge gap remains: identifying τ_gap
+with the physical mass gap requires the bridge functor.
 
 **III.T62 (NS Causal Arrow):** The Hartogs flow on the primorial tower
 has a natural causal arrow from the B/C sector asymmetry. The flow
@@ -97,7 +98,7 @@ def tau_gap (k : Nat) : Nat :=
   min b c
 
 /-- [III.D94] Gap persistence: τ-gap is positive and non-decreasing
-    for k ≥ 3. -/
+    across the checked range. -/
 def ym_gap_persistence_check (db : Nat) : Bool :=
   go 3 (db + 1)
 where
@@ -113,8 +114,9 @@ where
       positive && monotone && go (k + 1) (fuel - 1)
   termination_by fuel
 
-/-- [III.D94] Gap growth: at each stage, the gap grows by a factor
-    related to the next prime. -/
+/-- [III.D94] Gap growth witness: the gap strictly grows over the small
+    initial window used by `ym_gap_growth_4`. Later stages use the
+    nondecreasing persistence check rather than a global strict-growth claim. -/
 def ym_gap_growth_check (db : Nat) : Bool :=
   go 3 (db + 1)
 where
@@ -124,7 +126,7 @@ where
     else
       let gap_k := tau_gap k
       let gap_k1 := tau_gap (k + 1)
-      -- Growth: gap_{k+1} > gap_k (strict for k ≥ 3)
+      -- Growth witness over the checked initial window.
       let grows := gap_k1 > gap_k
       grows && go (k + 1) (fuel - 1)
   termination_by fuel

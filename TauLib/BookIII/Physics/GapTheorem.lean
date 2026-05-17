@@ -23,11 +23,14 @@ B-product and C-product: no eigenvalue of H_L at the "zero mode" exists
 between the two sectors.
 
 **III.D45 (Gap Constant):** The gap constant at level k is
-gap(k) = min(B-product, C-product) at that level. As k → ∞, the gap
-grows without bound (B and C products grow with distinct rates).
+gap(k) = min(B-product, C-product) at that level. The current executable
+surface checks finite positivity and monotone persistence; asymptotic
+growth claims belong to later analytic/cofinality obligations.
 
-**III.P17 (Mass Existence):** The gap constant is positive for k ≥ 3,
-proving the existence of a mass gap in any strong sector.
+**III.P17 (Mass Existence):** The finite gap constant is positive at the
+checked levels. Under the corrected prime-polarity classifier, both B and C
+prime sectors are nonempty from k ≥ 4; depth 3 still has a positive product
+gap because the empty B-product is 1.
 
 **III.T27 (Yang-Mills Instantiation):** Yang-Mills mass gap = τ-gap in the
 E₁ gauge sector. The non-abelian gauge structure is encoded in the
@@ -49,14 +52,15 @@ open Tau.BookIII.Spectral Tau.BookIII.Doors
 -- ============================================================
 
 /-- [III.T26] τ-gap at level k: the minimum of B-product and C-product.
-    Positive iff both sectors are non-trivial. -/
+    Positivity is a finite product fact; nontrivial B/C sector occupancy
+    starts at depth 4 under the corrected classifier. -/
 def tau_gap_at_level (k : TauIdx) : TauIdx :=
   let bp := split_zeta_b k
   let cp := split_zeta_c k
   if bp <= cp then bp else cp
 
-/-- [III.T26] τ-gap meta-theorem check: at every level k ≥ 3 where
-    the strong sector condition holds, the gap is positive. -/
+/-- [III.T26] τ-gap meta-theorem check: at every checked level k ≥ 3 where
+    the strong sector condition holds, the finite product gap is positive. -/
 def tau_gap_meta_check (db : TauIdx) : Bool :=
   go 3 (db + 1)
 where
@@ -89,8 +93,7 @@ where
 -- GAP CONSTANT [III.D45]
 -- ============================================================
 
-/-- [III.D45] Gap constant at level k. For k ≥ 3, this is the minimum
-    of B-product and C-product (both positive by strong sector). -/
+/-- [III.D45] Gap constant at level k: the minimum of B-product and C-product. -/
 def gap_constant (k : TauIdx) : TauIdx := tau_gap_at_level k
 
 /-- [III.D45] Gap constant check: the constant is well-defined and
@@ -113,9 +116,8 @@ where
 -- MASS EXISTENCE [III.P17]
 -- ============================================================
 
-/-- [III.P17] Mass existence: the gap constant is strictly positive
-    at all levels ≥ 3 where B and C are non-trivial. This is the
-    mass gap existence theorem in τ. -/
+/-- [III.P17] Mass existence: the finite gap constant is strictly positive
+    at all checked levels, with nontrivial B/C occupancy beginning at k ≥ 4. -/
 def mass_existence_check (db : TauIdx) : Bool :=
   go 3 (db + 1)
 where
@@ -241,8 +243,11 @@ theorem gap_constant_is_gap (k : TauIdx) :
 theorem ym_gap_is_tau_gap_3 :
     gap_constant 3 = tau_gap_at_level 3 := rfl
 
-/-- [III.D46] Structural: YM coupling at depth 3. -/
+/-- [III.D46] Structural: the coarse integer-quotient YM coupling is zero
+    at depth 3 because the corrected source-truth classifier gives
+    B=1 and C=15. Nonzero coupling must be read through the product data
+    or a later rational/scaled coupling surface, not this integer quotient. -/
 theorem ym_coupling_3 :
-    ym_sector_coupling 3 > 0 := by native_decide
+    ym_sector_coupling 3 = 0 := by native_decide
 
 end Tau.BookIII.Physics

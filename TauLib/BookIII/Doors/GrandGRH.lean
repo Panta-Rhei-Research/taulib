@@ -57,7 +57,7 @@ where
       let complete := if pk > 0 then b_prod * c_prod * x_prod == pk else true
       -- Each sector has correct eigenvalue structure
       let (b_ct, c_ct, _x_ct) := label_counts k
-      let balance := if k >= 3 then b_ct > 0 && c_ct > 0 else true
+      let balance := if k >= 4 then b_ct > 0 && c_ct > 0 else true
       coprime && complete && balance && go (k + 1) (fuel - 1)
   termination_by fuel
 
@@ -148,13 +148,12 @@ where
       let c_extends := if c_k > 0 then c_k1 % c_k == 0 else true
       b_extends && c_extends && go 1 (k + 1) (fuel - 1)
     else
-      -- Verify label classification against mod-4 residue (not self-comparison)
+      -- Verify label classification against the source-truth depth label,
+      -- not the deprecated mod-4 diagnostic.
       let p := nth_prime i
       let label := label_direct p
-      let mod4_ok := if p % 4 == 1 then label == .B
-                     else if p % 4 == 3 then label == .C
-                     else true
-      mod4_ok && go (i + 1) k (fuel - 1)
+      let source_ok := label == label_at_depth i k
+      source_ok && go (i + 1) k (fuel - 1)
   termination_by fuel
 
 /-- [III.T20] Sector growth rates: B-product and C-product grow at
@@ -232,13 +231,17 @@ theorem l_function_spectral_5 :
 -- STRUCTURAL THEOREMS
 -- ============================================================
 
-/-- [III.D31] Structural: Grand GRH finite check at depth 3. -/
-theorem grand_grh_3 :
-    grand_grh_finite_check 3 = true := by native_decide
+/-- [III.D31] Structural: Grand GRH finite check at depth 4,
+    the first depth containing both B and C primes under the corrected
+    prime-polarity classifier. -/
+theorem grand_grh_4 :
+    grand_grh_finite_check 4 = true := by native_decide
 
-/-- [III.T20] Structural: label classification of prime 5 (5 ≡ 1 mod 4 → B). -/
-theorem label_5_is_B : label_direct 5 = .B := by native_decide
-/-- [III.T20] Structural: label classification of prime 3 (3 ≡ 3 mod 4 → C). -/
+/-- [III.T20] Structural: label classification of prime 5 (`(2/5)=-1` → C). -/
+theorem label_5_is_C : label_direct 5 = .C := by native_decide
+/-- [III.T20] Structural: label classification of prime 7 (`(2/7)=+1` → B). -/
+theorem label_7_is_B : label_direct 7 = .B := by native_decide
+/-- [III.T20] Structural: label classification of prime 3 (`(2/3)=-1` → C). -/
 theorem label_3_is_C : label_direct 3 = .C := by native_decide
 
 /-- [III.D32] Structural: L-function at depth 3 = Prim(3). -/

@@ -213,8 +213,8 @@ where
     else if k > db then true
     else
       let (b_ct, c_ct, _x_ct) := label_counts k
-      -- Both B and C types exist once depth includes p=5 (k ≥ 3)
-      let both_exist := if k >= 3 then b_ct > 0 && c_ct > 0 else true
+      -- Both B and C types exist once depth includes p=7 (k ≥ 4)
+      let both_exist := if k >= 4 then b_ct > 0 && c_ct > 0 else true
       let b_prod := compute_label_product .B k
       let c_prod := compute_label_product .C k
       -- Non-collapse: products differ when both types present

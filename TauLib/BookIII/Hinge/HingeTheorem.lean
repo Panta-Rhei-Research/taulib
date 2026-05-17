@@ -373,16 +373,20 @@ theorem iota_lt_one : iota_numer < iota_denom := by decide
 /-- [III.T42] Structural: iota_tau > 0 (master constant is positive). -/
 theorem iota_pos : iota_numer > 0 := by decide
 
-/-- [III.T42] Structural: at depth 3, B/C > iota_tau (convergence not yet reached).
-    B*denom = 5*1000000 = 5000000 > C*numer = 3*341304 = 1023912. -/
+/-- [III.T42] Structural: at depth 3, B/C < iota_tau.
+    Under the corrected `(2/p)` classifier, B=1 and C=15 through depth 3. -/
 theorem iota_ratio_depth_3 :
-    sector_product .B 3 * iota_denom > sector_product .C 3 * iota_numer := by
+    sector_product .B 3 * iota_denom < sector_product .C 3 * iota_numer := by
   native_decide
 
-/-- [III.T42] Structural: at depth 4, B/C < iota_tau (crossover).
-    B*denom = 5*1000000 = 5000000 < C*numer = 21*341304 = 7167384. -/
+/-- [III.T42] Structural: at depth 4, B/C > iota_tau after 7 enters B. -/
 theorem iota_ratio_depth_4 :
-    sector_product .B 4 * iota_denom < sector_product .C 4 * iota_numer := by
+    sector_product .B 4 * iota_denom > sector_product .C 4 * iota_numer := by
+  native_decide
+
+/-- [III.T42] Structural: at depth 5, B/C < iota_tau after 11 enters C. -/
+theorem iota_ratio_depth_5 :
+    sector_product .B 5 * iota_denom < sector_product .C 5 * iota_numer := by
   native_decide
 
 /-- [III.T42] Structural: the five sectors are exhaustive. -/
@@ -391,10 +395,10 @@ theorem five_sectors_exhaustive (s : Sector) :
   cases s <;> simp
 
 /-- [III.T42] Structural: no-knobs means sector products are derivable.
-    At depth 3: B=5, C=3, X=2, and 5*3*2 = 30 = Prim(3). -/
+    At depth 3: B=1, C=15, X=2, and 1*15*2 = 30 = Prim(3). -/
 theorem no_knobs_witness :
-    sector_product .B 3 = 5 /\
-    sector_product .C 3 = 3 /\
+    sector_product .B 3 = 1 /\
+    sector_product .C 3 = 15 /\
     sector_product .Omega 3 = 2 := by native_decide
 
 /-- [III.T41] Structural: the axiom-to-enrichment transition at K6 -> E0

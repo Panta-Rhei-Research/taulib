@@ -41,15 +41,15 @@ open Tau.BookIII.Spectral Tau.BookIII.Doors
 
 /-- [III.D43] Strong sector check at level k: the B/C/X decomposition is
     unambiguous (coprimality), tower-stable (labels don't change with depth),
-    and carries non-trivial content (B and C both have primes). -/
+    and carries non-trivial content (B and C both have primes once 7 enters). -/
 def strong_sector_at_level (k : TauIdx) : Bool :=
   -- Coprimality: B-product and C-product are coprime
   let b_prod := split_zeta_b k
   let c_prod := split_zeta_c k
   let coprime := Nat.gcd b_prod c_prod == 1
-  -- Non-triviality: both B and C sectors have primes (for k ≥ 3)
+  -- Non-triviality: both B and C sectors have primes (for k ≥ 4)
   let (b_ct, c_ct, _) := label_counts k
-  let nontrivial := if k >= 3 then b_ct > 0 && c_ct > 0 else true
+  let nontrivial := if k >= 4 then b_ct > 0 && c_ct > 0 else true
   -- Completeness: B * C * X = Prim(k)
   let x_prod := split_zeta_x k
   let pk := primorial k
@@ -77,12 +77,11 @@ where
     else if k > db then go (i + 1) 1 (fuel - 1)
     else
       let p := nth_prime i
-      -- Verify label classification against mod-4 residue (not self-comparison)
+      -- Verify label classification against the source-truth depth label,
+      -- not the deprecated mod-4 diagnostic.
       let label := label_direct p
-      let mod4_ok := if p % 4 == 1 then label == .B
-                     else if p % 4 == 3 then label == .C
-                     else true
-      mod4_ok && go i (k + 1) (fuel - 1)
+      let source_ok := if i <= k then label == label_at_depth i k else true
+      source_ok && go i (k + 1) (fuel - 1)
   termination_by fuel
 
 -- ============================================================
@@ -179,7 +178,7 @@ where
 -- SMOKE TESTS
 -- ============================================================
 
-#eval strong_sector_at_level 3               -- true
+#eval strong_sector_at_level 3               -- true (pre-B/C split)
 #eval strong_sector_at_level 4               -- true
 #eval strong_sector_check 5                  -- true
 #eval label_stability_check 10 4             -- true

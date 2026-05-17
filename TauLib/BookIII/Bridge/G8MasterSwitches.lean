@@ -2,6 +2,7 @@ import TauLib.BookIII.Bridge.G8ChartRelation
 import TauLib.BookII.Domains.Ultrametric
 import TauLib.BookIII.Spectral.PrimorialLadder
 import TauLib.BookIII.Sectors.ParityBridge
+import TauLib.BookI.Polarity.H2H3ClassifierBridge
 
 /-!
 # TauLib.BookIII.Bridge.G8MasterSwitches
@@ -70,27 +71,52 @@ theorem ultrametricSubstrate_recognized :
     Tau.BookIII.Spectral.primorial_cofinal_50,
     Tau.BookIII.Spectral.prime_cofinal_30⟩
 
-/-- The canonical prime-polarity boundary spectrum is visible through the
-    finite spectral-polarity, balanced-sector uniqueness, parity bridge, and
-    no-knobs checks.
+/-- The canonical prime-polarity source truth is visible through the Book I
+    / prime-polarity paper bridge: the abstract χ, concrete Pol, and
+    Label_∞ agree over the standard small-prime audit range.
 
 This is the anti-"external operator choice" discipline: the boundary spectrum
 is supplied by prime polarity inside the tau construction.  Turning it into an
 orthodox xi-divisor theorem remains a downstream G6/G8 obligation. -/
-def CanonicalPrimePolarityRecognized : Prop :=
+def PrimePolaritySourceTruthRecognized : Prop :=
+  Tau.Polarity.chi Tau.Polarity.legendreBClass 2  = Tau.Polarity.Pol 2  ∧
+  Tau.Polarity.chi Tau.Polarity.legendreBClass 3  = Tau.Polarity.Pol 3  ∧
+  Tau.Polarity.chi Tau.Polarity.legendreBClass 5  = Tau.Polarity.Pol 5  ∧
+  Tau.Polarity.chi Tau.Polarity.legendreBClass 7  = Tau.Polarity.Pol 7  ∧
+  Tau.Polarity.chi Tau.Polarity.legendreBClass 11 = Tau.Polarity.Pol 11 ∧
+  Tau.Polarity.chi Tau.Polarity.legendreBClass 13 = Tau.Polarity.Pol 13 ∧
+  Tau.Polarity.chi Tau.Polarity.legendreBClass 17 = Tau.Polarity.Pol 17 ∧
+  Tau.Polarity.chi Tau.Polarity.legendreBClass 19 = Tau.Polarity.Pol 19 ∧
+  Tau.Polarity.chi Tau.Polarity.legendreBClass 23 = Tau.Polarity.Pol 23
+
+/-- Existing theorem-backed anchors recognize the source-truth classifier. -/
+theorem primePolaritySourceTruth_recognized :
+    PrimePolaritySourceTruthRecognized :=
+  Tau.Polarity.chi_legendre_eq_Pol_at_first_nine_primes
+
+/-- Book III sector-level finite checks remain useful boundary-spectrum
+    discipline, but they are downstream checks, not the classifier source
+    truth itself. -/
+def BoundarySectorPolarityRecognized : Prop :=
   Tau.BookIII.Sectors.spectral_polarity_check 5 = true ∧
   Tau.BookIII.Sectors.balanced_uniqueness_check 5 = true ∧
   Tau.BookIII.Sectors.parity_bridge_check 5 3 = true ∧
   Tau.BookIII.Sectors.no_knobs_check 5 3 = true
 
+/-- The canonical prime-polarity switch combines the source-truth classifier
+    bridge with the existing Book III boundary-sector finite checks. -/
+def CanonicalPrimePolarityRecognized : Prop :=
+  PrimePolaritySourceTruthRecognized ∧ BoundarySectorPolarityRecognized
+
 /-- Existing theorem-backed anchors recognize the prime-polarity switch at the
     current finite-check level. -/
 theorem canonicalPrimePolarity_recognized :
     CanonicalPrimePolarityRecognized := by
-  exact ⟨Tau.BookIII.Sectors.spectral_polarity_5,
-    Tau.BookIII.Sectors.balanced_uniqueness_5,
-    Tau.BookIII.Sectors.parity_bridge_5_3,
-    Tau.BookIII.Sectors.no_knobs_5_3⟩
+  exact ⟨primePolaritySourceTruth_recognized,
+    ⟨Tau.BookIII.Sectors.spectral_polarity_5,
+      Tau.BookIII.Sectors.balanced_uniqueness_5,
+      Tau.BookIII.Sectors.parity_bridge_5_3,
+      Tau.BookIII.Sectors.no_knobs_5_3⟩⟩
 
 /-- All three master switches are recognized by existing TauLib source anchors. -/
 def G8MasterSwitchesRecognized : Prop :=

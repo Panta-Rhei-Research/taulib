@@ -178,11 +178,19 @@ theorem euler_tower_4 :
 -- STRUCTURAL THEOREMS
 -- ============================================================
 
-/-- [III.D26] Structural: B-zeta at depth 3 = 5 (only B-type prime ≤ p₃). -/
-theorem b_zeta_3 : split_zeta_b 3 = 5 := by native_decide
+/-- [III.D26] Structural: B-zeta at depth 3 = 1.
+    Under the corrected `(2/p)` classifier, the first B prime is 7,
+    so the B-product is empty through primes 2,3,5. -/
+theorem b_zeta_3 : split_zeta_b 3 = 1 := by native_decide
 
-/-- [III.D26] Structural: C-zeta at depth 3 = 3 (only C-type prime ≤ p₃). -/
-theorem c_zeta_3 : split_zeta_c 3 = 3 := by native_decide
+/-- [III.D26] Structural: C-zeta at depth 3 = 15 (`3*5`). -/
+theorem c_zeta_3 : split_zeta_c 3 = 15 := by native_decide
+
+/-- [III.D26] Structural: B-zeta at depth 4 = 7, the first B prime. -/
+theorem b_zeta_4 : split_zeta_b 4 = 7 := by native_decide
+
+/-- [III.D26] Structural: C-zeta at depth 4 = 15 (`3*5`). -/
+theorem c_zeta_4 : split_zeta_c 4 = 15 := by native_decide
 
 /-- [III.D27] Structural: involution is own inverse. -/
 theorem fe_involution_involutive (nf : BoundaryNF) :

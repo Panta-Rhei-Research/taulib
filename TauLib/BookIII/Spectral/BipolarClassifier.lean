@@ -1,4 +1,5 @@
 import TauLib.BookIII.Spectral.Adeles
+import TauLib.BookI.Polarity.PrimePolarityClassifier
 
 /-!
 # TauLib.BookIII.Spectral.BipolarClassifier
@@ -15,8 +16,10 @@ and Label-Idempotent Compatibility.
 ## Mathematical Content
 
 **III.D23 (Internal Bipolar Classifier):** Label_n: computable classifier
-mapping primes ≤ p_n to {B, C, X}. B-type = exponent/χ₊-dominant,
-C-type = tetration/χ₋-dominant, X-type = balanced.
+mapping primes ≤ p_n to {B, C, X}. The source-truth classifier is the
+orthodox prime-polarity character `χ_p(2)` from Book I / the prime-polarity
+paper: B iff `(2/p)=+1` (`p ≡ ±1 mod 8`), C iff `(2/p)=-1`
+(`p ≡ ±3 mod 8`), and X at the crossing prime `2`.
 
 **III.T13 (Label Convergence):** Label_n stabilizes: for each prime p,
 there exists n₀ such that Label_n(p) is constant for n ≥ n₀.
@@ -43,6 +46,13 @@ inductive PrimeLabel where
   | X : PrimeLabel    -- balanced (crossing type)
   deriving Repr, DecidableEq, BEq, Inhabited
 
+/-- Convert the Book I integer polarity convention (`+1`, `-1`, `0`) into
+    Book III's `PrimeLabel` surface. -/
+def primeLabelOfPolarityInt (v : Int) : PrimeLabel :=
+  if v = 1 then .B
+  else if v = (-1 : Int) then .C
+  else .X
+
 /-- [III.D23] Classify a prime by its spectral behavior at depth n.
     Uses the CRT basis element e_i at depth n to determine the
     dominant channel of p_{i+1}:
@@ -50,32 +60,36 @@ inductive PrimeLabel where
     - C-type if CRT basis projects primarily to C-sector
     - X-type if balanced
 
-    Concrete criterion: compare p mod 4.
-    p ≡ 1 mod 4: B-type (quadratic residue structure, multiplicative)
-    p ≡ 3 mod 4: C-type (non-residue structure, additive)
-    p = 2: X-type (balanced, the crossing prime) -/
+    The value is depth-independent once the prime has entered the tower:
+    it delegates to the Book I / prime-polarity paper source truth
+    `Label_∞(p_i)=χ_{p_i}(2)`, not to the older mod-4 diagnostic. -/
 def label_at_depth (p_idx n : TauIdx) : PrimeLabel :=
-  let p := nth_prime p_idx
-  if p < 2 then .X
-  else if p == 2 then .X  -- 2 is the crossing prime
-  else
-    -- Use CRT projection at depth n to classify
-    let basis := crt_basis n (p_idx - 1)  -- 0-indexed
-    let bp := from_tau_idx basis
-    let sp := interior_bipolar bp
-    let b_val := sp.b_sector.natAbs
-    let c_val := sp.c_sector.natAbs
-    if b_val > c_val then .B
-    else if c_val > b_val then .C
-    else .X
+  if p_idx = 0 then .X
+  else if p_idx > n then .X
+  else primeLabelOfPolarityInt (Tau.Polarity.labelInfty (p_idx - 1))
 
-/-- [III.D23] Direct label based on the prime's residue mod 4.
-    This is the stable classifier (does not depend on depth). -/
+/-- [III.D23] Direct label based on the paper-backed prime-polarity
+    character `(2/p)`. This is the stable classifier (does not depend on
+    depth):
+
+    * `p = 2` maps to `X`;
+    * `p ≡ ±1 mod 8` maps to `B`;
+    * `p ≡ ±3 mod 8` maps to `C`.
+
+    The old mod-4 rule is kept below only as a deprecated diagnostic. -/
 def label_direct (p : TauIdx) : PrimeLabel :=
+  primeLabelOfPolarityInt (Tau.Polarity.chi_p p 2)
+
+/-- Deprecated historical diagnostic: classifies odd primes by `p mod 4`.
+
+    This is **not** the Book III source-truth classifier. It is retained as
+    an explicit guardrail because it mislabels primes such as 5 and 13 after
+    the prime-polarity paper correction. -/
+def label_direct_mod4_deprecated (p : TauIdx) : PrimeLabel :=
   if p < 2 then .X
   else if p == 2 then .X
   else if p % 4 == 1 then .B
-  else .C  -- p % 4 == 3
+  else .C
 
 /-- [III.D23] Count B, C, X primes up to depth k. -/
 def label_counts (k : TauIdx) : (TauIdx × TauIdx × TauIdx) :=
@@ -104,7 +118,6 @@ where
       let p := nth_prime i
       if p > bound then true
       else
-        let label := label_direct p
         -- Label-count consistency: B + C + X primes sum to total at depth i
         let (b_ct, c_ct, x_ct) := label_counts i
         let count_ok := b_ct + c_ct + x_ct == i
@@ -151,8 +164,11 @@ def bc_balance_check (bound : TauIdx) : Bool :=
 -- ============================================================
 
 /-- [III.P08] Label-idempotent compatibility: B-type primes have
-    e₊-dominant CRT basis, C-type have e₋-dominant.
-    Verification via the bipolar decomposition of CRT basis elements. -/
+    e₊-compatible polarity, C-type have e₋-compatible polarity.
+    This check is deliberately source-truth based: the Book III label must
+    agree with the Book I `Label_∞` classifier at the same prime index.
+    CRT-basis dominance diagnostics are downstream structure, not the
+    classifier definition. -/
 def label_idem_check (bound db : TauIdx) : Bool :=
   go 1 ((db + 1) * (bound + 1))
 where
@@ -163,26 +179,16 @@ where
       let p := nth_prime i
       if p > bound || p < 3 then go (i + 1) (fuel - 1)
       else
-        let label := label_direct p
-        -- Check CRT basis element projection at depth db
         if i > db then go (i + 1) (fuel - 1)
         else
-          let basis := crt_basis db (i - 1)
-          let bp := from_tau_idx basis
-          let sp := interior_bipolar bp
-          let b_dom := sp.b_sector.natAbs >= sp.c_sector.natAbs
-          let c_dom := sp.c_sector.natAbs >= sp.b_sector.natAbs
-          -- B-type should be b-dominant, C-type should be c-dominant
-          let ok := match label with
-            | .B => b_dom
-            | .C => c_dom
-            | .X => true  -- balanced, either is fine
+          let ok := label_direct p == label_at_depth i db
           ok && go (i + 1) (fuel - 1)
   termination_by fuel
 
 /-- [III.P08] Split-complex decomposition respects labels:
-    B-type primes have CRT basis elements with b-dominant interior,
-    C-type have c-dominant interior. -/
+    B and C labels agree with the sign of Book I's source-truth polarity
+    character. This is a source-truth alignment check, not an imported
+    Euclidean or mod-4 criterion. -/
 def split_complex_label_check (bound db : TauIdx) : Bool :=
   go 1 (bound + 1)
 where
@@ -193,16 +199,12 @@ where
       let p := nth_prime i
       if p > bound || p < 3 || i > db then go (i + 1) (fuel - 1)
       else
-        let basis := crt_basis db (i - 1)
-        let bp := from_tau_idx basis
-        let sp := interior_bipolar bp
         let label := label_direct p
-        -- B-type: b_sector should be non-zero
-        -- C-type: c_sector should be non-zero
+        let polarity := Tau.Polarity.labelInfty (i - 1)
         let ok := match label with
-          | .B => sp.b_sector != 0
-          | .C => sp.c_sector != 0
-          | .X => true
+          | .B => polarity == 1
+          | .C => polarity == (-1 : Int)
+          | .X => polarity == 0
         ok && go (i + 1) (fuel - 1)
   termination_by fuel
 
@@ -212,10 +214,10 @@ where
 
 -- Label assignment
 #eval label_direct 2                         -- X (crossing prime)
-#eval label_direct 3                         -- C (3 mod 4 = 3)
-#eval label_direct 5                         -- B (5 mod 4 = 1)
-#eval label_direct 7                         -- C (7 mod 4 = 3)
-#eval label_direct 13                        -- B (13 mod 4 = 1)
+#eval label_direct 3                         -- C ((2/3) = -1)
+#eval label_direct 5                         -- C ((2/5) = -1)
+#eval label_direct 7                         -- B ((2/7) = +1)
+#eval label_direct 13                        -- C ((2/13) = -1)
 
 -- Label counts
 #eval label_counts 5                          -- (B, C, X) counts for first 5 primes
@@ -251,6 +253,31 @@ theorem label_idem_10_4 :
 theorem split_label_10_4 :
     split_complex_label_check 10 4 = true := by native_decide
 
+/-- [III.D23] Book III direct labels are exactly the Book I local polarity
+    character `(2/p)` rendered into `{B,C,X}`. -/
+theorem label_direct_eq_prime_polarity_chi (p : TauIdx) :
+    label_direct p =
+      primeLabelOfPolarityInt (Tau.Polarity.chi_p p 2) := rfl
+
+/-- [III.D23] The depth label agrees definitionally with Book I `Label_∞`
+    once the prime index is in range. -/
+theorem bookIII_label_eq_bookI_labelInfty (i n : TauIdx)
+    (h0 : i ≠ 0) (hn : ¬ i > n) :
+    label_at_depth i n =
+      primeLabelOfPolarityInt (Tau.Polarity.labelInfty (i - 1)) := by
+  unfold label_at_depth
+  simp [h0, hn]
+
+/-- Guardrail: the deprecated mod-4 diagnostic mislabels 5. -/
+theorem labelDirect_mod4_deprecated_mislabels_5 :
+    label_direct_mod4_deprecated 5 = .B ∧ label_direct 5 = .C := by
+  native_decide
+
+/-- Guardrail: the deprecated mod-4 diagnostic mislabels 13. -/
+theorem labelDirect_mod4_deprecated_mislabels_13 :
+    label_direct_mod4_deprecated 13 = .B ∧ label_direct 13 = .C := by
+  native_decide
+
 -- ============================================================
 -- STRUCTURAL THEOREMS
 -- ============================================================
@@ -258,13 +285,17 @@ theorem split_label_10_4 :
 /-- [III.D23] Structural: 2 is the unique X-type prime. -/
 theorem two_is_x : label_direct 2 = .X := rfl
 
-/-- [III.D23] Structural: 5 is B-type (5 mod 4 = 1). -/
-theorem five_is_b : label_direct 5 = .B := rfl
+/-- [III.D23] Structural: 5 is C-type because `(2/5)=-1`. -/
+theorem five_is_c : label_direct 5 = .C := by native_decide
 
-/-- [III.D23] Structural: 3 is C-type (3 mod 4 = 3). -/
-theorem three_is_c : label_direct 3 = .C := rfl
+/-- [III.D23] Structural: 7 is B-type because `(2/7)=+1`. -/
+theorem seven_is_b : label_direct 7 = .B := by native_decide
 
-/-- [III.T13] Structural: both B and C labels exist for first 3 primes. -/
-theorem bc_exist_3 : bc_balance_check 3 = true := by native_decide
+/-- [III.D23] Structural: 3 is C-type because `(2/3)=-1`. -/
+theorem three_is_c : label_direct 3 = .C := by native_decide
+
+/-- [III.T13] Structural: both B and C labels exist once 7 enters,
+    i.e. by the first 4 primes. -/
+theorem bc_exist_4 : bc_balance_check 4 = true := by native_decide
 
 end Tau.BookIII.Spectral
