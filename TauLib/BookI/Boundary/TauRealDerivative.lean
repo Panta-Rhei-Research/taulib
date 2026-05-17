@@ -180,4 +180,77 @@ theorem TauReal.IsDerivAt_const (c : TauReal) (a : TauRat) :
   have h_pos : (0 : Rat) < (k : Rat) + 1 := by linarith
   exact div_pos (by norm_num : (0 : Rat) < 1) h_pos
 
+-- ============================================================
+-- PART 4: IDENTITY RULE
+-- ============================================================
+
+/-- **[I.T-IsDerivAt-Id]** The identity function `fromTauRat` has derivative
+    `TauReal.one` at every point.
+
+    The scaled difference quotient is exactly
+        ((a₀ + 1/2^N) - a₀) · 2^N = (1/2^N) · 2^N = 1
+    at every depth (Rat-exact), so it equals `TauReal.one` exactly up to
+    equivalence. Modulus is `fun _ => 0`. -/
+theorem TauReal.IsDerivAt_id (a₀ : TauRat) :
+    TauReal.IsDerivAt (fun a => TauReal.fromTauRat a) a₀ TauReal.one := by
+  refine ⟨fun _ => 0, fun k N _ => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, TauRat.ofNatRecip_toRat]
+  -- Compute the inner toRat = 0:
+  -- scaledDiff = (fromTauRat (a₀ + h_N) - fromTauRat a₀) · fromTauRat (2^N)
+  -- At depth N, .toRat = ((a₀.toRat + h_N.toRat) - a₀.toRat) · 2^N.toRat = h_N.toRat · 2^N.toRat = 1
+  -- (scaledDiff.sub TauReal.one).approx N .toRat = 1 - 1 = 0
+  have h_inner :
+      ((((((fun a => TauReal.fromTauRat a) (a₀.add (TauRat.dyadicStep N))).sub
+            ((fun a => TauReal.fromTauRat a) a₀)).mul
+          (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+          TauReal.one).approx N).toRat = 0 := by
+    -- Beta-reduce: (fun a => fromTauRat a) x = fromTauRat x
+    show ((((((TauReal.fromTauRat (a₀.add (TauRat.dyadicStep N))).sub
+              (TauReal.fromTauRat a₀)).mul
+            (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+            TauReal.one).approx N).toRat = 0)
+    -- Outer .sub structure: ((X.sub Y).approx N).toRat
+    show (TauRat.add
+            ((((TauReal.fromTauRat (a₀.add (TauRat.dyadicStep N))).sub
+                (TauReal.fromTauRat a₀)).mul
+              (TauReal.fromTauRat (TauRat.twoPowN N))).approx N)
+            (TauReal.one.negate.approx N)).toRat = 0
+    rw [toRat_add]
+    -- TauReal.one.negate.approx N .toRat = -1
+    have h_neg_one : (TauReal.one.negate.approx N).toRat = -1 := by
+      show (TauRat.negate TauRat.one).toRat = -1
+      rw [toRat_negate, toRat_one]
+    rw [h_neg_one]
+    -- The scaledDiff at depth N .toRat = 1
+    have h_scaled :
+        (((((TauReal.fromTauRat (a₀.add (TauRat.dyadicStep N))).sub
+              (TauReal.fromTauRat a₀)).mul
+            (TauReal.fromTauRat (TauRat.twoPowN N))).approx N)).toRat = 1 := by
+      show (TauRat.mul
+              ((((TauReal.fromTauRat (a₀.add (TauRat.dyadicStep N))).sub
+                  (TauReal.fromTauRat a₀)).approx N))
+              ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N)).toRat = 1
+      rw [toRat_mul]
+      -- (fromTauRat x).approx N = x (constant sequence)
+      -- so ((fromTauRat A).sub (fromTauRat B)).approx N = TauRat.add A (negate B)
+      have h_diff :
+          (((TauReal.fromTauRat (a₀.add (TauRat.dyadicStep N))).sub
+              (TauReal.fromTauRat a₀)).approx N).toRat = (TauRat.dyadicStep N).toRat := by
+        show (TauRat.add (a₀.add (TauRat.dyadicStep N)) (TauRat.negate a₀)).toRat
+            = (TauRat.dyadicStep N).toRat
+        rw [toRat_add, toRat_add, toRat_negate]
+        ring
+      have h_two :
+          ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N).toRat
+            = (TauRat.twoPowN N).toRat := rfl
+      rw [h_diff, h_two]
+      exact TauRat.dyadicStep_mul_twoPowN_toRat N
+    rw [h_scaled]
+    ring
+  rw [h_inner, abs_zero]
+  have h_k : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+  have h_pos : (0 : Rat) < (k : Rat) + 1 := by linarith
+  exact div_pos (by norm_num : (0 : Rat) < 1) h_pos
+
 end Tau.Boundary
