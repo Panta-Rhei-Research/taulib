@@ -961,4 +961,107 @@ theorem TauReal.IsDerivAt_mul
                 = 1 / ((k : Rat) + 1) := by field_simp; ring
   linarith
 
+-- ============================================================
+-- PART 12: CHAIN RULE — Wave 1: IsDerivAt' DEFINITION
+-- ============================================================
+
+/-! ## Module 1.i Wave 1 — `IsDerivAt'` for TauReal → TauReal functions
+
+  To enable a generic chain rule, we need a parallel derivative predicate
+  for functions whose INPUT is a TauReal (not a TauRat). This is the
+  foundational investment per the chair's Option D direction.
+
+  The structure mirrors `IsDerivAt`:
+    • Dyadic step `h_N := fromTauRat (1/2^N)` at TauReal level
+    • Scaled difference `(f(a + h_N) − f(a)) · 2^N`
+    • Cauchy-modulus convergence to `L : TauReal`
+
+  The chain rule (Wave 2) combines `IsDerivAt g a L_g` (TauRat input)
+  with `IsDerivAt' f (g a) L_f` (TauReal input at the value `g(a)`)
+  to conclude `IsDerivAt (f ∘ g) a (L_f.mul L_g)`. -/
+
+/-- **[I.D-IsDerivAt']** `IsDerivAt' f a L`: f (TauReal → TauReal) has
+    derivative L at TauReal point a.
+
+    Mirror of `IsDerivAt` but with TauReal-valued perturbation
+    `h_N := fromTauRat (dyadicStep N)`. -/
+def TauReal.IsDerivAt' (f : TauReal → TauReal) (a : TauReal) (L : TauReal) : Prop :=
+  ∃ μ : Nat → Nat, ∀ k N : Nat, μ k ≤ N →
+    TauRat.lt
+      (((((f (a.add (TauReal.fromTauRat (TauRat.dyadicStep N)))).sub (f a)).mul
+            (TauReal.fromTauRat (TauRat.twoPowN N))).sub L).approx N).abs
+      (TauRat.ofNatRecip k)
+
+-- ============================================================
+-- PART 13: CHAIN RULE — Wave 1: SANITY RULES FOR IsDerivAt'
+-- ============================================================
+
+/-- **[I.T-IsDerivAt'-Const]** Constant function has derivative `TauReal.zero`. -/
+theorem TauReal.IsDerivAt'_const (c : TauReal) (a : TauReal) :
+    TauReal.IsDerivAt' (fun _ => c) a TauReal.zero := by
+  refine ⟨fun _ => 0, fun k N _ => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, TauRat.ofNatRecip_toRat]
+  -- The expression (c - c) · 2^N - 0 is identically zero at every approximation
+  have h_zero : ((((((fun _ : TauReal => c) (a.add (TauReal.fromTauRat (TauRat.dyadicStep N)))).sub
+                  ((fun _ : TauReal => c) a)).mul
+                (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+                TauReal.zero).approx N).toRat = 0 := by
+    show (((((c).sub c).mul
+              (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+            TauReal.zero).approx N).toRat = 0
+    show (TauRat.add
+            (((c.sub c).mul (TauReal.fromTauRat (TauRat.twoPowN N))).approx N)
+            ((TauReal.zero.negate).approx N)).toRat = 0
+    rw [toRat_add]
+    have h_neg_zero : ((TauReal.zero.negate).approx N).toRat = 0 := by
+      show (TauRat.negate TauRat.zero).toRat = 0
+      rw [toRat_negate, toRat_zero]; ring
+    rw [h_neg_zero]
+    have h_mul_zero :
+        (((c.sub c).mul (TauReal.fromTauRat (TauRat.twoPowN N))).approx N).toRat = 0 := by
+      show (TauRat.mul ((c.sub c).approx N)
+              ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N)).toRat = 0
+      rw [toRat_mul]
+      have h_diff : ((c.sub c).approx N).toRat = 0 := by
+        show (TauRat.add (c.approx N) (TauRat.negate (c.approx N))).toRat = 0
+        rw [toRat_add, toRat_negate]; ring
+      rw [h_diff]; ring
+    rw [h_mul_zero]; ring
+  rw [h_zero, abs_zero]
+  have h_k : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+  have h_pos : (0 : Rat) < (k : Rat) + 1 := by linarith
+  exact div_pos (by norm_num : (0 : Rat) < 1) h_pos
+
+/-- **[I.T-IsDerivAt'-Id]** Identity function `id : TauReal → TauReal` has
+    derivative `TauReal.one` at every point.
+
+    The scaled difference `((a + h_N) - a) · 2^N = h_N · 2^N = 1` exactly
+    (by `dyadicStep_mul_twoPowN_toRat`), so `IsDerivAt' id a TauReal.one`. -/
+theorem TauReal.IsDerivAt'_id (a : TauReal) :
+    TauReal.IsDerivAt' (fun x => x) a TauReal.one := by
+  refine ⟨fun _ => 0, fun k N _ => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, TauRat.ofNatRecip_toRat]
+  -- The inner expression at .toRat = 0. Use change for definitional unfolding.
+  have h_zero : ((((((fun x : TauReal => x) (a.add (TauReal.fromTauRat (TauRat.dyadicStep N)))).sub
+                  ((fun x : TauReal => x) a)).mul
+                (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+                TauReal.one).approx N).toRat = 0 := by
+    -- The (fun x => x) reduces to identity application; .approx N unfolds the TauReal ops.
+    change (TauRat.add
+            (TauRat.mul
+              (TauRat.add (TauRat.add (a.approx N) (TauRat.dyadicStep N))
+                          (TauRat.negate (a.approx N)))
+              (TauRat.twoPowN N))
+            (TauRat.negate TauRat.one)).toRat = 0
+    rw [toRat_add, toRat_mul, toRat_add, toRat_add, toRat_negate, toRat_negate, toRat_one]
+    have h_dyad_two : (TauRat.dyadicStep N).toRat * (TauRat.twoPowN N).toRat = 1 :=
+      TauRat.dyadicStep_mul_twoPowN_toRat N
+    linarith
+  rw [h_zero, abs_zero]
+  have h_k : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+  have h_pos : (0 : Rat) < (k : Rat) + 1 := by linarith
+  exact div_pos (by norm_num : (0 : Rat) < 1) h_pos
+
 end Tau.Boundary
