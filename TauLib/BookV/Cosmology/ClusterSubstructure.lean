@@ -211,11 +211,12 @@ structure BoundaryHolonomyInnerPromotion where
   g_bounded_010 : g_at_010_x_100 ≤ 100
   g_bounded_020 : g_at_020_x_100 ≤ 100
   g_bounded_050 : g_at_050_x_100 ≤ 100
-  /-- Monotone-non-decreasing inward (loose bound; tightening
-      depends on host concentration `c`).
+  /-- Endpoint bracket order across the sampled radius list
+      (0.05, 0.10, 0.20, 0.50). This is not a strict inward
+      radial-profile theorem; tightening depends on host concentration `c`.
       TODO(Natarajan-F3 wave Path C/D): tighten to a strict
       monotonicity proof under canonical NFW host profile. -/
-  monotone_inward : g_at_005_x_100 ≥ g_at_050_x_100
+  endpoint_order_outward : g_at_005_x_100 ≤ g_at_050_x_100
   deriving Repr
 
 /-- Canonical F1-endpoint-bracket instance. -/
@@ -228,7 +229,7 @@ def inner_promotion_F1_bracket : BoundaryHolonomyInnerPromotion where
   g_bounded_010 := by decide
   g_bounded_020 := by decide
   g_bounded_050 := by decide
-  monotone_inward := by decide
+  endpoint_order_outward := by decide
 
 -- ============================================================
 -- V.T347: Transition Scale ℓ_cl,sub Recovery

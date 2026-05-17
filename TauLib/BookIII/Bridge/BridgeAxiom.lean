@@ -97,6 +97,11 @@ where
         carrier_ok && pred_ok && decode_ok && go x (k + 1) (fuel - 1)
   termination_by fuel
 
+/-- Named bridge-functor hypothesis form.  Future downstream theorems should
+    prefer this explicit binder over importing the ambient legacy axiom. -/
+def BridgeFunctorExists : Prop :=
+  ∀ bound db : TauIdx, bridge_functor_check bound db = true
+
 /-- [III.D71] **CONJECTURE-AXIOM — CONDITIONAL RESULTS DOWNSTREAM**
 
     Bridge functor existence for all `(bound, db)`. This is one of
@@ -131,8 +136,13 @@ where
     would make `#print axioms` reveal no unexplained axioms on
     unconditional theorems. Until then, the global `axiom`
     declaration is the encoding. -/
-axiom bridge_functor_exists :
-  ∀ bound db : TauIdx, bridge_functor_check bound db = true
+axiom bridge_functor_exists : BridgeFunctorExists
+
+/-- [III.D71] Explicit-hypothesis adapter for bridge-functor use sites. -/
+theorem bridge_functor_from_hyp
+    (hBridge : BridgeFunctorExists) (bound db : TauIdx) :
+    bridge_functor_check bound db = true :=
+  hBridge bound db
 
 -- ============================================================
 -- SHADOW DIAGRAM [III.D72]
@@ -360,15 +370,22 @@ theorem bridge_ledger_consistent :
 -- ============================================================
 
 /-- [III.T45] RH bridge is conjectural (conditional on bridge axiom). -/
+theorem rh_bridge_conjectural_from_hyp
+    (hBridge : BridgeFunctorExists) (bound db : TauIdx) :
+    rh_bridge_three_layer bound db
+      (bridge_functor_from_hyp hBridge bound db) = .conjectural :=
+  rfl
+
+/-- [III.T45] Legacy adapter from the ambient bridge-functor axiom. -/
 theorem rh_bridge_conjectural (bound db : TauIdx) :
     rh_bridge_three_layer bound db (bridge_functor_exists bound db) = .conjectural :=
-  rfl
+  rh_bridge_conjectural_from_hyp bridge_functor_exists bound db
 
 -- ============================================================
 -- STRUCTURAL THEOREMS
 -- ============================================================
 
-/-- [III.D71] Structural: bridge axiom is the ONLY conjectural postulate. -/
+/-- [III.D71] Structural: RH bridge lands at conjectural layer 3. -/
 theorem one_axiom : rh_conjectural_layer = 3 := rfl
 
 /-- [III.T45] Structural: RH bridge has 3 layers. -/

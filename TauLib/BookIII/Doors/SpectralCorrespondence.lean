@@ -94,6 +94,11 @@ where
       mode <= k && eigenval == mode * mode && go (s + 1) (fuel - 1)
   termination_by fuel
 
+/-- Named O3 hypothesis form.  Future downstream theorems should prefer this
+    explicit binder over importing the ambient legacy axiom. -/
+def SpectralCorrespondenceO3 : Prop :=
+  ∀ k : Nat, spectral_correspondence_finite k = true
+
 /-- [III.T18] **CONJECTURE-AXIOM — CONDITIONAL RESULTS DOWNSTREAM**
 
     The O(3) spectral correspondence holds at all levels. This is one
@@ -123,8 +128,7 @@ where
     `bridge_functor_exists`, the Mathlib-community idiom would
     refactor downstream theorems to take this conjecture as an
     explicit hypothesis. Planned for a future wave. -/
-axiom spectral_correspondence_O3 :
-  ∀ k : Nat, spectral_correspondence_finite k = true
+axiom spectral_correspondence_O3 : SpectralCorrespondenceO3
 
 -- ============================================================
 -- SMOKE TESTS
@@ -166,8 +170,13 @@ theorem spectral_param_bounded :
     spectral_parameter 100 4 ≤ 4 := by native_decide
 
 /-- [III.T18] Structural: O3 implies finite correspondence at any level. -/
+theorem spectral_corr_from_hyp (hO3 : SpectralCorrespondenceO3) (k : Nat) :
+    spectral_correspondence_finite k = true :=
+  hO3 k
+
+/-- [III.T18] Legacy adapter from the ambient O3 axiom. -/
 theorem spectral_corr_from_O3 (k : Nat) :
     spectral_correspondence_finite k = true :=
-  spectral_correspondence_O3 k
+  spectral_corr_from_hyp spectral_correspondence_O3 k
 
 end Tau.BookIII.Doors

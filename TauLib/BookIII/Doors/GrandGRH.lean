@@ -61,6 +61,11 @@ where
       coprime && complete && balance && go (k + 1) (fuel - 1)
   termination_by fuel
 
+/-- Named Grand GRH hypothesis form.  Future downstream theorems should prefer
+    this explicit binder over importing the ambient legacy axiom. -/
+def GrandGRHAdelic : Prop :=
+  ∀ k : Nat, grand_grh_finite_check k = true
+
 /-- [III.D31] **STATUS: OPEN CONJECTURE — all downstream results are CONDITIONAL ON GRH**
 
     This is a *named conditional hypothesis*, not a claim that TauLib proves the
@@ -122,8 +127,7 @@ where
     postulate it globally.  The current global encoding was chosen for
     readability during the initial formalization wave.  The refactor is scoped
     to a future wave; see §11 Limitations. -/
-axiom grand_grh_adelic :
-  ∀ k : Nat, grand_grh_finite_check k = true
+axiom grand_grh_adelic : GrandGRHAdelic
 
 -- ============================================================
 -- PRIME POLARITY SCALING [III.T20]
@@ -247,8 +251,13 @@ theorem l_function_3 :
   native_decide
 
 /-- [III.D31] Structural: Grand GRH from axiom. -/
+theorem grand_grh_from_hyp (hGRH : GrandGRHAdelic) (k : Nat) :
+    grand_grh_finite_check k = true :=
+  hGRH k
+
+/-- [III.D31] Legacy adapter from the ambient Grand GRH axiom. -/
 theorem grand_grh_from_axiom (k : Nat) :
     grand_grh_finite_check k = true :=
-  grand_grh_adelic k
+  grand_grh_from_hyp grand_grh_adelic k
 
 end Tau.BookIII.Doors

@@ -2,6 +2,8 @@ import TauLib.BookIII.Bridge.TauCircleParam
 import TauLib.BookIII.Bridge.LemniscateGraph
 import TauLib.BookIII.Bridge.LemniscateHilbert
 import TauLib.BookIII.Bridge.LemniscateOperatorSpine
+import TauLib.BookIII.Bridge.O3Status
+import TauLib.BookIII.Bridge.FiniteSpectralDeterminant
 import TauLib.BookIII.Bridge.O3Interface
 
 /-!

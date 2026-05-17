@@ -1,4 +1,4 @@
-import TauLib.BookIII.Bridge.LemniscateOperatorSpine
+import TauLib.BookIII.Bridge.FiniteSpectralDeterminant
 
 /-!
 # TauLib.BookIII.Bridge.O3Interface
@@ -14,63 +14,113 @@ set_option autoImplicit false
 
 namespace Tau.BookIII.Bridge
 
-/-- Determinant class under discussion for an O3 attempt. -/
-inductive DeterminantClass where
-  | finite
-  | fredholm
-  | zetaRegularized
-  | abstractConditional
-  deriving Repr, DecidableEq
-
-/-- How zero modes are handled in the determinant interface. -/
-inductive ZeroModePolicy where
-  | excluded
-  | renormalized
-  | retainedWithCorrection
-  | unspecified
-  deriving Repr, DecidableEq
-
-/-- How zero/eigenvalue multiplicities are handled by the correspondence. -/
-inductive MultiplicityPolicy where
-  | preserved
-  | ignored
-  | boundedOnly
-  | unspecified
-  deriving Repr, DecidableEq
-
 /-- Context data for a future O3 correspondence statement. -/
 structure O3Context where
   operatorPackage : Type
   determinantClass : DeterminantClass
+  spectralConvention : SpectralConvention := .unspecified
   zeroModePolicy : ZeroModePolicy
   multiplicityPolicy : MultiplicityPolicy
-  status : SpineStatus := .conditional_interface
+  operatorStatus : O3ObligationStatus := .scaffoldObligation
+  determinantStatus : O3ObligationStatus := .scaffoldObligation
+  normalizationStatus : O3ObligationStatus := .deferred
+  zeroSetStatus : O3ObligationStatus := .deferred
+  zetaBridgeStatus : O3ObligationStatus := .deferred
+  continuationStatus : O3ObligationStatus := .deferred
 
-/-- Explicit O3 hypothesis interface.  Each field should eventually become a
-    theorem-backed obligation, not a global ambient axiom.  This is a data
-    record of named obligations rather than a `Prop`, so downstream code must
-    choose explicitly which obligations it assumes. -/
-structure O3Hypothesis (ctx : O3Context) where
-  normalizationNonzero : Prop
-  determinantDefined : Prop
-  zeroSetEquivalence : Prop
-  multiplicityCompatible : Prop
-  zetaBridgeCompatible : Prop
-  continuationCompatible : Prop
+/-- The operator package is at least named in the current O3 context. -/
+def LemniscateOperatorReady (ctx : O3Context) : Prop :=
+  ctx.operatorStatus = .theoremBacked ∨
+    ctx.operatorStatus = .finiteCheck ∨
+    ctx.operatorStatus = .definitionOnly ∨
+    ctx.operatorStatus = .scaffoldObligation ∨
+    ctx.operatorStatus = .hypothesis
+
+/-- The determinant object is at least named at the selected determinant class. -/
+def DeterminantDefined (ctx : O3Context) : Prop :=
+  ctx.determinantStatus = .theoremBacked ∨
+    ctx.determinantStatus = .finiteCheck ∨
+    ctx.determinantStatus = .definitionOnly ∨
+    ctx.determinantStatus = .scaffoldObligation ∨
+    ctx.determinantStatus = .hypothesis
+
+/-- The future normalizing factor has an explicit nonvanishing obligation. -/
+def NormalizationNonzero (ctx : O3Context) : Prop :=
+  ctx.normalizationStatus = .theoremBacked ∨
+    ctx.normalizationStatus = .hypothesis
+
+/-- The zero mode is not silently left unspecified. -/
+def ZeroModePolicySatisfied (ctx : O3Context) : Prop :=
+  ctx.zeroModePolicy ≠ .unspecified
+
+/-- The zero-set equivalence is a named bridge obligation. -/
+def ZeroSetEquivalence (ctx : O3Context) : Prop :=
+  ctx.zeroSetStatus = .theoremBacked ∨
+    ctx.zeroSetStatus = .hypothesis
+
+/-- Multiplicity handling is not silently left unspecified. -/
+def MultiplicityCompatible (ctx : O3Context) : Prop :=
+  ctx.multiplicityPolicy ≠ .unspecified
+
+/-- The τ-zeta bridge is a named prerequisite for O3. -/
+def ZetaBridgeCompatible (ctx : O3Context) : Prop :=
+  ctx.zetaBridgeStatus = .theoremBacked ∨
+    ctx.zetaBridgeStatus = .hypothesis
+
+/-- The analytic continuation bridge is a named prerequisite for O3. -/
+def ContinuationCompatible (ctx : O3Context) : Prop :=
+  ctx.continuationStatus = .theoremBacked ∨
+    ctx.continuationStatus = .hypothesis
+
+/-- The finite determinant scaffold is the first finite correspondence target. -/
+def FiniteCorrespondenceBridge (ctx : O3Context) : Prop :=
+  ctx.determinantClass = .finite ∧ ctx.zeroModePolicy = .excluded
+
+/-- Explicit O3 obligation package.  This structure is a `Prop`: to use O3,
+    downstream code must carry proofs of named obligations instead of receiving
+    an ambient determinant-correspondence axiom. -/
+structure O3Obligations (ctx : O3Context) : Prop where
+  operatorReady : LemniscateOperatorReady ctx
+  determinantDefined : DeterminantDefined ctx
+  normalizationNonzero : NormalizationNonzero ctx
+  zeroModeHandled : ZeroModePolicySatisfied ctx
+  zeroSetEquivalence : ZeroSetEquivalence ctx
+  multiplicityCompatible : MultiplicityCompatible ctx
+  zetaBridgeCompatible : ZetaBridgeCompatible ctx
+  continuationCompatible : ContinuationCompatible ctx
+  finiteCorrespondence : FiniteCorrespondenceBridge ctx
+
+/-- Backwards-compatible name for the explicit obligation package. -/
+abbrev O3Hypothesis (ctx : O3Context) : Prop :=
+  O3Obligations ctx
 
 /-- The finite-first context recommended by the G5/G6 pre-flight addendum. -/
 def finiteFirstO3Context : O3Context where
   operatorPackage := LemniscateOperatorDomain
   determinantClass := .finite
+  spectralConvention := .identityMinusLambdaInverse
   zeroModePolicy := .excluded
   multiplicityPolicy := .boundedOnly
+  operatorStatus := .scaffoldObligation
+  determinantStatus := .finiteCheck
+  normalizationStatus := .deferred
+  zeroSetStatus := .deferred
+  zetaBridgeStatus := .deferred
+  continuationStatus := .deferred
 
 /-- The abstract conditional context used when a result should be stated with
     O3 as an explicit hypothesis rather than imported as ambient truth. -/
 def abstractConditionalO3Context : O3Context where
   operatorPackage := LemniscateOperatorDomain
   determinantClass := .abstractConditional
+  spectralConvention := .unspecified
   zeroModePolicy := .unspecified
   multiplicityPolicy := .unspecified
+  operatorStatus := .hypothesis
+  determinantStatus := .hypothesis
+  normalizationStatus := .hypothesis
+  zeroSetStatus := .hypothesis
+  zetaBridgeStatus := .hypothesis
+  continuationStatus := .hypothesis
 
 end Tau.BookIII.Bridge
