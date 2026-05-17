@@ -972,6 +972,94 @@ theorem TauReal.arctan_increment_bounded
     _ ≤ 1 := by norm_num
 
 -- ============================================================
+-- PART 8.8: Wave 6c.4 — ARCTAN ADD DECOMPOSITION (TauReal-equiv)
+-- ============================================================
+
+/-! ## Wave 6c.4 — Algebraic identity for the chain rule
+
+  Trivially, for any TauReals `x` and `y`, `y ≈ x + (y - x)`. Specializing
+  to `x := arctan(a)`, `y := arctan(a+h)`:
+
+      arctan(a+h) ≈_TR arctan(a) + (arctan(a+h) - arctan(a))
+
+  This algebraic identity is what enables applying `cisTauReal_add` to
+  factor `cisTauReal(arctan(a+h))`:
+
+    cisTauReal(arctan(a+h))
+      ≈ cisTauReal(arctan(a) + δ)               [by 6c.4]
+      ≈ cisTauReal(arctan(a)) · cisTauReal(δ)   [by cisTauReal_add under 6c.3]
+
+  where `δ := arctan(a+h) - arctan(a)`.
+-/
+
+/-- **Wave 6c.4** — Algebraic decomposition of `arctan_of_rat_seq` at the
+    TauReal-equiv level. Pure algebra; no hypotheses on `a`, `h`. -/
+theorem TauReal.arctan_of_rat_seq_add_decomp (a h : TauRat) :
+    TauReal.equiv
+      (TauReal.arctan_of_rat_seq (a.add h))
+      ((TauReal.arctan_of_rat_seq a).add
+        ((TauReal.arctan_of_rat_seq (a.add h)).sub
+         (TauReal.arctan_of_rat_seq a))) := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  -- Goal: arctan(a+h).approx n ≈ (arctan(a) + (arctan(a+h) - arctan(a))).approx n
+  rw [equiv_iff_toRat_eq]
+  -- RHS unfolds as: arctan(a).approx n + (arctan(a+h).approx n - arctan(a).approx n)
+  show ((TauReal.arctan_of_rat_seq (a.add h)).approx n).toRat
+       = (((TauReal.arctan_of_rat_seq a).approx n).add
+            (((TauReal.arctan_of_rat_seq (a.add h)).approx n).add
+              ((TauReal.arctan_of_rat_seq a).approx n).negate)).toRat
+  rw [toRat_add, toRat_add, toRat_negate]
+  -- Goal: arctan(a+h).approx n .toRat = arctan(a).approx n .toRat
+  --                                   + (arctan(a+h).approx n .toRat
+  --                                      + -(arctan(a).approx n .toRat))
+  ring
+
+-- ============================================================
+-- PART 8.9: Wave 6c.5 — cisTauReal_add FACTORIZATION (Path β)
+-- ============================================================
+
+/-! ## Wave 6c.5 — cisTauReal_add applied at arctan-decomposed form
+
+  Under Path β (4|a|, 4|a+h| ≤ 1), apply cisTauReal_add to the
+  decomposed sum `arctan(a) + (arctan(a+h) - arctan(a))`:
+
+      cisTauReal(arctan(a) + (arctan(a+h) - arctan(a)))
+        ≈_TC cisTauReal(arctan(a)) · cisTauReal(arctan(a+h) - arctan(a))
+
+  The two boundedness hypotheses of cisTauReal_add are discharged by:
+  - `arctan_of_rat_seq_bounded`: arctan(a) bounded (under 2|a| ≤ 1, weaker)
+  - `arctan_increment_bounded` (Wave 6c.3): the increment bounded
+    under Path β's tighter 4|a| ≤ 1 hypothesis
+
+  TO COMPLETE THE CHAIN RULE: combining 6c.4 (algebraic decomp) with
+  6c.5 requires `cisTauReal_congr` — that TauReal-equiv lifts to
+  TauComplex-equiv through cisTauReal. This decomposes into:
+    1. pureIm_of_real preserves equiv (TauReal → TauComplex)
+    2. TauComplex.exp_congr (TauComplex exp preserves equiv at bounded args)
+  Both are doable but substantial; documented as future sub-wave 6c.6.
+-/
+
+/-- **Wave 6c.5** — Path β cisTauReal_add factorization at arctan-decomposed form. -/
+theorem TauComplex.cisTauReal_arctan_factored_add
+    (a h : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add h).toRat| ≤ 1) :
+    TauComplex.equiv
+      (TauComplex.cisTauReal
+        ((TauReal.arctan_of_rat_seq a).add
+          ((TauReal.arctan_of_rat_seq (a.add h)).sub
+            (TauReal.arctan_of_rat_seq a))))
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal
+          ((TauReal.arctan_of_rat_seq (a.add h)).sub
+            (TauReal.arctan_of_rat_seq a)))) := by
+  apply TauComplex.cisTauReal_add
+  · -- arctan(a) bounded under 2|a| ≤ 1 (weaker, follows from 4|a| ≤ 1)
+    have ha_2 : 2 * |a.toRat| ≤ 1 := by linarith
+    exact TauReal.arctan_of_rat_seq_bounded a ha_2
+  · -- Increment bounded under Path β (Wave 6c.3)
+    exact TauReal.arctan_increment_bounded a h ha hah
+
+-- ============================================================
 -- PART 9: Wave 6b — cis_arctan SMALL-ANGLE AT cis_arctan LEVEL
 -- ============================================================
 
