@@ -276,4 +276,109 @@ theorem TauReal.IsDerivAt_cube (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) :
     h_bound_Lf h_bound_Lg
     h_id h_sq
 
+-- ============================================================
+-- PART 4: IsDerivAt CONGRUENCE AT .toRat LEVEL
+-- ============================================================
+
+/-! ## Wave 3 — `IsDerivAt` `.toRat`-congruence lemma
+
+  The `IsDerivAt` predicate's only access to `f`, `L` is through
+  `.approx N` followed by `.abs.toRat` comparisons against `ofNatRecip k`.
+  Since `TauRat.lt` is defined as Rat-level `<`, IsDerivAt is **invariant**
+  under replacement of `f`, `L` by `g`, `L'` whose `.approx N` values are
+  `.toRat`-equal at every depth `N`.
+
+  This congruence lemma is the foundation for:
+  - Simplifying Leibniz-form derivatives (e.g., to `fromTauRat (a.add a)`).
+  - Building the general power rule via Nat-induction.
+  - Bridging between TauRat-equivalent but structurally-different
+    function representations.
+-/
+
+/-- **[I.T-IsDerivAt-Congr-toRat]** Congruence: `IsDerivAt` is invariant
+    under `.toRat`-equality of function values and derivative at every
+    approximation depth.
+
+    If `f x` and `g x` are pointwise `.approx N .toRat`-equal at every
+    `x` and `N`, and `L`, `L'` are `.approx N .toRat`-equal at every
+    `N`, then `IsDerivAt f a L → IsDerivAt g a L'`.
+
+    The proof transfers the modulus `μ` from `hf` and verifies that
+    the scaled-difference-minus-derivative expression has identical
+    `.toRat` value at every depth `N` (via toRat-distribution over add,
+    mul, negate), so the strict-less-than bound carries over. -/
+theorem TauReal.IsDerivAt_of_approx_toRat_eq
+    {f g : TauRat → TauReal} {a : TauRat} {L L' : TauReal}
+    (h_func : ∀ x N, ((f x).approx N).toRat = ((g x).approx N).toRat)
+    (h_deriv : ∀ N, (L.approx N).toRat = (L'.approx N).toRat)
+    (hf : TauReal.IsDerivAt f a L) : TauReal.IsDerivAt g a L' := by
+  obtain ⟨μ, hμ⟩ := hf
+  refine ⟨μ, fun k N hN => ?_⟩
+  have h_f := hμ k N hN
+  unfold TauRat.lt at h_f ⊢
+  rw [TauRat.toRat_abs] at h_f ⊢
+  -- Show: ((scaledDiff_f - L).approx N).toRat = ((scaledDiff_g - L').approx N).toRat
+  -- Both sides unfold via toRat_add, toRat_mul, toRat_negate to the same Rat expression
+  -- (modulo h_func and h_deriv substitutions).
+  have h_eq :
+      (((((f (a.add (TauRat.dyadicStep N))).sub (f a)).mul
+            (TauReal.fromTauRat (TauRat.twoPowN N))).sub L).approx N).toRat
+      = (((((g (a.add (TauRat.dyadicStep N))).sub (g a)).mul
+            (TauReal.fromTauRat (TauRat.twoPowN N))).sub L').approx N).toRat := by
+    -- Unfold both sides to flat Rat expressions
+    show (TauRat.add
+            (TauRat.mul
+              (TauRat.add ((f (a.add (TauRat.dyadicStep N))).approx N)
+                          (TauRat.negate ((f a).approx N)))
+              ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N))
+            (TauRat.negate (L.approx N))).toRat
+        = (TauRat.add
+            (TauRat.mul
+              (TauRat.add ((g (a.add (TauRat.dyadicStep N))).approx N)
+                          (TauRat.negate ((g a).approx N)))
+              ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N))
+            (TauRat.negate (L'.approx N))).toRat
+    simp only [toRat_add, toRat_mul, toRat_negate]
+    -- LHS .toRat = ((f(a+dyad).approx N).toRat - (f a).approx N .toRat) * (twoPowN N).toRat
+    --             - (L.approx N).toRat
+    -- RHS .toRat = same with g, L' substituted.
+    -- By h_func: (f x).approx N .toRat = (g x).approx N .toRat for any x.
+    -- By h_deriv: L.approx N .toRat = L'.approx N .toRat.
+    rw [h_func (a.add (TauRat.dyadicStep N)) N]
+    rw [h_func a N]
+    rw [h_deriv N]
+  rw [h_eq] at h_f
+  exact h_f
+
+-- ============================================================
+-- PART 5: CLEAN-FORM DERIVATIVES VIA CONGRUENCE
+-- ============================================================
+
+/-- **[I.T-IsDerivAt-Sq-Clean]** Clean-form square rule: the derivative
+    expressed as `fromTauRat (a.add a)` instead of the messy Leibniz
+    output `((TauReal.one.mul (fromTauRat a)).add ((fromTauRat a).mul
+    TauReal.one))`.
+
+    Both forms have `.toRat = 2·a.toRat` at every depth, so they are
+    `.toRat`-equivalent and IsDerivAt transfers via the congruence lemma.
+
+    Downstream consumers should prefer this form when the cleaner
+    expression matters (e.g., in algebraic manipulation). -/
+theorem TauReal.IsDerivAt_sq_clean (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) :
+    TauReal.IsDerivAt
+      (fun x : TauRat => TauReal.fromTauRat (TauRat.mul x x))
+      a
+      (TauReal.fromTauRat (a.add a)) := by
+  apply TauReal.IsDerivAt_of_approx_toRat_eq
+    (f := fun x : TauRat => TauReal.fromTauRat (TauRat.mul x x))
+    (L := (TauReal.one.mul (TauReal.fromTauRat a)).add
+            ((TauReal.fromTauRat a).mul TauReal.one))
+    (h_func := fun _ _ => rfl)
+  · intro N
+    show (TauRat.add (TauRat.mul TauRat.one a) (TauRat.mul a TauRat.one)).toRat
+        = (a.add a).toRat
+    simp only [toRat_add, toRat_mul, toRat_one]
+    ring
+  · exact TauReal.IsDerivAt_sq a ha
+
 end Tau.Boundary
