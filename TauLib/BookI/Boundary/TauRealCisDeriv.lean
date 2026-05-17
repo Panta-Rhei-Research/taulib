@@ -625,4 +625,45 @@ theorem expPartial_pureIm_im_rat_small_angle_bound
         _ ≤ ((N : Nat) : Rat) * |α|^3 + |α|^3 := by linarith
         _ = (((N : Nat) : Rat) + 1) * |α|^3 := by ring
 
+-- ============================================================
+-- PART 8: Wave 6a — TAUREAL-LEVEL SMALL-ANGLE BOUNDS
+-- ============================================================
+
+/-! ## Wave 6a — Lift small-angle bounds to TauReal cisTauReal level
+
+  Using the bridges:
+    cisTauReal_re_approx_toRat:
+      ((cisTauReal x).re.approx n).toRat = expPartial_pureIm_re_rat ((x.approx n).toRat) n
+    cisTauReal_im_approx_toRat:
+      ((cisTauReal x).im.approx n).toRat = expPartial_pureIm_im_rat ((x.approx n).toRat) n
+
+  we lift Wave 4 and Wave 5 bounds to the TauReal-cisTauReal interface:
+
+      |((cisTauReal x).re.approx n).toRat − 1|     ≤ n · α²      (n ≥ 1, |α| ≤ 1)
+      |((cisTauReal x).im.approx n).toRat − α|     ≤ n · |α|³   (n ≥ 2, |α| ≤ 1)
+
+  where α := (x.approx n).toRat. These pointwise (at fixed depth n) bounds
+  are exactly the inputs needed for the IsDerivAt chain rule analysis.
+-/
+
+open TauComplex in
+/-- **Wave 6a (re)** — Small-angle bound for `(cisTauReal x).re.approx n`. -/
+theorem TauReal.cisTauReal_re_approx_small_angle_bound
+    (x : TauReal) (n : Nat) (hn : 1 ≤ n)
+    (hα : |((x.approx n).toRat)| ≤ 1) :
+    |((TauComplex.cisTauReal x).re.approx n).toRat - 1|
+      ≤ (n : Rat) * ((x.approx n).toRat)^2 := by
+  rw [cisTauReal_re_approx_toRat]
+  exact expPartial_pureIm_re_rat_small_angle_bound ((x.approx n).toRat) hα n hn
+
+open TauComplex in
+/-- **Wave 6a (im)** — Small-angle bound for `(cisTauReal x).im.approx n`. -/
+theorem TauReal.cisTauReal_im_approx_small_angle_bound
+    (x : TauReal) (n : Nat) (hn : 2 ≤ n)
+    (hα : |((x.approx n).toRat)| ≤ 1) :
+    |((TauComplex.cisTauReal x).im.approx n).toRat - ((x.approx n).toRat)|
+      ≤ (n : Rat) * |((x.approx n).toRat)|^3 := by
+  rw [cisTauReal_im_approx_toRat]
+  exact expPartial_pureIm_im_rat_small_angle_bound ((x.approx n).toRat) hα n hn
+
 end Tau.Boundary
