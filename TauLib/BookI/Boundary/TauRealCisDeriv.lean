@@ -514,4 +514,115 @@ theorem expPartial_pureIm_re_rat_small_angle_bound
         _ ≤ ((N : Nat) : Rat) * α^2 + α^2 := by linarith
         _ = (((N : Nat) : Rat) + 1) * α^2 := by ring
 
+-- ============================================================
+-- PART 7: Wave 5 — SMALL-ANGLE BOUND FOR IM AT ARBITRARY DEPTH N ≥ 2
+-- ============================================================
+
+/-! ## Wave 5 — small-angle bound for cisTauReal partial sum (im part)
+
+  Parallel to Wave 4: linear-in-N bound for the sin partial sum.
+
+      |expPartial_pureIm_im_rat α N − α| ≤ N · |α|³   (N ≥ 2, |α| ≤ 1)
+
+  Note: the threshold is `N ≥ 2` (not `N ≥ 1` as in Wave 4) because at
+  N = 1 the sum is still 0 — the first non-zero contribution to the
+  imaginary part comes at step N = 1 (contributing α at k = 1), giving
+  the first useful approximation at N = 2.
+
+  Proof structure parallels Wave 4: induction on N from base 2 with
+  case split on N = 2 (contribution at step 2 vanishes since
+  `(pureIm_pow α 2).2 = 0` by cyclotomic-4) vs N ≥ 3 (use
+  `|α|^N ≤ |α|³`).
+-/
+
+/-- **Closed form at depth 2 — imaginary part**:
+    `expPartial_pureIm_im_rat α 2 = α`. -/
+theorem expPartial_pureIm_im_rat_two (α : Rat) :
+    expPartial_pureIm_im_rat α 2 = α := by
+  rw [show (2 : Nat) = 1 + 1 from rfl, expPartial_pureIm_im_rat_succ]
+  rw [show (1 : Nat) = 0 + 1 from rfl, expPartial_pureIm_im_rat_succ,
+      pureIm_pow_re_im_rat_succ]
+  rw [expPartial_pureIm_im_rat_zero, pureIm_pow_re_im_rat_zero]
+  simp
+
+/-- **Helper**: For `N ≥ 3` and `|α| ≤ 1`, `|α|^N ≤ |α|^3`. -/
+theorem pow_le_cube_of_abs_le_one (α : Rat) (hα : |α| ≤ 1) (N : Nat) (hN : 3 ≤ N) :
+    |α|^N ≤ |α|^3 := by
+  apply pow_le_pow_of_le_one (_root_.abs_nonneg _) hα hN
+
+/-- **Wave 5 — linear-in-N small-angle bound for im part**:
+
+      |expPartial_pureIm_im_rat α N − α| ≤ N · |α|³
+
+    for `N ≥ 2` and `|α| ≤ 1`. -/
+theorem expPartial_pureIm_im_rat_small_angle_bound
+    (α : Rat) (hα : |α| ≤ 1) (N : Nat) (hN : 2 ≤ N) :
+    |expPartial_pureIm_im_rat α N - α| ≤ (N : Rat) * |α|^3 := by
+  induction N, hN using Nat.le_induction with
+  | base =>
+    -- N = 2: expPartial_pureIm_im_rat α 2 = α
+    rw [expPartial_pureIm_im_rat_two]
+    show |α - α| ≤ ((2 : Nat) : Rat) * |α|^3
+    rw [sub_self, abs_zero]
+    have h_pow_nn : (0 : Rat) ≤ |α|^3 := by positivity
+    have h_two_cast : ((2 : Nat) : Rat) = 2 := by norm_num
+    rw [h_two_cast]
+    linarith
+  | succ N hN_ge ih =>
+    -- Step N → N+1 (for N ≥ 2)
+    rw [expPartial_pureIm_im_rat_succ]
+    have h_rearrange :
+        expPartial_pureIm_im_rat α N + (pureIm_pow_re_im_rat α N).2 / (N.factorial : Rat) - α
+        = (expPartial_pureIm_im_rat α N - α)
+          + (pureIm_pow_re_im_rat α N).2 / (N.factorial : Rat) := by ring
+    rw [h_rearrange]
+    have h_struct := (pureIm_pow_re_im_rat_abs_bound α N).2
+    have h_fact_pos : (0 : Rat) < (N.factorial : Rat) := by
+      have : 0 < N.factorial := Nat.factorial_pos _
+      exact_mod_cast this
+    have h_fact_ge_one : (1 : Rat) ≤ (N.factorial : Rat) := by
+      have : 1 ≤ N.factorial := Nat.factorial_pos N
+      exact_mod_cast this
+    have h_pow_nn : (0 : Rat) ≤ |α|^3 := by positivity
+    -- Case split: N = 2 (contribution = 0 via cyclotomic-4) vs N ≥ 3
+    by_cases h_N2 : N = 2
+    · subst h_N2
+      have h_pow_zero : (pureIm_pow_re_im_rat α 2).2 = 0 := by
+        rw [show (2 : Nat) = 1 + 1 from rfl, pureIm_pow_re_im_rat_succ,
+            show (1 : Nat) = 0 + 1 from rfl, pureIm_pow_re_im_rat_succ,
+            pureIm_pow_re_im_rat_zero]
+        simp
+      rw [h_pow_zero, zero_div, add_zero]
+      have h_cast : ((2+1 : Nat) : Rat) = 3 := by norm_num
+      have h_cast2 : ((2 : Nat) : Rat) = 2 := by norm_num
+      rw [h_cast]
+      rw [h_cast2] at ih
+      linarith
+    · have hN_ge_3 : 3 ≤ N := by omega
+      have h_pow_bound : |α|^N ≤ |α|^3 := pow_le_cube_of_abs_le_one α hα N hN_ge_3
+      -- |pureIm.2| ≤ |α|^N ≤ |α|³
+      have h_num_le_cube : |(pureIm_pow_re_im_rat α N).2| ≤ |α|^3 := le_trans h_struct h_pow_bound
+      -- |pureIm.2| ≤ |α|³ · N! (since N! ≥ 1)
+      have h_num_le_prod :
+          |(pureIm_pow_re_im_rat α N).2| ≤ |α|^3 * (N.factorial : Rat) := by
+        calc |(pureIm_pow_re_im_rat α N).2|
+            ≤ |α|^3 := h_num_le_cube
+          _ = |α|^3 * 1 := by ring
+          _ ≤ |α|^3 * (N.factorial : Rat) :=
+              mul_le_mul_of_nonneg_left h_fact_ge_one h_pow_nn
+      -- |pureIm.2 / N!| ≤ |α|³
+      have h_div_bound :
+          |(pureIm_pow_re_im_rat α N).2 / (N.factorial : Rat)| ≤ |α|^3 := by
+        rw [abs_div, abs_of_pos h_fact_pos]
+        rw [div_le_iff₀ h_fact_pos]
+        exact h_num_le_prod
+      have h_cast : ((N + 1 : Nat) : Rat) = ((N : Nat) : Rat) + 1 := by push_cast; ring
+      rw [h_cast]
+      calc |(expPartial_pureIm_im_rat α N - α)
+            + (pureIm_pow_re_im_rat α N).2 / (N.factorial : Rat)|
+          ≤ |expPartial_pureIm_im_rat α N - α|
+            + |(pureIm_pow_re_im_rat α N).2 / (N.factorial : Rat)| := abs_add_le _ _
+        _ ≤ ((N : Nat) : Rat) * |α|^3 + |α|^3 := by linarith
+        _ = (((N : Nat) : Rat) + 1) * |α|^3 := by ring
+
 end Tau.Boundary
