@@ -2518,4 +2518,83 @@ theorem TauComplex.cisTauReal_negate_equiv_conj (x : TauReal) :
   ⟨TauComplex.cisTauReal_negate_re_equiv x,
    TauComplex.cisTauReal_negate_im_equiv x⟩
 
+-- ============================================================
+-- PART 27: 🎯🎯🎯 UNIT-MAGNITUDE SUM-OF-SQUARES (β.4.7, "Approach D")
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.7 — Sum-of-squares identity
+
+  The classical Pythagorean identity at TauReal angle level:
+
+      (cisTauReal x).re² + (cisTauReal x).im² ≈ TauReal.one
+
+  for any TauReal `x` bounded by 1.
+
+  **Proof strategy** (combining β.4.1 + β.4.6 underlying Rat-level parity):
+
+  1. Algebraic step (toRat-pointwise, no analytical content):
+       `.re² + .im² ≈ (cisTauReal x · cisTauReal (negate x)).re`
+
+     Reason: at depth n, both sides equal
+       `(expPartial_pureIm_re_rat α_n n)² + (expPartial_pureIm_im_rat α_n n)²`
+     where α_n = (x.approx n).toRat — using β.4.3's toRat bridge and the
+     Rat-level parity identities (`expPartial_pureIm_re_rat (−α) n = ...α...`
+     and `expPartial_pureIm_im_rat (−α) n = −...α...`).
+
+  2. Unit identity (β.4.1):
+       `(cisTauReal x · cisTauReal (negate x)).re ≈ TauReal.one`
+
+  Chain via `TauReal.equiv_trans`. Sqrt-free, no truncation-error
+  bookkeeping needed — the algebraic step is **exact** at toRat-pointwise.
+
+  **Significance**: this is the Pythagorean identity for cisTauReal at
+  TauReal angle level. It is the unit-magnitude statement that pairs
+  with β.4.2's `|scaledCis(a)|² = 1 + a²` to give the **two sqrt-free
+  magnitude facts** needed for the sqrt-scaled bridge formulation. -/
+
+/-- **🎯🎯🎯🎯🎯 [I.T-CisTauReal-MagSq-Equiv-One]** Sum-of-squares
+    Pythagorean identity at TauReal level:
+
+        (cisTauReal x).re² + (cisTauReal x).im² ≈ TauReal.one
+
+    for any `x : TauReal` with every approximation bounded by 1. -/
+theorem TauComplex.cisTauReal_magSq_equiv_one (x : TauReal)
+    (hx : ∀ n, (x.approx n).abs.toRat ≤ 1) :
+    TauReal.equiv
+      (TauReal.add
+        (TauReal.mul (TauComplex.cisTauReal x).re (TauComplex.cisTauReal x).re)
+        (TauReal.mul (TauComplex.cisTauReal x).im (TauComplex.cisTauReal x).im))
+      TauReal.one := by
+  -- **Step 1 (algebraic)**: magSq ≈ (cis x · cis (negate x)).re at toRat-pointwise.
+  have h_eq : TauReal.equiv
+      (TauReal.add
+        (TauReal.mul (TauComplex.cisTauReal x).re (TauComplex.cisTauReal x).re)
+        (TauReal.mul (TauComplex.cisTauReal x).im (TauComplex.cisTauReal x).im))
+      ((TauComplex.cisTauReal x).mul (TauComplex.cisTauReal (TauReal.negate x))).re := by
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    change (TauRat.add
+              (TauRat.mul ((TauComplex.cisTauReal x).re.approx n)
+                          ((TauComplex.cisTauReal x).re.approx n))
+              (TauRat.mul ((TauComplex.cisTauReal x).im.approx n)
+                          ((TauComplex.cisTauReal x).im.approx n))).toRat
+        = (TauRat.sub
+              (TauRat.mul ((TauComplex.cisTauReal x).re.approx n)
+                          ((TauComplex.cisTauReal (TauReal.negate x)).re.approx n))
+              (TauRat.mul ((TauComplex.cisTauReal x).im.approx n)
+                          ((TauComplex.cisTauReal (TauReal.negate x)).im.approx n))).toRat
+    rw [toRat_add, toRat_sub, toRat_mul, toRat_mul, toRat_mul, toRat_mul,
+        cisTauReal_re_approx_toRat, cisTauReal_re_approx_toRat,
+        cisTauReal_im_approx_toRat, cisTauReal_im_approx_toRat]
+    -- (TauReal.negate x).approx n = TauRat.negate (x.approx n), so .toRat = -(x.approx n).toRat
+    have h_neg_x : ((TauReal.negate x).approx n).toRat = -(x.approx n).toRat := by
+      change (TauRat.negate (x.approx n)).toRat = -(x.approx n).toRat
+      exact toRat_negate _
+    rw [h_neg_x, expPartial_pureIm_re_rat_neg, expPartial_pureIm_im_rat_neg]
+    ring
+  -- **Step 2 (β.4.1)**: (cis x · cis (negate x)).re ≈ TauReal.one
+  have h_unit := TauComplex.cisTauReal_neg_self_equiv_one x hx
+  exact TauReal.equiv_trans h_eq h_unit.1
+
 end Tau.Boundary
