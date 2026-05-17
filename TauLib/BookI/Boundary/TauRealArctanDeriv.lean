@@ -338,4 +338,61 @@ theorem TauReal.arctan_deriv_partial_seq_isCauchy
     have h_four_lt := Rat.four_div_two_pow_lt_recip k m hm
     linarith
 
+-- ============================================================
+-- PART 7: TauReal arctan_deriv_of_rat (Wave 2 user-facing)
+-- ============================================================
+
+/-! ## Wave 2 — user-facing TauReal `arctan_deriv_of_rat`
+
+  Packages `arctan_deriv_partial_seq` with the convergence-domain
+  hypothesis `2·|a.toRat| ≤ 1`, giving the formal derivative of
+  `arctan_of_rat` as a Cauchy TauReal.
+
+  By the geometric identity (Wave 1),
+
+      (arctan_deriv_of_rat a hx).approx N .toRat
+        = (1 − a.toRat^(4N)) / (1 + a.toRat²)
+
+  which converges geometrically to `1/(1+a.toRat²)` as `N → ∞`.
+
+  This is the candidate derivative TauReal for the IsDerivAt theorem
+  in Wave 3. The connection to `TauReal.inv (1 + a²)` (the "cleanest"
+  representation) is a downstream equivalence we'll establish if Module
+  6 needs it — but for the IsDerivAt theorem itself, the partial-sum
+  form is strictly more useful because `.approx N` directly equals the
+  N-th partial sum.
+-/
+
+/-- **[I.D-Arctan-Deriv-General]** τ-native formal derivative
+    `arctan_deriv_of_rat(x)` as a TauReal, for any `x : TauRat` with
+    `|x.toRat| ≤ 1/2`. -/
+def TauReal.arctan_deriv_of_rat (x : TauRat) (_ : 2 * |x.toRat| ≤ 1) : TauReal :=
+  TauReal.arctan_deriv_partial_seq x
+
+@[simp] theorem TauReal.arctan_deriv_of_rat_approx
+    (x : TauRat) (hx : 2 * |x.toRat| ≤ 1) (n : Nat) :
+    (TauReal.arctan_deriv_of_rat x hx).approx n = TauRat.arctan_deriv_partial x n := rfl
+
+/-- **Cauchy property** for `arctan_deriv_of_rat`: inherited from
+    `arctan_deriv_partial_seq_isCauchy`. -/
+theorem TauReal.arctan_deriv_of_rat_isCauchy
+    (x : TauRat) (hx : 2 * |x.toRat| ≤ 1) :
+    (TauReal.arctan_deriv_of_rat x hx).IsCauchy :=
+  TauReal.arctan_deriv_partial_seq_isCauchy x hx
+
+/-- **Closed-form approximation** for `arctan_deriv_of_rat`: at every
+    depth `N`, the approximation evaluates to `(1 − x^(4N))/(1 + x²)`
+    at Rat level. -/
+theorem TauReal.arctan_deriv_of_rat_approx_toRat_closed_form
+    (x : TauRat) (hx : 2 * |x.toRat| ≤ 1) (N : Nat) :
+    ((TauReal.arctan_deriv_of_rat x hx).approx N).toRat
+      = (1 - x.toRat^(4*N)) / (1 + x.toRat^2) := by
+  rw [TauReal.arctan_deriv_of_rat_approx]
+  rw [TauRat.arctan_deriv_partial_toRat]
+  have h_pos : (0 : Rat) < 1 + x.toRat^2 := by positivity
+  have h_ne : (1 + x.toRat^2) ≠ 0 := ne_of_gt h_pos
+  have h_id := arctan_deriv_partial_rat_geometric_identity x.toRat N
+  field_simp
+  linarith [h_id]
+
 end Tau.Boundary
