@@ -1033,4 +1033,63 @@ theorem TauReal.arctan_of_rat_approx_abs_toRat_le_one (a : TauRat)
   rw [TauReal.arctan_of_rat_approx, TauRat.toRat_abs, TauRat.arctan_partial_toRat]
   exact arctan_partial_rat_abs_le_one a.toRat hx n
 
+-- ============================================================
+-- PART 16: 🎯 ARCTAN ODD-FUNCTION IDENTITY  (Phase 2.6.B.2.β.4.4)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.4 — `arctan_of_rat(−a) ≈ −arctan_of_rat(a)`
+
+  The arctan series has only **odd powers** of `x`:
+
+      arctan(x) = Σ pair_k(x), pair_k(x) = x^(4k+1)/(4k+1) − x^(4k+3)/(4k+3)
+
+  Both `4k+1` and `4k+3` are odd, so `pair_k(−x) = −pair_k(x)`. Hence
+  `arctan_partial_rat(−x, n) = −arctan_partial_rat(x, n)` at every depth,
+  giving the pointwise odd-function identity, which lifts to TauReal
+  equivalence via `equiv_of_pointwise`.
+
+  This is a useful structural identity for the tangent-identity proof
+  (β.4 main) and for the eventual arctan addition formula. -/
+
+/-- **[I.T-ArctanPairTerm-Odd]** `arctan_pair_term_rat (−x) k = −arctan_pair_term_rat x k`. -/
+theorem arctan_pair_term_rat_neg (x : Rat) (k : Nat) :
+    arctan_pair_term_rat (-x) k = -(arctan_pair_term_rat x k) := by
+  unfold arctan_pair_term_rat
+  have h_odd1 : Odd (4*k+1) := ⟨2*k, by ring⟩
+  have h_odd2 : Odd (4*k+3) := ⟨2*k+1, by ring⟩
+  rw [Odd.neg_pow h_odd1, Odd.neg_pow h_odd2]
+  ring
+
+/-- **[I.T-ArctanPartial-Odd]** `arctan_partial_rat (−x) n = −arctan_partial_rat x n`. -/
+theorem arctan_partial_rat_neg (x : Rat) (n : Nat) :
+    arctan_partial_rat (-x) n = -(arctan_partial_rat x n) := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    rw [arctan_partial_rat_succ, ih, arctan_pair_term_rat_neg,
+        arctan_partial_rat_succ]
+    ring
+
+/-- **🎯🎯🎯 [I.T-ArctanOfRat-Odd]** `arctan_of_rat (negate a) ≈ negate (arctan_of_rat a)`.
+
+    The TauReal-level odd-function identity for arctan_of_rat. -/
+theorem TauReal.arctan_of_rat_negate (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) :
+    TauReal.equiv
+      (TauReal.arctan_of_rat (TauRat.negate a) (by
+        rw [toRat_negate, abs_neg]; exact ha))
+      (TauReal.negate (TauReal.arctan_of_rat a ha)) := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  -- LHS: ((arctan_of_rat (negate a) _).approx n).toRat
+  --      = (arctan_partial (negate a) n).toRat
+  --      = arctan_partial_rat (-a.toRat) n
+  --      = -(arctan_partial_rat a.toRat n)
+  -- RHS: ((negate (arctan_of_rat a ha)).approx n).toRat
+  --      = (TauRat.negate (arctan_partial a n)).toRat
+  --      = -(arctan_partial_rat a.toRat n)
+  change ((TauRat.arctan_partial (TauRat.negate a) n).toRat
+        = (TauRat.negate (TauRat.arctan_partial a n)).toRat)
+  simp only [TauRat.arctan_partial_toRat, toRat_negate, arctan_partial_rat_neg]
+
 end Tau.Boundary
