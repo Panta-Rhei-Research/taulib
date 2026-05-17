@@ -8,10 +8,12 @@ import Mathlib.Topology.Compactness.Compact
 Experimental G5 spine: the lemniscate as two τ-native circle lobes glued at one
 crossing point.
 
-The object here is intentionally a scaffold.  It records the carrier, lobe
-labels, crossing point, topology/metric/compactness obligations, and the places
-where the future proof must replace placeholders.  It does not claim that the
-metric graph, compactness, or operator theory has been completed.
+This module now separates two layers.  `LemniscatePoint` is the raw coproduct
+with explicit lobe labels and basepoints.  `LemniscateCarrier` is the quotient
+that performs the wedge gluing by identifying the two lobe basepoints with the
+crossing node.  Topology, metric, compactness, and shortest-path realization
+remain explicit context obligations; this module does not claim that the metric
+graph, compactness, or operator theory has been completed.
 -/
 
 set_option autoImplicit false
@@ -47,6 +49,13 @@ def IsCrossing : LemniscatePoint → Prop
   | .crossing => True
   | .lobe _ _ => False
 
+/-- Predicate: a raw point belongs to the crossing equivalence class of the
+    wedge quotient.  This class contains the explicit crossing node and the two
+    lobe basepoints. -/
+def InCrossingClass : LemniscatePoint → Prop
+  | .crossing => True
+  | .lobe _ p => p = TauCirclePoint.base
+
 /-- Predicate: a point lies on a specific lobe away from the quotient
     interpretation of the crossing node. -/
 def OnSector (s : LemniscateSector) : LemniscatePoint → Prop
@@ -63,48 +72,176 @@ inductive WedgeRelated : LemniscatePoint → LemniscatePoint → Prop where
   | crossing_to_minus_base : WedgeRelated omega (lobeBase .minus)
   | base_glue : WedgeRelated (lobeBase .plus) (lobeBase .minus)
 
+/-- Equivalence relation for the wedge quotient: raw equality, plus one
+    crossing class containing the crossing node and both lobe basepoints. -/
+def WedgeEquivalent (x y : LemniscatePoint) : Prop :=
+  x = y ∨ (InCrossingClass x ∧ InCrossingClass y)
+
+/-- Every raw point is wedge-equivalent to itself. -/
+theorem WedgeEquivalent.refl (x : LemniscatePoint) :
+    WedgeEquivalent x x :=
+  Or.inl rfl
+
+/-- Wedge equivalence is symmetric. -/
+theorem WedgeEquivalent.symm {x y : LemniscatePoint}
+    (h : WedgeEquivalent x y) :
+    WedgeEquivalent y x := by
+  cases h with
+  | inl hxy =>
+      exact Or.inl hxy.symm
+  | inr hxy =>
+      exact Or.inr ⟨hxy.right, hxy.left⟩
+
+/-- Wedge equivalence is transitive. -/
+theorem WedgeEquivalent.trans {x y z : LemniscatePoint}
+    (hxy : WedgeEquivalent x y)
+    (hyz : WedgeEquivalent y z) :
+    WedgeEquivalent x z := by
+  cases hxy with
+  | inl hxy =>
+      subst y
+      exact hyz
+  | inr hxyc =>
+      cases hyz with
+      | inl hyz =>
+          subst z
+          exact Or.inr hxyc
+      | inr hyzc =>
+          exact Or.inr ⟨hxyc.left, hyzc.right⟩
+
+/-- The raw wedge relation is contained in the equivalence relation used for
+    the quotient carrier. -/
+theorem WedgeRelated.toEquivalent {x y : LemniscatePoint}
+    (h : WedgeRelated x y) :
+    WedgeEquivalent x y := by
+  cases h with
+  | refl x =>
+      exact WedgeEquivalent.refl x
+  | plus_base_to_crossing =>
+      exact Or.inr ⟨rfl, trivial⟩
+  | minus_base_to_crossing =>
+      exact Or.inr ⟨rfl, trivial⟩
+  | crossing_to_plus_base =>
+      exact Or.inr ⟨trivial, rfl⟩
+  | crossing_to_minus_base =>
+      exact Or.inr ⟨trivial, rfl⟩
+  | base_glue =>
+      exact Or.inr ⟨rfl, rfl⟩
+
+/-- Setoid implementing the two-lobe wedge quotient. -/
+def wedgeSetoid : Setoid LemniscatePoint where
+  r := WedgeEquivalent
+  iseqv := ⟨WedgeEquivalent.refl, WedgeEquivalent.symm, WedgeEquivalent.trans⟩
+
 end LemniscatePoint
+
+/-- The actual G5 carrier spine: two τ-native circle lobes modulo the wedge
+    relation that identifies both lobe basepoints with the crossing node. -/
+abbrev LemniscateCarrier : Type :=
+  Quotient LemniscatePoint.wedgeSetoid
+
+namespace LemniscateCarrier
+
+/-- Carrier crossing class. -/
+def crossing : LemniscateCarrier :=
+  Quotient.mk LemniscatePoint.wedgeSetoid LemniscatePoint.omega
+
+/-- Carrier point from a labeled lobe and τ-circle point. -/
+def lobe (s : LemniscateSector) (p : TauCirclePoint) : LemniscateCarrier :=
+  Quotient.mk LemniscatePoint.wedgeSetoid (LemniscatePoint.lobe s p)
+
+/-- Carrier-level lobe membership.  The crossing class belongs to both lobes
+    through the quotient identification of the lobe basepoints. -/
+def OnSector (s : LemniscateSector) (x : LemniscateCarrier) : Prop :=
+  ∃ p : TauCirclePoint, x = lobe s p
+
+/-- Every constructed lobe point lies on its labeled carrier sector. -/
+theorem lobe_onSector (s : LemniscateSector) (p : TauCirclePoint) :
+    OnSector s (lobe s p) :=
+  ⟨p, rfl⟩
+
+/-- The basepoint on each lobe is the crossing class in the quotient carrier. -/
+theorem lobe_base_eq_crossing (s : LemniscateSector) :
+    lobe s TauCirclePoint.base = crossing := by
+  apply Quotient.sound
+  exact Or.inr ⟨rfl, trivial⟩
+
+/-- The crossing class lies on either carrier sector. -/
+theorem crossing_onSector (s : LemniscateSector) :
+    OnSector s crossing :=
+  ⟨TauCirclePoint.base, (lobe_base_eq_crossing s).symm⟩
+
+/-- The crossing class is exactly the lobe intersection currently available at
+    the carrier level.  Proving that this is the only intersection is a future
+    separatedness/quotient obligation, not a fact assumed here. -/
+theorem crossing_on_both_sectors :
+    OnSector .plus crossing ∧ OnSector .minus crossing :=
+  ⟨crossing_onSector .plus, crossing_onSector .minus⟩
+
+/-- The two lobe basepoints are equal in the quotient carrier. -/
+theorem plus_base_eq_minus_base :
+    lobe .plus TauCirclePoint.base = lobe .minus TauCirclePoint.base := by
+  apply Quotient.sound
+  exact Or.inr ⟨rfl, rfl⟩
+
+/-- Raw wedge-related points have the same carrier class. -/
+theorem sound_wedge_related {x y : LemniscatePoint}
+    (h : LemniscatePoint.WedgeRelated x y) :
+    Quotient.mk LemniscatePoint.wedgeSetoid x =
+      Quotient.mk LemniscatePoint.wedgeSetoid y := by
+  exact Quotient.sound h.toEquivalent
+
+end LemniscateCarrier
 
 /-- Placeholder graph distance for the carrier.  Once the metric graph is
     proved, this should be replaced by the lobe-arc/wedge shortest-path
     distance. -/
 noncomputable def lemniscateGraphDist
-    (_x _y : LemniscatePoint) : ℝ :=
+    (_x _y : LemniscateCarrier) : ℝ :=
   0
 
-/-- G5 scaffold obligation: topology on the lemniscate carrier. -/
-noncomputable instance instTopologicalSpaceLemniscatePoint :
-    TopologicalSpace LemniscatePoint := by
-  sorry
+/-- Status labels for the G5 carrier layer. -/
+inductive LemniscateCarrierStatus where
+  | definition
+  | explicitObligation
+  | theoremBacked
+  deriving Repr, DecidableEq
 
-/-- G5 scaffold obligation: metric on the lemniscate carrier. -/
-noncomputable instance instMetricSpaceLemniscatePoint :
-    MetricSpace LemniscatePoint := by
-  sorry
-
-/-- G5 scaffold obligation: compactness of the two-loop wedge carrier. -/
-noncomputable instance instCompactSpaceLemniscatePoint :
-    CompactSpace LemniscatePoint := by
-  sorry
+/-- Explicit G5 context for the lemniscate carrier.  This replaces the previous
+    typeclass placeholders: topology, metric, compactness, and compatibility
+    must be supplied as named data before any downstream theorem may consume
+    them. -/
+structure LemniscateCarrierContext where
+  topology : TopologicalSpace LemniscateCarrier
+  metric : MetricSpace LemniscateCarrier
+  compact : CompactSpace LemniscateCarrier
+  topologyIsWedgeQuotient : Prop
+  metricIsGraphMetric : Prop
+  compactnessFromWedge : Prop
+  topologyMetricAgreement : Prop
+  graphDistanceRealizesMetric : Prop
+  status : LemniscateCarrierStatus := .explicitObligation
 
 /-- The topology/metric agreement obligation for the G5 carrier.  The present
     statement intentionally records the interface rather than pretending the
     proof is complete. -/
-def LemniscateTopologyMetricAgreement : Prop :=
-  ∃ _m : MetricSpace LemniscatePoint,
-  ∃ _t : TopologicalSpace LemniscatePoint,
-    True
+def LemniscateTopologyMetricAgreement (ctx : LemniscateCarrierContext) : Prop :=
+  ctx.topologyMetricAgreement
 
-/-- The current scaffold supplies the typeclass endpoints of the future
-    agreement theorem. -/
-theorem topology_metric_agreement_scaffold :
-    LemniscateTopologyMetricAgreement := by
-  exact ⟨inferInstance, inferInstance, trivial⟩
+/-- Compact metric-graph carrier readiness is explicit: no theorem downstream
+    should infer this from ambient typeclasses. -/
+def LemniscateCarrierReady (ctx : LemniscateCarrierContext) : Prop :=
+  ctx.topologyIsWedgeQuotient ∧
+  ctx.metricIsGraphMetric ∧
+  ctx.compactnessFromWedge ∧
+  LemniscateTopologyMetricAgreement ctx ∧
+  ctx.graphDistanceRealizesMetric ∧
+  ctx.status = .theoremBacked
 
 /-- Metric sanity for the zero-distance scaffold.  This theorem is intentionally
     weaker than a real metric-graph statement; the future shortest-path
     distance must replace it. -/
-theorem lemniscateGraphDist_self (x : LemniscatePoint) :
+theorem lemniscateGraphDist_self (x : LemniscateCarrier) :
     lemniscateGraphDist x x = 0 :=
   rfl
 

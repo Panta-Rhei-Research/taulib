@@ -5,13 +5,12 @@ import TauLib.BookI.Boundary.TauRealSinCos
 
 Experimental G5 spine: τ-native circle parameterization.
 
-This module creates the receiving interface for the recently completed
-τ-native trigonometric stack.  On the current fresh branch, rational-angle
-circle witnesses are built from the available τ-native exponential spine
-`TauComplex.exp (TauComplex.pureIm a)`, with Euler bridges to
-`TauReal.cos_of_rat` and `TauReal.sin_of_rat`.  The stronger general
-`cisTauReal : TauReal → TauComplex` interface is represented by explicit
-scaffold obligations until that API is promoted onto this branch.
+This module creates the receiving interface for the completed τ-native
+trigonometric stack.  Circle witnesses are built from
+`TauComplex.cisTauReal`, whose addition, conjugation, and Pythagorean
+unit-magnitude identities are proved in Book I.  Closure of bounded angle sums
+is still recorded as a G5 obligation rather than smuggled in as an unsafe
+claim.
 -/
 
 set_option autoImplicit false
@@ -28,22 +27,21 @@ structure BoundedTauAngle where
 
 namespace BoundedTauAngle
 
-/-- The zero τ-angle.  The boundedness proof is intentionally left as part of
-    the scaffold budget so the carrier spine can be assembled first. -/
+/-- The zero τ-angle. -/
 def zero : BoundedTauAngle where
   angle := TauReal.zero
   bounded_one := by
-    intro _n
-    sorry
+    intro n
+    change (TauRat.abs TauRat.zero).toRat ≤ 1
+    rw [TauRat.toRat_abs, toRat_zero, abs_zero]
+    norm_num
 
-/-- Negation preserves the bounded-angle predicate.  The current bridge branch
-    records this as a scaffold proof so the carrier can be assembled before the
-    stronger τ-trig lemma names land on `origin/main`. -/
+/-- Negation preserves the bounded-angle predicate. -/
 def neg (x : BoundedTauAngle) : BoundedTauAngle where
   angle := TauReal.negate x.angle
   bounded_one := by
-    intro _n
-    sorry
+    intro n
+    exact TauReal.negate_approx_abs_toRat_le_one x.angle x.bounded_one n
 
 end BoundedTauAngle
 
@@ -79,9 +77,7 @@ theorem cisTauRat_im_eq_sin (a : TauRat) (ha : |a.toRat| ≤ 1) :
   TauComplex.exp_pureIm_im_eq_sin_target_proof a ha
 
 /-- A τ-native point on the unit circle, represented by a bounded τ-angle and a
-    τ-complex value.  The value is intentionally explicit on this scaffold
-    branch because the stronger `cisTauReal : TauReal → TauComplex` interface is
-    still upstream branch work. -/
+    τ-complex value. -/
 structure TauCirclePoint where
   param : BoundedTauAngle
   value : TauComplex
@@ -90,13 +86,14 @@ structure TauCirclePoint where
 
 namespace TauCirclePoint
 
-/-- The base circle point at τ-angle zero.  The value is the τ-complex unit; the
-    unit-magnitude proof remains part of the temporary scaffold budget. -/
+/-- The base circle point at τ-angle zero. -/
 def base : TauCirclePoint :=
   { param := BoundedTauAngle.zero
-    value := TauComplex.one
+    value := TauComplex.cisTauReal TauReal.zero
     unitMagnitude := by
-      sorry
+      exact TauComplex.cisTauReal_magSq_equiv_one
+        TauReal.zero
+        BoundedTauAngle.zero.bounded_one
     sourceStatus := .tauNativeTrigInterface }
 
 /-- The τ-native unit-magnitude identity for a circle point. -/
@@ -104,21 +101,23 @@ theorem unit_magnitude (p : TauCirclePoint) :
     TauCircleUnitMagnitude p.value :=
   p.unitMagnitude
 
-/-- The formal negated parameter circle point, implemented through τ-complex
-    conjugation at the scaffold layer.  Once `cisTauReal` is on main this should
-    be tightened to the native identity
-    `cisTauReal (-x) ≈ conj (cisTauReal x)`. -/
+/-- The formal negated parameter circle point, implemented directly with the
+    τ-native `cisTauReal` parameterization. -/
 def neg (p : TauCirclePoint) : TauCirclePoint where
   param := BoundedTauAngle.neg p.param
-  value := TauComplex.conj p.value
+  value := TauComplex.cisTauReal (TauReal.negate p.param.angle)
   unitMagnitude := by
-    sorry
-  sourceStatus := .scaffoldObligation
+    exact TauComplex.cisTauReal_magSq_equiv_one
+      (TauReal.negate p.param.angle)
+      (BoundedTauAngle.neg p.param).bounded_one
+  sourceStatus := .tauNativeTrigInterface
 
 /-- The τ-native conjugation/angle-negation identity for circle points. -/
 theorem negate_equiv_conj (p : TauCirclePoint) :
-    TauComplex.equiv (neg p).value (TauComplex.conj p.value) :=
-  TauComplex.equiv_refl _
+    TauComplex.equiv
+      (TauComplex.cisTauReal (TauReal.negate p.param.angle))
+      (TauComplex.conj (TauComplex.cisTauReal p.param.angle)) :=
+  TauComplex.cisTauReal_negate_equiv_conj p.param.angle
 
 /-- The addition-law obligation for the τ-circle parameterization.  The current
     scaffold does not package angle-sum closure as a point; it records the exact
@@ -126,16 +125,12 @@ theorem negate_equiv_conj (p : TauCirclePoint) :
 def AdditionLawObligation (p q : TauCirclePoint) : Prop :=
   ∃ r : TauCirclePoint, TauComplex.equiv r.value (TauComplex.mul p.value q.value)
 
-/-- The τ-native addition law for bounded circle parameters.  The sum is not
-    packaged as a new bounded point here; that stronger closure property is a
-    later G5 obligation. -/
-theorem cis_add_scaffold (p q : TauCirclePoint) :
-    AdditionLawObligation p q := by
-  -- The witness should become the normalized angle-sum circle point once the
-  -- main branch exposes the full `cisTauReal_add` interface.  Leaving this as
-  -- one scaffold obligation avoids forcing an unsafe bounded-angle closure
-  -- claim on the current carrier.
-    sorry
+/-- The bounded-angle addition law remains an explicit G5 obligation.  Book I
+    proves `cisTauReal_add`; what is not automatic here is that the sum of two
+    bounded circle parameters is again packaged as a bounded circle point on
+    this carrier. -/
+def cis_add_closure_obligation (p q : TauCirclePoint) : Prop :=
+  AdditionLawObligation p q
 
 end TauCirclePoint
 
@@ -146,11 +141,18 @@ def TauCirclePoint.ofRat (a : TauRat) (_ha : |a.toRat| ≤ 1) : TauCirclePoint :
   { param :=
       { angle := TauReal.fromTauRat a
         bounded_one := by
-          intro _n
-          sorry }
-    value := cisTauRat a
+          intro n
+          change (TauRat.abs a).toRat ≤ 1
+          rw [TauRat.toRat_abs]
+          exact _ha }
+    value := TauComplex.cisTauReal (TauReal.fromTauRat a)
     unitMagnitude := by
-      sorry
+      exact TauComplex.cisTauReal_magSq_equiv_one
+        (TauReal.fromTauRat a)
+        (fun n => by
+          change (TauRat.abs a).toRat ≤ 1
+          rw [TauRat.toRat_abs]
+          exact _ha)
     sourceStatus := .tauNativeTrigInterface }
 
 end Tau.BookIII.Bridge
