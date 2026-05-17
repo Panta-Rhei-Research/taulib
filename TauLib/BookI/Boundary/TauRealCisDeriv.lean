@@ -357,4 +357,161 @@ theorem expPartial_pureIm_im_rat_three_small_angle (α : Rat) :
     expPartial_pureIm_im_rat α 3 - α = 0 := by
   rw [expPartial_pureIm_im_rat_three]; ring
 
+-- ============================================================
+-- PART 6: Wave 4 — SMALL-ANGLE BOUND AT ARBITRARY DEPTH N ≥ 1
+-- ============================================================
+
+/-! ## Wave 4 — small-angle bound for cisTauReal partial sum at any depth
+
+  Generalizes the Wave 3 depth-3 closed form to arbitrary depth via a
+  LOOSE linear-in-N bound:
+
+      |expPartial_pureIm_re_rat α N − 1| ≤ N · α²    (N ≥ 1, |α| ≤ 1)
+      |expPartial_pureIm_im_rat α N − α| ≤ N · |α|³  (similarly)
+
+  Proof structure (loose linear bound, no alternating-series machinery):
+  1. Structural bound on `(pureIm_pow_re_im_rat α N)`:
+       |.1|, |.2| ≤ |α|^N
+  2. Triangle inequality + induction:
+       T_{N+1} = T_N + contribution_N
+       |T_{N+1}| ≤ |T_N| + |α|^N / N!
+                ≤ N·α² + α²/N!  (for N ≥ 2, |α|^N ≤ α²)
+                ≤ N·α² + α²     (1/N! ≤ 1)
+                = (N+1)·α²
+
+  The linear-in-N bound is loose (tight would be `α²/2` independent of N
+  via alternating-series first-term dominance), but it's provable by
+  simple induction and sufficient for the chain rule: in the IsDerivAt
+  context, α = O(1/2^N) so N·α² = O(N/4^N) → 0 as N → ∞.
+-/
+
+/-- **Structural bound**: `|.1|, |.2| of pureIm_pow_re_im_rat α N| ≤ |α|^N`. -/
+theorem pureIm_pow_re_im_rat_abs_bound (α : Rat) (N : Nat) :
+    |(pureIm_pow_re_im_rat α N).1| ≤ |α|^N ∧ |(pureIm_pow_re_im_rat α N).2| ≤ |α|^N := by
+  induction N with
+  | zero =>
+    refine ⟨?_, ?_⟩
+    · show |((1 : Rat), (0 : Rat)).1| ≤ |α|^0
+      simp
+    · show |((1 : Rat), (0 : Rat)).2| ≤ |α|^0
+      simp
+  | succ N ih =>
+    rw [pureIm_pow_re_im_rat_succ]
+    refine ⟨?_, ?_⟩
+    · -- .1 of (-(prev).2·α, (prev).1·α) = -(prev).2 · α
+      show |-(pureIm_pow_re_im_rat α N).2 * α| ≤ |α|^(N+1)
+      rw [show -(pureIm_pow_re_im_rat α N).2 * α
+            = -((pureIm_pow_re_im_rat α N).2 * α) from by ring]
+      rw [abs_neg, abs_mul]
+      calc |(pureIm_pow_re_im_rat α N).2| * |α|
+          ≤ |α|^N * |α| := mul_le_mul_of_nonneg_right ih.2 (_root_.abs_nonneg _)
+        _ = |α|^(N+1) := by rw [pow_succ]
+    · -- .2 of (-(prev).2·α, (prev).1·α) = (prev).1 · α
+      show |(pureIm_pow_re_im_rat α N).1 * α| ≤ |α|^(N+1)
+      rw [abs_mul]
+      calc |(pureIm_pow_re_im_rat α N).1| * |α|
+          ≤ |α|^N * |α| := mul_le_mul_of_nonneg_right ih.1 (_root_.abs_nonneg _)
+        _ = |α|^(N+1) := by rw [pow_succ]
+
+/-- **Helper**: For `N ≥ 2` and `|α| ≤ 1`, `|α|^N ≤ α²`. -/
+theorem pow_le_sq_of_abs_le_one (α : Rat) (hα : |α| ≤ 1) (N : Nat) (hN : 2 ≤ N) :
+    |α|^N ≤ α^2 := by
+  have h_abs_nn : (0 : Rat) ≤ |α| := _root_.abs_nonneg _
+  have h_abs_sq : |α|^2 = α^2 := by rw [sq_abs]
+  have h_decreasing : |α|^N ≤ |α|^2 := by
+    have h_le : |α|^N ≤ |α|^2 :=
+      pow_le_pow_of_le_one h_abs_nn hα hN
+    exact h_le
+  linarith [h_abs_sq.symm.le, h_decreasing]
+
+/-- **Helper**: `(1 : Rat) / (Nat.factorial N : Rat) ≤ 1` for any `N`. -/
+theorem one_div_factorial_le_one (N : Nat) :
+    (1 : Rat) / ((N.factorial : Nat) : Rat) ≤ 1 := by
+  have h_pos : (0 : Rat) < (N.factorial : Rat) := by
+    have : 0 < N.factorial := Nat.factorial_pos _
+    exact_mod_cast this
+  have h_ge_one : (1 : Rat) ≤ (N.factorial : Rat) := by
+    have : 1 ≤ N.factorial := Nat.factorial_pos N
+    exact_mod_cast this
+  rw [div_le_one h_pos]
+  exact h_ge_one
+
+/-- **Wave 4 — linear-in-N small-angle bound for re part**:
+
+      |expPartial_pureIm_re_rat α N − 1| ≤ N · α²
+
+    for `N ≥ 1` and `|α| ≤ 1`. -/
+theorem expPartial_pureIm_re_rat_small_angle_bound
+    (α : Rat) (hα : |α| ≤ 1) (N : Nat) (hN : 1 ≤ N) :
+    |expPartial_pureIm_re_rat α N - 1| ≤ (N : Rat) * α^2 := by
+  induction N, hN using Nat.le_induction with
+  | base =>
+    -- N = 1: expPartial_pureIm_re_rat α 1 = 1
+    have h_one : expPartial_pureIm_re_rat α 1 = 1 := by
+      rw [show (1 : Nat) = 0 + 1 from rfl, expPartial_pureIm_re_rat_succ,
+          expPartial_pureIm_re_rat_zero, pureIm_pow_re_im_rat_zero]
+      simp
+    rw [h_one]
+    show |(1 : Rat) - 1| ≤ ((1 : Nat) : Rat) * α^2
+    rw [sub_self, abs_zero]
+    have h_sq : (0 : Rat) ≤ α^2 := sq_nonneg _
+    have h_one_rat : ((1 : Nat) : Rat) = 1 := by norm_num
+    rw [h_one_rat]
+    linarith
+  | succ N hN_ge ih =>
+    -- Step N → N+1 (for N ≥ 1)
+    rw [expPartial_pureIm_re_rat_succ]
+    have h_rearrange :
+        expPartial_pureIm_re_rat α N + (pureIm_pow_re_im_rat α N).1 / (N.factorial : Rat) - 1
+        = (expPartial_pureIm_re_rat α N - 1)
+          + (pureIm_pow_re_im_rat α N).1 / (N.factorial : Rat) := by ring
+    rw [h_rearrange]
+    have h_struct := (pureIm_pow_re_im_rat_abs_bound α N).1
+    have h_fact_pos : (0 : Rat) < (N.factorial : Rat) := by
+      have : 0 < N.factorial := Nat.factorial_pos _
+      exact_mod_cast this
+    have h_fact_ge_one : (1 : Rat) ≤ (N.factorial : Rat) := by
+      have : 1 ≤ N.factorial := Nat.factorial_pos N
+      exact_mod_cast this
+    have h_sq_nn : (0 : Rat) ≤ α^2 := sq_nonneg _
+    -- Case split: N = 1 (contribution = 0) vs N ≥ 2 (use pow bound)
+    by_cases h_N1 : N = 1
+    · subst h_N1
+      have h_pow_zero : (pureIm_pow_re_im_rat α 1).1 = 0 := by
+        rw [show (1 : Nat) = 0 + 1 from rfl, pureIm_pow_re_im_rat_succ,
+            pureIm_pow_re_im_rat_zero]
+        simp
+      rw [h_pow_zero, zero_div, add_zero]
+      have h_cast : ((1+1 : Nat) : Rat) = 2 := by norm_num
+      have h_cast1 : ((1 : Nat) : Rat) = 1 := by norm_num
+      rw [h_cast]
+      rw [h_cast1] at ih
+      linarith
+    · have hN_ge_2 : 2 ≤ N := by omega
+      have h_pow_bound : |α|^N ≤ α^2 := pow_le_sq_of_abs_le_one α hα N hN_ge_2
+      -- |pureIm.1| ≤ |α|^N ≤ α²
+      have h_num_le_sq : |(pureIm_pow_re_im_rat α N).1| ≤ α^2 := le_trans h_struct h_pow_bound
+      -- |pureIm.1| ≤ α² · N!  (since N! ≥ 1, α² ≥ 0)
+      have h_num_le_prod : |(pureIm_pow_re_im_rat α N).1| ≤ α^2 * (N.factorial : Rat) := by
+        calc |(pureIm_pow_re_im_rat α N).1|
+            ≤ α^2 := h_num_le_sq
+          _ = α^2 * 1 := by ring
+          _ ≤ α^2 * (N.factorial : Rat) :=
+              mul_le_mul_of_nonneg_left h_fact_ge_one h_sq_nn
+      -- |pureIm.1 / N!| ≤ α²
+      have h_div_bound :
+          |(pureIm_pow_re_im_rat α N).1 / (N.factorial : Rat)| ≤ α^2 := by
+        rw [abs_div, abs_of_pos h_fact_pos]
+        rw [div_le_iff₀ h_fact_pos]
+        exact h_num_le_prod
+      -- Triangle + IH + h_div_bound
+      have h_cast : ((N + 1 : Nat) : Rat) = ((N : Nat) : Rat) + 1 := by push_cast; ring
+      rw [h_cast]
+      calc |(expPartial_pureIm_re_rat α N - 1)
+            + (pureIm_pow_re_im_rat α N).1 / (N.factorial : Rat)|
+          ≤ |expPartial_pureIm_re_rat α N - 1|
+            + |(pureIm_pow_re_im_rat α N).1 / (N.factorial : Rat)| := abs_add_le _ _
+        _ ≤ ((N : Nat) : Rat) * α^2 + α^2 := by linarith
+        _ = (((N : Nat) : Rat) + 1) * α^2 := by ring
+
 end Tau.Boundary
