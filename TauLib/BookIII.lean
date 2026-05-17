@@ -80,6 +80,7 @@ import TauLib.BookIII.Bridge.TranslationArith
 import TauLib.BookIII.Bridge.TranslationTopo
 import TauLib.BookIII.Bridge.TranslationObstruction
 import TauLib.BookIII.Bridge.ConjectureGaps
+import TauLib.BookIII.Bridge.LemniscateSpine
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
