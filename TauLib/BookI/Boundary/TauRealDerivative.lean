@@ -542,4 +542,94 @@ theorem TauReal.IsDerivAt_const_mul
     _ = 1 / ((k : Rat) + 1) := by
         field_simp
 
+-- ============================================================
+-- PART 9: PRODUCT RULE (LEIBNIZ) — Wave 1: HELPER LEMMAS
+-- ============================================================
+
+/-! ## Wave 1 — Helper lemmas for the full Leibniz product rule
+
+  Per the forensic roadmap in
+  `atlas/insights/2026-05-17-lean-tactic-friction-forensics-leibniz.md`,
+  the Leibniz proof is structured as three waves. Wave 1 ships the
+  Rat-level algebraic helpers and modulus-arithmetic lemmas. These are
+  independent testable units that don't reference `IsDerivAt`.
+
+  All helpers below follow the cheat-sheet patterns:
+    • `simp only [toRat_*]; ring` for algebraic identities
+    • Nat-level proof first, then `exact_mod_cast` to Rat
+    • `field_simp` only at final normalization
+-/
+
+/-- **Wave 1.1**: 4-piece algebraic decomposition of the Leibniz Diff.
+
+    Given `(Fh − Fa)·t = 1` (the dyadic-step inversion identity), the
+    Diff `((Fh·Gh − Fa·Ga)·t − Lf·Ga − Fa·Lg)` decomposes as:
+
+        α · Gh  +  Lf · β / t  +  Lf · Lg / t  +  Fa · β
+
+    where α := (Fh − Fa)·t − Lf and β := (Gh − Ga)·t − Lg.
+
+    Note: Unlike the simpler 3-piece form which uses `(Gh − Ga)`, this
+    4-piece form decomposes `Lf·(Gh − Ga)` into `Lf·β/t + Lf·Lg/t` for
+    cleaner per-piece bound analysis. -/
+private theorem scaledDiff_mul_4piece_split
+    (Fh Fa Gh Ga Lf Lg t : Rat) (h_t_ne : t ≠ 0) :
+    (Fh * Gh - Fa * Ga) * t - Lf * Ga - Fa * Lg
+    = ((Fh - Fa) * t - Lf) * Gh
+      + Lf * ((Gh - Ga) * t - Lg) / t
+      + Lf * Lg / t
+      + Fa * ((Gh - Ga) * t - Lg) := by
+  field_simp
+  ring
+
+/-- **Wave 1.2**: modulus arithmetic — four `1/(4M(k+1))` pieces sum to `1/(k+1)`. -/
+private theorem leibniz_four_quarter_sum (M : Nat) (hM : 1 ≤ M) (k : Nat) :
+    (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+      + (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+      + (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+      + (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+    = 1 / ((k : Rat) + 1) := by
+  have hM_pos : (0 : Rat) < (M : Rat) := by
+    exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have hM_ne : (M : Rat) ≠ 0 := ne_of_gt hM_pos
+  field_simp
+  ring
+
+/-- **Wave 1.3**: Bernoulli inequality `2^N ≥ N+1` at Nat level. -/
+private theorem leibniz_bernoulli_nat (N : Nat) : N + 1 ≤ 2 ^ N := by
+  induction N with
+  | zero => norm_num
+  | succ n ih =>
+    have h_pow_one : 1 ≤ 2^n := Nat.one_le_pow n 2 (by norm_num)
+    calc n + 1 + 1 ≤ 2^n + 2^n := by omega
+      _ = 2^(n+1) := by rw [pow_succ]; ring
+
+/-- **Wave 1.4**: Bernoulli at Rat level for `2^N`. -/
+private theorem leibniz_bernoulli_rat (N : Nat) :
+    ((N : Rat) + 1) ≤ (2 : Rat) ^ N := by
+  have h_nat := leibniz_bernoulli_nat N
+  have h_cast : ((N + 1 : Nat) : Rat) ≤ ((2 ^ N : Nat) : Rat) := by exact_mod_cast h_nat
+  have h_lhs : ((N + 1 : Nat) : Rat) = (N : Rat) + 1 := by push_cast; ring
+  have h_rhs : ((2 ^ N : Nat) : Rat) = (2 : Rat) ^ N := by push_cast; ring
+  linarith
+
+/-- **Wave 1.5**: Nat-level subtraction cast helper.
+
+    For modulus-cast manipulations: given `1 ≤ M·k + M`, the cast
+    `((M·k + M − 1 : Nat) : Rat) + 1 = M(k+1)` at Rat level.
+    Generalised to `c · k + c` form for c-multiplied moduli. -/
+private theorem leibniz_modulus_cast (c k : Nat) (hc : 1 ≤ c) :
+    (((c * (k + 1) - 1 : Nat) : Rat) + 1) = (c : Rat) * ((k : Rat) + 1) := by
+  have h_pos : 1 ≤ c * (k + 1) := by
+    have hk1 : 1 ≤ k + 1 := Nat.succ_pos k
+    exact Nat.one_le_iff_ne_zero.mpr (Nat.mul_pos hc (by omega)).ne'
+  have h_nat : c * (k + 1) - 1 + 1 = c * (k + 1) := by omega
+  have h_cast_eq : (((c * (k + 1) - 1 + 1) : Nat) : Rat) = ((c * (k + 1) : Nat) : Rat) := by
+    exact_mod_cast h_nat
+  have h_split : (((c * (k + 1) - 1 + 1) : Nat) : Rat)
+              = ((c * (k + 1) - 1 : Nat) : Rat) + 1 := by push_cast; ring
+  have h_final : ((c * (k + 1) : Nat) : Rat) = (c : Rat) * ((k : Rat) + 1) := by
+    push_cast; ring
+  linarith
+
 end Tau.Boundary
