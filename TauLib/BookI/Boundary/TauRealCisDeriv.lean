@@ -667,6 +667,141 @@ theorem TauReal.cisTauReal_im_approx_small_angle_bound
   exact expPartial_pureIm_im_rat_small_angle_bound ((x.approx n).toRat) hα n hn
 
 -- ============================================================
+-- PART 8.5: Wave 6c.1 — arctan-PARTIAL LIPSCHITZ (Rat level)
+-- ============================================================
+
+/-! ## Wave 6c.1 — Lipschitz bound for arctan_partial_rat
+
+  For `|x|, |y| ≤ 1` and any depth `n`:
+
+      |arctan_partial_rat x n − arctan_partial_rat y n| ≤ 2n · |x − y|
+
+  Proof by induction. The loose `2n` Lipschitz constant grows with depth,
+  but combined with `|h_N| = 1/2^N` in the chain rule, `2n / 2^N → 0`,
+  so the bound is sufficient.
+
+  Key building blocks (all Rat-level, no Mathlib-real dependence):
+  1. `pow_sub_pow_abs_le`: |x^m − y^m| ≤ m · |x − y| for |x|, |y| ≤ 1
+  2. `arctan_pair_term_rat_lipschitz`: pair_term Lipschitz with constant 2
+  3. `arctan_partial_rat_lipschitz`: inductive sum giving constant 2n
+-/
+
+/-- **Helper 1**: `|x^m − y^m| ≤ m · |x − y|` for `|x|, |y| ≤ 1`.
+
+    Proof by induction using the algebraic identity
+    `x^(m+1) − y^(m+1) = x^m · (x − y) + (x^m − y^m) · y`. -/
+theorem pow_sub_pow_abs_le (x y : Rat) (hx : |x| ≤ 1) (hy : |y| ≤ 1) (m : Nat) :
+    |x^m - y^m| ≤ (m : Rat) * |x - y| := by
+  induction m with
+  | zero => simp
+  | succ m ih =>
+    have h_alg : x^(m+1) - y^(m+1) = x^m * (x - y) + (x^m - y^m) * y := by ring
+    rw [h_alg]
+    have h_x_pow_le : |x|^m ≤ 1 := pow_le_one₀ (_root_.abs_nonneg _) hx
+    have h_x_pow_abs : |x^m| ≤ 1 := by rw [abs_pow]; exact h_x_pow_le
+    have h1 : |x^m * (x - y)| ≤ |x - y| := by
+      rw [abs_mul]
+      calc |x^m| * |x - y|
+          ≤ 1 * |x - y| := mul_le_mul_of_nonneg_right h_x_pow_abs (_root_.abs_nonneg _)
+        _ = |x - y| := one_mul _
+    have h_xy_nn : (0 : Rat) ≤ |x - y| := _root_.abs_nonneg _
+    have h_m_nn : (0 : Rat) ≤ (m : Rat) := Nat.cast_nonneg _
+    have h_prod_nn : (0 : Rat) ≤ (m : Rat) * |x - y| := mul_nonneg h_m_nn h_xy_nn
+    have h2 : |(x^m - y^m) * y| ≤ (m : Rat) * |x - y| := by
+      rw [abs_mul]
+      calc |x^m - y^m| * |y|
+          ≤ ((m : Rat) * |x - y|) * |y| :=
+              mul_le_mul_of_nonneg_right ih (_root_.abs_nonneg _)
+        _ ≤ ((m : Rat) * |x - y|) * 1 := mul_le_mul_of_nonneg_left hy h_prod_nn
+        _ = (m : Rat) * |x - y| := by ring
+    calc |x^m * (x - y) + (x^m - y^m) * y|
+        ≤ |x^m * (x - y)| + |(x^m - y^m) * y| := abs_add_le _ _
+      _ ≤ |x - y| + (m : Rat) * |x - y| := by linarith
+      _ = ((m + 1 : Nat) : Rat) * |x - y| := by push_cast; ring
+
+/-- **Helper 2**: arctan pair_term Lipschitz with constant 2:
+    `|arctan_pair_term_rat x k − arctan_pair_term_rat y k| ≤ 2 · |x − y|`. -/
+theorem arctan_pair_term_rat_lipschitz
+    (x y : Rat) (hx : |x| ≤ 1) (hy : |y| ≤ 1) (k : Nat) :
+    |arctan_pair_term_rat x k - arctan_pair_term_rat y k| ≤ 2 * |x - y| := by
+  unfold arctan_pair_term_rat
+  have h_pos1 : (0 : Rat) < ((4 * k + 1 : Nat) : Rat) := by
+    have : (0 : Nat) < 4 * k + 1 := by omega
+    exact_mod_cast this
+  have h_pos2 : (0 : Rat) < ((4 * k + 3 : Nat) : Rat) := by
+    have : (0 : Nat) < 4 * k + 3 := by omega
+    exact_mod_cast this
+  -- Use the algebraic identity to separate
+  have h_alg :
+      (x^(4*k+1)/(4*k+1) - x^(4*k+3)/(4*k+3))
+      - (y^(4*k+1)/(4*k+1) - y^(4*k+3)/(4*k+3))
+      = (x^(4*k+1) - y^(4*k+1))/(4*k+1) - (x^(4*k+3) - y^(4*k+3))/(4*k+3) := by
+    field_simp
+    ring
+  rw [h_alg]
+  have h_pow1 := pow_sub_pow_abs_le x y hx hy (4*k+1)
+  have h_pow2 := pow_sub_pow_abs_le x y hx hy (4*k+3)
+  have h_xy_nn : (0 : Rat) ≤ |x - y| := _root_.abs_nonneg _
+  -- |(x^m - y^m)/m| = |x^m - y^m|/m ≤ (m · |x - y|)/m = |x - y|
+  have h_div1 : |(x^(4*k+1) - y^(4*k+1))/((4*k+1 : Nat) : Rat)| ≤ |x - y| := by
+    rw [abs_div, abs_of_pos h_pos1, div_le_iff₀ h_pos1]
+    have : ((4*k+1 : Nat) : Rat) = (4*k+1 : Rat) := by push_cast; ring
+    rw [this] at h_pow1
+    have : ((4*k+1 : Nat) : Rat) = (4*k+1 : Rat) := by push_cast; ring
+    rw [this]
+    calc |x^(4*k+1) - y^(4*k+1)| ≤ (4*k+1 : Rat) * |x - y| := h_pow1
+      _ = |x - y| * (4*k+1 : Rat) := by ring
+  have h_div2 : |(x^(4*k+3) - y^(4*k+3))/((4*k+3 : Nat) : Rat)| ≤ |x - y| := by
+    rw [abs_div, abs_of_pos h_pos2, div_le_iff₀ h_pos2]
+    have : ((4*k+3 : Nat) : Rat) = (4*k+3 : Rat) := by push_cast; ring
+    rw [this] at h_pow2
+    have : ((4*k+3 : Nat) : Rat) = (4*k+3 : Rat) := by push_cast; ring
+    rw [this]
+    calc |x^(4*k+3) - y^(4*k+3)| ≤ (4*k+3 : Rat) * |x - y| := h_pow2
+      _ = |x - y| * (4*k+3 : Rat) := by ring
+  -- Triangle inequality on the two-piece difference
+  have h_cast1 : ((4*k+1 : Nat) : Rat) = (4*k+1 : Rat) := by push_cast; ring
+  have h_cast2 : ((4*k+3 : Nat) : Rat) = (4*k+3 : Rat) := by push_cast; ring
+  rw [← h_cast1, ← h_cast2] at *
+  calc |(x^(4*k+1) - y^(4*k+1))/((4*k+1 : Nat) : Rat)
+        - (x^(4*k+3) - y^(4*k+3))/((4*k+3 : Nat) : Rat)|
+      ≤ |(x^(4*k+1) - y^(4*k+1))/((4*k+1 : Nat) : Rat)|
+        + |(x^(4*k+3) - y^(4*k+3))/((4*k+3 : Nat) : Rat)| := abs_sub _ _
+    _ ≤ |x - y| + |x - y| := by linarith
+    _ = 2 * |x - y| := by ring
+
+/-- **Wave 6c.1 — Main**: arctan_partial_rat Lipschitz with constant 2n:
+
+      |arctan_partial_rat x n − arctan_partial_rat y n| ≤ 2n · |x − y|
+
+    for `|x|, |y| ≤ 1` and any `n : Nat`. -/
+theorem arctan_partial_rat_lipschitz
+    (x y : Rat) (hx : |x| ≤ 1) (hy : |y| ≤ 1) (n : Nat) :
+    |arctan_partial_rat x n - arctan_partial_rat y n|
+      ≤ 2 * (n : Rat) * |x - y| := by
+  induction n with
+  | zero =>
+    simp
+  | succ n ih =>
+    -- partial x (n+1) - partial y (n+1)
+    --   = (partial x n + pair_term x n) - (partial y n + pair_term y n)
+    --   = (partial x n - partial y n) + (pair_term x n - pair_term y n)
+    rw [arctan_partial_rat_succ, arctan_partial_rat_succ]
+    have h_alg :
+        (arctan_partial_rat x n + arctan_pair_term_rat x n)
+        - (arctan_partial_rat y n + arctan_pair_term_rat y n)
+        = (arctan_partial_rat x n - arctan_partial_rat y n)
+          + (arctan_pair_term_rat x n - arctan_pair_term_rat y n) := by ring
+    rw [h_alg]
+    have h_pair := arctan_pair_term_rat_lipschitz x y hx hy n
+    calc |(arctan_partial_rat x n - arctan_partial_rat y n)
+          + (arctan_pair_term_rat x n - arctan_pair_term_rat y n)|
+        ≤ |arctan_partial_rat x n - arctan_partial_rat y n|
+          + |arctan_pair_term_rat x n - arctan_pair_term_rat y n| := abs_add_le _ _
+      _ ≤ 2 * (n : Rat) * |x - y| + 2 * |x - y| := by linarith
+      _ = 2 * ((n + 1 : Nat) : Rat) * |x - y| := by push_cast; ring
+
+-- ============================================================
 -- PART 9: Wave 6b — cis_arctan SMALL-ANGLE AT cis_arctan LEVEL
 -- ============================================================
 
