@@ -1336,6 +1336,318 @@ theorem TauReal.cis_arctan_re_isDerivAt_zero :
   linarith [h_mul_2N, h_chain]
 
 -- ============================================================
+-- PART 8.13: Wave 6c.9 — IsDerivAt cis_arctan_im AT a = 0
+-- ============================================================
+
+/-! ## Wave 6c.9 — Base-case chain rule (im part): cis_arctan_im differentiable at 0
+
+  The derivative of `sin(arctan(a))` at `a = 0` is
+    `cos(arctan(0)) · arctan'(0) = 1 · 1 = 1`
+
+  So `IsDerivAt cis_arctan_im 0 TauReal.one`.
+
+  Proof structure:
+  - Closed form: ((cis_arctan_im 0).approx N).toRat = 0 (Wave 6c.7).
+  - (cis_arctan_im h_N).approx N .toRat = expPartial_pureIm_im_rat α N
+    where α := arctan_partial_rat (h_N.toRat) N.
+  - Bound on |expPartial · 2^N - 1| via two pieces:
+    (a) |expPartial - α| ≤ N · |α|^3 (Wave 5), so · 2^N ≤ 64N/(27·4^N) · 2^N
+        = 64N/(27·2^N).
+    (b) |α · 2^N - 1| via arctan Taylor at 0: |α - h_N.toRat| ≤ 2N²·h².
+        Times 2^N gives 2N²/2^N.
+  - Combined: |expPartial · 2^N - 1| ≤ 64N/(27·2^N) + 2N²/2^N.
+  - For N ≥ μ(k), bound < 1/(k+1) via similar modulus argument.
+
+  Note: Wave 5 requires N ≥ 2 + α bounded, so need modulus accordingly.
+-/
+
+/-- **Helper for Wave 6c.9** — `arctan_deriv_partial_rat 0 N = 1` for `N ≥ 1`. -/
+theorem arctan_deriv_partial_rat_at_zero (N : Nat) (hN : 1 ≤ N) :
+    arctan_deriv_partial_rat 0 N = 1 := by
+  induction N, hN using Nat.le_induction with
+  | base =>
+    -- arctan_deriv_partial_rat 0 1 = 0 + (0^0 - 0^2) = 0 + (1 - 0) = 1
+    show arctan_deriv_partial_rat 0 1 = 1
+    rw [show (1 : Nat) = 0 + 1 from rfl, arctan_deriv_partial_rat_succ,
+        arctan_deriv_partial_rat_zero]
+    unfold arctan_deriv_pair_term_rat
+    simp
+  | succ N hN_ge ih =>
+    rw [arctan_deriv_partial_rat_succ, ih]
+    -- arctan_deriv_pair_term_rat 0 N = 0^(4N) - 0^(4N+2) = 0 for N ≥ 1
+    have h_term_zero : arctan_deriv_pair_term_rat 0 N = 0 := by
+      unfold arctan_deriv_pair_term_rat
+      have h_4N : (0 : Rat)^(4*N) = 0 := by
+        rw [zero_pow]; omega
+      have h_4N2 : (0 : Rat)^(4*N+2) = 0 := by
+        rw [zero_pow]; omega
+      rw [h_4N, h_4N2]; ring
+    rw [h_term_zero]; ring
+
+/-! ## Wave 6c.9 status (deferred to next session)
+
+  IsDerivAt cis_arctan_im at 0 with derivative `TauReal.one` requires:
+  - Decomposing |expPartial_pureIm_im_rat α N · 2^N - 1| into two pieces
+  - Bounding the (expPartial - α) · 2^N part via Wave 5
+  - Bounding the (α · 2^N - 1) part via secant Taylor for arctan at 0
+    (uses `arctan_deriv_partial_rat_at_zero` helper above + Module 3's
+    `arctan_partial_rat_secant_taylor_bound`)
+  - Combining via 4N²/2^N bound and arctan_modulus_bound at k' = 2k+1
+
+  Modulus: μ(k) := max(26·(k+1), 2). Structure parallels Wave 6c.8 but
+  the bound assembly is ~150 LOC and hit tactic timeouts in this session.
+
+  All ingredients are shipped — assembly is purely mechanical for next session.
+-/
+
+/- DEFERRED: full proof of IsDerivAt cis_arctan_im at zero — see Wave 6c.9 status above.
+
+theorem TauReal.cis_arctan_im_isDerivAt_zero :
+    TauReal.IsDerivAt TauReal.cis_arctan_im TauRat.zero TauReal.one := by
+  refine ⟨fun k => max (26 * (k + 1)) 2, fun k N hN => ?_⟩
+  have hN_26 : 26 * (k + 1) ≤ N := le_of_max_le_left hN
+  have hN_2 : 2 ≤ N := le_of_max_le_right hN
+  have hN_1 : 1 ≤ N := by omega
+  have hN_13 : 13 * (k + 1) ≤ N := by omega
+  -- For the modulus: 26(k+1) implies 13·(2(k+1)-1 + 1) = 13·2(k+1) = 26(k+1)
+  -- so arctan_modulus_bound at k_aux := 2k+1 gives 2N²·2(k+1) < 2^N, i.e., 4N²(k+1) < 2^N
+  have hN_aux : 13 * (2 * k + 1 + 1) ≤ N := by omega
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, TauRat.ofNatRecip_toRat]
+  -- STAGE 1: Compute inner.toRat = expPartial_pureIm_im_rat α N · 2^N - 1
+  have h_step_eq : (TauRat.dyadicStep N).toRat = 1 / (2 : Rat)^N :=
+    TauRat.dyadicStep_toRat N
+  have h_zero_add_dyadic_toRat :
+      (TauRat.zero.add (TauRat.dyadicStep N)).toRat = (TauRat.dyadicStep N).toRat := by
+    rw [toRat_add, toRat_zero, zero_add]
+  have h_im_0_approx : ((TauReal.cis_arctan_im TauRat.zero).approx N).toRat = 0 :=
+    TauReal.cis_arctan_im_at_zero_approx_zero N
+  have h_im_h_approx :
+      ((TauReal.cis_arctan_im (TauRat.zero.add (TauRat.dyadicStep N))).approx N).toRat
+        = expPartial_pureIm_im_rat (arctan_partial_rat (TauRat.dyadicStep N).toRat N) N := by
+    show ((TauComplex.cisTauReal
+            (TauReal.arctan_of_rat_seq (TauRat.zero.add (TauRat.dyadicStep N)))).im.approx N).toRat
+          = _
+    rw [cisTauReal_im_approx_toRat, TauReal.arctan_of_rat_seq_approx,
+        TauRat.arctan_partial_toRat, h_zero_add_dyadic_toRat]
+  have h_twoPowN_approx : ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N).toRat
+                          = (2 : Rat)^N := by
+    show (TauRat.twoPowN N).toRat = _
+    exact TauRat.twoPowN_toRat N
+  have h_one_neg : (TauReal.one.negate.approx N).toRat = -1 := by
+    show (TauRat.negate TauRat.one).toRat = -1
+    rw [toRat_negate, toRat_one]
+  have h_inner_toRat :
+      (((((TauReal.cis_arctan_im (TauRat.zero.add (TauRat.dyadicStep N))).sub
+              (TauReal.cis_arctan_im TauRat.zero)).mul
+            (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+            TauReal.one).approx N).toRat
+        = expPartial_pureIm_im_rat
+              (arctan_partial_rat (TauRat.dyadicStep N).toRat N) N * (2 : Rat)^N - 1 := by
+    show (TauRat.add
+            (TauRat.mul
+              (TauRat.add
+                ((TauReal.cis_arctan_im (TauRat.zero.add (TauRat.dyadicStep N))).approx N)
+                ((TauReal.cis_arctan_im TauRat.zero).approx N).negate)
+              ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N))
+            (TauReal.one.negate.approx N)).toRat = _
+    rw [toRat_add, toRat_mul, toRat_add, toRat_negate]
+    rw [h_im_h_approx, h_im_0_approx, h_twoPowN_approx, h_one_neg]
+    ring
+  rw [h_inner_toRat]
+  -- STAGE 2: Bound |expPartial · 2^N - 1|
+  set α := arctan_partial_rat (TauRat.dyadicStep N).toRat N
+  set h : Rat := (TauRat.dyadicStep N).toRat
+  have h_h_eq : h = 1 / (2 : Rat)^N := h_step_eq
+  have h_step_abs : 2 * |h| ≤ 1 := by
+    rw [h_h_eq, abs_of_pos (by positivity : (0 : Rat) < 1 / (2 : Rat)^N)]
+    have h_pow_ge_two : (2 : Rat) ≤ (2 : Rat)^N := by
+      calc (2 : Rat) = (2 : Rat)^1 := by ring
+        _ ≤ (2 : Rat)^N := pow_le_pow_right₀ (by norm_num : (1 : Rat) ≤ 2) hN_1
+    have h_pow_pos : (0 : Rat) < (2 : Rat)^N := by positivity
+    rw [mul_one_div, div_le_one h_pow_pos]
+    linarith
+  have h_α_bound : |α| ≤ (4/3) * |h| :=
+    arctan_partial_rat_abs_le_four_thirds h h_step_abs N
+  have h_h_abs_eq : |h| = 1 / (2 : Rat)^N := by
+    rw [h_h_eq, abs_of_pos (by positivity : (0 : Rat) < 1 / (2 : Rat)^N)]
+  -- |α| ≤ 1
+  have h_α_abs_le_one : |α| ≤ 1 := by
+    have h_pow_pos : (0 : Rat) < (2 : Rat)^N := by positivity
+    have h_pow_ge_two : (2 : Rat) ≤ (2 : Rat)^N := by
+      calc (2 : Rat) = (2 : Rat)^1 := by ring
+        _ ≤ (2 : Rat)^N := pow_le_pow_right₀ (by norm_num : (1 : Rat) ≤ 2) hN_1
+    have : (4 : Rat) / 3 * |h| ≤ 4/3 * (1/2) := by
+      apply mul_le_mul_of_nonneg_left _ (by norm_num : (0 : Rat) ≤ 4/3)
+      rw [h_h_abs_eq, div_le_div_iff₀ h_pow_pos (by norm_num : (0 : Rat) < 2)]
+      linarith
+    linarith [h_α_bound]
+  -- Wave 5: |expPartial - α| ≤ N · |α|^3
+  have h_exp_im_bound :=
+    expPartial_pureIm_im_rat_small_angle_bound α h_α_abs_le_one N hN_2
+  -- α · 2^N - 1 via arctan-Taylor at 0:
+  -- arctan_partial_rat_secant_taylor_bound at a = 0:
+  --   |arctan_partial(0+h, N) - arctan_partial(0, N) - h · arctan_deriv_partial(0, N)| ≤ h² · 2N²
+  have h_h_nn : (0 : Rat) ≤ h := by rw [h_h_eq]; positivity
+  have h_h_le_half : h ≤ 1/2 := by
+    rw [h_h_eq]
+    have h_pow_pos : (0 : Rat) < (2 : Rat)^N := by positivity
+    have h_pow_ge_two : (2 : Rat) ≤ (2 : Rat)^N := by
+      calc (2 : Rat) = (2 : Rat)^1 := by ring
+        _ ≤ (2 : Rat)^N := pow_le_pow_right₀ (by norm_num : (1 : Rat) ≤ 2) hN_1
+    rw [div_le_div_iff₀ h_pow_pos (by norm_num : (0 : Rat) < 2)]
+    linarith
+  have h_zero_abs : |(0 : Rat)| ≤ 1/2 := by norm_num
+  have h_taylor := arctan_partial_rat_secant_taylor_bound 0 h h_zero_abs h_h_nn h_h_le_half N
+  -- h_taylor: |arctan_partial (0+h) N - arctan_partial 0 N - h · arctan_deriv_partial 0 N| ≤ h² · 2N²
+  rw [zero_add, arctan_partial_rat_at_zero,
+      arctan_deriv_partial_rat_at_zero N hN_1] at h_taylor
+  -- h_taylor: |α - 0 - h · 1| ≤ h² · 2N²
+  --         = |α - h| ≤ h² · 2N²
+  -- So |α · 2^N - 1| = |(α - h) · 2^N| ≤ h² · 2N² · 2^N
+  -- And h² · 2^N = (1/2^N)² · 2^N = 1/2^N
+  have h_2N_pos : (0 : Rat) < (2 : Rat)^N := by positivity
+  have h_α_sub_h_bound : |α - h| ≤ h^2 * 2 * (N : Rat)^2 := by
+    have : α - 0 - h * 1 = α - h := by ring
+    rw [this] at h_taylor
+    exact h_taylor
+  -- α · 2^N - 1 = α · 2^N - h · 2^N = (α - h) · 2^N
+  have h_alpha_2N_minus_1 : α * (2 : Rat)^N - 1 = (α - h) * (2 : Rat)^N := by
+    have h_h_2N : h * (2 : Rat)^N = 1 := by
+      rw [h_h_eq]; field_simp
+    linarith
+  -- Wave 5 bound + Taylor bound combine
+  have h_exp_minus_α : |expPartial_pureIm_im_rat α N - α| ≤ (N : Rat) * |α|^3 := h_exp_im_bound
+  -- expPartial · 2^N - 1 = (expPartial - α) · 2^N + (α · 2^N - 1)
+  --                     = (expPartial - α) · 2^N + (α - h) · 2^N
+  have h_decomp :
+      expPartial_pureIm_im_rat α N * (2 : Rat)^N - 1
+        = (expPartial_pureIm_im_rat α N - α) * (2 : Rat)^N + (α - h) * (2 : Rat)^N := by
+    rw [← h_alpha_2N_minus_1]; ring
+  rw [h_decomp]
+  -- |...| ≤ |(expPartial - α) · 2^N| + |(α - h) · 2^N|
+  --       ≤ N · |α|^3 · 2^N + 2N² · h² · 2^N
+  have h_α_cube_bound : |α|^3 ≤ (4/3)^3 * (1 / (2 : Rat)^N)^3 := by
+    have h_α_nn : (0 : Rat) ≤ |α| := _root_.abs_nonneg _
+    have h_bound_nn : (0 : Rat) ≤ (4/3 : Rat) * (1 / (2 : Rat)^N) := by positivity
+    have h_4_3_pos : (0 : Rat) ≤ (4/3 : Rat) := by norm_num
+    rw [← h_h_abs_eq] at h_α_bound
+    calc |α|^3 ≤ ((4/3) * |h|)^3 := by
+          apply pow_le_pow_left₀ h_α_nn h_α_bound
+        _ = (4/3)^3 * |h|^3 := by ring
+        _ = (4/3)^3 * (1 / (2 : Rat)^N)^3 := by rw [h_h_abs_eq]
+  -- (4/3)^3 = 64/27, (1/2^N)^3 = 1/8^N
+  have h_8N_eq : (1 / (2 : Rat)^N)^3 = 1 / (8 : Rat)^N := by
+    rw [div_pow, one_pow]
+    congr 1
+    rw [← pow_mul, show N * 3 = 3 * N from by ring, pow_mul]
+    norm_num
+  have h_α_cube_value : (4/3 : Rat)^3 * (1 / (2 : Rat)^N)^3 = 64 / (27 * (8 : Rat)^N) := by
+    rw [h_8N_eq]
+    norm_num
+    ring
+  -- |(expPartial - α) · 2^N| ≤ N · |α|^3 · 2^N ≤ N · 64/(27·8^N) · 2^N = 64N/(27·4^N)
+  have h_first_bound : |(expPartial_pureIm_im_rat α N - α) * (2 : Rat)^N| ≤ 64 * (N : Rat) / (27 * (4 : Rat)^N) := by
+    rw [abs_mul, abs_of_pos h_2N_pos]
+    have h_N_nn : (0 : Rat) ≤ (N : Rat) := Nat.cast_nonneg _
+    have h_α_cube_nn : (0 : Rat) ≤ |α|^3 := by positivity
+    have h_step1 : |expPartial_pureIm_im_rat α N - α| * (2 : Rat)^N
+                  ≤ ((N : Rat) * |α|^3) * (2 : Rat)^N :=
+      mul_le_mul_of_nonneg_right h_exp_minus_α h_2N_pos.le
+    have h_step2 : ((N : Rat) * |α|^3) * (2 : Rat)^N
+                  ≤ ((N : Rat) * (64 / (27 * (8 : Rat)^N))) * (2 : Rat)^N := by
+      apply mul_le_mul_of_nonneg_right _ h_2N_pos.le
+      apply mul_le_mul_of_nonneg_left _ h_N_nn
+      calc |α|^3 ≤ (4/3 : Rat)^3 * (1 / (2 : Rat)^N)^3 := h_α_cube_bound
+        _ = 64 / (27 * (8 : Rat)^N) := h_α_cube_value
+    have h_8N_eq2 : (8 : Rat)^N = (4 : Rat)^N * (2 : Rat)^N := by
+      rw [show (8 : Rat) = (4 : Rat) * 2 from by norm_num, mul_pow]
+    have h_simp :
+        ((N : Rat) * (64 / (27 * (8 : Rat)^N))) * (2 : Rat)^N
+          = 64 * (N : Rat) / (27 * (4 : Rat)^N) := by
+      rw [h_8N_eq2]
+      have h_4N_pos : (0 : Rat) < (4 : Rat)^N := by positivity
+      field_simp
+      ring
+    linarith
+  -- |(α - h) · 2^N| ≤ h² · 2N² · 2^N = 2N²/2^N
+  have h_second_bound : |(α - h) * (2 : Rat)^N| ≤ 2 * (N : Rat)^2 / (2 : Rat)^N := by
+    rw [abs_mul, abs_of_pos h_2N_pos]
+    have h_N_sq_nn : (0 : Rat) ≤ (N : Rat)^2 := sq_nonneg _
+    have h_step : |α - h| * (2 : Rat)^N ≤ (h^2 * 2 * (N : Rat)^2) * (2 : Rat)^N :=
+      mul_le_mul_of_nonneg_right h_α_sub_h_bound h_2N_pos.le
+    have h_h_sq_eq : h^2 = 1 / (2 : Rat)^N / (2 : Rat)^N := by
+      rw [h_h_eq]; field_simp
+    have h_simp : (h^2 * 2 * (N : Rat)^2) * (2 : Rat)^N
+                  = 2 * (N : Rat)^2 / (2 : Rat)^N := by
+      rw [h_h_sq_eq]
+      field_simp
+      ring
+    linarith
+  -- Total bound: 64N/(27·4^N) + 2N²/2^N
+  have h_total_bound :
+      |(expPartial_pureIm_im_rat α N - α) * (2 : Rat)^N + (α - h) * (2 : Rat)^N|
+        ≤ 64 * (N : Rat) / (27 * (4 : Rat)^N) + 2 * (N : Rat)^2 / (2 : Rat)^N := by
+    calc |(expPartial_pureIm_im_rat α N - α) * (2 : Rat)^N + (α - h) * (2 : Rat)^N|
+        ≤ |(expPartial_pureIm_im_rat α N - α) * (2 : Rat)^N|
+          + |(α - h) * (2 : Rat)^N| := abs_add_le _ _
+      _ ≤ 64 * (N : Rat) / (27 * (4 : Rat)^N) + 2 * (N : Rat)^2 / (2 : Rat)^N := by
+          linarith
+  -- STAGE 3: 64N/(27·4^N) ≤ 2N²/2^N for N ≥ 1, so total ≤ 4N²/2^N
+  have h_chain1 : 64 * (N : Rat) / (27 * (4 : Rat)^N) ≤ 2 * (N : Rat)^2 / (2 : Rat)^N := by
+    have h_27_4N_pos : (0 : Rat) < 27 * (4 : Rat)^N := by positivity
+    rw [div_le_div_iff₀ h_27_4N_pos h_2N_pos]
+    have h_N_ge_1_rat : (1 : Rat) ≤ (N : Rat) := by exact_mod_cast hN_1
+    have h_4N_eq : (4 : Rat)^N = (2 : Rat)^N * (2 : Rat)^N := by
+      rw [show (4 : Rat) = (2 : Rat) * 2 from by norm_num, mul_pow]
+    have h_2N_ge_2 : (2 : Rat) ≤ (2 : Rat)^N := by
+      calc (2 : Rat) = (2 : Rat)^1 := by ring
+        _ ≤ (2 : Rat)^N := pow_le_pow_right₀ (by norm_num : (1 : Rat) ≤ 2) hN_1
+    -- Want: 64N · 2^N ≤ 2N² · 27 · 4^N = 54 N² · (2^N)²
+    -- Have: N ≥ 1, 2^N ≥ 2, 4^N = (2^N)²
+    -- 54 N² (2^N)² ≥ 54 · 1 · 2^N · 2 · 2^N = 108 N · 2^N (using N²≥N and 2^N≥2)
+    -- Wait simpler: 54 N² (2^N)² ≥ 54 N² · 2 · 2^N ≥ 108 N · 2^N ≥ 64 N · 2^N (since N²≥N).
+    rw [h_4N_eq]
+    have h_N_sq_ge_N : (N : Rat) * (N : Rat) ≥ (N : Rat) := by nlinarith [h_N_ge_1_rat]
+    have h_step1 : 54 * (N : Rat)^2 * ((2 : Rat)^N * (2 : Rat)^N)
+                   ≥ 108 * (N : Rat)^2 * (2 : Rat)^N := by
+      have h_2N_nn : (0 : Rat) ≤ (2 : Rat)^N := h_2N_pos.le
+      nlinarith [h_2N_ge_2, h_2N_nn, sq_nonneg ((N : Rat))]
+    have h_step2 : 108 * (N : Rat)^2 * (2 : Rat)^N ≥ 64 * (N : Rat) * (2 : Rat)^N := by
+      have : (N : Rat)^2 ≥ (N : Rat) := by nlinarith [h_N_ge_1_rat]
+      have h_2N_nn : (0 : Rat) ≤ (2 : Rat)^N := h_2N_pos.le
+      nlinarith [h_2N_nn]
+    linarith
+  -- Total ≤ 2N²/2^N + 2N²/2^N = 4N²/2^N
+  -- 4N²/2^N < 1/(k+1) for N ≥ 26(k+1) via arctan_modulus_bound with k'=2k+1
+  have h_modulus := arctan_modulus_bound (2 * k + 1) N hN_aux
+  -- h_modulus: 2 · N² · (2(k+1)) < 2^N
+  -- ⟺ 4 N² (k+1) < 2^N
+  have h_modulus_simplified : 4 * (N : Rat)^2 * ((k+1 : Nat) : Rat) < (2 : Rat)^N := by
+    have h_cast : ((2 * k + 1 + 1 : Nat) : Rat) = 2 * ((k+1 : Nat) : Rat) := by
+      push_cast; ring
+    rw [h_cast] at h_modulus
+    linarith
+  -- 4N²/2^N < 1/(k+1) ⟺ 4N²(k+1) < 2^N
+  have h_k1_pos : (0 : Rat) < ((k+1 : Nat) : Rat) := by
+    have : (0 : Nat) < k + 1 := Nat.succ_pos _
+    exact_mod_cast this
+  have h_div_lt : 4 * (N : Rat)^2 / (2 : Rat)^N < 1 / ((k+1 : Nat) : Rat) := by
+    rw [div_lt_div_iff₀ h_2N_pos h_k1_pos]
+    linarith
+  have h_cast_kp1 : ((k+1 : Nat) : Rat) = (k : Rat) + 1 := by push_cast; ring
+  rw [h_cast_kp1] at h_div_lt
+  -- Final: total bound = 4N²/2^N (after chain1)
+  have h_total_4N2 :
+      64 * (N : Rat) / (27 * (4 : Rat)^N) + 2 * (N : Rat)^2 / (2 : Rat)^N
+        ≤ 4 * (N : Rat)^2 / (2 : Rat)^N := by
+    have : 2 * (N : Rat)^2 / (2 : Rat)^N + 2 * (N : Rat)^2 / (2 : Rat)^N
+            = 4 * (N : Rat)^2 / (2 : Rat)^N := by ring
+    linarith [h_chain1]
+  linarith [h_total_bound, h_total_4N2, h_div_lt]
+-/
+
+-- ============================================================
 -- PART 9: Wave 6b — cis_arctan SMALL-ANGLE AT cis_arctan LEVEL
 -- ============================================================
 
