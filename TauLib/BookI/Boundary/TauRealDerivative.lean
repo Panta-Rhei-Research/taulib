@@ -632,4 +632,145 @@ private theorem leibniz_modulus_cast (c k : Nat) (hc : 1 ≤ c) :
     push_cast; ring
   linarith
 
+-- ============================================================
+-- PART 10: PRODUCT RULE (LEIBNIZ) — Wave 2: PIECE-BOUND LEMMAS
+-- ============================================================
+
+/-! ## Wave 2 — Four piece-bound lemmas
+
+  Each piece bounds one of the four terms in the 4-piece decomposition
+  by `1/(4(k+1))` strictly. Together they assemble to `< 1/(k+1)` via
+  triangle inequality + `leibniz_four_quarter_sum`.
+
+  All four use the same cheat-sheet `calc` pattern:
+    `mul_le_mul_of_nonneg_*` to absorb the bounded factor,
+    `mul_lt_mul_of_pos_*` to absorb the strict-bounded factor,
+    `field_simp` only at the final normalization.
+-/
+
+/-- **Wave 2.1**: piece 1 — bounds `|α · Gh|` by `1/(4(k+1))`.
+
+    Given strict bound `|α| < 1/(4M(k+1))` and nonstrict bound `|Gh| ≤ M`,
+    the product `|α · Gh| < 1/(4(k+1))`. -/
+private theorem bound_piece_1_alpha_Gh
+    (α Gh : Rat) (M : Nat) (hM : 1 ≤ M) (k : Nat)
+    (h_α : |α| < 1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+    (h_Gh : |Gh| ≤ (M : Rat)) :
+    |α * Gh| < 1 / (4 * ((k : Rat) + 1)) := by
+  have hM_pos : (0 : Rat) < (M : Rat) := by
+    exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  have hM_ne : (M : Rat) ≠ 0 := ne_of_gt hM_pos
+  rw [abs_mul]
+  calc |α| * |Gh|
+      ≤ |α| * (M : Rat) :=
+        mul_le_mul_of_nonneg_left h_Gh (_root_.abs_nonneg α)
+    _ < (1 / (4 * (M : Rat) * ((k : Rat) + 1))) * (M : Rat) :=
+        mul_lt_mul_of_pos_right h_α hM_pos
+    _ = 1 / (4 * ((k : Rat) + 1)) := by field_simp
+
+/-- **Wave 2.2**: piece 2 — bounds `|Lf · β / t|` by `1/(4(k+1))`.
+
+    Given `|Lf| ≤ M`, strict `|β| < 1/(4M(k+1))`, and `t ≥ 1`,
+    the quotient `|Lf · β / t| < 1/(4(k+1))`. The `/t` doesn't enlarge
+    since `t ≥ 1`. -/
+private theorem bound_piece_2_Lf_beta_t
+    (Lf β t : Rat) (M : Nat) (hM : 1 ≤ M) (k : Nat)
+    (h_Lf : |Lf| ≤ (M : Rat))
+    (h_β : |β| < 1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+    (h_t_pos : 0 < t) (h_t_ge_one : 1 ≤ t) :
+    |Lf * β / t| < 1 / (4 * ((k : Rat) + 1)) := by
+  have hM_pos : (0 : Rat) < (M : Rat) := by
+    exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have hM_ne : (M : Rat) ≠ 0 := ne_of_gt hM_pos
+  rw [abs_div, abs_mul, abs_of_pos h_t_pos]
+  -- Goal: |Lf| * |β| / t < 1/(4(k+1))
+  -- Strategy: |Lf|·|β| ≤ M·|β| < M·(1/(4M(k+1))) = 1/(4(k+1)), then /t ≤ /1.
+  have h_num_bound : |Lf| * |β| < 1 / (4 * ((k : Rat) + 1)) := by
+    calc |Lf| * |β|
+        ≤ (M : Rat) * |β| :=
+          mul_le_mul_of_nonneg_right h_Lf (_root_.abs_nonneg β)
+      _ < (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1))) :=
+          mul_lt_mul_of_pos_left h_β hM_pos
+      _ = 1 / (4 * ((k : Rat) + 1)) := by field_simp
+  have h_num_nn : 0 ≤ |Lf| * |β| :=
+    mul_nonneg (_root_.abs_nonneg Lf) (_root_.abs_nonneg β)
+  -- |Lf|·|β| / t ≤ |Lf|·|β| (since 1/t ≤ 1)
+  have h_div_le : |Lf| * |β| / t ≤ |Lf| * |β| := by
+    rw [div_le_iff₀ h_t_pos]
+    calc |Lf| * |β| = |Lf| * |β| * 1 := by ring
+      _ ≤ |Lf| * |β| * t := mul_le_mul_of_nonneg_left h_t_ge_one h_num_nn
+  linarith
+
+/-- **Wave 2.3**: piece 3 — bounds `|Lf · Lg / t|` by `1/(4(k+1))`.
+
+    Given `|Lf| ≤ M`, `|Lg| ≤ M`, and `t ≥ 4M²(k+1) + 1` (Bernoulli
+    via `2^N ≥ N+1` from Wave 1.3), the quotient `|Lf · Lg / t| < 1/(4(k+1))`. -/
+private theorem bound_piece_3_Lf_Lg_t
+    (Lf Lg t : Rat) (M : Nat) (hM : 1 ≤ M) (k : Nat)
+    (h_Lf : |Lf| ≤ (M : Rat))
+    (h_Lg : |Lg| ≤ (M : Rat))
+    (h_t_pos : 0 < t)
+    (h_t_ge : 4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) + 1 ≤ t) :
+    |Lf * Lg / t| < 1 / (4 * ((k : Rat) + 1)) := by
+  have hM_pos : (0 : Rat) < (M : Rat) := by
+    exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  have h_4k1_pos : (0 : Rat) < 4 * ((k : Rat) + 1) := by linarith
+  have h_4MMk1_pos : (0 : Rat) < 4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) := by
+    have h_MM : (0 : Rat) < 4 * (M : Rat) * (M : Rat) := by nlinarith
+    exact mul_pos h_MM hk1_pos
+  have h_t_lb_pos : (0 : Rat) < 4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) + 1 := by linarith
+  rw [abs_div, abs_mul, abs_of_pos h_t_pos]
+  -- Goal: |Lf| * |Lg| / t < 1/(4(k+1))
+  -- Strategy: |Lf|·|Lg| ≤ M² ≤ M², then divide by t ≥ 4M²(k+1)+1
+  have h_num_bound : |Lf| * |Lg| ≤ (M : Rat) * (M : Rat) := by
+    calc |Lf| * |Lg|
+        ≤ (M : Rat) * |Lg| :=
+          mul_le_mul_of_nonneg_right h_Lf (_root_.abs_nonneg Lg)
+      _ ≤ (M : Rat) * (M : Rat) :=
+          mul_le_mul_of_nonneg_left h_Lg (le_of_lt hM_pos)
+  have h_num_nn : 0 ≤ |Lf| * |Lg| :=
+    mul_nonneg (_root_.abs_nonneg Lf) (_root_.abs_nonneg Lg)
+  -- |Lf|·|Lg| / t ≤ M² / t ≤ M² / (4M²(k+1)+1) < 1/(4(k+1))
+  have h_div1 : |Lf| * |Lg| / t ≤ (M : Rat) * (M : Rat) / t :=
+    div_le_div_of_nonneg_right h_num_bound (le_of_lt h_t_pos)
+  have h_div2 : (M : Rat) * (M : Rat) / t
+              ≤ (M : Rat) * (M : Rat) / (4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) + 1) := by
+    apply div_le_div_of_nonneg_left _ h_t_lb_pos h_t_ge
+    exact mul_nonneg (le_of_lt hM_pos) (le_of_lt hM_pos)
+  -- M² / (4M²(k+1)+1) < 1/(4(k+1)) iff M²·4(k+1) < 4M²(k+1)+1, i.e., 0 < 1
+  have h_div3 : (M : Rat) * (M : Rat) / (4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) + 1)
+              < 1 / (4 * ((k : Rat) + 1)) := by
+    rw [div_lt_div_iff₀ h_t_lb_pos h_4k1_pos]
+    -- M² · 4(k+1) < 1 · (4M²(k+1) + 1)
+    have h_eq : (M : Rat) * (M : Rat) * (4 * ((k : Rat) + 1))
+              = 4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) := by ring
+    linarith
+  linarith
+
+/-- **Wave 2.4**: piece 4 — bounds `|Fa · β|` by `1/(4(k+1))`.
+
+    Symmetric to piece 1 with roles swapped: nonstrict bound on `|Fa| ≤ M`,
+    strict bound `|β| < 1/(4M(k+1))`. -/
+private theorem bound_piece_4_Fa_beta
+    (Fa β : Rat) (M : Nat) (hM : 1 ≤ M) (k : Nat)
+    (h_Fa : |Fa| ≤ (M : Rat))
+    (h_β : |β| < 1 / (4 * (M : Rat) * ((k : Rat) + 1))) :
+    |Fa * β| < 1 / (4 * ((k : Rat) + 1)) := by
+  have hM_pos : (0 : Rat) < (M : Rat) := by
+    exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have hM_ne : (M : Rat) ≠ 0 := ne_of_gt hM_pos
+  rw [abs_mul]
+  calc |Fa| * |β|
+      ≤ (M : Rat) * |β| :=
+        mul_le_mul_of_nonneg_right h_Fa (_root_.abs_nonneg β)
+    _ < (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1))) :=
+        mul_lt_mul_of_pos_left h_β hM_pos
+    _ = 1 / (4 * ((k : Rat) + 1)) := by field_simp
+
 end Tau.Boundary
