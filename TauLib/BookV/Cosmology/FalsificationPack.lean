@@ -20,7 +20,8 @@ would refute the τ-framework entirely:
 - A sixth force
 - Dark matter particle
 - c_gw ≠ c (gravitational wave speed ≠ light speed)
-- GW echoes (would indicate S² instead of T² horizon)
+- Reflective-surface GW echoes (would indicate an exotic compact object,
+  not the T² cycle-delay readouts modeled in BHTopoModes)
 
 Level 2 (Quantitative): precise numerical predictions:
 - m_e = 0.510999 MeV (0.025 ppm from R formula)
@@ -126,12 +127,15 @@ def pred_cgw_equals_c : TestablePrediction where
   status := "Confirmed by GW170817 to 10^(-15)"
   currently_testable := true
 
-/-- S4: No GW echoes. -/
+/-- S4: No reflective-surface GW echoes.
+    This structural no-echo claim is about exotic compact object
+    reflective surfaces behind the horizon. It is distinct from the
+    T² cycle-delay topology readouts in `BHTopoModes`. -/
 def pred_no_gw_echoes : TestablePrediction where
-  name := "S4: No GW echoes"
+  name := "S4: No reflective-surface GW echoes"
   level := .Structural
-  description := "T^2 horizon has no echo structure (S^2 would produce echoes)."
-  status := "No echoes detected (consistent)"
+  description := "No exotic reflective surface behind the horizon; T^2 cycle-delay readouts are a separate topology-readout prediction."
+  status := "No reflective-surface echoes detected (consistent)"
   currently_testable := true
 
 -- ============================================================

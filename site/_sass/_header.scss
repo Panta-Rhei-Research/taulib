@@ -7,11 +7,18 @@
   top: 0;
   z-index: $z-header;
   height: $header-h;
-  margin: 10px 12px 0;
+  width: calc(100% - #{$page-px} * 2);  // ensures min side breathing room = $page-px
+  // Align visible capsule edges with .page-grid CONTENT edges (rail backgrounds),
+  // not the page-grid outer box. Page-grid outer = $shell-max; its content area is
+  // $shell-max - 2*$page-px (because page-grid has padding-inline: $page-px).
+  // Matches panta-rhei.site's site-header alignment exactly.
+  max-width: calc(var(--site-shell-max) - #{$page-px * 2});
+  margin: 10px auto 0;
   padding: 0 $page-px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  // No justify-content — use margin-left:auto on .header-nav to push the
+  // right cluster (nav + search + hamburger) to the trailing edge.
   @include glass;
   border: none; // replaced by spectral ::after border
   border-radius: 18px;
@@ -48,112 +55,81 @@
     pointer-events: none;
   }
 
+  @media (max-width: $bp-collapse) {
+    width: calc(100% - 16px * 2);
+    padding: 0 16px;
+  }
+
   @media (max-width: $bp-stack) {
+    width: calc(100% - 10px * 2);
     flex-direction: row; // brand + hamburger side by side
     height: $header-h;
-    padding: 0 14px;
+    padding: 0 10px;
     gap: 8px;
+  }
+}
+
+body.shell-home .site-header {
+  max-width: calc(var(--site-home-shell-max) - #{$page-px * 2});
+}
+
+@media (max-width: $bp-collapse) {
+  .site-header,
+  body.shell-home .site-header {
+    max-width: #{$content-max};
   }
 }
 
 .header-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
   text-decoration: none;
   color: $text;
+  flex-shrink: 0;
+  // Inset the lockup vertically so the SVG sits cleanly inside the 1px
+  // spectral perimeter without optical collision.
+  padding: 4px 0;
 
-  .brand-mark {
-    position: relative;
-    display: flex;
-    align-items: baseline;
-    flex-shrink: 0;
-    font-family: $font-display;
-    color: $accent;
-    line-height: 1;
-    // Align top with brand-title, bottom with brand-sub
-    align-self: stretch;
-
-    .glyph-pi {
-      font-size: 1.15em;
-      font-weight: 400;
-      // Sits at the top — aligns with "Panta Rhei Research" ascender
-      align-self: flex-start;
-      line-height: 0.85;
-      margin-right: -2px; // close to rho's left edge
-    }
-
-    .glyph-rho {
-      font-size: 1.15em;
-      font-weight: 400;
-      // Sits at the bottom — aligns with "Independent..." descender
-      align-self: flex-end;
-      line-height: 0.85;
-    }
-  }
-
-  .brand-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    line-height: 1.15;
-  }
-
-  .brand-title {
-    font-family: $font-ui;
-    font-weight: 700;
-    font-size: 0.82rem;
-    letter-spacing: 0.02em;
-    color: $text;
-  }
-
-  .brand-sub {
-    font-family: $font-ui;
-    font-size: 0.68rem;
-    font-weight: 380;
-    color: $text-muted;
-    letter-spacing: 0.01em;
-
-    @media (max-width: $bp-stack) {
-      display: none;
-    }
-  }
-
-  // ── λ site-tag chip — taulib's only visual distinction from panta-rhei ──
-  .site-tag {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-left: 6px;
-    padding: 0 8px;
-    height: 22px;
-    min-width: 22px;
-    border-radius: $radius-pill;
-    background: $accent-soft;
-    color: $accent;
-    font-family: $font-display;
-    font-size: 0.92rem;
-    font-weight: 500;
-    line-height: 1;
-    border: 1px solid rgba(22, 62, 100, 0.18);
-    transition: background $transition, border-color $transition;
-  }
-
-  &:hover .site-tag {
-    background: rgba(22, 62, 100, 0.14);
-    border-color: rgba(22, 62, 100, 0.28);
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: $radius-sm;
   }
 }
 
-// ── Header controls (Search always visible; TOC + Hamburger mobile only)
+.header-brand-lockup {
+  display: block;
+  height: 41px;
+  width: auto;
+  max-width: min(234px, 45vw);
 
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
+  // Tablet: scale down proportionally so trailing controls + nav links
+  // still fit on one row above the mobile breakpoint.
+  @media (max-width: $bp-collapse) {
+    height: 36px;
+    max-width: min(198px, 43vw);
+  }
+
+  @media (max-width: $bp-stack) {
+    height: 32px;
+    max-width: min(176px, 50vw);
+  }
 }
+
+// ── Right-cluster ordering ───────────────────────────────────────
+//
+// Header children in DOM order:
+//   .header-brand → .header-toc-wrapper → .header-nav → .header-search → .header-hamburger
+//
+// On desktop, .header-nav (margin-left:auto) is the first item in the
+// right cluster — it consumes all leftover horizontal space, pushing
+// itself + .header-search to the trailing edge. .header-hamburger is
+// hidden (display:none) on desktop so does not participate.
+//
+// On mobile, .header-nav becomes a position:fixed slide-out drawer
+// (taken out of flex flow), so the auto-margin shifts to whichever of
+// .header-toc-wrapper (if h2-driven and visible) or .header-search is
+// first in the remaining flow — see the mobile rules below.
 
 // ── TOC dropdown (mobile only) ──────────────────────────────────
 
@@ -163,6 +139,9 @@
   @media (max-width: $bp-stack) {
     display: block;
     position: relative;
+    // First visible right-cluster item on mobile when h2 headings exist.
+    // Consumes leftover space so the trailing group sits at the right edge.
+    margin-left: auto;
 
     &[hidden] { display: none; }
   }
@@ -304,8 +283,10 @@
   display: flex;
   align-items: center;
   gap: 2px;
+  margin-left: auto;  // desktop: pushes nav + search to the trailing edge
 
   @media (max-width: $bp-stack) {
+    margin-left: 0;  // mobile: nav is position:fixed below, off-flex
     // Slide-out drawer from right
     position: fixed;
     top: 0;
@@ -374,11 +355,13 @@
   justify-content: center;
   width: 36px;
   height: 36px;
+  margin-left: 8px;  // desktop: small gap from .header-nav trailing edge
   border-radius: $radius-pill;
   border: 1px solid $divider;
   background: transparent;
   color: $text-muted;
   cursor: pointer;
+  flex-shrink: 0;
   transition: all $transition;
 
   &:hover {
@@ -388,6 +371,14 @@
   }
 
   svg { width: 16px; height: 16px; }
+
+  // Mobile: .header-nav is off-flex; .header-search becomes (or follows) the
+  // first in-flow right-cluster item. The auto-margin pushes the trailing
+  // group to the right edge. If .header-toc-wrapper is visible (page has h2s),
+  // its own auto-margin fires first and this becomes a no-op.
+  @media (max-width: $bp-stack) {
+    margin-left: auto;
+  }
 
   @media (max-width: $bp-stack) {
     width: 44px;
