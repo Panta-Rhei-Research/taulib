@@ -1896,4 +1896,148 @@ theorem TauComplex.cisTauReal_add (x y : TauReal)
     (TauComplex.pureIm_of_real_BoundedBy x 1 (by omega) hx)
     (TauComplex.pureIm_of_real_BoundedBy y 1 (by omega) hy)
 
+-- ============================================================
+-- PART 22: 🎯 EXP_ZERO IDENTITY — exp(TauComplex.zero) ≈ TauComplex.one
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.0 — The foundational identity `exp(0) ≈ 1`
+
+  Builds the τ-native version of `exp(0) = 1` from the Phase 1C bridges:
+
+      exp(TauComplex.zero) = exp(pureIm 0)               -- rfl
+                          ≈ ⟨cos_of_rat 0, sin_of_rat 0⟩  -- Phase 1C
+                          ≈ ⟨TauReal.one, TauReal.zero⟩    -- new (here)
+                          = TauComplex.one                 -- rfl
+
+  Sub-pieces (this part):
+    * `cos_pair_term_rat 0 0 = 1` and `= 0` for `k ≥ 1`.
+    * `cos_partial_rat 0 n = 1` for `n ≥ 1`.
+    * `cos_of_rat 0 ≈ TauReal.one` via modulus `λ _ => 1`.
+    * `sin_pair_term_rat 0 k = 0` for all `k`.
+    * `sin_partial_rat 0 n = 0` for all `n`.
+    * `sin_of_rat 0 ≈ TauReal.zero` via the pointwise bridge.
+    * `exp_zero_equiv_one` chaining all of the above.
+
+  This identity unlocks the magnitude identity
+  `cisTauReal(x) · cisTauReal(−x) ≈ TauComplex.one` downstream, which is a
+  sqrt-free building block for the scaledCis ↔ cisTauReal bridge. -/
+
+/-- `cos_pair_term_rat 0 0 = 1`. -/
+@[simp] theorem cos_pair_term_rat_zero_zero :
+    cos_pair_term_rat 0 0 = 1 := by
+  unfold cos_pair_term_rat
+  norm_num [Nat.factorial]
+
+/-- For `k ≥ 1`: `cos_pair_term_rat 0 k = 0`. -/
+theorem cos_pair_term_rat_zero_at_pos (k : Nat) (hk : 1 ≤ k) :
+    cos_pair_term_rat 0 k = 0 := by
+  unfold cos_pair_term_rat
+  have h_4k_ne : (4*k : Nat) ≠ 0 := by omega
+  have h_4k2_ne : (4*k+2 : Nat) ≠ 0 := by omega
+  rw [zero_pow h_4k_ne, zero_pow h_4k2_ne]
+  ring
+
+/-- `cos_partial_rat 0 n = 1` for `n ≥ 1`. -/
+theorem cos_partial_rat_zero_eq_one (n : Nat) (hn : 1 ≤ n) :
+    cos_partial_rat 0 n = 1 := by
+  induction n with
+  | zero => omega
+  | succ m ih =>
+    rcases Nat.eq_zero_or_pos m with hm | hm
+    · subst hm
+      rw [cos_partial_rat_succ, cos_partial_rat_zero,
+          cos_pair_term_rat_zero_zero]
+      ring
+    · have h_prev := ih hm
+      rw [cos_partial_rat_succ, h_prev,
+          cos_pair_term_rat_zero_at_pos m hm]
+      ring
+
+/-- **Phase 2.6.B.2.β.4.0 — cos_of_rat 0 ≈ TauReal.one**.
+
+    Modulus `λ _ => 1`: at every depth `n ≥ 1`, `cos_partial_rat 0 n = 1`,
+    so the toRat difference with `TauReal.one.approx n = TauRat.one` is `0`. -/
+theorem TauReal.cos_of_rat_zero_equiv_one :
+    TauReal.equiv (TauReal.cos_of_rat TauRat.zero) TauReal.one := by
+  refine ⟨fun _ => 1, fun k n hn => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |((TauReal.cos_of_rat TauRat.zero).approx n).toRat
+        - (TauReal.one.approx n).toRat| < 1 / ((k : Rat) + 1)
+  rw [TauReal.cos_of_rat_approx, TauRat.cos_partial_toRat]
+  -- TauReal.one.approx n = TauRat.one by rfl
+  show |cos_partial_rat (TauRat.zero).toRat n - (TauRat.one).toRat|
+      < 1 / ((k : Rat) + 1)
+  rw [toRat_zero, toRat_one, cos_partial_rat_zero_eq_one n hn]
+  -- Goal: |1 - 1| < 1/((k : Rat) + 1); after simp reduces to 0 < k+1.
+  simp
+  have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+  linarith
+
+/-- For all `k`: `sin_pair_term_rat 0 k = 0`. -/
+@[simp] theorem sin_pair_term_rat_zero (k : Nat) :
+    sin_pair_term_rat 0 k = 0 := by
+  unfold sin_pair_term_rat
+  have h_4k1_ne : (4*k+1 : Nat) ≠ 0 := by omega
+  have h_4k3_ne : (4*k+3 : Nat) ≠ 0 := by omega
+  rw [zero_pow h_4k1_ne, zero_pow h_4k3_ne]
+  ring
+
+/-- `sin_partial_rat 0 n = 0` for all `n`. -/
+@[simp] theorem sin_partial_rat_zero_eq_zero (n : Nat) :
+    sin_partial_rat 0 n = 0 := by
+  induction n with
+  | zero => rfl
+  | succ m ih =>
+    rw [sin_partial_rat_succ, ih, sin_pair_term_rat_zero]
+    ring
+
+/-- **Phase 2.6.B.2.β.4.0 — sin_of_rat 0 ≈ TauReal.zero**.
+
+    Pointwise: at every depth, `(sin_of_rat 0).approx n .toRat = 0
+    = TauReal.zero.approx n .toRat`. -/
+theorem TauReal.sin_of_rat_zero_equiv_zero :
+    TauReal.equiv (TauReal.sin_of_rat TauRat.zero) TauReal.zero := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  show ((TauReal.sin_of_rat TauRat.zero).approx n).toRat
+      = ((TauReal.zero).approx n).toRat
+  rw [TauReal.sin_of_rat_approx, TauRat.sin_partial_toRat]
+  show sin_partial_rat (TauRat.zero).toRat n = (TauRat.zero).toRat
+  rw [toRat_zero, sin_partial_rat_zero_eq_zero]
+
+/-- **🎯🎯🎯 Phase 2.6.B.2.β.4.0 — exp(TauComplex.zero) ≈ TauComplex.one**.
+
+    Proof chain (`exp(TauComplex.zero) = exp(pureIm 0)` by rfl since
+    `fromTauRat TauRat.zero = TauReal.zero` definitionally):
+
+    * `.re`:  `(exp(pureIm 0)).re ≈ cos_of_rat 0 ≈ TauReal.one = TauComplex.one.re`.
+    * `.im`:  `(exp(pureIm 0)).im ≈ sin_of_rat 0 ≈ TauReal.zero = TauComplex.one.im`.
+
+    Each leg uses the Phase 1C bridges (`exp_pureIm_re_eq_cos`,
+    `exp_pureIm_im_eq_sin`) at TauRat.zero (whose toRat = 0 ≤ 1), then
+    chains through the new `cos_of_rat_zero_equiv_one` /
+    `sin_of_rat_zero_equiv_zero` identities. -/
+theorem TauComplex.exp_zero_equiv_one :
+    TauComplex.equiv (TauComplex.exp TauComplex.zero) TauComplex.one := by
+  -- Key rfl: pureIm TauRat.zero = TauComplex.zero
+  --   pureIm 0 = ⟨TauReal.zero, fromTauRat 0⟩ = ⟨TauReal.zero, TauReal.zero⟩ = TauComplex.zero
+  show TauComplex.equiv (TauComplex.exp (TauComplex.pureIm TauRat.zero))
+                        TauComplex.one
+  refine ⟨?_, ?_⟩
+  · -- .re leg
+    have h_bridge : TauReal.equiv (TauComplex.exp (TauComplex.pureIm TauRat.zero)).re
+                                  (TauReal.cos_of_rat TauRat.zero) :=
+      exp_pureIm_re_eq_cos TauRat.zero (by rw [toRat_zero]; norm_num)
+    have h_cos := TauReal.cos_of_rat_zero_equiv_one
+    -- Goal: (exp(pureIm 0)).re ≈ TauComplex.one.re = TauReal.one
+    exact TauReal.equiv_trans h_bridge h_cos
+  · -- .im leg
+    have h_bridge : TauReal.equiv (TauComplex.exp (TauComplex.pureIm TauRat.zero)).im
+                                  (TauReal.sin_of_rat TauRat.zero) :=
+      exp_pureIm_im_eq_sin TauRat.zero (by rw [toRat_zero]; norm_num)
+    have h_sin := TauReal.sin_of_rat_zero_equiv_zero
+    exact TauReal.equiv_trans h_bridge h_sin
+
 end Tau.Boundary
