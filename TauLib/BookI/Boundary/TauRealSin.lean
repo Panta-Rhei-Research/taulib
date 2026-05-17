@@ -441,4 +441,47 @@ theorem TauReal.sin_of_rat_isCauchy (x : TauRat) (hx : |x.toRat| ≤ 1) :
     have h_four_lt := Rat.four_div_two_pow_lt_recip k m hm
     linarith
 
+-- ============================================================
+-- PART 9: 🎯 sin is ODD — parity identity (Phase 2.6.B.2.β.4.5)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.5 — sin parity (odd function)
+
+  `sin_pair_term_rat x k = x^(4k+1)/(4k+1)! − x^(4k+3)/(4k+3)!`
+
+  Both `4k+1` and `4k+3` are odd, so `(−x)^odd = −x^odd`, giving
+  `sin_pair_term_rat (−x) k = −sin_pair_term_rat x k`. Summing:
+  `sin_partial_rat (−x) n = −sin_partial_rat x n`. -/
+
+/-- **[I.T-SinPairTerm-Odd]** `sin_pair_term_rat (−x) k = −sin_pair_term_rat x k`. -/
+theorem sin_pair_term_rat_neg (x : Rat) (k : Nat) :
+    sin_pair_term_rat (-x) k = -(sin_pair_term_rat x k) := by
+  unfold sin_pair_term_rat
+  have h_odd1 : Odd (4*k+1) := ⟨2*k, by ring⟩
+  have h_odd2 : Odd (4*k+3) := ⟨2*k+1, by ring⟩
+  rw [Odd.neg_pow h_odd1, Odd.neg_pow h_odd2]
+  ring
+
+/-- **[I.T-SinPartial-Odd]** `sin_partial_rat (−x) n = −sin_partial_rat x n`. -/
+theorem sin_partial_rat_neg (x : Rat) (n : Nat) :
+    sin_partial_rat (-x) n = -(sin_partial_rat x n) := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    rw [sin_partial_rat_succ, ih, sin_pair_term_rat_neg,
+        sin_partial_rat_succ]
+    ring
+
+/-- **🎯 [I.T-SinOfRat-Odd]** `sin_of_rat (negate q) ≈ negate (sin_of_rat q)` at TauReal. -/
+theorem TauReal.sin_of_rat_negate (q : TauRat) :
+    TauReal.equiv
+      (TauReal.sin_of_rat (TauRat.negate q))
+      (TauReal.negate (TauReal.sin_of_rat q)) := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  change ((TauRat.sin_partial (TauRat.negate q) n).toRat
+        = (TauRat.negate (TauRat.sin_partial q n)).toRat)
+  simp only [TauRat.sin_partial_toRat, toRat_negate, sin_partial_rat_neg]
+
 end Tau.Boundary

@@ -486,4 +486,43 @@ theorem TauReal.cos_of_rat_boundedAwayFromZero (x : TauRat) (hx : |x.toRat| ≤ 
   push_cast
   linarith
 
+-- ============================================================
+-- PART 9: 🎯 cos is EVEN — parity identity (Phase 2.6.B.2.β.4.5)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.5 — cos parity (even function)
+
+  `cos_pair_term_rat x k = x^(4k)/(4k)! − x^(4k+2)/(4k+2)!`
+
+  Both `4k` and `4k+2` are even, so `(−x)^even = x^even`, giving the
+  per-term identity `cos_pair_term_rat (−x) k = cos_pair_term_rat x k`.
+  Summing: `cos_partial_rat (−x) n = cos_partial_rat x n`. Lifts to TauReal
+  via `equiv_of_pointwise`. -/
+
+/-- **[I.T-CosPairTerm-Even]** `cos_pair_term_rat (−x) k = cos_pair_term_rat x k`. -/
+theorem cos_pair_term_rat_neg (x : Rat) (k : Nat) :
+    cos_pair_term_rat (-x) k = cos_pair_term_rat x k := by
+  unfold cos_pair_term_rat
+  have h_even1 : Even (4*k) := ⟨2*k, by ring⟩
+  have h_even2 : Even (4*k+2) := ⟨2*k+1, by ring⟩
+  rw [Even.neg_pow h_even1, Even.neg_pow h_even2]
+
+/-- **[I.T-CosPartial-Even]** `cos_partial_rat (−x) n = cos_partial_rat x n`. -/
+theorem cos_partial_rat_neg (x : Rat) (n : Nat) :
+    cos_partial_rat (-x) n = cos_partial_rat x n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    rw [cos_partial_rat_succ, ih, cos_pair_term_rat_neg, cos_partial_rat_succ]
+
+/-- **🎯 [I.T-CosOfRat-Even]** `cos_of_rat (negate q) ≈ cos_of_rat q` at TauReal. -/
+theorem TauReal.cos_of_rat_negate (q : TauRat) :
+    TauReal.equiv (TauReal.cos_of_rat (TauRat.negate q)) (TauReal.cos_of_rat q) := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  rw [TauReal.cos_of_rat_approx, TauReal.cos_of_rat_approx,
+      TauRat.cos_partial_toRat, TauRat.cos_partial_toRat, toRat_negate,
+      cos_partial_rat_neg]
+
 end Tau.Boundary
