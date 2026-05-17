@@ -395,4 +395,109 @@ theorem TauReal.arctan_deriv_of_rat_approx_toRat_closed_form
   field_simp
   linarith [h_id]
 
+-- ============================================================
+-- PART 8: Wave 3.A — MONOMIAL SECANT TAYLOR REMAINDER BOUND
+-- ============================================================
+
+/-! ## Wave 3.A — monomial secant Taylor remainder bound
+
+  For `|a| ≤ 1/2` and `0 ≤ h ≤ 1/2`, the secant numerator
+  `(a+h)^(n+1) − a^(n+1)` differs from the tangent-line approximation
+  `h · (n+1) · a^n` by at most `h² · (n+1)² / 2`.
+
+  Proof by induction on `n`, using the recursive identity
+
+      (a+h)^(n+2) − a^(n+2) = h · (a+h)^(n+1) + a · ((a+h)^(n+1) − a^(n+1))
+
+  which gives `E_{n+1} = h² · (n+1) · a^n + (h+a) · E_n` for the error
+  `E_n := ((a+h)^(n+1) − a^(n+1)) − h · (n+1) · a^n`.
+
+  Triangle inequality + `|a|, |h| ≤ 1/2` + induction hypothesis closes:
+  `|E_{n+1}| ≤ h²·(n+1) + |E_n| ≤ h²·(n+1) + h²·(n+1)²/2 ≤ h²·(n+2)²/2`.
+
+  This bound is the load-bearing tool for Wave 3.B (arctan partial-sum
+  secant bound) and Wave 3.C (the main IsDerivAt theorem). -/
+theorem monomial_secant_taylor_bound (a h : Rat) (n : Nat)
+    (ha : |a| ≤ 1/2) (hh_nn : 0 ≤ h) (hh : h ≤ 1/2) :
+    |((a+h)^(n+1) - a^(n+1)) - h * ((n+1 : Nat) : Rat) * a^n|
+      ≤ h^2 * ((n+1 : Nat) : Rat)^2 / 2 := by
+  induction n with
+  | zero =>
+    -- (a+h)^1 - a^1 - h * 1 * a^0 = 0
+    have h_eq : (a+h)^(0+1) - a^(0+1) - h * ((0+1 : Nat) : Rat) * a^0 = 0 := by
+      push_cast; ring
+    rw [h_eq, abs_zero]
+    positivity
+  | succ n ih =>
+    -- E_{n+1} = h² · (n+1) · a^n + (h + a) · E_n  (algebraic identity)
+    have h_eq :
+        (a+h)^((n+1)+1) - a^((n+1)+1) - h * (((n+1)+1 : Nat) : Rat) * a^(n+1)
+        = h^2 * (((n+1 : Nat)) : Rat) * a^n
+        + (h + a) * ((a+h)^(n+1) - a^(n+1) - h * ((n+1 : Nat) : Rat) * a^n) := by
+      push_cast; ring
+    rw [h_eq]
+    -- Triangle inequality on the two pieces
+    have h_abs_a_le_one : |a|^n ≤ 1 := by
+      have h_a_nn : (0 : Rat) ≤ |a| := _root_.abs_nonneg _
+      have h_a_le_one : |a| ≤ 1 := by linarith
+      calc |a|^n ≤ (1 : Rat)^n := pow_le_pow_left₀ h_a_nn h_a_le_one n
+        _ = 1 := one_pow _
+    have h_n1_nn : (0 : Rat) ≤ ((n+1 : Nat) : Rat) := by exact_mod_cast Nat.zero_le _
+    have h_h_sq_nn : (0 : Rat) ≤ h^2 := sq_nonneg _
+    -- Bound on first piece: |h² · (n+1) · a^n| ≤ h² · (n+1)
+    have h_prod_nn : (0 : Rat) ≤ h^2 * ((n+1 : Nat) : Rat) := mul_nonneg h_h_sq_nn h_n1_nn
+    have h_bound_1 : |h^2 * ((n+1 : Nat) : Rat) * a^n| ≤ h^2 * ((n+1 : Nat) : Rat) := by
+      have h_factor : h^2 * ((n+1 : Nat) : Rat) * a^n
+                    = (h^2 * ((n+1 : Nat) : Rat)) * a^n := by ring
+      rw [h_factor, abs_mul, abs_of_nonneg h_prod_nn, abs_pow]
+      calc (h^2 * ((n+1 : Nat) : Rat)) * |a|^n
+          ≤ (h^2 * ((n+1 : Nat) : Rat)) * 1 :=
+            mul_le_mul_of_nonneg_left h_abs_a_le_one h_prod_nn
+        _ = h^2 * ((n+1 : Nat) : Rat) := by ring
+    -- Bound on second piece: |(h+a) · E_n| ≤ (|h|+|a|) · |E_n| ≤ 1 · h^2·(n+1)^2/2
+    have h_sum_le_one : |h + a| ≤ 1 := by
+      have h_h_abs : |h| = h := abs_of_nonneg hh_nn
+      calc |h + a| ≤ |h| + |a| := abs_add_le _ _
+        _ = h + |a| := by rw [h_h_abs]
+        _ ≤ 1/2 + 1/2 := by linarith
+        _ = 1 := by norm_num
+    have h_En_nn : (0 : Rat) ≤
+        |(a+h)^(n+1) - a^(n+1) - h * ((n+1 : Nat) : Rat) * a^n| := _root_.abs_nonneg _
+    have h_bound_2 :
+        |(h + a) * ((a+h)^(n+1) - a^(n+1) - h * ((n+1 : Nat) : Rat) * a^n)|
+        ≤ h^2 * ((n+1 : Nat) : Rat)^2 / 2 := by
+      rw [abs_mul]
+      calc |h + a| * |(a+h)^(n+1) - a^(n+1) - h * ((n+1 : Nat) : Rat) * a^n|
+          ≤ 1 * |(a+h)^(n+1) - a^(n+1) - h * ((n+1 : Nat) : Rat) * a^n| :=
+            mul_le_mul_of_nonneg_right h_sum_le_one h_En_nn
+        _ = |(a+h)^(n+1) - a^(n+1) - h * ((n+1 : Nat) : Rat) * a^n| := by ring
+        _ ≤ h^2 * ((n+1 : Nat) : Rat)^2 / 2 := ih
+    -- Combine: |A + B| ≤ |A| + |B|
+    have h_tri :
+        |h^2 * (((n+1 : Nat)) : Rat) * a^n
+          + (h + a) * ((a+h)^(n+1) - a^(n+1) - h * ((n+1 : Nat) : Rat) * a^n)|
+        ≤ h^2 * ((n+1 : Nat) : Rat) + h^2 * ((n+1 : Nat) : Rat)^2 / 2 := by
+      calc |h^2 * (((n+1 : Nat)) : Rat) * a^n
+              + (h + a) * ((a+h)^(n+1) - a^(n+1) - h * ((n+1 : Nat) : Rat) * a^n)|
+          ≤ |h^2 * (((n+1 : Nat)) : Rat) * a^n|
+            + |(h + a) * ((a+h)^(n+1) - a^(n+1) - h * ((n+1 : Nat) : Rat) * a^n)| :=
+            abs_add_le _ _
+        _ ≤ h^2 * ((n+1 : Nat) : Rat)
+            + h^2 * ((n+1 : Nat) : Rat)^2 / 2 := by linarith
+    -- Show h²·(n+1) + h²·(n+1)²/2 ≤ h²·(n+2)²/2
+    -- Equivalent to: 2(n+1) + (n+1)² ≤ (n+2)², i.e., (n+1)(n+3) ≤ (n+2)²
+    -- (n+1)(n+3) = n²+4n+3, (n+2)² = n²+4n+4, so (n+1)(n+3) = (n+2)² - 1 ≤ (n+2)². ✓
+    have h_final :
+        h^2 * ((n+1 : Nat) : Rat) + h^2 * ((n+1 : Nat) : Rat)^2 / 2
+        ≤ h^2 * (((n+1)+1 : Nat) : Rat)^2 / 2 := by
+      have h_nat_eq : (((n+1)+1 : Nat) : Rat) = ((n+1 : Nat) : Rat) + 1 := by push_cast; ring
+      rw [h_nat_eq]
+      -- Goal: h²(n+1) + h²(n+1)²/2 ≤ h²((n+1)+1)²/2
+      -- Multiply through: 2(n+1) + (n+1)² ≤ (n+2)²
+      -- (n+1)² + 2(n+1) + 1 = (n+2)², so (n+1)² + 2(n+1) = (n+2)² - 1 ≤ (n+2)²
+      nlinarith [h_h_sq_nn, h_n1_nn,
+                 sq_nonneg (((n+1 : Nat) : Rat) + 1),
+                 sq_nonneg (((n+1 : Nat) : Rat))]
+    linarith
+
 end Tau.Boundary
