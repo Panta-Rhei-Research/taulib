@@ -2406,4 +2406,116 @@ theorem cisTauReal_im_approx_toRat (x : TauReal) (n : Nat) :
   rw [TauComplex.exp_im_approx,
       expPartial_pureIm_of_real_im_approx_toRat_eq_rat]
 
+-- ============================================================
+-- PART 26: 🎯 CONJUGATE PROPERTY — cisTauReal(−x) ≈ conj(cisTauReal x)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.6 — Conjugate property of cisTauReal
+
+  At the Rat level, the cyclotomic-4 pair `pureIm_pow_re_im_rat xR k` has:
+    * `.1` (real-part coefficient) is **EVEN** in xR
+    * `.2` (imag-part coefficient) is **ODD** in xR
+
+  Reason: `.1` is nonzero only at indices `k ≡ 0, 2 mod 4` (even k), where
+  the contribution is `±xR^k` with k even — invariant under `xR → −xR`.
+  `.2` is nonzero only at `k ≡ 1, 3 mod 4` (odd k), where the
+  contribution is `±xR^k` with k odd — flips under `xR → −xR`.
+
+  This lifts via the `expPartial_pureIm_re/im_rat` partial sums to:
+    expPartial_pureIm_re_rat (−x) n = expPartial_pureIm_re_rat x n  (even)
+    expPartial_pureIm_im_rat (−x) n = −expPartial_pureIm_im_rat x n (odd)
+
+  Then via β.4.3's TauReal-arg toRat bridge, this gives the conjugate
+  property at TauComplex.equiv level:
+
+      cisTauReal(negate x) ≈ conj(cisTauReal x)
+
+  i.e., `.re` is invariant under `x → −x`, and `.im` flips sign. -/
+
+/-- **[I.T-PureImPowReImRat-Parity]** Joint parity of the `(.1, .2)` pair:
+    `.1` is invariant, `.2` flips sign, under `xR → −xR`. -/
+theorem pureIm_pow_re_im_rat_neg (xR : Rat) (k : Nat) :
+    pureIm_pow_re_im_rat (-xR) k
+      = ((pureIm_pow_re_im_rat xR k).1, -(pureIm_pow_re_im_rat xR k).2) := by
+  induction k with
+  | zero =>
+    rw [pureIm_pow_re_im_rat_zero, pureIm_pow_re_im_rat_zero]
+    simp
+  | succ k IH =>
+    rw [pureIm_pow_re_im_rat_succ, IH, pureIm_pow_re_im_rat_succ]
+    ext <;> simp <;> ring
+
+/-- **[I.T-ExpPartial-PureIm-Re-Rat-Even]** `expPartial_pureIm_re_rat` is
+    even in its angle argument. -/
+theorem expPartial_pureIm_re_rat_neg (xR : Rat) (n : Nat) :
+    expPartial_pureIm_re_rat (-xR) n = expPartial_pureIm_re_rat xR n := by
+  induction n with
+  | zero => rfl
+  | succ k IH =>
+    rw [expPartial_pureIm_re_rat_succ, expPartial_pureIm_re_rat_succ, IH,
+        pureIm_pow_re_im_rat_neg]
+
+/-- **[I.T-ExpPartial-PureIm-Im-Rat-Odd]** `expPartial_pureIm_im_rat` is
+    odd in its angle argument. -/
+theorem expPartial_pureIm_im_rat_neg (xR : Rat) (n : Nat) :
+    expPartial_pureIm_im_rat (-xR) n = -(expPartial_pureIm_im_rat xR n) := by
+  induction n with
+  | zero => simp
+  | succ k IH =>
+    rw [expPartial_pureIm_im_rat_succ, expPartial_pureIm_im_rat_succ, IH,
+        pureIm_pow_re_im_rat_neg]
+    ring
+
+/-- **🎯🎯🎯 [I.T-CisTauReal-Re-Even]** Real-part of cisTauReal is even in
+    the TauReal angle argument:
+
+        (cisTauReal(negate x)).re ≈ (cisTauReal x).re. -/
+theorem TauComplex.cisTauReal_negate_re_equiv (x : TauReal) :
+    TauReal.equiv (TauComplex.cisTauReal (TauReal.negate x)).re
+                  (TauComplex.cisTauReal x).re := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  rw [cisTauReal_re_approx_toRat, cisTauReal_re_approx_toRat]
+  -- (TauReal.negate x).approx n = TauRat.negate (x.approx n)
+  -- ((TauRat.negate (x.approx n))).toRat = -(x.approx n).toRat
+  show expPartial_pureIm_re_rat ((TauReal.negate x).approx n).toRat n
+      = expPartial_pureIm_re_rat ((x.approx n).toRat) n
+  show expPartial_pureIm_re_rat (TauRat.negate (x.approx n)).toRat n
+      = expPartial_pureIm_re_rat ((x.approx n).toRat) n
+  rw [toRat_negate, expPartial_pureIm_re_rat_neg]
+
+/-- **🎯🎯🎯 [I.T-CisTauReal-Im-Odd]** Imag-part of cisTauReal is odd in
+    the TauReal angle argument:
+
+        (cisTauReal(negate x)).im ≈ negate (cisTauReal x).im. -/
+theorem TauComplex.cisTauReal_negate_im_equiv (x : TauReal) :
+    TauReal.equiv (TauComplex.cisTauReal (TauReal.negate x)).im
+                  (TauReal.negate (TauComplex.cisTauReal x).im) := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  -- LHS .approx n .toRat = expPartial_pureIm_im_rat (-(x.approx n).toRat) n
+  --                      = -(expPartial_pureIm_im_rat (x.approx n).toRat n)
+  -- RHS .approx n .toRat = (TauRat.negate ((cisTauReal x).im.approx n)).toRat
+  --                      = -((cisTauReal x).im.approx n).toRat
+  --                      = -(expPartial_pureIm_im_rat (x.approx n).toRat n)
+  rw [cisTauReal_im_approx_toRat]
+  change expPartial_pureIm_im_rat ((TauRat.negate (x.approx n))).toRat n
+       = (TauRat.negate ((TauComplex.cisTauReal x).im.approx n)).toRat
+  rw [toRat_negate, expPartial_pureIm_im_rat_neg, toRat_negate,
+      cisTauReal_im_approx_toRat]
+
+/-- **🎯🎯🎯🎯🎯 [I.T-CisTauReal-Conjugate]** Conjugate property:
+
+      cisTauReal(negate x) ≈ conj(cisTauReal x)
+
+    i.e., `.re` invariant under `x → -x`, `.im` flips sign. -/
+theorem TauComplex.cisTauReal_negate_equiv_conj (x : TauReal) :
+    TauComplex.equiv (TauComplex.cisTauReal (TauReal.negate x))
+                     ⟨(TauComplex.cisTauReal x).re,
+                      TauReal.negate (TauComplex.cisTauReal x).im⟩ :=
+  ⟨TauComplex.cisTauReal_negate_re_equiv x,
+   TauComplex.cisTauReal_negate_im_equiv x⟩
+
 end Tau.Boundary
