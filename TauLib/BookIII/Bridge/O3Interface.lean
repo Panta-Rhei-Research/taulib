@@ -55,6 +55,7 @@ structure O3Context where
   zeroModePolicy : ZeroModePolicy
   multiplicityPolicy : MultiplicityPolicy
   spectralConvention : SpectralConvention := .unspecified
+  operatorReadyPredicate : Prop := False
   normalizationNonzeroPredicate : Prop := False
   determinantDefinedPredicate : Prop := False
   zeroSetEquivalencePredicate : Prop := False
@@ -62,6 +63,12 @@ structure O3Context where
   zetaBridgeCompatiblePredicate : Prop := False
   continuationCompatiblePredicate : Prop := False
   status : SpineStatus := .conditional_interface
+
+/-- Named O3 obligation: the selected G5 operator package is ready enough for
+    determinant work.  For the lemniscate path this should be supplied through
+    `LemniscateOperatorReady`, not inferred from the raw domain type. -/
+def O3OperatorReady (ctx : O3Context) : Prop :=
+  ctx.operatorReadyPredicate
 
 /-- Named O3 obligation: determinant normalization is fixed and nonvanishing
     on the zero-bearing comparison domain. -/
@@ -94,8 +101,9 @@ def O3ContinuationCompatible (ctx : O3Context) : Prop :=
 
 /-- Explicit O3 proof-field interface.  A value of this structure is not
     supplied in this sprint; downstream theorem statements may require it as a
-    hypothesis instead of importing the legacy ambient O3 axiom. -/
+    hypothesis instead of importing legacy ambient bridge assumptions. -/
 structure O3Obligations (ctx : O3Context) where
+  operatorReady : O3OperatorReady ctx
   normalizationNonzero : O3NormalizationNonzero ctx
   determinantDefined : O3DeterminantDefined ctx
   zeroSetEquivalence : O3ZeroSetEquivalence ctx
@@ -120,7 +128,7 @@ theorem spectral_corr_from_hyp (ctx : O3Context) (h : O3Obligations ctx) :
 
 /-- The finite-first context recommended by the G5/G6 pre-flight addendum. -/
 def finiteFirstO3Context : O3Context where
-  operatorPackage := LemniscateOperatorDomain
+  operatorPackage := LemniscateOperatorContext
   determinantClass := .finite
   zeroModePolicy := .excluded
   multiplicityPolicy := .boundedOnly
@@ -129,7 +137,7 @@ def finiteFirstO3Context : O3Context where
 /-- The abstract conditional context used when a result should be stated with
     O3 as an explicit hypothesis rather than imported as ambient truth. -/
 def abstractConditionalO3Context : O3Context where
-  operatorPackage := LemniscateOperatorDomain
+  operatorPackage := LemniscateOperatorContext
   determinantClass := .abstractConditional
   zeroModePolicy := .unspecified
   multiplicityPolicy := .unspecified
