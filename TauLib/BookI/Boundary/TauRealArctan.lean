@@ -847,4 +847,190 @@ theorem TauReal.arctan_of_rat_isCauchy (x : TauRat) (hx : 2 * |x.toRat| ≤ 1) :
     have h_four_lt := Rat.four_div_two_pow_lt_recip k m hm
     linarith
 
+-- ============================================================
+-- PART 15: Phase 2.6.B.2.β.4 starter — arctan_of_rat bounded ≤ 1
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4 starter — arctan_of_rat boundedness for |a| ≤ 1/2
+
+For `|a.toRat| ≤ 1/2`, every approximation of `arctan_of_rat a` is bounded
+in absolute value by 1. This unlocks applying `cisTauReal_add` (β.3 full)
+to arctan-image angles, the structural prerequisite for arctan addition.
+
+**Proof skeleton**:
+1. **Tighter per-term bound**: `|arctan_pair_term_rat a k| ≤ (5/4)·|a|^(4k+1)` for `|a| ≤ 1/2`.
+   Via triangle on the two sub-fractions + `1+|a|² ≤ 5/4`.
+2. **Geometric sum**: by induction, `(1-|a|⁴)·|arctan_partial a n| ≤ (5/4)·|a|·(1-|a|^(4n))`.
+3. **Conclude**: `|arctan_partial a n| ≤ (5/4)·|a|/(1-|a|⁴) ≤ 2/3 < 1` for `|a| ≤ 1/2`. -/
+
+/-- **Tighter per-term bound** for `|a| ≤ 1/2`:
+    `|arctan_pair_term_rat a k| ≤ (5/4) · |a|^(4k+1)`.
+
+    Derived via triangle: `|p₁ - p₂| ≤ |a|^(4k+1)/(4k+1) + |a|^(4k+3)/(4k+3)`,
+    then bounding by `|a|^(4k+1) · (1 + |a|²) ≤ (5/4)·|a|^(4k+1)`. -/
+theorem arctan_pair_term_rat_abs_bound_tight (a : Rat) (ha : 2 * |a| ≤ 1) (k : Nat) :
+    |arctan_pair_term_rat a k| ≤ (5/4) * |a|^(4*k+1) := by
+  unfold arctan_pair_term_rat
+  -- Setup: |a| ≤ 1/2, hence |a|² ≤ 1/4, hence 1 + |a|² ≤ 5/4
+  have h_abs_a_le_half : |a| ≤ 1/2 := by linarith
+  have h_abs_a_nn : (0 : Rat) ≤ |a| := abs_nonneg _
+  have h_abs_a_sq : |a|^2 ≤ 1/4 := by
+    have : |a|^2 ≤ (1/2)^2 := by
+      apply pow_le_pow_left₀ h_abs_a_nn h_abs_a_le_half
+    have : (1/2 : Rat)^2 = 1/4 := by norm_num
+    linarith [pow_le_pow_left₀ h_abs_a_nn h_abs_a_le_half 2]
+  have h_one_plus_sq : 1 + |a|^2 ≤ 5/4 := by linarith
+  -- Denominators positive
+  have h_4k1_pos : (0 : Rat) < ((4*k+1 : Nat) : Rat) := by
+    have : (0 : Nat) < 4*k+1 := by omega
+    exact_mod_cast this
+  have h_4k3_pos : (0 : Rat) < ((4*k+3 : Nat) : Rat) := by
+    have : (0 : Nat) < 4*k+3 := by omega
+    exact_mod_cast this
+  have h_4k1_ge_1 : (1 : Rat) ≤ ((4*k+1 : Nat) : Rat) := by
+    have : 1 ≤ 4*k+1 := by omega
+    exact_mod_cast this
+  have h_4k3_ge_1 : (1 : Rat) ≤ ((4*k+3 : Nat) : Rat) := by
+    have : 1 ≤ 4*k+3 := by omega
+    exact_mod_cast this
+  -- |pair_k| ≤ |a|^(4k+1)/(4k+1) + |a|^(4k+3)/(4k+3) (triangle)
+  have h_tri :
+      |a^(4*k+1) / ((4*k+1 : Nat) : Rat) - a^(4*k+3) / ((4*k+3 : Nat) : Rat)|
+        ≤ |a|^(4*k+1) / ((4*k+1 : Nat) : Rat) + |a|^(4*k+3) / ((4*k+3 : Nat) : Rat) := by
+    calc |a^(4*k+1) / ((4*k+1 : Nat) : Rat) - a^(4*k+3) / ((4*k+3 : Nat) : Rat)|
+        ≤ |a^(4*k+1) / ((4*k+1 : Nat) : Rat)| + |a^(4*k+3) / ((4*k+3 : Nat) : Rat)| := abs_sub _ _
+      _ = |a^(4*k+1)| / ((4*k+1 : Nat) : Rat) + |a^(4*k+3)| / ((4*k+3 : Nat) : Rat) := by
+          rw [abs_div, abs_div]
+          rw [abs_of_pos h_4k1_pos, abs_of_pos h_4k3_pos]
+      _ = |a|^(4*k+1) / ((4*k+1 : Nat) : Rat) + |a|^(4*k+3) / ((4*k+3 : Nat) : Rat) := by
+          rw [abs_pow, abs_pow]
+  -- Each term: |a|^N / N' ≤ |a|^N (since N' ≥ 1)
+  have h_first : |a|^(4*k+1) / ((4*k+1 : Nat) : Rat) ≤ |a|^(4*k+1) := by
+    have h_pow_nn : (0 : Rat) ≤ |a|^(4*k+1) := by positivity
+    calc |a|^(4*k+1) / ((4*k+1 : Nat) : Rat)
+        ≤ |a|^(4*k+1) / 1 :=
+          div_le_div_of_nonneg_left h_pow_nn (by norm_num : (0 : Rat) < 1) h_4k1_ge_1
+      _ = |a|^(4*k+1) := by ring
+  have h_second : |a|^(4*k+3) / ((4*k+3 : Nat) : Rat) ≤ |a|^(4*k+3) := by
+    have h_pow_nn : (0 : Rat) ≤ |a|^(4*k+3) := by positivity
+    calc |a|^(4*k+3) / ((4*k+3 : Nat) : Rat)
+        ≤ |a|^(4*k+3) / 1 :=
+          div_le_div_of_nonneg_left h_pow_nn (by norm_num : (0 : Rat) < 1) h_4k3_ge_1
+      _ = |a|^(4*k+3) := by ring
+  -- |a|^(4k+3) = |a|^(4k+1) · |a|²
+  have h_pow_split : |a|^(4*k+3) = |a|^(4*k+1) * |a|^2 := by
+    rw [show 4*k+3 = (4*k+1) + 2 from by ring, pow_add]
+  -- Combine: |pair_k| ≤ |a|^(4k+1) + |a|^(4k+1)·|a|² = |a|^(4k+1)·(1+|a|²) ≤ (5/4)·|a|^(4k+1)
+  have h_pow_4k1_nn : (0 : Rat) ≤ |a|^(4*k+1) := by positivity
+  have h_combined :
+      |a^(4*k+1) / ((4*k+1 : Nat) : Rat) - a^(4*k+3) / ((4*k+3 : Nat) : Rat)|
+        ≤ (5/4) * |a|^(4*k+1) := by
+    calc |a^(4*k+1) / ((4*k+1 : Nat) : Rat) - a^(4*k+3) / ((4*k+3 : Nat) : Rat)|
+        ≤ |a|^(4*k+1) / ((4*k+1 : Nat) : Rat) + |a|^(4*k+3) / ((4*k+3 : Nat) : Rat) := h_tri
+      _ ≤ |a|^(4*k+1) + |a|^(4*k+3) := by linarith
+      _ = |a|^(4*k+1) + |a|^(4*k+1) * |a|^2 := by rw [h_pow_split]
+      _ = |a|^(4*k+1) * (1 + |a|^2) := by ring
+      _ ≤ |a|^(4*k+1) * (5/4) := by nlinarith
+      _ = (5/4) * |a|^(4*k+1) := by ring
+  -- Push the cast form to match the goal
+  push_cast at h_combined
+  exact h_combined
+
+/-- **Step 2 — inductive bound via telescoping**:
+    `(1 - |a|⁴) · |arctan_partial_rat a n| ≤ (5/4) · |a| · (1 - |a|^(4n))`
+    for `|a| ≤ 1/2`, all n. -/
+theorem arctan_partial_rat_abs_tight_bound (a : Rat) (ha : 2 * |a| ≤ 1) (n : Nat) :
+    (1 - |a|^4) * |arctan_partial_rat a n| ≤ (5/4) * |a| * (1 - |a|^(4*n)) := by
+  have h_abs_a_le_half : |a| ≤ 1/2 := by linarith
+  have h_abs_a_nn : (0 : Rat) ≤ |a| := abs_nonneg _
+  have h_pow4_le : |a|^4 ≤ (1/2 : Rat)^4 := pow_le_pow_left₀ h_abs_a_nn h_abs_a_le_half 4
+  have h_pow4_lt_one : |a|^4 < 1 := by
+    have : (1/2 : Rat)^4 = 1/16 := by norm_num
+    linarith
+  have h_one_minus_pow_pos : (0 : Rat) ≤ 1 - |a|^4 := by linarith
+  induction n with
+  | zero =>
+    show (1 - |a|^4) * |arctan_partial_rat a 0| ≤ (5/4) * |a| * (1 - |a|^(4*0))
+    rw [arctan_partial_rat_zero, abs_zero, mul_zero]
+    simp
+  | succ n IH =>
+    rw [arctan_partial_rat_succ]
+    have h_tri : |arctan_partial_rat a n + arctan_pair_term_rat a n|
+                ≤ |arctan_partial_rat a n| + |arctan_pair_term_rat a n| := abs_add_le _ _
+    have h_term : |arctan_pair_term_rat a n| ≤ (5/4) * |a|^(4*n+1) :=
+      arctan_pair_term_rat_abs_bound_tight a ha n
+    -- (1 - |a|⁴) · |partial(n+1)| ≤ (1 - |a|⁴) · (|partial n| + |pair n|)
+    have h_step1 :
+        (1 - |a|^4) * |arctan_partial_rat a n + arctan_pair_term_rat a n|
+          ≤ (1 - |a|^4) * (|arctan_partial_rat a n| + |arctan_pair_term_rat a n|) := by
+      exact mul_le_mul_of_nonneg_left h_tri h_one_minus_pow_pos
+    -- (1 - |a|⁴) · (|partial n| + |pair n|) = (1-|a|⁴)·|partial n| + (1-|a|⁴)·|pair n|
+    -- ≤ (5/4)·|a|·(1-|a|^(4n)) + (1-|a|⁴)·(5/4)·|a|^(4n+1)
+    have h_pair_pow_nn : (0 : Rat) ≤ |a|^(4*n+1) := by positivity
+    have h_step2 :
+        (1 - |a|^4) * (|arctan_partial_rat a n| + |arctan_pair_term_rat a n|)
+          ≤ (5/4) * |a| * (1 - |a|^(4*n)) + (1 - |a|^4) * ((5/4) * |a|^(4*n+1)) := by
+      have h_pair_bound : (1 - |a|^4) * |arctan_pair_term_rat a n|
+                        ≤ (1 - |a|^4) * ((5/4) * |a|^(4*n+1)) := by
+        exact mul_le_mul_of_nonneg_left h_term h_one_minus_pow_pos
+      nlinarith [IH, h_pair_bound]
+    -- (5/4)·|a|·(1-|a|^(4n)) + (1-|a|⁴)·(5/4)·|a|^(4n+1) = (5/4)·|a|·(1-|a|^(4(n+1)))
+    have h_step3 :
+        (5/4) * |a| * (1 - |a|^(4*n)) + (1 - |a|^4) * ((5/4) * |a|^(4*n+1))
+          = (5/4) * |a| * (1 - |a|^(4*(n+1))) := by
+      have h_pow_4n1 : |a|^(4*n+1) = |a| * |a|^(4*n) := by
+        rw [show 4*n+1 = 1 + 4*n from by ring, pow_add, pow_one]
+      have h_pow_4np : |a|^(4*(n+1)) = |a|^4 * |a|^(4*n) := by
+        rw [show 4*(n+1) = 4 + 4*n from by ring, pow_add]
+      rw [h_pow_4n1, h_pow_4np]
+      ring
+    linarith
+
+/-- **Step 3 — unscaled bound**: `|arctan_partial_rat a n| ≤ 1` for `|a| ≤ 1/2`.
+
+    Derived from Step 2 by:
+    1. `(1 - |a|^(4n)) ≤ 1` (since `|a|^(4n) ≥ 0`)
+    2. `(1 - |a|⁴) ≥ 15/16 > 0` for `|a| ≤ 1/2`
+    3. Combine: `|partial| ≤ (5/4)·|a| / (15/16) = (4/3)·|a| ≤ 2/3 < 1`. -/
+theorem arctan_partial_rat_abs_le_one (a : Rat) (ha : 2 * |a| ≤ 1) (n : Nat) :
+    |arctan_partial_rat a n| ≤ 1 := by
+  have h_abs_a_le_half : |a| ≤ 1/2 := by linarith
+  have h_abs_a_nn : (0 : Rat) ≤ |a| := abs_nonneg _
+  have h_pow4_le : |a|^4 ≤ 1/16 := by
+    have h1 : |a|^4 ≤ (1/2 : Rat)^4 := pow_le_pow_left₀ h_abs_a_nn h_abs_a_le_half 4
+    have h2 : (1/2 : Rat)^4 = 1/16 := by norm_num
+    linarith
+  have h_one_minus_pow_pos : (0 : Rat) < 1 - |a|^4 := by linarith
+  have h_pow_4n_nn : (0 : Rat) ≤ |a|^(4*n) := by positivity
+  have h_one_minus_le : 1 - |a|^(4*n) ≤ 1 := by linarith
+  have h_step2 := arctan_partial_rat_abs_tight_bound a ha n
+  -- (1-|a|⁴)·|partial| ≤ (5/4)·|a|
+  have h_unscaled : (1 - |a|^4) * |arctan_partial_rat a n| ≤ (5/4) * |a| := by
+    have h_5a_nn : (0 : Rat) ≤ (5/4) * |a| := by positivity
+    calc (1 - |a|^4) * |arctan_partial_rat a n|
+        ≤ (5/4) * |a| * (1 - |a|^(4*n)) := h_step2
+      _ ≤ (5/4) * |a| * 1 := mul_le_mul_of_nonneg_left h_one_minus_le h_5a_nn
+      _ = (5/4) * |a| := by ring
+  -- |partial| ≤ (5/4)·|a|/(1-|a|⁴) ≤ 2/3 < 1
+  have h_partial_le_div : |arctan_partial_rat a n| ≤ (5/4) * |a| / (1 - |a|^4) := by
+    rw [le_div_iff₀ h_one_minus_pow_pos]
+    linarith
+  have h_one_minus_ge : (1 : Rat) - |a|^4 ≥ 15/16 := by linarith
+  have h_div_bound : (5/4) * |a| / (1 - |a|^4) ≤ 2/3 := by
+    rw [div_le_iff₀ h_one_minus_pow_pos]
+    nlinarith
+  linarith
+
+/-- **🎯 Step 4 (headline)**: every approximation of `TauReal.arctan_of_rat a hx`
+    is bounded by 1 in absolute value, for `|a.toRat| ≤ 1/2`.
+
+    This is the key prerequisite for applying `cisTauReal_add` (β.3 full) to
+    `arctan_of_rat a + arctan_of_rat b` — both arctan-image angles satisfy
+    the BoundedBy 1 hypothesis. -/
+theorem TauReal.arctan_of_rat_approx_abs_toRat_le_one (a : TauRat)
+    (hx : 2 * |a.toRat| ≤ 1) (n : Nat) :
+    ((TauReal.arctan_of_rat a hx).approx n).abs.toRat ≤ 1 := by
+  rw [TauReal.arctan_of_rat_approx, TauRat.toRat_abs, TauRat.arctan_partial_toRat]
+  exact arctan_partial_rat_abs_le_one a.toRat hx n
+
 end Tau.Boundary
