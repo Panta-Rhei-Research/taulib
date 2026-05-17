@@ -666,4 +666,54 @@ theorem TauReal.cisTauReal_im_approx_small_angle_bound
   rw [cisTauReal_im_approx_toRat]
   exact expPartial_pureIm_im_rat_small_angle_bound ((x.approx n).toRat) hα n hn
 
+-- ============================================================
+-- PART 9: Wave 6b — cis_arctan SMALL-ANGLE AT cis_arctan LEVEL
+-- ============================================================
+
+/-! ## Wave 6b — Small-angle bound at cis_arctan_re/im level
+
+  Composing Wave 6a with the arctan boundedness theorem
+  (`arctan_of_rat_seq_bounded`), we obtain small-angle bounds directly
+  at the `cis_arctan_re/im` interface for TauRat inputs with `|a| ≤ 1/2`:
+
+      |((cis_arctan_re a).approx n).toRat − 1| ≤ n · α²
+      |((cis_arctan_im a).approx n).toRat − α| ≤ n · |α|³
+
+  where α := ((arctan_of_rat_seq a).approx n).toRat = arctan_partial_rat a.toRat n.
+
+  The `2 · |a| ≤ 1` hypothesis ensures `|arctan_partial| ≤ 2/3 < 1` for all n,
+  so the small-angle hypothesis of Wave 6a is met.
+
+  These bounds are the final input for the chain rule (Wave 6c).
+-/
+
+/-- **Wave 6b (re)** — Small-angle bound for `(cis_arctan_re a).approx n`. -/
+theorem TauReal.cis_arctan_re_approx_small_angle_bound
+    (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) (n : Nat) (hn : 1 ≤ n) :
+    |((TauReal.cis_arctan_re a).approx n).toRat - 1|
+      ≤ (n : Rat) * (((TauReal.arctan_of_rat_seq a).approx n).toRat)^2 := by
+  -- cis_arctan_re a = (cisTauReal (arctan_of_rat_seq a)).re
+  -- So ((cis_arctan_re a).approx n).toRat = ((cisTauReal (...)).re.approx n).toRat
+  show |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat - 1|
+        ≤ (n : Rat) * (((TauReal.arctan_of_rat_seq a).approx n).toRat)^2
+  apply TauReal.cisTauReal_re_approx_small_angle_bound (TauReal.arctan_of_rat_seq a) n hn
+  -- Need: |((arctan_of_rat_seq a).approx n).toRat| ≤ 1
+  have h_bound := TauReal.arctan_of_rat_seq_bounded a ha n
+  rw [TauRat.toRat_abs] at h_bound
+  exact h_bound
+
+/-- **Wave 6b (im)** — Small-angle bound for `(cis_arctan_im a).approx n`. -/
+theorem TauReal.cis_arctan_im_approx_small_angle_bound
+    (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) (n : Nat) (hn : 2 ≤ n) :
+    |((TauReal.cis_arctan_im a).approx n).toRat
+       - (((TauReal.arctan_of_rat_seq a).approx n).toRat)|
+      ≤ (n : Rat) * |((TauReal.arctan_of_rat_seq a).approx n).toRat|^3 := by
+  show |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat
+         - (((TauReal.arctan_of_rat_seq a).approx n).toRat)|
+        ≤ (n : Rat) * |((TauReal.arctan_of_rat_seq a).approx n).toRat|^3
+  apply TauReal.cisTauReal_im_approx_small_angle_bound (TauReal.arctan_of_rat_seq a) n hn
+  have h_bound := TauReal.arctan_of_rat_seq_bounded a ha n
+  rw [TauRat.toRat_abs] at h_bound
+  exact h_bound
+
 end Tau.Boundary
