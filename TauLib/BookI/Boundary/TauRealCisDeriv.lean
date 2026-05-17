@@ -1133,6 +1133,45 @@ theorem TauComplex.cisTauReal_arctan_factor
     (TauComplex.cisTauReal_arctan_factored_add a h ha hah)
 
 -- ============================================================
+-- PART 8.11: Wave 6c.7 — POINTWISE CLOSED FORMS FOR cis_arctan AT 0
+-- ============================================================
+
+/-! ## Wave 6c.7 — Pointwise closed forms at a = 0
+
+  Foundational pointwise statements at the IsDerivAt's `.approx N .toRat`
+  level, computed via the existing closed forms:
+
+      (cis_arctan_re 0).approx N .toRat = 1   for N ≥ 1
+      (cis_arctan_im 0).approx N .toRat = 0   for all N
+
+  These are immediate compositions of:
+  - cisTauReal_re/im_approx_toRat (Wave 6a level bridges)
+  - arctan_of_rat_seq_approx + arctan_partial_toRat (Wave 1 bridges)
+  - arctan_partial_rat_at_zero (Wave 2)
+  - expPartial_pureIm_re_rat_at_zero (N ≥ 1: = 1) / expPartial_pureIm_im_rat_at_zero (= 0)
+
+  These set up the base-case pointwise evaluation for IsDerivAt at a = 0.
+-/
+
+/-- **Wave 6c.7 (re)** — Pointwise closed form: `(cis_arctan_re 0).approx N .toRat = 1`. -/
+theorem TauReal.cis_arctan_re_at_zero_approx_one (N : Nat) (hN : 1 ≤ N) :
+    ((TauReal.cis_arctan_re TauRat.zero).approx N).toRat = 1 := by
+  show ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.zero)).re.approx N).toRat = 1
+  rw [cisTauReal_re_approx_toRat]
+  rw [TauReal.arctan_of_rat_seq_approx, TauRat.arctan_partial_toRat]
+  rw [toRat_zero, arctan_partial_rat_at_zero]
+  exact expPartial_pureIm_re_rat_at_zero N hN
+
+/-- **Wave 6c.7 (im)** — Pointwise closed form: `(cis_arctan_im 0).approx N .toRat = 0`. -/
+theorem TauReal.cis_arctan_im_at_zero_approx_zero (N : Nat) :
+    ((TauReal.cis_arctan_im TauRat.zero).approx N).toRat = 0 := by
+  show ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.zero)).im.approx N).toRat = 0
+  rw [cisTauReal_im_approx_toRat]
+  rw [TauReal.arctan_of_rat_seq_approx, TauRat.arctan_partial_toRat]
+  rw [toRat_zero, arctan_partial_rat_at_zero]
+  exact expPartial_pureIm_im_rat_at_zero N
+
+-- ============================================================
 -- PART 9: Wave 6b — cis_arctan SMALL-ANGLE AT cis_arctan LEVEL
 -- ============================================================
 
