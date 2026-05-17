@@ -16,9 +16,10 @@ Primorial ladder as inverse system and primorial cofinality theorem.
 form an inverse system ℤ/Prim(1)ℤ ← ℤ/Prim(2)ℤ ← …. The inverse limit
 is the profinite completion Ẑ_τ. Canonical cofinal filtration.
 
-**III.T09 (Primorial Cofinality):** The primorial tower is cofinal: every
-ℤ/Nℤ maps to ℤ/Prim(k)ℤ for k large enough. Checking at primorial
-levels is SUFFICIENT. The cutoff k₀ is always computable.
+**III.T09 (Primorial Cofinality):** The primorial tower is size-cofinal:
+for every finite bound N, some Prim(k) is at least N. Divisibility-cofinal
+statements require an explicit witness `N ∣ Prim(k)`; arbitrary moduli with
+repeated prime powers are not silently covered by a squarefree primorial.
 -/
 
 namespace Tau.BookIII.Spectral
@@ -87,7 +88,9 @@ where
 -- PRIMORIAL COFINALITY [III.T09]
 -- ============================================================
 
-/-- [III.T09] Find the smallest primorial level k such that Prim(k) ≥ n. -/
+/-- [III.T09] Find the smallest primorial level k such that Prim(k) ≥ n.
+    This is size cofinality, not divisibility cofinality for arbitrary
+    finite moduli. -/
 def cofinal_level (n : TauIdx) : TauIdx :=
   go 0 (n + 1)
 where
@@ -97,8 +100,9 @@ where
     else go (k + 1) (fuel - 1)
   termination_by fuel
 
-/-- [III.T09] Primorial cofinality: for each N ≤ bound, there exists k
-    such that Prim(k) ≥ N. Checking at primorial levels is sufficient. -/
+/-- [III.T09] Primorial size cofinality: for each N ≤ bound, there exists k
+    such that Prim(k) ≥ N. Projection to a finite modulus still requires a
+    divisibility witness. -/
 def primorial_cofinal_check (bound : TauIdx) : Bool :=
   go 1 (bound + 1)
 where
