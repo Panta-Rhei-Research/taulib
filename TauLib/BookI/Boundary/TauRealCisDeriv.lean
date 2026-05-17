@@ -159,4 +159,130 @@ theorem TauReal.arctan_of_rat_seq_zero_equiv :
   show (0 : Rat) = (TauReal.zero.approx n).toRat
   rw [show TauReal.zero.approx n = TauRat.zero from rfl, toRat_zero]
 
+-- ============================================================
+-- PART 4: Wave 2 — cis_arctan at a = 0 (GRONWALL BASE CASE)
+-- ============================================================
+
+/-! ## Wave 2 — Base case at a = 0
+
+  The Gronwall base case for Module 6: `h(0) ≈ 0` where
+  `h(a) := cis_arctan_im a − a · cis_arctan_re a`.
+
+  This decomposes into:
+  - `cis_arctan_re 0 ≈ 1`  (real part of cis(0) = 1)
+  - `cis_arctan_im 0 ≈ 0`  (imaginary part of cis(0) = 0)
+  - Together with `(fromTauRat 0) ≈ 0`: gives `h(0) ≈ 0 − 0·1 = 0`.
+
+  These are proved by direct computation at `.approx N .toRat` level:
+  for `N ≥ 1`, the partial sums of `expPartial_pureIm_re_rat 0 N = 1`
+  and `expPartial_pureIm_im_rat 0 N = 0` exactly.
+
+  The key chain:
+    arctan_of_rat_seq(0).approx N .toRat = arctan_partial_rat 0 N = 0
+    ⟹ cisTauReal(arctan_of_rat_seq 0).re.approx N .toRat
+       = expPartial_pureIm_re_rat 0 N
+       = 1   (for N ≥ 1)
+-/
+
+/-- For `k ≥ 1`, `pureIm_pow_re_im_rat 0 k = (0, 0)`. -/
+theorem pureIm_pow_re_im_rat_zero_succ (k : Nat) :
+    pureIm_pow_re_im_rat 0 (k+1) = (0, 0) := by
+  induction k with
+  | zero =>
+    show pureIm_pow_re_im_rat 0 1 = (0, 0)
+    rw [pureIm_pow_re_im_rat_succ, pureIm_pow_re_im_rat_zero]
+    show (-(0 : Rat) * 0, (1 : Rat) * 0) = (0, 0)
+    simp
+  | succ k ih =>
+    rw [pureIm_pow_re_im_rat_succ, ih]
+    show (-(0 : Rat) * 0, (0 : Rat) * 0) = (0, 0)
+    simp
+
+/-- For `N ≥ 1`, `expPartial_pureIm_re_rat 0 N = 1`. (Renamed to avoid
+    name conflict with the existing `expPartial_pureIm_re_rat_zero`
+    `@[simp]` lemma for `expPartial_pureIm_re_rat xR 0 = 0`.) -/
+theorem expPartial_pureIm_re_rat_at_zero (N : Nat) (hN : 1 ≤ N) :
+    expPartial_pureIm_re_rat 0 N = 1 := by
+  induction N, hN using Nat.le_induction with
+  | base =>
+    -- N = 1: 0 + (pureIm_pow_re_im_rat 0 0).1 / 0! = 0 + 1/1 = 1
+    show expPartial_pureIm_re_rat 0 1 = 1
+    rw [expPartial_pureIm_re_rat_succ, expPartial_pureIm_re_rat_zero,
+        pureIm_pow_re_im_rat_zero]
+    simp
+  | succ N hN ih =>
+    -- expPartial_pureIm_re_rat 0 (N+1) = 1 + 0/N! = 1 (using pureIm_pow_re_im_rat 0 N = (0, 0) for N ≥ 1)
+    rw [expPartial_pureIm_re_rat_succ, ih]
+    -- Need: pureIm_pow_re_im_rat 0 N = (0, 0). N ≥ 1 (from Nat.le_induction).
+    have hN_succ : ∃ m, N = m + 1 := by
+      exact ⟨N - 1, by omega⟩
+    obtain ⟨m, hm⟩ := hN_succ
+    rw [hm, pureIm_pow_re_im_rat_zero_succ]
+    show (1 : Rat) + (0 : Rat) / ((m + 1).factorial : Rat) = 1
+    rw [zero_div, add_zero]
+
+/-- For all `N`, `expPartial_pureIm_im_rat 0 N = 0`. (Renamed to avoid
+    name conflict with the existing `expPartial_pureIm_im_rat_zero`
+    `@[simp]` lemma for `expPartial_pureIm_im_rat xR 0 = 0`.) -/
+theorem expPartial_pureIm_im_rat_at_zero (N : Nat) :
+    expPartial_pureIm_im_rat 0 N = 0 := by
+  induction N with
+  | zero => rfl
+  | succ N ih =>
+    rw [expPartial_pureIm_im_rat_succ, ih]
+    rcases N with _ | m
+    · simp [pureIm_pow_re_im_rat_zero]
+    · rw [pureIm_pow_re_im_rat_zero_succ]
+      simp
+
+/-- Helper: `arctan_partial_rat 0 N = 0` for all `N`. -/
+theorem arctan_partial_rat_at_zero (N : Nat) : arctan_partial_rat 0 N = 0 := by
+  induction N with
+  | zero => rfl
+  | succ N ih =>
+    rw [arctan_partial_rat_succ, ih]
+    unfold arctan_pair_term_rat
+    have h_pow_4k1 : (0 : Rat)^(4*N+1) = 0 := zero_pow (by omega)
+    have h_pow_4k3 : (0 : Rat)^(4*N+3) = 0 := zero_pow (by omega)
+    rw [h_pow_4k1, h_pow_4k3]; ring
+
+/-- **[I.T-CisArctanRe-Zero]** `cis_arctan_re 0 ≈ TauReal.one`. -/
+theorem TauReal.cis_arctan_re_zero_equiv_one :
+    TauReal.equiv (TauReal.cis_arctan_re TauRat.zero) TauReal.one := by
+  refine ⟨fun _ => 1, fun k N hN => ?_⟩
+  have hN_ge : 1 ≤ N := hN
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  rw [TauReal.cis_arctan_re_approx, cisTauReal_re_approx_toRat]
+  rw [TauReal.arctan_of_rat_seq_approx, TauRat.arctan_partial_toRat]
+  rw [show TauRat.zero.toRat = (0 : Rat) from toRat_zero]
+  rw [arctan_partial_rat_at_zero N]
+  rw [expPartial_pureIm_re_rat_at_zero N hN_ge]
+  show |(1 : Rat) - (TauReal.one.approx N).toRat| < 1 / ((k : Rat) + 1)
+  rw [show TauReal.one.approx N = TauRat.one from rfl, toRat_one]
+  rw [sub_self, abs_zero]
+  have h_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  exact div_pos (by norm_num : (0 : Rat) < 1) h_pos
+
+/-- **[I.T-CisArctanIm-Zero]** `cis_arctan_im 0 ≈ TauReal.zero`. -/
+theorem TauReal.cis_arctan_im_zero_equiv_zero :
+    TauReal.equiv (TauReal.cis_arctan_im TauRat.zero) TauReal.zero := by
+  refine ⟨fun _ => 0, fun k N _ => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  rw [TauReal.cis_arctan_im_approx, cisTauReal_im_approx_toRat]
+  rw [TauReal.arctan_of_rat_seq_approx, TauRat.arctan_partial_toRat]
+  rw [show TauRat.zero.toRat = (0 : Rat) from toRat_zero]
+  rw [arctan_partial_rat_at_zero N]
+  rw [expPartial_pureIm_im_rat_at_zero N]
+  show |(0 : Rat) - (TauReal.zero.approx N).toRat| < 1 / ((k : Rat) + 1)
+  rw [show TauReal.zero.approx N = TauRat.zero from rfl, toRat_zero]
+  rw [sub_self, abs_zero]
+  have h_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  exact div_pos (by norm_num : (0 : Rat) < 1) h_pos
+
 end Tau.Boundary
