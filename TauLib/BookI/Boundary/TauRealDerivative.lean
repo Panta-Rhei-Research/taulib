@@ -348,4 +348,86 @@ theorem TauReal.IsDerivAt_add
     push_cast; field_simp; ring
   linarith
 
+-- ============================================================
+-- PART 6: NEGATION RULE
+-- ============================================================
+
+/-- **Helper**: the negated scaled-difference at depth N (Rat level).
+
+    Algebraic identity: the scaled-difference of `(-f)` at depth N is
+    the negation of `f`'s scaled-difference, both at the .toRat level. -/
+private theorem scaledDiff_neg_split
+    (Fh Fa Lf : TauRat) (t : TauRat) :
+    (TauRat.add
+        (TauRat.mul
+          (TauRat.add (TauRat.negate Fh) (TauRat.negate (TauRat.negate Fa)))
+          t)
+        (TauRat.negate (TauRat.negate Lf))).toRat
+    = -((TauRat.add
+            (TauRat.mul (TauRat.add Fh (TauRat.negate Fa)) t)
+            (TauRat.negate Lf)).toRat) := by
+  simp only [toRat_add, toRat_mul, toRat_negate]
+  ring
+
+/-- **[I.T-IsDerivAt-Neg]** Negation rule for the TauReal derivative:
+
+        IsDerivAt f a L_f  ⟹  IsDerivAt (-f) a (-L_f). -/
+theorem TauReal.IsDerivAt_neg
+    {f : TauRat → TauReal} {a : TauRat} {L_f : TauReal}
+    (hf : TauReal.IsDerivAt f a L_f) :
+    TauReal.IsDerivAt (fun x => (f x).negate) a L_f.negate := by
+  obtain ⟨μ, hμ⟩ := hf
+  refine ⟨μ, fun k N hN => ?_⟩
+  have h_f := hμ k N hN
+  unfold TauRat.lt at h_f ⊢
+  rw [TauRat.toRat_abs, TauRat.ofNatRecip_toRat] at h_f ⊢
+  -- Set up names for depth-N values
+  set Fh : TauRat := (f (a.add (TauRat.dyadicStep N))).approx N with hFh
+  set Fa : TauRat := (f a).approx N with hFa
+  set Lf : TauRat := L_f.approx N with hLf
+  set t : TauRat := (TauReal.fromTauRat (TauRat.twoPowN N)).approx N with ht
+  -- LHS .approx N unfolds to a TauRat expression via rfl
+  have h_lhs_eq :
+      (((((fun x => (f x).negate) (a.add (TauRat.dyadicStep N))).sub
+            ((fun x => (f x).negate) a)).mul
+          (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+          L_f.negate).approx N
+      = TauRat.add
+          (TauRat.mul
+            (TauRat.add (TauRat.negate Fh) (TauRat.negate (TauRat.negate Fa)))
+            t)
+          (TauRat.negate (TauRat.negate Lf)) := rfl
+  have h_f_eq :
+      ((((f (a.add (TauRat.dyadicStep N))).sub (f a)).mul
+          (TauReal.fromTauRat (TauRat.twoPowN N))).sub L_f).approx N
+      = TauRat.add (TauRat.mul (TauRat.add Fh (TauRat.negate Fa)) t)
+                    (TauRat.negate Lf) := rfl
+  rw [h_lhs_eq]
+  rw [h_f_eq] at h_f
+  rw [scaledDiff_neg_split, abs_neg]
+  exact h_f
+
+-- ============================================================
+-- PART 7: DIFFERENCE RULE
+-- ============================================================
+
+/-- **[I.T-IsDerivAt-Sub]** Difference rule for the TauReal derivative:
+
+        IsDerivAt f a L_f, IsDerivAt g a L_g  ⟹
+          IsDerivAt (fun x => (f x).sub (g x)) a (L_f.sub L_g).
+
+    Derived from `IsDerivAt_add` + `IsDerivAt_neg` (via TauReal.sub def). -/
+theorem TauReal.IsDerivAt_sub
+    {f g : TauRat → TauReal} {a : TauRat} {L_f L_g : TauReal}
+    (hf : TauReal.IsDerivAt f a L_f) (hg : TauReal.IsDerivAt g a L_g) :
+    TauReal.IsDerivAt (fun x => (f x).sub (g x)) a (L_f.sub L_g) := by
+  -- (f x).sub (g x) = (f x).add ((g x).negate)
+  -- L_f.sub L_g = L_f.add L_g.negate
+  -- Apply add rule with hg replaced by IsDerivAt_neg hg
+  have h_neg_g := TauReal.IsDerivAt_neg hg
+  have h_add := TauReal.IsDerivAt_add hf h_neg_g
+  -- h_add: IsDerivAt (fun x => (f x).add ((g x).negate)) a (L_f.add L_g.negate)
+  -- TauReal.sub is defined as add ∘ negate, so this is definitionally what we want.
+  exact h_add
+
 end Tau.Boundary
