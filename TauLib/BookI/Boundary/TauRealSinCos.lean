@@ -2139,4 +2139,83 @@ theorem TauComplex.cisTauReal_neg_self_equiv_one (x : TauReal)
           (TauComplex.equiv_trans h_step1 h_bridge_zero)
           TauComplex.exp_zero_equiv_one
 
+-- ============================================================
+-- PART 24: 🎯 SCALED-CIS MAGNITUDE IDENTITY — sqrt-free at TauRat level
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.2 — `scaledCis(a) · scaledCis(−a) ≈ 1 + a²` (as TauComplex)
+
+  Classical: `(1, a) · (1, −a) = (1 + a², 0)` at TauRat arithmetic level
+  — the **sqrt-free magnitude-squared identity**. This is the analog
+  of β.4.1's magnitude identity at the scaledCis level, with `1 + a²`
+  playing the role of the magnitude squared.
+
+  Together with β.4.1's `cisTauReal(arctan a) · cisTauReal(−arctan a)
+  ≈ 1`, this gives the structural bridge for the main β.4 sqrt-free
+  arctan-vs-scaledCis relation:
+
+      |cisTauReal(arctan a)|² = 1     (β.4.1)
+      |scaledCis(a)|² = 1 + a²        (this lemma, β.4.2)
+
+  Both are sqrt-free numerical-identity facts on which the eventual
+  `cisTauReal(arctan a) ≈ scaledCis(a)/√(1+a²)` bridge (sqrt-scaled)
+  ultimately rests.
+
+  **Proof**: componentwise computation at TauRat level:
+    .re: `1·1 − a·(−a) = 1 + a²`
+    .im: `1·(−a) + a·1 = 0`. -/
+
+/-- **🎯🎯 Phase 2.6.B.2.β.4.2 — scaledCis magnitude identity**:
+
+    For TauRat `a`,
+
+        scaledCis(a) · scaledCis(negate a)
+          ≈ fromTauReal (fromTauRat (1 + a²)) — i.e., ⟨1+a², 0⟩.
+
+    Componentwise sqrt-free identity at TauRat-arithmetic level. -/
+theorem TauComplex.scaledCis_mul_neg_self_equiv_one_plus_sq (a : TauRat) :
+    TauComplex.equiv
+      ((TauComplex.scaledCis a).mul (TauComplex.scaledCis (TauRat.negate a)))
+      (TauComplex.fromTauReal
+        (TauReal.fromTauRat
+          (TauRat.add TauRat.one (TauRat.mul a a)))) := by
+  refine ⟨?_, ?_⟩
+  · -- Real part: 1·1 − a·(−a) = 1 + a²
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    -- LHS.re.approx n
+    show (TauRat.sub
+            (TauRat.mul ((TauComplex.scaledCis a).re.approx n)
+                        ((TauComplex.scaledCis (TauRat.negate a)).re.approx n))
+            (TauRat.mul ((TauComplex.scaledCis a).im.approx n)
+                        ((TauComplex.scaledCis (TauRat.negate a)).im.approx n))).toRat
+        = ((TauComplex.fromTauReal (TauReal.fromTauRat
+            (TauRat.add TauRat.one (TauRat.mul a a)))).re.approx n).toRat
+    -- Substitute scaledCis approxes and fromTauReal/fromTauRat approxes
+    show (TauRat.sub
+            (TauRat.mul TauRat.one TauRat.one)
+            (TauRat.mul a (TauRat.negate a))).toRat
+        = (TauRat.add TauRat.one (TauRat.mul a a)).toRat
+    rw [toRat_sub, toRat_add, toRat_mul, toRat_mul, toRat_mul, toRat_one,
+        toRat_negate]
+    ring
+  · -- Imaginary part: 1·(−a) + a·1 = 0
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    show (TauRat.add
+            (TauRat.mul ((TauComplex.scaledCis a).re.approx n)
+                        ((TauComplex.scaledCis (TauRat.negate a)).im.approx n))
+            (TauRat.mul ((TauComplex.scaledCis a).im.approx n)
+                        ((TauComplex.scaledCis (TauRat.negate a)).re.approx n))).toRat
+        = ((TauComplex.fromTauReal (TauReal.fromTauRat
+            (TauRat.add TauRat.one (TauRat.mul a a)))).im.approx n).toRat
+    show (TauRat.add
+            (TauRat.mul TauRat.one (TauRat.negate a))
+            (TauRat.mul a TauRat.one)).toRat
+        = (TauRat.zero).toRat
+    rw [toRat_add, toRat_mul, toRat_mul, toRat_one, toRat_negate, toRat_zero]
+    ring
+
 end Tau.Boundary
