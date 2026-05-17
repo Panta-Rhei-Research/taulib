@@ -211,11 +211,11 @@ structure BoundaryHolonomyInnerPromotion where
   g_bounded_010 : g_at_010_x_100 ≤ 100
   g_bounded_020 : g_at_020_x_100 ≤ 100
   g_bounded_050 : g_at_050_x_100 ≤ 100
-  /-- Monotone-non-decreasing inward (loose bound; tightening
+  /-- Monotone-non-increasing inward (loose endpoint bound; tightening
       depends on host concentration `c`).
       TODO(Natarajan-F3 wave Path C/D): tighten to a strict
       monotonicity proof under canonical NFW host profile. -/
-  monotone_inward : g_at_005_x_100 ≥ g_at_050_x_100
+  monotone_inward : g_at_005_x_100 ≤ g_at_050_x_100
   deriving Repr
 
 /-- Canonical F1-endpoint-bracket instance. -/
