@@ -1697,4 +1697,203 @@ theorem TauComplex.cisTauReal_fromTauRat_add_eq_mul
     (TauComplex.pureIm_BoundedBy_1 a ha)
     (TauComplex.pureIm_BoundedBy_1 b hb)
 
+-- ============================================================
+-- PART 21: Phase 2.6.B.2.β.3 full — exp respects componentwise toRat equiv
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.3 full — `exp` respects componentwise toRat equivalence
+
+Strengthens Part 13's bridge from fixed-`xR` constraints to general
+componentwise toRat-equality between two TauComplexes:
+
+    (∀ n, z₁.re.approx n .toRat = z₂.re.approx n .toRat) ∧
+    (∀ n, z₁.im.approx n .toRat = z₂.im.approx n .toRat)
+    ⟹ exp z₁ ≈ exp z₂
+
+This bridges `exp(pureIm_of_real (x+y))` and `exp((pureIm_of_real x).add
+(pureIm_of_real y))` for general TauReals `x, y` (their `.re` differs as
+TauReals — `zero` vs `add zero zero` — but agrees at every toRat depth).
+
+Built by joint induction on `pow`, lifted through `exp_term` → `exp_partial`
+→ `exp`, paralleling Part 13's structure. -/
+
+/-- **Step 1**: powers preserve componentwise toRat equivalence.
+    Joint induction on `k` using the `TauComplex.mul` recurrence. -/
+theorem TauComplex.pow_re_im_toRat_eq_of_componentwise
+    (z₁ z₂ : TauComplex)
+    (h_re : ∀ n, (z₁.re.approx n).toRat = (z₂.re.approx n).toRat)
+    (h_im : ∀ n, (z₁.im.approx n).toRat = (z₂.im.approx n).toRat)
+    (k n : Nat) :
+    ((z₁.pow k).re.approx n).toRat = ((z₂.pow k).re.approx n).toRat ∧
+    ((z₁.pow k).im.approx n).toRat = ((z₂.pow k).im.approx n).toRat := by
+  induction k with
+  | zero =>
+    -- pow z 0 = TauComplex.one for any z; same value, hence same toRat.
+    refine ⟨?_, ?_⟩
+    · show ((TauComplex.one).re.approx n).toRat = ((TauComplex.one).re.approx n).toRat
+      rfl
+    · show ((TauComplex.one).im.approx n).toRat = ((TauComplex.one).im.approx n).toRat
+      rfl
+  | succ k IH =>
+    obtain ⟨ih_re, ih_im⟩ := IH
+    refine ⟨?_, ?_⟩
+    · -- (z.pow (k+1)).re.approx n .toRat = (pow_k re)·(z.re) − (pow_k im)·(z.im) at toRat
+      show (TauRat.sub
+              (TauRat.mul ((z₁.pow k).re.approx n) (z₁.re.approx n))
+              (TauRat.mul ((z₁.pow k).im.approx n) (z₁.im.approx n))).toRat
+          = (TauRat.sub
+              (TauRat.mul ((z₂.pow k).re.approx n) (z₂.re.approx n))
+              (TauRat.mul ((z₂.pow k).im.approx n) (z₂.im.approx n))).toRat
+      rw [toRat_sub, toRat_sub, toRat_mul, toRat_mul, toRat_mul, toRat_mul]
+      rw [ih_re, ih_im, h_re n, h_im n]
+    · -- (z.pow (k+1)).im.approx n .toRat = (pow_k re)·(z.im) + (pow_k im)·(z.re) at toRat
+      show (TauRat.add
+              (TauRat.mul ((z₁.pow k).re.approx n) (z₁.im.approx n))
+              (TauRat.mul ((z₁.pow k).im.approx n) (z₁.re.approx n))).toRat
+          = (TauRat.add
+              (TauRat.mul ((z₂.pow k).re.approx n) (z₂.im.approx n))
+              (TauRat.mul ((z₂.pow k).im.approx n) (z₂.re.approx n))).toRat
+      rw [toRat_add, toRat_add, toRat_mul, toRat_mul, toRat_mul, toRat_mul]
+      rw [ih_re, ih_im, h_re n, h_im n]
+
+/-- **Step 2**: `exp_term` preserves componentwise toRat equivalence.
+    Direct corollary of Step 1 via `scale_by_inv_factorial_toRat`. -/
+theorem TauComplex.exp_term_re_im_toRat_eq_of_componentwise
+    (z₁ z₂ : TauComplex)
+    (h_re : ∀ n, (z₁.re.approx n).toRat = (z₂.re.approx n).toRat)
+    (h_im : ∀ n, (z₁.im.approx n).toRat = (z₂.im.approx n).toRat)
+    (k n : Nat) :
+    ((TauComplex.exp_term z₁ k).re.approx n).toRat
+      = ((TauComplex.exp_term z₂ k).re.approx n).toRat ∧
+    ((TauComplex.exp_term z₁ k).im.approx n).toRat
+      = ((TauComplex.exp_term z₂ k).im.approx n).toRat := by
+  obtain ⟨h_pow_re, h_pow_im⟩ :=
+    TauComplex.pow_re_im_toRat_eq_of_componentwise z₁ z₂ h_re h_im k n
+  refine ⟨?_, ?_⟩
+  · rw [TauComplex.exp_term_re, TauReal.scale_by_inv_factorial_approx,
+        TauRat.scale_by_inv_factorial_toRat,
+        TauComplex.exp_term_re, TauReal.scale_by_inv_factorial_approx,
+        TauRat.scale_by_inv_factorial_toRat, h_pow_re]
+  · rw [TauComplex.exp_term_im, TauReal.scale_by_inv_factorial_approx,
+        TauRat.scale_by_inv_factorial_toRat,
+        TauComplex.exp_term_im, TauReal.scale_by_inv_factorial_approx,
+        TauRat.scale_by_inv_factorial_toRat, h_pow_im]
+
+/-- **Step 3**: `exp_partial` preserves componentwise toRat equivalence.
+    Induction on `k`; the succ case uses Step 2 + add commutes with toRat. -/
+theorem TauComplex.exp_partial_re_im_toRat_eq_of_componentwise
+    (z₁ z₂ : TauComplex)
+    (h_re : ∀ n, (z₁.re.approx n).toRat = (z₂.re.approx n).toRat)
+    (h_im : ∀ n, (z₁.im.approx n).toRat = (z₂.im.approx n).toRat)
+    (k m_a : Nat) :
+    ((TauComplex.exp_partial z₁ k).re.approx m_a).toRat
+      = ((TauComplex.exp_partial z₂ k).re.approx m_a).toRat ∧
+    ((TauComplex.exp_partial z₁ k).im.approx m_a).toRat
+      = ((TauComplex.exp_partial z₂ k).im.approx m_a).toRat := by
+  induction k with
+  | zero =>
+    refine ⟨?_, ?_⟩
+    · show ((TauComplex.exp_partial z₁ 0).re.approx m_a).toRat
+          = ((TauComplex.exp_partial z₂ 0).re.approx m_a).toRat
+      rw [TauComplex.exp_partial_zero, TauComplex.exp_partial_zero]
+    · show ((TauComplex.exp_partial z₁ 0).im.approx m_a).toRat
+          = ((TauComplex.exp_partial z₂ 0).im.approx m_a).toRat
+      rw [TauComplex.exp_partial_zero, TauComplex.exp_partial_zero]
+  | succ k IH =>
+    obtain ⟨ih_re, ih_im⟩ := IH
+    obtain ⟨h_term_re, h_term_im⟩ :=
+      TauComplex.exp_term_re_im_toRat_eq_of_componentwise z₁ z₂ h_re h_im k m_a
+    refine ⟨?_, ?_⟩
+    · -- exp_partial z (k+1) .re.approx m_a = (exp_partial z k .add exp_term z k).re.approx m_a
+      -- = TauRat.add (exp_partial z k .re.approx m_a) (exp_term z k .re.approx m_a)
+      show (TauRat.add
+              ((TauComplex.exp_partial z₁ k).re.approx m_a)
+              ((TauComplex.exp_term z₁ k).re.approx m_a)).toRat
+          = (TauRat.add
+              ((TauComplex.exp_partial z₂ k).re.approx m_a)
+              ((TauComplex.exp_term z₂ k).re.approx m_a)).toRat
+      rw [toRat_add, toRat_add, ih_re, h_term_re]
+    · show (TauRat.add
+              ((TauComplex.exp_partial z₁ k).im.approx m_a)
+              ((TauComplex.exp_term z₁ k).im.approx m_a)).toRat
+          = (TauRat.add
+              ((TauComplex.exp_partial z₂ k).im.approx m_a)
+              ((TauComplex.exp_term z₂ k).im.approx m_a)).toRat
+      rw [toRat_add, toRat_add, ih_im, h_term_im]
+
+/-- **🎯 Step 4 (headline)**: `exp` respects componentwise toRat equivalence.
+
+    If two TauComplexes agree componentwise at every approx depth at the
+    toRat level, their `exp`s are TauComplex.equiv. Proof: diagonal
+    extraction via `exp_re_approx`/`exp_im_approx`, then Step 3. -/
+theorem TauComplex.exp_respects_toRat_pointwise
+    (z₁ z₂ : TauComplex)
+    (h_re : ∀ n, (z₁.re.approx n).toRat = (z₂.re.approx n).toRat)
+    (h_im : ∀ n, (z₁.im.approx n).toRat = (z₂.im.approx n).toRat) :
+    TauComplex.equiv (TauComplex.exp z₁) (TauComplex.exp z₂) := by
+  refine ⟨?_, ?_⟩
+  · -- Real parts: (exp z).re.approx n = (exp_partial z n).re.approx n
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq, TauComplex.exp_re_approx, TauComplex.exp_re_approx]
+    exact (TauComplex.exp_partial_re_im_toRat_eq_of_componentwise z₁ z₂ h_re h_im n n).1
+  · apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq, TauComplex.exp_im_approx, TauComplex.exp_im_approx]
+    exact (TauComplex.exp_partial_re_im_toRat_eq_of_componentwise z₁ z₂ h_re h_im n n).2
+
+/-- **Bridge from `exp_pureIm_sum` to TauReal-arg case** at TauComplex.equiv:
+
+        exp(pureIm_of_real (x+y)) ≈ exp((pureIm_of_real x).add (pureIm_of_real y))
+
+    Both TauComplexes have `.re.toRat = 0` and `.im.toRat = x.approx n .toRat + y.approx n .toRat`
+    at every depth. The .im components are *literally equal* as TauReals (both
+    equal `TauReal.add x y`); only the .re structure differs (`TauReal.zero` vs
+    `TauReal.add TauReal.zero TauReal.zero`). -/
+theorem TauComplex.exp_pureIm_of_real_sum_equiv (x y : TauReal) :
+    TauComplex.equiv
+      (TauComplex.exp (TauComplex.pureIm_of_real (TauReal.add x y)))
+      (TauComplex.exp ((TauComplex.pureIm_of_real x).add (TauComplex.pureIm_of_real y))) := by
+  apply TauComplex.exp_respects_toRat_pointwise
+  · -- .re componentwise toRat match: both 0
+    intro n
+    show ((TauComplex.pureIm_of_real (TauReal.add x y)).re.approx n).toRat
+        = (((TauComplex.pureIm_of_real x).add (TauComplex.pureIm_of_real y)).re.approx n).toRat
+    show (TauRat.zero).toRat
+        = (TauRat.add ((TauComplex.pureIm_of_real x).re.approx n)
+                      ((TauComplex.pureIm_of_real y).re.approx n)).toRat
+    show (TauRat.zero).toRat = (TauRat.add TauRat.zero TauRat.zero).toRat
+    rw [toRat_add, toRat_zero]
+    ring
+  · -- .im componentwise toRat match: both literally = (x+y).approx n
+    intro n
+    rfl
+
+/-- **🎯🎯🎯 cisTauReal multiplicativity for general TauReal arguments**:
+
+    For TauReals `x, y` with both `pureIm_of_real`-bounded by 1 (i.e., every
+    approximation `.abs.toRat ≤ 1`):
+
+        cisTauReal(x + y) ≈ cisTauReal(x) · cisTauReal(y)
+
+    Proof: bridge `exp(pureIm_of_real (x+y)) ≈ exp((pureIm_of_real x).add
+    (pureIm_of_real y))` via Step 4, then M3 endpoint. -/
+theorem TauComplex.cisTauReal_add (x y : TauReal)
+    (hx : ∀ n, (x.approx n).abs.toRat ≤ 1)
+    (hy : ∀ n, (y.approx n).abs.toRat ≤ 1) :
+    TauComplex.equiv
+      (TauComplex.cisTauReal (TauReal.add x y))
+      ((TauComplex.cisTauReal x).mul (TauComplex.cisTauReal y)) := by
+  -- cisTauReal (x+y) = exp(pureIm_of_real (x+y))
+  -- (cisTauReal x).mul (cisTauReal y) = exp(pureIm_of_real x) · exp(pureIm_of_real y)
+  show TauComplex.equiv
+        (TauComplex.exp (TauComplex.pureIm_of_real (TauReal.add x y)))
+        ((TauComplex.exp (TauComplex.pureIm_of_real x)).mul
+          (TauComplex.exp (TauComplex.pureIm_of_real y)))
+  -- Chain: bridge then M3
+  apply TauComplex.equiv_trans (TauComplex.exp_pureIm_of_real_sum_equiv x y)
+  exact TauComplex.exp_add _ _
+    (TauComplex.pureIm_of_real_BoundedBy x 1 (by omega) hx)
+    (TauComplex.pureIm_of_real_BoundedBy y 1 (by omega) hy)
+
 end Tau.Boundary
