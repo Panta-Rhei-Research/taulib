@@ -848,6 +848,130 @@ theorem TauReal.arctan_of_rat_seq_lipschitz
   exact h_lip
 
 -- ============================================================
+-- PART 8.7: Wave 6c.3 — PATH β TIGHT BOUND (4/3)·|a|
+-- ============================================================
+
+/-! ## Wave 6c.3 (Path β) — tighter `(4/3)·|a|` bound for arctan_partial
+
+  Under `2|a| ≤ 1`, sharpens `arctan_partial_rat_abs_le_one` to the
+  proportional bound:
+
+      |arctan_partial_rat a n| ≤ (4/3) · |a|
+
+  Derivation: take the tight bound
+    `(1 - |a|^4) · |partial| ≤ (5/4) · |a| · (1 - |a|^(4n))`,
+  bound `(1 - |a|^(4n)) ≤ 1` and `(1 - |a|^4) ≥ 15/16`, then arithmetic
+  gives `|partial| ≤ (5/4)|a| / (15/16) = (4/3)|a|`.
+
+  Consequence under `4|a| ≤ 1` (i.e., `|a| ≤ 1/4`): `|partial(a, n)| ≤ 1/3`.
+
+  This unlocks Path β for the chain rule: for `4|a|, 4|a+h| ≤ 1`, the
+  increment `δ := arctan(a+h) - arctan(a)` satisfies `|δ.approx n| ≤ 2/3 < 1`
+  at every approximation depth, so `cisTauReal_add` applies uniformly.
+-/
+
+/-- **Path β helper**: tighter proportional bound on arctan_partial_rat. -/
+theorem arctan_partial_rat_abs_le_four_thirds
+    (a : Rat) (ha : 2 * |a| ≤ 1) (n : Nat) :
+    |arctan_partial_rat a n| ≤ (4 / 3) * |a| := by
+  have h_abs_a_le_half : |a| ≤ 1/2 := by linarith
+  have h_abs_a_nn : (0 : Rat) ≤ |a| := _root_.abs_nonneg _
+  have h_pow4_le : |a|^4 ≤ 1/16 := by
+    have h1 : |a|^4 ≤ (1/2 : Rat)^4 :=
+      pow_le_pow_left₀ h_abs_a_nn h_abs_a_le_half 4
+    have h2 : (1/2 : Rat)^4 = 1/16 := by norm_num
+    linarith
+  have h_one_minus_pow_pos : (0 : Rat) < 1 - |a|^4 := by linarith
+  have h_one_minus_pow_ge : (15 : Rat) / 16 ≤ 1 - |a|^4 := by linarith
+  have h_pow4n_nn : (0 : Rat) ≤ |a|^(4*n) := by positivity
+  have h_one_minus_4n_le : (1 - |a|^(4*n)) ≤ 1 := by linarith
+  have h_tight := arctan_partial_rat_abs_tight_bound a ha n
+  -- From tight: (1 - |a|⁴)·|partial| ≤ (5/4)·|a|·(1 - |a|^(4n)) ≤ (5/4)·|a|
+  have h_intermediate : (1 - |a|^4) * |arctan_partial_rat a n| ≤ (5/4) * |a| := by
+    have h_5_a_nn : (0 : Rat) ≤ (5/4) * |a| := by positivity
+    have h_5 : (5 / 4 : Rat) * |a| * (1 - |a|^(4*n)) ≤ (5/4) * |a| :=
+      calc (5 / 4 : Rat) * |a| * (1 - |a|^(4*n))
+          ≤ (5 / 4) * |a| * 1 :=
+              mul_le_mul_of_nonneg_left h_one_minus_4n_le h_5_a_nn
+        _ = (5/4) * |a| := by ring
+    linarith
+  -- |partial| · (15/16) ≤ |partial| · (1 - |a|⁴) ≤ (5/4)·|a| ⟹ |partial| ≤ (4/3)|a|
+  have h_partial_nn : (0 : Rat) ≤ |arctan_partial_rat a n| := _root_.abs_nonneg _
+  have h_15_16_pos : (0 : Rat) < 15/16 := by norm_num
+  rw [show (4 / 3 : Rat) * |a| = (5/4) * |a| / (15/16) from by ring]
+  rw [le_div_iff₀ h_15_16_pos]
+  calc |arctan_partial_rat a n| * (15/16 : Rat)
+      ≤ |arctan_partial_rat a n| * (1 - |a|^4) :=
+          mul_le_mul_of_nonneg_left h_one_minus_pow_ge h_partial_nn
+    _ = (1 - |a|^4) * |arctan_partial_rat a n| := by ring
+    _ ≤ (5/4) * |a| := h_intermediate
+
+/-- **Path β lift to TauReal level**:
+    For TauRat `a` with `2|a.toRat| ≤ 1`, the arctan_of_rat_seq approximations
+    are bounded by `(4/3)·|a.toRat|`. -/
+theorem TauReal.arctan_of_rat_seq_abs_le_four_thirds
+    (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) :
+    ∀ n, ((TauReal.arctan_of_rat_seq a).approx n).abs.toRat ≤ (4/3) * |a.toRat| := by
+  intro n
+  rw [TauReal.arctan_of_rat_seq_approx, TauRat.toRat_abs, TauRat.arctan_partial_toRat]
+  exact arctan_partial_rat_abs_le_four_thirds a.toRat ha n
+
+/-- **Path β increment bound**: For TauRat `a, h` with `4|a|, 4|a+h| ≤ 1`,
+    the increment `arctan(a+h) - arctan(a)` is uniformly bounded by 1 at
+    every approximation depth (in fact, by `2/3`).
+
+    This is the KEY enabling lemma for applying `cisTauReal_add` in the
+    chain rule under Path β's tighter hypothesis. -/
+theorem TauReal.arctan_increment_bounded
+    (a h : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add h).toRat| ≤ 1) :
+    ∀ n, (((TauReal.arctan_of_rat_seq (a.add h)).sub
+            (TauReal.arctan_of_rat_seq a)).approx n).abs.toRat ≤ 1 := by
+  intro n
+  -- (x.sub y).approx n = (x.add y.negate).approx n = (x.approx n).add (y.approx n).negate
+  show (((TauReal.arctan_of_rat_seq (a.add h)).add
+          (TauReal.arctan_of_rat_seq a).negate).approx n).abs.toRat ≤ 1
+  -- structural .approx
+  show (TauRat.add ((TauReal.arctan_of_rat_seq (a.add h)).approx n)
+                   ((TauReal.arctan_of_rat_seq a).negate.approx n)).abs.toRat ≤ 1
+  show (TauRat.add ((TauReal.arctan_of_rat_seq (a.add h)).approx n)
+                   (((TauReal.arctan_of_rat_seq a).approx n).negate)).abs.toRat ≤ 1
+  -- toRat: |((x+y).abs)| = |x.toRat + y.toRat|
+  rw [TauRat.toRat_abs, toRat_add]
+  rw [show ((TauReal.arctan_of_rat_seq a).approx n).negate.toRat
+        = -((TauReal.arctan_of_rat_seq a).approx n).toRat from toRat_negate _]
+  -- Goal: |x.toRat + (-y.toRat)| ≤ 1, i.e., |x.toRat - y.toRat| ≤ 1
+  have ha_2 : 2 * |a.toRat| ≤ 1 := by linarith
+  have hah_2 : 2 * |(a.add h).toRat| ≤ 1 := by linarith
+  have hb_a := TauReal.arctan_of_rat_seq_abs_le_four_thirds a ha_2 n
+  have hb_ah := TauReal.arctan_of_rat_seq_abs_le_four_thirds (a.add h) hah_2 n
+  rw [TauRat.toRat_abs] at hb_a hb_ah
+  -- hb_a: |((arctan a).approx n).toRat| ≤ (4/3)·|a.toRat|
+  -- hb_ah: |((arctan (a+h)).approx n).toRat| ≤ (4/3)·|(a+h).toRat|
+  have h_abs_a_qt : |a.toRat| ≤ 1/4 := by linarith
+  have h_abs_ah_qt : |(a.add h).toRat| ≤ 1/4 := by linarith
+  have hb_a_qt : |((TauReal.arctan_of_rat_seq a).approx n).toRat| ≤ 1/3 := by
+    have : (4/3 : Rat) * |a.toRat| ≤ (4/3) * (1/4) := by
+      apply mul_le_mul_of_nonneg_left h_abs_a_qt
+      norm_num
+    have : (4/3 : Rat) * (1/4) = 1/3 := by norm_num
+    linarith [hb_a]
+  have hb_ah_qt : |((TauReal.arctan_of_rat_seq (a.add h)).approx n).toRat| ≤ 1/3 := by
+    have : (4/3 : Rat) * |(a.add h).toRat| ≤ (4/3) * (1/4) := by
+      apply mul_le_mul_of_nonneg_left h_abs_ah_qt
+      norm_num
+    have : (4/3 : Rat) * (1/4) = 1/3 := by norm_num
+    linarith [hb_ah]
+  -- Triangle: |x - y| ≤ |x| + |y| ≤ 1/3 + 1/3 = 2/3 ≤ 1
+  calc |((TauReal.arctan_of_rat_seq (a.add h)).approx n).toRat
+        + (-((TauReal.arctan_of_rat_seq a).approx n).toRat)|
+      ≤ |((TauReal.arctan_of_rat_seq (a.add h)).approx n).toRat|
+        + |-((TauReal.arctan_of_rat_seq a).approx n).toRat| := abs_add_le _ _
+    _ = |((TauReal.arctan_of_rat_seq (a.add h)).approx n).toRat|
+        + |((TauReal.arctan_of_rat_seq a).approx n).toRat| := by rw [abs_neg]
+    _ ≤ 1/3 + 1/3 := by linarith
+    _ ≤ 1 := by norm_num
+
+-- ============================================================
 -- PART 9: Wave 6b — cis_arctan SMALL-ANGLE AT cis_arctan LEVEL
 -- ============================================================
 
