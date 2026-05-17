@@ -1,6 +1,7 @@
 import TauLib.BookI.Boundary.TauComplexExp
 import TauLib.BookI.Boundary.TauRealSin
 import TauLib.BookI.Boundary.TauRealCos
+import TauLib.BookI.Boundary.TauRealArctan
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.LinearCombination
 import Mathlib.Tactic.NormNum
@@ -1426,5 +1427,1280 @@ theorem sin_add (x₁ x₂ : TauRat)
         ((TauReal.cos_of_rat x₁).mul (TauReal.sin_of_rat x₂))) :=
     taureal_add_comm _ _
   exact TauReal.equiv_trans h_chain1 (TauReal.equiv_trans h_add h_reorder)
+
+-- ============================================================
+-- PART 17: Phase 2.6.B.2.α — scaledCis ALGEBRAIC IDENTITY
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.α — `scaledCis` multiplicative identity
+
+The classical fact:
+
+    (1, a) · (1, b) = (1 − ab, a + b)   at complex level
+
+encodes the geometric content of "arguments add when complex numbers
+multiply". Combined with `(a + b) = (1 − ab) · z` for `z = (a+b)/(1−ab)`,
+this gives:
+
+    scaledCis(a) · scaledCis(b) ≈ (1 − ab) · scaledCis(z)
+
+where `scaledCis(a) := ⟨1, a⟩` (TauComplex with TauReal.one as real part
+and `fromTauRat a` as imaginary part). **Sqrt-free** — no normalization
+needed.
+
+This is the algebraic core of arctan addition: it expresses the
+multiplicative structure of arctan-images at TauComplex level without
+needing `cos_of_TauReal` infrastructure. Phase 2.6.B.2.β will bridge
+this algebraic identity to the actual TauReal arctan addition.
+-/
+
+/-- **[I.D-ScaledCis]** The unnormalized `cis(arctan a) · √(1+a²)`: the
+    TauComplex `(1, a)` whose argument is classically `arctan(a)`.
+
+    Direct struct constructor with `re = TauReal.one`, `im = fromTauRat a`. -/
+def TauComplex.scaledCis (a : TauRat) : TauComplex :=
+  ⟨TauReal.one, TauReal.fromTauRat a⟩
+
+@[simp] theorem TauComplex.scaledCis_re_approx (a : TauRat) (n : Nat) :
+    (TauComplex.scaledCis a).re.approx n = TauRat.one := rfl
+
+@[simp] theorem TauComplex.scaledCis_im_approx (a : TauRat) (n : Nat) :
+    (TauComplex.scaledCis a).im.approx n = a := rfl
+
+/-- **[I.T-ScaledCis-Mul-Identity]** The algebraic multiplication identity:
+
+        scaledCis(a) · scaledCis(b) ≈ fromTauReal(w) · scaledCis(z)
+
+    given `w.toRat = 1 − a·b` and `z.toRat · w.toRat = a + b` (i.e.,
+    `z = (a+b)/(1−ab)` when `w ≠ 0`).
+
+    **Proof**: componentwise toRat-level identity via `equiv_of_pointwise`.
+    - Real parts: `1·1 − a·b = w` (using `h_w`).
+    - Imaginary parts: `1·b + a·1 = w·z` (using `h_z`). -/
+theorem TauComplex.scaledCis_mul_identity (a b z w : TauRat)
+    (h_w : w.toRat = 1 - a.toRat * b.toRat)
+    (h_z : z.toRat * w.toRat = a.toRat + b.toRat) :
+    TauComplex.equiv
+      ((TauComplex.scaledCis a).mul (TauComplex.scaledCis b))
+      ((TauComplex.fromTauReal (TauReal.fromTauRat w)).mul (TauComplex.scaledCis z)) := by
+  refine ⟨?_, ?_⟩
+  · -- Real parts
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    -- LHS.re.approx n = TauRat.sub (TauRat.mul 1 1) (TauRat.mul a b)
+    -- RHS.re.approx n = TauRat.sub (TauRat.mul w 1) (TauRat.mul 0 z)
+    show (TauRat.sub
+            (TauRat.mul (TauRat.one) (TauRat.one))
+            (TauRat.mul a b)).toRat
+        = (TauRat.sub
+            (TauRat.mul w (TauRat.one))
+            (TauRat.mul (TauRat.zero) z)).toRat
+    rw [toRat_sub, toRat_sub, toRat_mul, toRat_mul, toRat_mul, toRat_mul,
+        toRat_one, toRat_zero]
+    linarith
+  · -- Imaginary parts
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    -- LHS.im.approx n = TauRat.add (TauRat.mul 1 b) (TauRat.mul a 1)
+    -- RHS.im.approx n = TauRat.add (TauRat.mul w z) (TauRat.mul 0 1)
+    show (TauRat.add
+            (TauRat.mul (TauRat.one) b)
+            (TauRat.mul a (TauRat.one))).toRat
+        = (TauRat.add
+            (TauRat.mul w z)
+            (TauRat.mul (TauRat.zero) (TauRat.one))).toRat
+    rw [toRat_add, toRat_add, toRat_mul, toRat_mul, toRat_mul, toRat_mul,
+        toRat_one, toRat_zero]
+    linarith
+
+-- ============================================================
+-- PART 18: Phase 2.6.B.2.β.1 — pureIm_of_real (TauReal-arg pureIm)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.1 — `pureIm_of_real` foundations
+
+Extends `TauComplex.pureIm` from TauRat arguments to general TauReal
+arguments. This is the structural prerequisite for `cisTauReal := exp ∘
+pureIm_of_real`, which lifts the Euler bridge to TauReal angles
+(needed for `cisTauReal(arctan_of_rat a)` in the eventual arctan
+addition proof). -/
+
+/-- **[I.D-PureImOfReal]** The pure-imaginary embedding of a TauReal:
+    `pureIm_of_real x := ⟨TauReal.zero, x⟩`.
+
+    Generalises `TauComplex.pureIm (x : TauRat) = ⟨TauReal.zero, fromTauRat x⟩`
+    to any TauReal `x`. -/
+def TauComplex.pureIm_of_real (x : TauReal) : TauComplex :=
+  ⟨TauReal.zero, x⟩
+
+@[simp] theorem TauComplex.pureIm_of_real_re_approx (x : TauReal) (n : Nat) :
+    (TauComplex.pureIm_of_real x).re.approx n = TauRat.zero := rfl
+
+@[simp] theorem TauComplex.pureIm_of_real_im_approx (x : TauReal) (n : Nat) :
+    (TauComplex.pureIm_of_real x).im.approx n = x.approx n := rfl
+
+/-- **Boundedness lifting**: if every approximation of `x` is bounded by `M`,
+    then `pureIm_of_real x` has `BoundedBy M`. -/
+theorem TauComplex.pureIm_of_real_BoundedBy
+    (x : TauReal) (M : Nat) (hM : 1 ≤ M)
+    (h_bound : ∀ n, (x.approx n).abs.toRat ≤ M) :
+    TauComplex.BoundedBy (TauComplex.pureIm_of_real x) M := by
+  refine ⟨?_, ?_⟩
+  · -- Real part: all approximations are TauRat.zero, abs.toRat = 0 ≤ M
+    intro n
+    show (TauRat.zero.abs.toRat) ≤ ((M : Nat) : Rat)
+    rw [TauRat.toRat_abs, toRat_zero, abs_zero]
+    exact_mod_cast Nat.zero_le M
+  · -- Imaginary part: approximations are x.approx n, bounded by M
+    intro n
+    exact h_bound n
+
+/-- **Distributes over TauReal.add**: `pureIm_of_real (x+y) ≈ (pureIm_of_real x) + (pureIm_of_real y)`. -/
+theorem TauComplex.pureIm_of_real_add (x y : TauReal) :
+    TauComplex.equiv (TauComplex.pureIm_of_real (TauReal.add x y))
+                     ((TauComplex.pureIm_of_real x).add (TauComplex.pureIm_of_real y)) := by
+  refine ⟨?_, ?_⟩
+  · -- Real parts: LHS.re = TauReal.zero; RHS.re = TauReal.add zero zero
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    show (TauRat.zero).toRat
+        = (TauRat.add ((TauComplex.pureIm_of_real x).re.approx n)
+                      ((TauComplex.pureIm_of_real y).re.approx n)).toRat
+    show (TauRat.zero).toRat = (TauRat.add TauRat.zero TauRat.zero).toRat
+    rw [toRat_add, toRat_zero]
+    ring
+  · -- Imaginary parts: LHS.im = TauReal.add x y; RHS.im = TauReal.add x y (definitionally)
+    apply TauReal.equiv_of_pointwise
+    intro n
+    exact TauRat.equiv_refl _
+
+/-- **Bridge to TauRat-level `pureIm`**: for a TauRat `a`,
+    `pureIm_of_real (fromTauRat a)` and `pureIm a` are TauComplex-equivalent. -/
+theorem TauComplex.pureIm_of_real_fromTauRat_eq_pureIm (a : TauRat) :
+    TauComplex.equiv (TauComplex.pureIm_of_real (TauReal.fromTauRat a))
+                     (TauComplex.pureIm a) := by
+  refine ⟨?_, ?_⟩
+  · -- Real parts: both are TauReal.zero
+    apply TauReal.equiv_of_pointwise
+    intro n
+    exact TauRat.equiv_refl _
+  · -- Imaginary parts: both are constant TauReal at a (= fromTauRat a)
+    apply TauReal.equiv_of_pointwise
+    intro n
+    exact TauRat.equiv_refl _
+
+-- ============================================================
+-- PART 19: Phase 2.6.B.2.β.2 — cisTauReal (cis at TauReal angles)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.2 — `cisTauReal` definition + Euler bridge specialization
+
+`cisTauReal x := TauComplex.exp (pureIm_of_real x)` for any TauReal angle `x`.
+This generalises the cyclotomic-4 cis function from TauRat arguments to
+general TauReal angles, leveraging `pureIm_of_real` from β.1.
+
+**Key bridges shipped**:
+- `cisTauReal (fromTauRat a) = TauComplex.exp (pureIm a)` (definitional `rfl`).
+- `(cisTauReal (fromTauRat a)).re ≈ cos_of_rat a` for `|a.toRat| ≤ 1` (via Phase 1C).
+- `(cisTauReal (fromTauRat a)).im ≈ sin_of_rat a` for `|a.toRat| ≤ 1` (via Phase 1C).
+
+These are the foundational hooks downstream sub-pieces β.3 and β.4 will use. -/
+
+/-- **[I.D-CisTauReal]** Complex exponential of a pure-imaginary TauReal:
+    `cisTauReal x := exp(i · x)` where the embedding is via `pureIm_of_real`. -/
+def TauComplex.cisTauReal (x : TauReal) : TauComplex :=
+  TauComplex.exp (TauComplex.pureIm_of_real x)
+
+/-- **Definitional bridge to TauRat-level cis**: for a TauRat `a`,
+    `cisTauReal (fromTauRat a) = exp (pureIm a)` (literally, by definition).
+
+    Holds because `pureIm_of_real (fromTauRat a) = ⟨TauReal.zero, fromTauRat a⟩ = pureIm a`
+    is definitionally equal. -/
+theorem TauComplex.cisTauReal_fromTauRat_eq (a : TauRat) :
+    TauComplex.cisTauReal (TauReal.fromTauRat a)
+      = TauComplex.exp (TauComplex.pureIm a) := rfl
+
+/-- **🎯 Euler bridge for cisTauReal at TauRat input — real part**:
+    for `|a.toRat| ≤ 1`,
+        `(cisTauReal (fromTauRat a)).re ≈ cos_of_rat a`.
+
+    Direct corollary of the Phase 1C Euler bridge `exp_pureIm_re_eq_cos`
+    via the definitional bridge above. -/
+theorem TauComplex.cisTauReal_fromTauRat_re_eq_cos (a : TauRat) (ha : |a.toRat| ≤ 1) :
+    TauReal.equiv ((TauComplex.cisTauReal (TauReal.fromTauRat a)).re)
+                  (TauReal.cos_of_rat a) := by
+  show TauReal.equiv ((TauComplex.exp (TauComplex.pureIm a)).re) (TauReal.cos_of_rat a)
+  exact exp_pureIm_re_eq_cos a ha
+
+/-- **🎯 Euler bridge for cisTauReal at TauRat input — imaginary part**:
+    for `|a.toRat| ≤ 1`,
+        `(cisTauReal (fromTauRat a)).im ≈ sin_of_rat a`. -/
+theorem TauComplex.cisTauReal_fromTauRat_im_eq_sin (a : TauRat) (ha : |a.toRat| ≤ 1) :
+    TauReal.equiv ((TauComplex.cisTauReal (TauReal.fromTauRat a)).im)
+                  (TauReal.sin_of_rat a) := by
+  show TauReal.equiv ((TauComplex.exp (TauComplex.pureIm a)).im) (TauReal.sin_of_rat a)
+  exact exp_pureIm_im_eq_sin a ha
+
+-- ============================================================
+-- PART 20: Phase 2.6.B.2.β.3 starter — cisTauReal multiplicativity (TauRat inputs)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.3 starter — cisTauReal multiplicativity for TauRat inputs
+
+Combines Phase 1D's `exp_pureIm_sum_{re,im}_equiv` (Part 14) into a full
+TauComplex.equiv bridge, then chains with the M3 endpoint to get
+multiplicativity of `cisTauReal` for TauRat-input angles:
+
+    cisTauReal(fromTauRat (a + b)) ≈ cisTauReal(fromTauRat a) · cisTauReal(fromTauRat b)
+
+for `|a.toRat|, |b.toRat| ≤ 1`.
+
+This is the **TauRat-input case** of the eventual cisTauReal_add for
+TauReal angles. The full TauReal case (e.g., for arctan_of_rat outputs)
+requires further generalization of the underlying bridge — deferred. -/
+
+/-- **Combined TauComplex.equiv bridge** (Phase 1D Part 14 packaged):
+
+        exp(pureIm (a + b)) ≈ exp((pureIm a).add (pureIm b))
+
+    Direct combination of `exp_pureIm_sum_re_equiv` and `exp_pureIm_sum_im_equiv`. -/
+theorem TauComplex.exp_pureIm_sum_equiv (a b : TauRat) :
+    TauComplex.equiv
+      (TauComplex.exp (TauComplex.pureIm (a.add b)))
+      (TauComplex.exp ((TauComplex.pureIm a).add (TauComplex.pureIm b))) :=
+  ⟨exp_pureIm_sum_re_equiv a b, exp_pureIm_sum_im_equiv a b⟩
+
+/-- **🎯 cisTauReal multiplicativity at TauRat inputs**:
+    for `|a|, |b| ≤ 1`,
+        `cisTauReal(fromTauRat (a + b)) ≈ cisTauReal(fromTauRat a) · cisTauReal(fromTauRat b)`.
+
+    Proof chain:
+    1. `cisTauReal(fromTauRat x) = exp(pureIm x)` (definitional bridge).
+    2. `exp(pureIm (a+b)) ≈ exp((pureIm a).add (pureIm b))` (Part 14 bridge).
+    3. `exp((pureIm a).add (pureIm b)) ≈ exp(pureIm a) · exp(pureIm b)` (M3 endpoint). -/
+theorem TauComplex.cisTauReal_fromTauRat_add_eq_mul
+    (a b : TauRat) (ha : |a.toRat| ≤ 1) (hb : |b.toRat| ≤ 1) :
+    TauComplex.equiv
+      (TauComplex.cisTauReal (TauReal.fromTauRat (a.add b)))
+      ((TauComplex.cisTauReal (TauReal.fromTauRat a)).mul
+        (TauComplex.cisTauReal (TauReal.fromTauRat b))) := by
+  -- By definitional bridge: cisTauReal(fromTauRat x) = exp(pureIm x).
+  show TauComplex.equiv
+        (TauComplex.exp (TauComplex.pureIm (a.add b)))
+        ((TauComplex.exp (TauComplex.pureIm a)).mul
+          (TauComplex.exp (TauComplex.pureIm b)))
+  -- Chain: bridge then M3
+  apply TauComplex.equiv_trans (TauComplex.exp_pureIm_sum_equiv a b)
+  exact TauComplex.exp_add _ _
+    (TauComplex.pureIm_BoundedBy_1 a ha)
+    (TauComplex.pureIm_BoundedBy_1 b hb)
+
+-- ============================================================
+-- PART 21: Phase 2.6.B.2.β.3 full — exp respects componentwise toRat equiv
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.3 full — `exp` respects componentwise toRat equivalence
+
+Strengthens Part 13's bridge from fixed-`xR` constraints to general
+componentwise toRat-equality between two TauComplexes:
+
+    (∀ n, z₁.re.approx n .toRat = z₂.re.approx n .toRat) ∧
+    (∀ n, z₁.im.approx n .toRat = z₂.im.approx n .toRat)
+    ⟹ exp z₁ ≈ exp z₂
+
+This bridges `exp(pureIm_of_real (x+y))` and `exp((pureIm_of_real x).add
+(pureIm_of_real y))` for general TauReals `x, y` (their `.re` differs as
+TauReals — `zero` vs `add zero zero` — but agrees at every toRat depth).
+
+Built by joint induction on `pow`, lifted through `exp_term` → `exp_partial`
+→ `exp`, paralleling Part 13's structure. -/
+
+/-- **Step 1**: powers preserve componentwise toRat equivalence.
+    Joint induction on `k` using the `TauComplex.mul` recurrence. -/
+theorem TauComplex.pow_re_im_toRat_eq_of_componentwise
+    (z₁ z₂ : TauComplex)
+    (h_re : ∀ n, (z₁.re.approx n).toRat = (z₂.re.approx n).toRat)
+    (h_im : ∀ n, (z₁.im.approx n).toRat = (z₂.im.approx n).toRat)
+    (k n : Nat) :
+    ((z₁.pow k).re.approx n).toRat = ((z₂.pow k).re.approx n).toRat ∧
+    ((z₁.pow k).im.approx n).toRat = ((z₂.pow k).im.approx n).toRat := by
+  induction k with
+  | zero =>
+    -- pow z 0 = TauComplex.one for any z; same value, hence same toRat.
+    refine ⟨?_, ?_⟩
+    · show ((TauComplex.one).re.approx n).toRat = ((TauComplex.one).re.approx n).toRat
+      rfl
+    · show ((TauComplex.one).im.approx n).toRat = ((TauComplex.one).im.approx n).toRat
+      rfl
+  | succ k IH =>
+    obtain ⟨ih_re, ih_im⟩ := IH
+    refine ⟨?_, ?_⟩
+    · -- (z.pow (k+1)).re.approx n .toRat = (pow_k re)·(z.re) − (pow_k im)·(z.im) at toRat
+      show (TauRat.sub
+              (TauRat.mul ((z₁.pow k).re.approx n) (z₁.re.approx n))
+              (TauRat.mul ((z₁.pow k).im.approx n) (z₁.im.approx n))).toRat
+          = (TauRat.sub
+              (TauRat.mul ((z₂.pow k).re.approx n) (z₂.re.approx n))
+              (TauRat.mul ((z₂.pow k).im.approx n) (z₂.im.approx n))).toRat
+      rw [toRat_sub, toRat_sub, toRat_mul, toRat_mul, toRat_mul, toRat_mul]
+      rw [ih_re, ih_im, h_re n, h_im n]
+    · -- (z.pow (k+1)).im.approx n .toRat = (pow_k re)·(z.im) + (pow_k im)·(z.re) at toRat
+      show (TauRat.add
+              (TauRat.mul ((z₁.pow k).re.approx n) (z₁.im.approx n))
+              (TauRat.mul ((z₁.pow k).im.approx n) (z₁.re.approx n))).toRat
+          = (TauRat.add
+              (TauRat.mul ((z₂.pow k).re.approx n) (z₂.im.approx n))
+              (TauRat.mul ((z₂.pow k).im.approx n) (z₂.re.approx n))).toRat
+      rw [toRat_add, toRat_add, toRat_mul, toRat_mul, toRat_mul, toRat_mul]
+      rw [ih_re, ih_im, h_re n, h_im n]
+
+/-- **Step 2**: `exp_term` preserves componentwise toRat equivalence.
+    Direct corollary of Step 1 via `scale_by_inv_factorial_toRat`. -/
+theorem TauComplex.exp_term_re_im_toRat_eq_of_componentwise
+    (z₁ z₂ : TauComplex)
+    (h_re : ∀ n, (z₁.re.approx n).toRat = (z₂.re.approx n).toRat)
+    (h_im : ∀ n, (z₁.im.approx n).toRat = (z₂.im.approx n).toRat)
+    (k n : Nat) :
+    ((TauComplex.exp_term z₁ k).re.approx n).toRat
+      = ((TauComplex.exp_term z₂ k).re.approx n).toRat ∧
+    ((TauComplex.exp_term z₁ k).im.approx n).toRat
+      = ((TauComplex.exp_term z₂ k).im.approx n).toRat := by
+  obtain ⟨h_pow_re, h_pow_im⟩ :=
+    TauComplex.pow_re_im_toRat_eq_of_componentwise z₁ z₂ h_re h_im k n
+  refine ⟨?_, ?_⟩
+  · rw [TauComplex.exp_term_re, TauReal.scale_by_inv_factorial_approx,
+        TauRat.scale_by_inv_factorial_toRat,
+        TauComplex.exp_term_re, TauReal.scale_by_inv_factorial_approx,
+        TauRat.scale_by_inv_factorial_toRat, h_pow_re]
+  · rw [TauComplex.exp_term_im, TauReal.scale_by_inv_factorial_approx,
+        TauRat.scale_by_inv_factorial_toRat,
+        TauComplex.exp_term_im, TauReal.scale_by_inv_factorial_approx,
+        TauRat.scale_by_inv_factorial_toRat, h_pow_im]
+
+/-- **Step 3**: `exp_partial` preserves componentwise toRat equivalence.
+    Induction on `k`; the succ case uses Step 2 + add commutes with toRat. -/
+theorem TauComplex.exp_partial_re_im_toRat_eq_of_componentwise
+    (z₁ z₂ : TauComplex)
+    (h_re : ∀ n, (z₁.re.approx n).toRat = (z₂.re.approx n).toRat)
+    (h_im : ∀ n, (z₁.im.approx n).toRat = (z₂.im.approx n).toRat)
+    (k m_a : Nat) :
+    ((TauComplex.exp_partial z₁ k).re.approx m_a).toRat
+      = ((TauComplex.exp_partial z₂ k).re.approx m_a).toRat ∧
+    ((TauComplex.exp_partial z₁ k).im.approx m_a).toRat
+      = ((TauComplex.exp_partial z₂ k).im.approx m_a).toRat := by
+  induction k with
+  | zero =>
+    refine ⟨?_, ?_⟩
+    · show ((TauComplex.exp_partial z₁ 0).re.approx m_a).toRat
+          = ((TauComplex.exp_partial z₂ 0).re.approx m_a).toRat
+      rw [TauComplex.exp_partial_zero, TauComplex.exp_partial_zero]
+    · show ((TauComplex.exp_partial z₁ 0).im.approx m_a).toRat
+          = ((TauComplex.exp_partial z₂ 0).im.approx m_a).toRat
+      rw [TauComplex.exp_partial_zero, TauComplex.exp_partial_zero]
+  | succ k IH =>
+    obtain ⟨ih_re, ih_im⟩ := IH
+    obtain ⟨h_term_re, h_term_im⟩ :=
+      TauComplex.exp_term_re_im_toRat_eq_of_componentwise z₁ z₂ h_re h_im k m_a
+    refine ⟨?_, ?_⟩
+    · -- exp_partial z (k+1) .re.approx m_a = (exp_partial z k .add exp_term z k).re.approx m_a
+      -- = TauRat.add (exp_partial z k .re.approx m_a) (exp_term z k .re.approx m_a)
+      show (TauRat.add
+              ((TauComplex.exp_partial z₁ k).re.approx m_a)
+              ((TauComplex.exp_term z₁ k).re.approx m_a)).toRat
+          = (TauRat.add
+              ((TauComplex.exp_partial z₂ k).re.approx m_a)
+              ((TauComplex.exp_term z₂ k).re.approx m_a)).toRat
+      rw [toRat_add, toRat_add, ih_re, h_term_re]
+    · show (TauRat.add
+              ((TauComplex.exp_partial z₁ k).im.approx m_a)
+              ((TauComplex.exp_term z₁ k).im.approx m_a)).toRat
+          = (TauRat.add
+              ((TauComplex.exp_partial z₂ k).im.approx m_a)
+              ((TauComplex.exp_term z₂ k).im.approx m_a)).toRat
+      rw [toRat_add, toRat_add, ih_im, h_term_im]
+
+/-- **🎯 Step 4 (headline)**: `exp` respects componentwise toRat equivalence.
+
+    If two TauComplexes agree componentwise at every approx depth at the
+    toRat level, their `exp`s are TauComplex.equiv. Proof: diagonal
+    extraction via `exp_re_approx`/`exp_im_approx`, then Step 3. -/
+theorem TauComplex.exp_respects_toRat_pointwise
+    (z₁ z₂ : TauComplex)
+    (h_re : ∀ n, (z₁.re.approx n).toRat = (z₂.re.approx n).toRat)
+    (h_im : ∀ n, (z₁.im.approx n).toRat = (z₂.im.approx n).toRat) :
+    TauComplex.equiv (TauComplex.exp z₁) (TauComplex.exp z₂) := by
+  refine ⟨?_, ?_⟩
+  · -- Real parts: (exp z).re.approx n = (exp_partial z n).re.approx n
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq, TauComplex.exp_re_approx, TauComplex.exp_re_approx]
+    exact (TauComplex.exp_partial_re_im_toRat_eq_of_componentwise z₁ z₂ h_re h_im n n).1
+  · apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq, TauComplex.exp_im_approx, TauComplex.exp_im_approx]
+    exact (TauComplex.exp_partial_re_im_toRat_eq_of_componentwise z₁ z₂ h_re h_im n n).2
+
+/-- **Bridge from `exp_pureIm_sum` to TauReal-arg case** at TauComplex.equiv:
+
+        exp(pureIm_of_real (x+y)) ≈ exp((pureIm_of_real x).add (pureIm_of_real y))
+
+    Both TauComplexes have `.re.toRat = 0` and `.im.toRat = x.approx n .toRat + y.approx n .toRat`
+    at every depth. The .im components are *literally equal* as TauReals (both
+    equal `TauReal.add x y`); only the .re structure differs (`TauReal.zero` vs
+    `TauReal.add TauReal.zero TauReal.zero`). -/
+theorem TauComplex.exp_pureIm_of_real_sum_equiv (x y : TauReal) :
+    TauComplex.equiv
+      (TauComplex.exp (TauComplex.pureIm_of_real (TauReal.add x y)))
+      (TauComplex.exp ((TauComplex.pureIm_of_real x).add (TauComplex.pureIm_of_real y))) := by
+  apply TauComplex.exp_respects_toRat_pointwise
+  · -- .re componentwise toRat match: both 0
+    intro n
+    show ((TauComplex.pureIm_of_real (TauReal.add x y)).re.approx n).toRat
+        = (((TauComplex.pureIm_of_real x).add (TauComplex.pureIm_of_real y)).re.approx n).toRat
+    show (TauRat.zero).toRat
+        = (TauRat.add ((TauComplex.pureIm_of_real x).re.approx n)
+                      ((TauComplex.pureIm_of_real y).re.approx n)).toRat
+    show (TauRat.zero).toRat = (TauRat.add TauRat.zero TauRat.zero).toRat
+    rw [toRat_add, toRat_zero]
+    ring
+  · -- .im componentwise toRat match: both literally = (x+y).approx n
+    intro n
+    rfl
+
+/-- **🎯🎯🎯 cisTauReal multiplicativity for general TauReal arguments**:
+
+    For TauReals `x, y` with both `pureIm_of_real`-bounded by 1 (i.e., every
+    approximation `.abs.toRat ≤ 1`):
+
+        cisTauReal(x + y) ≈ cisTauReal(x) · cisTauReal(y)
+
+    Proof: bridge `exp(pureIm_of_real (x+y)) ≈ exp((pureIm_of_real x).add
+    (pureIm_of_real y))` via Step 4, then M3 endpoint. -/
+theorem TauComplex.cisTauReal_add (x y : TauReal)
+    (hx : ∀ n, (x.approx n).abs.toRat ≤ 1)
+    (hy : ∀ n, (y.approx n).abs.toRat ≤ 1) :
+    TauComplex.equiv
+      (TauComplex.cisTauReal (TauReal.add x y))
+      ((TauComplex.cisTauReal x).mul (TauComplex.cisTauReal y)) := by
+  -- cisTauReal (x+y) = exp(pureIm_of_real (x+y))
+  -- (cisTauReal x).mul (cisTauReal y) = exp(pureIm_of_real x) · exp(pureIm_of_real y)
+  show TauComplex.equiv
+        (TauComplex.exp (TauComplex.pureIm_of_real (TauReal.add x y)))
+        ((TauComplex.exp (TauComplex.pureIm_of_real x)).mul
+          (TauComplex.exp (TauComplex.pureIm_of_real y)))
+  -- Chain: bridge then M3
+  apply TauComplex.equiv_trans (TauComplex.exp_pureIm_of_real_sum_equiv x y)
+  exact TauComplex.exp_add _ _
+    (TauComplex.pureIm_of_real_BoundedBy x 1 (by omega) hx)
+    (TauComplex.pureIm_of_real_BoundedBy y 1 (by omega) hy)
+
+-- ============================================================
+-- PART 22: 🎯 EXP_ZERO IDENTITY — exp(TauComplex.zero) ≈ TauComplex.one
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.0 — The foundational identity `exp(0) ≈ 1`
+
+  Builds the τ-native version of `exp(0) = 1` from the Phase 1C bridges:
+
+      exp(TauComplex.zero) = exp(pureIm 0)               -- rfl
+                          ≈ ⟨cos_of_rat 0, sin_of_rat 0⟩  -- Phase 1C
+                          ≈ ⟨TauReal.one, TauReal.zero⟩    -- new (here)
+                          = TauComplex.one                 -- rfl
+
+  Sub-pieces (this part):
+    * `cos_pair_term_rat 0 0 = 1` and `= 0` for `k ≥ 1`.
+    * `cos_partial_rat 0 n = 1` for `n ≥ 1`.
+    * `cos_of_rat 0 ≈ TauReal.one` via modulus `λ _ => 1`.
+    * `sin_pair_term_rat 0 k = 0` for all `k`.
+    * `sin_partial_rat 0 n = 0` for all `n`.
+    * `sin_of_rat 0 ≈ TauReal.zero` via the pointwise bridge.
+    * `exp_zero_equiv_one` chaining all of the above.
+
+  This identity unlocks the magnitude identity
+  `cisTauReal(x) · cisTauReal(−x) ≈ TauComplex.one` downstream, which is a
+  sqrt-free building block for the scaledCis ↔ cisTauReal bridge. -/
+
+/-- `cos_pair_term_rat 0 0 = 1`. -/
+@[simp] theorem cos_pair_term_rat_zero_zero :
+    cos_pair_term_rat 0 0 = 1 := by
+  unfold cos_pair_term_rat
+  norm_num [Nat.factorial]
+
+/-- For `k ≥ 1`: `cos_pair_term_rat 0 k = 0`. -/
+theorem cos_pair_term_rat_zero_at_pos (k : Nat) (hk : 1 ≤ k) :
+    cos_pair_term_rat 0 k = 0 := by
+  unfold cos_pair_term_rat
+  have h_4k_ne : (4*k : Nat) ≠ 0 := by omega
+  have h_4k2_ne : (4*k+2 : Nat) ≠ 0 := by omega
+  rw [zero_pow h_4k_ne, zero_pow h_4k2_ne]
+  ring
+
+/-- `cos_partial_rat 0 n = 1` for `n ≥ 1`. -/
+theorem cos_partial_rat_zero_eq_one (n : Nat) (hn : 1 ≤ n) :
+    cos_partial_rat 0 n = 1 := by
+  induction n with
+  | zero => omega
+  | succ m ih =>
+    rcases Nat.eq_zero_or_pos m with hm | hm
+    · subst hm
+      rw [cos_partial_rat_succ, cos_partial_rat_zero,
+          cos_pair_term_rat_zero_zero]
+      ring
+    · have h_prev := ih hm
+      rw [cos_partial_rat_succ, h_prev,
+          cos_pair_term_rat_zero_at_pos m hm]
+      ring
+
+/-- **Phase 2.6.B.2.β.4.0 — cos_of_rat 0 ≈ TauReal.one**.
+
+    Modulus `λ _ => 1`: at every depth `n ≥ 1`, `cos_partial_rat 0 n = 1`,
+    so the toRat difference with `TauReal.one.approx n = TauRat.one` is `0`. -/
+theorem TauReal.cos_of_rat_zero_equiv_one :
+    TauReal.equiv (TauReal.cos_of_rat TauRat.zero) TauReal.one := by
+  refine ⟨fun _ => 1, fun k n hn => ?_⟩
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |((TauReal.cos_of_rat TauRat.zero).approx n).toRat
+        - (TauReal.one.approx n).toRat| < 1 / ((k : Rat) + 1)
+  rw [TauReal.cos_of_rat_approx, TauRat.cos_partial_toRat]
+  -- TauReal.one.approx n = TauRat.one by rfl
+  show |cos_partial_rat (TauRat.zero).toRat n - (TauRat.one).toRat|
+      < 1 / ((k : Rat) + 1)
+  rw [toRat_zero, toRat_one, cos_partial_rat_zero_eq_one n hn]
+  -- Goal: |1 - 1| < 1/((k : Rat) + 1); after simp reduces to 0 < k+1.
+  simp
+  have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+  linarith
+
+/-- For all `k`: `sin_pair_term_rat 0 k = 0`. -/
+@[simp] theorem sin_pair_term_rat_zero (k : Nat) :
+    sin_pair_term_rat 0 k = 0 := by
+  unfold sin_pair_term_rat
+  have h_4k1_ne : (4*k+1 : Nat) ≠ 0 := by omega
+  have h_4k3_ne : (4*k+3 : Nat) ≠ 0 := by omega
+  rw [zero_pow h_4k1_ne, zero_pow h_4k3_ne]
+  ring
+
+/-- `sin_partial_rat 0 n = 0` for all `n`. -/
+@[simp] theorem sin_partial_rat_zero_eq_zero (n : Nat) :
+    sin_partial_rat 0 n = 0 := by
+  induction n with
+  | zero => rfl
+  | succ m ih =>
+    rw [sin_partial_rat_succ, ih, sin_pair_term_rat_zero]
+    ring
+
+/-- **Phase 2.6.B.2.β.4.0 — sin_of_rat 0 ≈ TauReal.zero**.
+
+    Pointwise: at every depth, `(sin_of_rat 0).approx n .toRat = 0
+    = TauReal.zero.approx n .toRat`. -/
+theorem TauReal.sin_of_rat_zero_equiv_zero :
+    TauReal.equiv (TauReal.sin_of_rat TauRat.zero) TauReal.zero := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  show ((TauReal.sin_of_rat TauRat.zero).approx n).toRat
+      = ((TauReal.zero).approx n).toRat
+  rw [TauReal.sin_of_rat_approx, TauRat.sin_partial_toRat]
+  show sin_partial_rat (TauRat.zero).toRat n = (TauRat.zero).toRat
+  rw [toRat_zero, sin_partial_rat_zero_eq_zero]
+
+/-- **🎯🎯🎯 Phase 2.6.B.2.β.4.0 — exp(TauComplex.zero) ≈ TauComplex.one**.
+
+    Proof chain (`exp(TauComplex.zero) = exp(pureIm 0)` by rfl since
+    `fromTauRat TauRat.zero = TauReal.zero` definitionally):
+
+    * `.re`:  `(exp(pureIm 0)).re ≈ cos_of_rat 0 ≈ TauReal.one = TauComplex.one.re`.
+    * `.im`:  `(exp(pureIm 0)).im ≈ sin_of_rat 0 ≈ TauReal.zero = TauComplex.one.im`.
+
+    Each leg uses the Phase 1C bridges (`exp_pureIm_re_eq_cos`,
+    `exp_pureIm_im_eq_sin`) at TauRat.zero (whose toRat = 0 ≤ 1), then
+    chains through the new `cos_of_rat_zero_equiv_one` /
+    `sin_of_rat_zero_equiv_zero` identities. -/
+theorem TauComplex.exp_zero_equiv_one :
+    TauComplex.equiv (TauComplex.exp TauComplex.zero) TauComplex.one := by
+  -- Key rfl: pureIm TauRat.zero = TauComplex.zero
+  --   pureIm 0 = ⟨TauReal.zero, fromTauRat 0⟩ = ⟨TauReal.zero, TauReal.zero⟩ = TauComplex.zero
+  show TauComplex.equiv (TauComplex.exp (TauComplex.pureIm TauRat.zero))
+                        TauComplex.one
+  refine ⟨?_, ?_⟩
+  · -- .re leg
+    have h_bridge : TauReal.equiv (TauComplex.exp (TauComplex.pureIm TauRat.zero)).re
+                                  (TauReal.cos_of_rat TauRat.zero) :=
+      exp_pureIm_re_eq_cos TauRat.zero (by rw [toRat_zero]; norm_num)
+    have h_cos := TauReal.cos_of_rat_zero_equiv_one
+    -- Goal: (exp(pureIm 0)).re ≈ TauComplex.one.re = TauReal.one
+    exact TauReal.equiv_trans h_bridge h_cos
+  · -- .im leg
+    have h_bridge : TauReal.equiv (TauComplex.exp (TauComplex.pureIm TauRat.zero)).im
+                                  (TauReal.sin_of_rat TauRat.zero) :=
+      exp_pureIm_im_eq_sin TauRat.zero (by rw [toRat_zero]; norm_num)
+    have h_sin := TauReal.sin_of_rat_zero_equiv_zero
+    exact TauReal.equiv_trans h_bridge h_sin
+
+-- ============================================================
+-- PART 23: 🎯 MAGNITUDE IDENTITY — cisTauReal(x) · cisTauReal(-x) ≈ 1
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.1 — `cisTauReal(x) · cisTauReal(−x) ≈ TauComplex.one`
+
+  Given a bounded-by-1 TauReal `x`:
+
+      cisTauReal(x) · cisTauReal(negate x) ≈ TauComplex.one
+
+  Proof chain:
+    1. By definition: cisTauReal(x) · cisTauReal(-x)
+         = exp(pureIm_of_real x) · exp(pureIm_of_real (negate x))
+    2. exp_add (M3 endpoint):
+         ≈ exp((pureIm_of_real x).add (pureIm_of_real (negate x)))
+    3. exp_respects_toRat_pointwise:
+         ≈ exp(TauComplex.zero)
+       (because componentwise toRat: .re both 0, .im both x-x=0)
+    4. exp_zero_equiv_one (β.4.0):
+         ≈ TauComplex.one
+
+  This is the structural sqrt-free magnitude identity for `cisTauReal`,
+  serving as a building block for the eventual scaledCis ↔ cisTauReal
+  bridge (Phase 2.6.B.2.β.4 main). -/
+
+/-- **Bounded-by-1 lifts through `TauReal.negate`**: if every
+    approximation of `x` has `abs.toRat ≤ 1`, the same holds for
+    `negate x`. -/
+theorem TauReal.negate_approx_abs_toRat_le_one (x : TauReal)
+    (hx : ∀ n, (x.approx n).abs.toRat ≤ 1) (n : Nat) :
+    ((TauReal.negate x).approx n).abs.toRat ≤ 1 := by
+  -- (TauReal.negate x).approx n = TauRat.negate (x.approx n)
+  show ((TauRat.negate (x.approx n))).abs.toRat ≤ 1
+  rw [TauRat.toRat_abs, toRat_negate, abs_neg]
+  rw [← TauRat.toRat_abs]
+  exact hx n
+
+/-- **🎯🎯🎯 Phase 2.6.B.2.β.4.1 — magnitude identity**:
+
+    For TauReal `x` with every approximation bounded by 1,
+
+        cisTauReal(x) · cisTauReal(negate x) ≈ TauComplex.one. -/
+theorem TauComplex.cisTauReal_neg_self_equiv_one (x : TauReal)
+    (hx : ∀ n, (x.approx n).abs.toRat ≤ 1) :
+    TauComplex.equiv
+      ((TauComplex.cisTauReal x).mul (TauComplex.cisTauReal (TauReal.negate x)))
+      TauComplex.one := by
+  -- Step 1: definitional unfold to exp's
+  show TauComplex.equiv
+        ((TauComplex.exp (TauComplex.pureIm_of_real x)).mul
+          (TauComplex.exp (TauComplex.pureIm_of_real (TauReal.negate x))))
+        TauComplex.one
+  -- Step 2: exp_add (M3)
+  have h_neg_bd : ∀ n, ((TauReal.negate x).approx n).abs.toRat ≤ 1 :=
+    TauReal.negate_approx_abs_toRat_le_one x hx
+  have h_add_back : TauComplex.equiv
+        (TauComplex.exp ((TauComplex.pureIm_of_real x).add
+                          (TauComplex.pureIm_of_real (TauReal.negate x))))
+        ((TauComplex.exp (TauComplex.pureIm_of_real x)).mul
+          (TauComplex.exp (TauComplex.pureIm_of_real (TauReal.negate x)))) :=
+    TauComplex.exp_add _ _
+      (TauComplex.pureIm_of_real_BoundedBy x 1 (by omega) hx)
+      (TauComplex.pureIm_of_real_BoundedBy (TauReal.negate x) 1 (by omega) h_neg_bd)
+  -- Step 3: bridge to exp(TauComplex.zero) via exp_respects_toRat_pointwise
+  have h_bridge_zero : TauComplex.equiv
+        (TauComplex.exp ((TauComplex.pureIm_of_real x).add
+                          (TauComplex.pureIm_of_real (TauReal.negate x))))
+        (TauComplex.exp TauComplex.zero) := by
+    apply TauComplex.exp_respects_toRat_pointwise
+    · -- .re componentwise toRat: both 0
+      intro n
+      show (TauRat.add ((TauComplex.pureIm_of_real x).re.approx n)
+                      ((TauComplex.pureIm_of_real (TauReal.negate x)).re.approx n)).toRat
+          = (TauComplex.zero.re.approx n).toRat
+      show (TauRat.add TauRat.zero TauRat.zero).toRat = (TauRat.zero).toRat
+      rw [toRat_add, toRat_zero]
+      ring
+    · -- .im componentwise toRat: LHS = (x.approx n).toRat + (-(x.approx n)).toRat = 0; RHS = 0
+      intro n
+      show (TauRat.add ((TauComplex.pureIm_of_real x).im.approx n)
+                      ((TauComplex.pureIm_of_real (TauReal.negate x)).im.approx n)).toRat
+          = (TauComplex.zero.im.approx n).toRat
+      -- pureIm_of_real x .im.approx n = x.approx n
+      -- pureIm_of_real (negate x) .im.approx n = (negate x).approx n = TauRat.negate (x.approx n)
+      show (TauRat.add (x.approx n) (TauRat.negate (x.approx n))).toRat
+          = (TauRat.zero).toRat
+      rw [toRat_add, toRat_negate, toRat_zero]
+      ring
+  -- Step 4: assemble — equiv_symm(h_add_back) ∘ h_bridge_zero ∘ exp_zero_equiv_one
+  have h_step1 : TauComplex.equiv
+        ((TauComplex.exp (TauComplex.pureIm_of_real x)).mul
+          (TauComplex.exp (TauComplex.pureIm_of_real (TauReal.negate x))))
+        (TauComplex.exp ((TauComplex.pureIm_of_real x).add
+                          (TauComplex.pureIm_of_real (TauReal.negate x)))) :=
+    TauComplex.equiv_symm h_add_back
+  exact TauComplex.equiv_trans
+          (TauComplex.equiv_trans h_step1 h_bridge_zero)
+          TauComplex.exp_zero_equiv_one
+
+-- ============================================================
+-- PART 24: 🎯 SCALED-CIS MAGNITUDE IDENTITY — sqrt-free at TauRat level
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.2 — `scaledCis(a) · scaledCis(−a) ≈ 1 + a²` (as TauComplex)
+
+  Classical: `(1, a) · (1, −a) = (1 + a², 0)` at TauRat arithmetic level
+  — the **sqrt-free magnitude-squared identity**. This is the analog
+  of β.4.1's magnitude identity at the scaledCis level, with `1 + a²`
+  playing the role of the magnitude squared.
+
+  Together with β.4.1's `cisTauReal(arctan a) · cisTauReal(−arctan a)
+  ≈ 1`, this gives the structural bridge for the main β.4 sqrt-free
+  arctan-vs-scaledCis relation:
+
+      |cisTauReal(arctan a)|² = 1     (β.4.1)
+      |scaledCis(a)|² = 1 + a²        (this lemma, β.4.2)
+
+  Both are sqrt-free numerical-identity facts on which the eventual
+  `cisTauReal(arctan a) ≈ scaledCis(a)/√(1+a²)` bridge (sqrt-scaled)
+  ultimately rests.
+
+  **Proof**: componentwise computation at TauRat level:
+    .re: `1·1 − a·(−a) = 1 + a²`
+    .im: `1·(−a) + a·1 = 0`. -/
+
+/-- **🎯🎯 Phase 2.6.B.2.β.4.2 — scaledCis magnitude identity**:
+
+    For TauRat `a`,
+
+        scaledCis(a) · scaledCis(negate a)
+          ≈ fromTauReal (fromTauRat (1 + a²)) — i.e., ⟨1+a², 0⟩.
+
+    Componentwise sqrt-free identity at TauRat-arithmetic level. -/
+theorem TauComplex.scaledCis_mul_neg_self_equiv_one_plus_sq (a : TauRat) :
+    TauComplex.equiv
+      ((TauComplex.scaledCis a).mul (TauComplex.scaledCis (TauRat.negate a)))
+      (TauComplex.fromTauReal
+        (TauReal.fromTauRat
+          (TauRat.add TauRat.one (TauRat.mul a a)))) := by
+  refine ⟨?_, ?_⟩
+  · -- Real part: 1·1 − a·(−a) = 1 + a²
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    -- LHS.re.approx n
+    show (TauRat.sub
+            (TauRat.mul ((TauComplex.scaledCis a).re.approx n)
+                        ((TauComplex.scaledCis (TauRat.negate a)).re.approx n))
+            (TauRat.mul ((TauComplex.scaledCis a).im.approx n)
+                        ((TauComplex.scaledCis (TauRat.negate a)).im.approx n))).toRat
+        = ((TauComplex.fromTauReal (TauReal.fromTauRat
+            (TauRat.add TauRat.one (TauRat.mul a a)))).re.approx n).toRat
+    -- Substitute scaledCis approxes and fromTauReal/fromTauRat approxes
+    show (TauRat.sub
+            (TauRat.mul TauRat.one TauRat.one)
+            (TauRat.mul a (TauRat.negate a))).toRat
+        = (TauRat.add TauRat.one (TauRat.mul a a)).toRat
+    rw [toRat_sub, toRat_add, toRat_mul, toRat_mul, toRat_mul, toRat_one,
+        toRat_negate]
+    ring
+  · -- Imaginary part: 1·(−a) + a·1 = 0
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    show (TauRat.add
+            (TauRat.mul ((TauComplex.scaledCis a).re.approx n)
+                        ((TauComplex.scaledCis (TauRat.negate a)).im.approx n))
+            (TauRat.mul ((TauComplex.scaledCis a).im.approx n)
+                        ((TauComplex.scaledCis (TauRat.negate a)).re.approx n))).toRat
+        = ((TauComplex.fromTauReal (TauReal.fromTauRat
+            (TauRat.add TauRat.one (TauRat.mul a a)))).im.approx n).toRat
+    show (TauRat.add
+            (TauRat.mul TauRat.one (TauRat.negate a))
+            (TauRat.mul a TauRat.one)).toRat
+        = (TauRat.zero).toRat
+    rw [toRat_add, toRat_mul, toRat_mul, toRat_one, toRat_negate, toRat_zero]
+    ring
+
+-- ============================================================
+-- PART 25: 🎯 TauReal-arg toRat BRIDGE — pureIm_of_real powers + exp_term + exp_partial
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.3 — TauReal-arg toRat bridge
+
+  Extends Parts 5/6/7's toRat-level infrastructure from TauRat angle
+  arguments to general TauReal angle arguments. The key substitution:
+
+      x : TauRat      →    x : TauReal
+      x.toRat         →    (x.approx m_a).toRat
+      pureIm x        →    pureIm_of_real x
+
+  All existing structural patterns transfer line-by-line, since:
+    * `(pureIm_of_real x).re.approx n = TauRat.zero`  (rfl, Part 18)
+    * `(pureIm_of_real x).im.approx n = x.approx n`    (rfl, Part 18)
+
+  matching the TauRat-arg analogs at `pureIm`.
+
+  **Foundation for the tangent identity** (β.4 main): once we know
+
+      ((cisTauReal x).re.approx n).toRat = expPartial_pureIm_re_rat ((x.approx n).toRat) n
+      ((cisTauReal x).im.approx n).toRat = expPartial_pureIm_im_rat ((x.approx n).toRat) n
+
+  the tangent identity `(cisTauReal(arctan_of_rat a)).im ≈ a · (cisTauReal(arctan_of_rat a)).re`
+  reduces to bounding
+
+      | expPartial_pureIm_im_rat (arctan_partial_rat a.toRat n) n
+          - a.toRat · expPartial_pureIm_re_rat (arctan_partial_rat a.toRat n) n | → 0
+
+  as `n → ∞`. -/
+
+/-- **[I.T-PureImOfReal-Pow-Succ-Re]** TauReal-arg version of
+    `pureIm_pow_succ_re_approx_toRat`. -/
+theorem pureIm_of_real_pow_succ_re_approx_toRat (x : TauReal) (k n : Nat) :
+    (((TauComplex.pureIm_of_real x).pow (k+1)).re.approx n).toRat
+      = -(((TauComplex.pureIm_of_real x).pow k).im.approx n).toRat
+        * (x.approx n).toRat := by
+  show (TauRat.sub
+          (TauRat.mul (((TauComplex.pureIm_of_real x).pow k).re.approx n)
+                      ((TauComplex.pureIm_of_real x).re.approx n))
+          (TauRat.mul (((TauComplex.pureIm_of_real x).pow k).im.approx n)
+                      ((TauComplex.pureIm_of_real x).im.approx n))).toRat
+       = -(((TauComplex.pureIm_of_real x).pow k).im.approx n).toRat
+         * (x.approx n).toRat
+  rw [TauComplex.pureIm_of_real_re_approx, TauComplex.pureIm_of_real_im_approx,
+      toRat_sub, toRat_mul, toRat_mul, toRat_zero]
+  ring
+
+/-- **[I.T-PureImOfReal-Pow-Succ-Im]** TauReal-arg version of
+    `pureIm_pow_succ_im_approx_toRat`. -/
+theorem pureIm_of_real_pow_succ_im_approx_toRat (x : TauReal) (k n : Nat) :
+    (((TauComplex.pureIm_of_real x).pow (k+1)).im.approx n).toRat
+      = (((TauComplex.pureIm_of_real x).pow k).re.approx n).toRat
+        * (x.approx n).toRat := by
+  show (TauRat.add
+          (TauRat.mul (((TauComplex.pureIm_of_real x).pow k).re.approx n)
+                      ((TauComplex.pureIm_of_real x).im.approx n))
+          (TauRat.mul (((TauComplex.pureIm_of_real x).pow k).im.approx n)
+                      ((TauComplex.pureIm_of_real x).re.approx n))).toRat
+       = (((TauComplex.pureIm_of_real x).pow k).re.approx n).toRat
+         * (x.approx n).toRat
+  rw [TauComplex.pureIm_of_real_re_approx, TauComplex.pureIm_of_real_im_approx,
+      toRat_add, toRat_mul, toRat_mul, toRat_zero]
+  ring
+
+/-- **[I.T-PureImOfReal-Pow-Zero-Re]**. -/
+theorem pureIm_of_real_pow_zero_re_approx_toRat (x : TauReal) (n : Nat) :
+    (((TauComplex.pureIm_of_real x).pow 0).re.approx n).toRat = 1 := by
+  show ((TauReal.one).approx n).toRat = 1
+  show (TauRat.one).toRat = 1
+  exact toRat_one
+
+/-- **[I.T-PureImOfReal-Pow-Zero-Im]**. -/
+theorem pureIm_of_real_pow_zero_im_approx_toRat (x : TauReal) (n : Nat) :
+    (((TauComplex.pureIm_of_real x).pow 0).im.approx n).toRat = 0 := by
+  show ((TauReal.zero).approx n).toRat = 0
+  show (TauRat.zero).toRat = 0
+  exact toRat_zero
+
+/-- **[I.T-PureImOfReal-Pow-Bridge]** Joint induction lifting the
+    `pureIm_pow_re_im_rat` recurrence pair to TauReal-arg pureIm. -/
+theorem pureIm_of_real_pow_re_im_approx_toRat (x : TauReal) (k n : Nat) :
+    (((TauComplex.pureIm_of_real x).pow k).re.approx n).toRat
+      = (pureIm_pow_re_im_rat (x.approx n).toRat k).1 ∧
+    (((TauComplex.pureIm_of_real x).pow k).im.approx n).toRat
+      = (pureIm_pow_re_im_rat (x.approx n).toRat k).2 := by
+  induction k with
+  | zero =>
+    refine ⟨?_, ?_⟩
+    · rw [pureIm_of_real_pow_zero_re_approx_toRat]; rfl
+    · rw [pureIm_of_real_pow_zero_im_approx_toRat]; rfl
+  | succ k IH =>
+    obtain ⟨ih_re, ih_im⟩ := IH
+    refine ⟨?_, ?_⟩
+    · rw [pureIm_of_real_pow_succ_re_approx_toRat, ih_im,
+          pureIm_pow_re_im_rat_succ]
+    · rw [pureIm_of_real_pow_succ_im_approx_toRat, ih_re,
+          pureIm_pow_re_im_rat_succ]
+
+/-- **[I.T-ExpTerm-PureImOfReal-Re]** TauReal-arg version of
+    `exp_term_pureIm_re_approx_toRat`. -/
+theorem exp_term_pureIm_of_real_re_approx_toRat (x : TauReal) (k n : Nat) :
+    ((TauComplex.exp_term (TauComplex.pureIm_of_real x) k).re.approx n).toRat
+      = (pureIm_pow_re_im_rat (x.approx n).toRat k).1 / (k.factorial : Rat) := by
+  rw [TauComplex.exp_term_re, TauReal.scale_by_inv_factorial_approx,
+      TauRat.scale_by_inv_factorial_toRat,
+      (pureIm_of_real_pow_re_im_approx_toRat x k n).1]
+
+/-- **[I.T-ExpTerm-PureImOfReal-Im]** TauReal-arg version of
+    `exp_term_pureIm_im_approx_toRat`. -/
+theorem exp_term_pureIm_of_real_im_approx_toRat (x : TauReal) (k n : Nat) :
+    ((TauComplex.exp_term (TauComplex.pureIm_of_real x) k).im.approx n).toRat
+      = (pureIm_pow_re_im_rat (x.approx n).toRat k).2 / (k.factorial : Rat) := by
+  rw [TauComplex.exp_term_im, TauReal.scale_by_inv_factorial_approx,
+      TauRat.scale_by_inv_factorial_toRat,
+      (pureIm_of_real_pow_re_im_approx_toRat x k n).2]
+
+/-- **[I.T-ExpPartial-PureImOfReal-Re-Bridge]** TauReal-arg version of
+    `expPartial_pureIm_re_approx_toRat_eq_rat`. -/
+theorem expPartial_pureIm_of_real_re_approx_toRat_eq_rat
+    (x : TauReal) (k m_a : Nat) :
+    ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) k).re.approx m_a).toRat
+      = expPartial_pureIm_re_rat (x.approx m_a).toRat k := by
+  induction k with
+  | zero =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) 0).re.approx m_a).toRat
+        = expPartial_pureIm_re_rat (x.approx m_a).toRat 0
+    rw [TauComplex.exp_partial_zero, expPartial_pureIm_re_rat_zero]
+    show (TauRat.zero).toRat = 0
+    exact toRat_zero
+  | succ k IH =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) (k+1)).re.approx m_a).toRat
+        = expPartial_pureIm_re_rat (x.approx m_a).toRat (k+1)
+    rw [TauComplex.exp_partial_succ, expPartial_pureIm_re_rat_succ]
+    show (TauRat.add
+            ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) k).re.approx m_a)
+            ((TauComplex.exp_term (TauComplex.pureIm_of_real x) k).re.approx m_a)).toRat
+        = expPartial_pureIm_re_rat (x.approx m_a).toRat k
+          + (pureIm_pow_re_im_rat (x.approx m_a).toRat k).1 / (k.factorial : Rat)
+    rw [toRat_add, IH, exp_term_pureIm_of_real_re_approx_toRat]
+
+/-- **[I.T-ExpPartial-PureImOfReal-Im-Bridge]** TauReal-arg version of
+    `expPartial_pureIm_im_approx_toRat_eq_rat`. -/
+theorem expPartial_pureIm_of_real_im_approx_toRat_eq_rat
+    (x : TauReal) (k m_a : Nat) :
+    ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) k).im.approx m_a).toRat
+      = expPartial_pureIm_im_rat (x.approx m_a).toRat k := by
+  induction k with
+  | zero =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) 0).im.approx m_a).toRat
+        = expPartial_pureIm_im_rat (x.approx m_a).toRat 0
+    rw [TauComplex.exp_partial_zero, expPartial_pureIm_im_rat_zero]
+    show (TauRat.zero).toRat = 0
+    exact toRat_zero
+  | succ k IH =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) (k+1)).im.approx m_a).toRat
+        = expPartial_pureIm_im_rat (x.approx m_a).toRat (k+1)
+    rw [TauComplex.exp_partial_succ, expPartial_pureIm_im_rat_succ]
+    show (TauRat.add
+            ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) k).im.approx m_a)
+            ((TauComplex.exp_term (TauComplex.pureIm_of_real x) k).im.approx m_a)).toRat
+        = expPartial_pureIm_im_rat (x.approx m_a).toRat k
+          + (pureIm_pow_re_im_rat (x.approx m_a).toRat k).2 / (k.factorial : Rat)
+    rw [toRat_add, IH, exp_term_pureIm_of_real_im_approx_toRat]
+
+/-- **[I.T-CisTauReal-Re-toRat]** The toRat of `(cisTauReal x).re.approx n` is
+    the depth-`n` Rat-level partial sum `expPartial_pureIm_re_rat` evaluated at
+    `(x.approx n).toRat`. -/
+theorem cisTauReal_re_approx_toRat (x : TauReal) (n : Nat) :
+    ((TauComplex.cisTauReal x).re.approx n).toRat
+      = expPartial_pureIm_re_rat (x.approx n).toRat n := by
+  show ((TauComplex.exp (TauComplex.pureIm_of_real x)).re.approx n).toRat
+      = expPartial_pureIm_re_rat (x.approx n).toRat n
+  rw [TauComplex.exp_re_approx,
+      expPartial_pureIm_of_real_re_approx_toRat_eq_rat]
+
+/-- **[I.T-CisTauReal-Im-toRat]** The toRat of `(cisTauReal x).im.approx n` is
+    the depth-`n` Rat-level partial sum `expPartial_pureIm_im_rat` evaluated at
+    `(x.approx n).toRat`. -/
+theorem cisTauReal_im_approx_toRat (x : TauReal) (n : Nat) :
+    ((TauComplex.cisTauReal x).im.approx n).toRat
+      = expPartial_pureIm_im_rat (x.approx n).toRat n := by
+  show ((TauComplex.exp (TauComplex.pureIm_of_real x)).im.approx n).toRat
+      = expPartial_pureIm_im_rat (x.approx n).toRat n
+  rw [TauComplex.exp_im_approx,
+      expPartial_pureIm_of_real_im_approx_toRat_eq_rat]
+
+-- ============================================================
+-- PART 26: 🎯 CONJUGATE PROPERTY — cisTauReal(−x) ≈ conj(cisTauReal x)
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.6 — Conjugate property of cisTauReal
+
+  At the Rat level, the cyclotomic-4 pair `pureIm_pow_re_im_rat xR k` has:
+    * `.1` (real-part coefficient) is **EVEN** in xR
+    * `.2` (imag-part coefficient) is **ODD** in xR
+
+  Reason: `.1` is nonzero only at indices `k ≡ 0, 2 mod 4` (even k), where
+  the contribution is `±xR^k` with k even — invariant under `xR → −xR`.
+  `.2` is nonzero only at `k ≡ 1, 3 mod 4` (odd k), where the
+  contribution is `±xR^k` with k odd — flips under `xR → −xR`.
+
+  This lifts via the `expPartial_pureIm_re/im_rat` partial sums to:
+    expPartial_pureIm_re_rat (−x) n = expPartial_pureIm_re_rat x n  (even)
+    expPartial_pureIm_im_rat (−x) n = −expPartial_pureIm_im_rat x n (odd)
+
+  Then via β.4.3's TauReal-arg toRat bridge, this gives the conjugate
+  property at TauComplex.equiv level:
+
+      cisTauReal(negate x) ≈ conj(cisTauReal x)
+
+  i.e., `.re` is invariant under `x → −x`, and `.im` flips sign. -/
+
+/-- **[I.T-PureImPowReImRat-Parity]** Joint parity of the `(.1, .2)` pair:
+    `.1` is invariant, `.2` flips sign, under `xR → −xR`. -/
+theorem pureIm_pow_re_im_rat_neg (xR : Rat) (k : Nat) :
+    pureIm_pow_re_im_rat (-xR) k
+      = ((pureIm_pow_re_im_rat xR k).1, -(pureIm_pow_re_im_rat xR k).2) := by
+  induction k with
+  | zero =>
+    rw [pureIm_pow_re_im_rat_zero, pureIm_pow_re_im_rat_zero]
+    simp
+  | succ k IH =>
+    rw [pureIm_pow_re_im_rat_succ, IH, pureIm_pow_re_im_rat_succ]
+    ext <;> simp <;> ring
+
+/-- **[I.T-ExpPartial-PureIm-Re-Rat-Even]** `expPartial_pureIm_re_rat` is
+    even in its angle argument. -/
+theorem expPartial_pureIm_re_rat_neg (xR : Rat) (n : Nat) :
+    expPartial_pureIm_re_rat (-xR) n = expPartial_pureIm_re_rat xR n := by
+  induction n with
+  | zero => rfl
+  | succ k IH =>
+    rw [expPartial_pureIm_re_rat_succ, expPartial_pureIm_re_rat_succ, IH,
+        pureIm_pow_re_im_rat_neg]
+
+/-- **[I.T-ExpPartial-PureIm-Im-Rat-Odd]** `expPartial_pureIm_im_rat` is
+    odd in its angle argument. -/
+theorem expPartial_pureIm_im_rat_neg (xR : Rat) (n : Nat) :
+    expPartial_pureIm_im_rat (-xR) n = -(expPartial_pureIm_im_rat xR n) := by
+  induction n with
+  | zero => simp
+  | succ k IH =>
+    rw [expPartial_pureIm_im_rat_succ, expPartial_pureIm_im_rat_succ, IH,
+        pureIm_pow_re_im_rat_neg]
+    ring
+
+/-- **🎯🎯🎯 [I.T-CisTauReal-Re-Even]** Real-part of cisTauReal is even in
+    the TauReal angle argument:
+
+        (cisTauReal(negate x)).re ≈ (cisTauReal x).re. -/
+theorem TauComplex.cisTauReal_negate_re_equiv (x : TauReal) :
+    TauReal.equiv (TauComplex.cisTauReal (TauReal.negate x)).re
+                  (TauComplex.cisTauReal x).re := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  rw [cisTauReal_re_approx_toRat, cisTauReal_re_approx_toRat]
+  -- (TauReal.negate x).approx n = TauRat.negate (x.approx n)
+  -- ((TauRat.negate (x.approx n))).toRat = -(x.approx n).toRat
+  show expPartial_pureIm_re_rat ((TauReal.negate x).approx n).toRat n
+      = expPartial_pureIm_re_rat ((x.approx n).toRat) n
+  show expPartial_pureIm_re_rat (TauRat.negate (x.approx n)).toRat n
+      = expPartial_pureIm_re_rat ((x.approx n).toRat) n
+  rw [toRat_negate, expPartial_pureIm_re_rat_neg]
+
+/-- **🎯🎯🎯 [I.T-CisTauReal-Im-Odd]** Imag-part of cisTauReal is odd in
+    the TauReal angle argument:
+
+        (cisTauReal(negate x)).im ≈ negate (cisTauReal x).im. -/
+theorem TauComplex.cisTauReal_negate_im_equiv (x : TauReal) :
+    TauReal.equiv (TauComplex.cisTauReal (TauReal.negate x)).im
+                  (TauReal.negate (TauComplex.cisTauReal x).im) := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  -- LHS .approx n .toRat = expPartial_pureIm_im_rat (-(x.approx n).toRat) n
+  --                      = -(expPartial_pureIm_im_rat (x.approx n).toRat n)
+  -- RHS .approx n .toRat = (TauRat.negate ((cisTauReal x).im.approx n)).toRat
+  --                      = -((cisTauReal x).im.approx n).toRat
+  --                      = -(expPartial_pureIm_im_rat (x.approx n).toRat n)
+  rw [cisTauReal_im_approx_toRat]
+  change expPartial_pureIm_im_rat ((TauRat.negate (x.approx n))).toRat n
+       = (TauRat.negate ((TauComplex.cisTauReal x).im.approx n)).toRat
+  rw [toRat_negate, expPartial_pureIm_im_rat_neg, toRat_negate,
+      cisTauReal_im_approx_toRat]
+
+/-- **🎯🎯🎯🎯🎯 [I.T-CisTauReal-Conjugate]** Conjugate property:
+
+      cisTauReal(negate x) ≈ conj(cisTauReal x)
+
+    i.e., `.re` invariant under `x → -x`, `.im` flips sign. -/
+theorem TauComplex.cisTauReal_negate_equiv_conj (x : TauReal) :
+    TauComplex.equiv (TauComplex.cisTauReal (TauReal.negate x))
+                     ⟨(TauComplex.cisTauReal x).re,
+                      TauReal.negate (TauComplex.cisTauReal x).im⟩ :=
+  ⟨TauComplex.cisTauReal_negate_re_equiv x,
+   TauComplex.cisTauReal_negate_im_equiv x⟩
+
+-- ============================================================
+-- PART 27: 🎯🎯🎯 UNIT-MAGNITUDE SUM-OF-SQUARES (β.4.7, "Approach D")
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.7 — Sum-of-squares identity
+
+  The classical Pythagorean identity at TauReal angle level:
+
+      (cisTauReal x).re² + (cisTauReal x).im² ≈ TauReal.one
+
+  for any TauReal `x` bounded by 1.
+
+  **Proof strategy** (combining β.4.1 + β.4.6 underlying Rat-level parity):
+
+  1. Algebraic step (toRat-pointwise, no analytical content):
+       `.re² + .im² ≈ (cisTauReal x · cisTauReal (negate x)).re`
+
+     Reason: at depth n, both sides equal
+       `(expPartial_pureIm_re_rat α_n n)² + (expPartial_pureIm_im_rat α_n n)²`
+     where α_n = (x.approx n).toRat — using β.4.3's toRat bridge and the
+     Rat-level parity identities (`expPartial_pureIm_re_rat (−α) n = ...α...`
+     and `expPartial_pureIm_im_rat (−α) n = −...α...`).
+
+  2. Unit identity (β.4.1):
+       `(cisTauReal x · cisTauReal (negate x)).re ≈ TauReal.one`
+
+  Chain via `TauReal.equiv_trans`. Sqrt-free, no truncation-error
+  bookkeeping needed — the algebraic step is **exact** at toRat-pointwise.
+
+  **Significance**: this is the Pythagorean identity for cisTauReal at
+  TauReal angle level. It is the unit-magnitude statement that pairs
+  with β.4.2's `|scaledCis(a)|² = 1 + a²` to give the **two sqrt-free
+  magnitude facts** needed for the sqrt-scaled bridge formulation. -/
+
+/-- **🎯🎯🎯🎯🎯 [I.T-CisTauReal-MagSq-Equiv-One]** Sum-of-squares
+    Pythagorean identity at TauReal level:
+
+        (cisTauReal x).re² + (cisTauReal x).im² ≈ TauReal.one
+
+    for any `x : TauReal` with every approximation bounded by 1. -/
+theorem TauComplex.cisTauReal_magSq_equiv_one (x : TauReal)
+    (hx : ∀ n, (x.approx n).abs.toRat ≤ 1) :
+    TauReal.equiv
+      (TauReal.add
+        (TauReal.mul (TauComplex.cisTauReal x).re (TauComplex.cisTauReal x).re)
+        (TauReal.mul (TauComplex.cisTauReal x).im (TauComplex.cisTauReal x).im))
+      TauReal.one := by
+  -- **Step 1 (algebraic)**: magSq ≈ (cis x · cis (negate x)).re at toRat-pointwise.
+  have h_eq : TauReal.equiv
+      (TauReal.add
+        (TauReal.mul (TauComplex.cisTauReal x).re (TauComplex.cisTauReal x).re)
+        (TauReal.mul (TauComplex.cisTauReal x).im (TauComplex.cisTauReal x).im))
+      ((TauComplex.cisTauReal x).mul (TauComplex.cisTauReal (TauReal.negate x))).re := by
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    change (TauRat.add
+              (TauRat.mul ((TauComplex.cisTauReal x).re.approx n)
+                          ((TauComplex.cisTauReal x).re.approx n))
+              (TauRat.mul ((TauComplex.cisTauReal x).im.approx n)
+                          ((TauComplex.cisTauReal x).im.approx n))).toRat
+        = (TauRat.sub
+              (TauRat.mul ((TauComplex.cisTauReal x).re.approx n)
+                          ((TauComplex.cisTauReal (TauReal.negate x)).re.approx n))
+              (TauRat.mul ((TauComplex.cisTauReal x).im.approx n)
+                          ((TauComplex.cisTauReal (TauReal.negate x)).im.approx n))).toRat
+    rw [toRat_add, toRat_sub, toRat_mul, toRat_mul, toRat_mul, toRat_mul,
+        cisTauReal_re_approx_toRat, cisTauReal_re_approx_toRat,
+        cisTauReal_im_approx_toRat, cisTauReal_im_approx_toRat]
+    -- (TauReal.negate x).approx n = TauRat.negate (x.approx n), so .toRat = -(x.approx n).toRat
+    have h_neg_x : ((TauReal.negate x).approx n).toRat = -(x.approx n).toRat := by
+      change (TauRat.negate (x.approx n)).toRat = -(x.approx n).toRat
+      exact toRat_negate _
+    rw [h_neg_x, expPartial_pureIm_re_rat_neg, expPartial_pureIm_im_rat_neg]
+    ring
+  -- **Step 2 (β.4.1)**: (cis x · cis (negate x)).re ≈ TauReal.one
+  have h_unit := TauComplex.cisTauReal_neg_self_equiv_one x hx
+  exact TauReal.equiv_trans h_eq h_unit.1
+
+-- ============================================================
+-- PART 28: 🎯 TANGENT IDENTITY TARGETS + STRUCTURAL REDUCTION
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.8 — Tangent identity targets (analytical capstone)
+
+  The remaining analytical capstone for Wave Γ₈ Path B. Three equivalent
+  formulations of the tangent identity for `arctan_of_rat`:
+
+  **Form A (linear, "Option C" from design memo)**:
+      (cisTauReal(arctan a)).im ≈ a · (cisTauReal(arctan a)).re
+
+  **Form B (sqrt-free, vanishing-imag-part)**:
+      (cisTauReal(arctan a) · scaledCis(−a)).im ≈ 0
+
+  **Form C (sqrt-free squared)**:
+      (cisTauReal(arctan a)).re² · (1+a²) ≈ 1
+
+  All three are equivalent at TauReal level:
+  * A ⟺ B  by direct algebra:
+        (cisTauReal · scaledCis(-a)).im = .im · 1 + .re · (-a) = .im - a · .re.
+  * A ⟹ C  using Pythagorean (β.4.7):
+        re² + (a·re)² = re²(1+a²) ≈ re² + im² ≈ 1.
+  * C ⟹ A (up to sign): from re²(1+a²) ≈ 1 and Pythagorean,
+        im² ≈ a² · re², so im ≈ ±a · re. The sign is determined by the
+        a → 0 limit (im → 0 = +a · re|_{a=0}).
+
+  This part **declares the target predicates cleanly + ships the
+  A ⟺ B equivalence as a clean algebraic theorem** (no analytical content
+  needed for this reduction — it's pure TauComplex-level algebra).
+
+  The analytical discharge (proving one of A/B/C from the existing
+  structural facts) remains the next visit's analytical work. Approaches:
+    * Power-series combinatorial identity (~300 LOC)
+    * Derivative-based argument via new TauReal-derivative machinery
+    * Bridge through Mathlib's Real.arctan via bridge_functor_exists
+-/
+
+/-- **[I.D-CisTauReal-Tangent-Target-A]** The tangent identity in linear
+    form (Option C from design memo):
+
+        (cisTauReal(arctan a)).im ≈ a · (cisTauReal(arctan a)).re
+
+    for `|a.toRat| ≤ 1/2`. -/
+def TauComplex.cisTauReal_tangent_target_A : Prop :=
+  ∀ (a : TauRat) (ha : 2 * |a.toRat| ≤ 1),
+    TauReal.equiv
+      (TauComplex.cisTauReal (TauReal.arctan_of_rat a ha)).im
+      (TauReal.mul (TauReal.fromTauRat a)
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat a ha)).re)
+
+/-- **[I.D-CisTauReal-Tangent-Target-B]** The tangent identity in
+    vanishing-imag form (sqrt-free, scaledCis-based):
+
+        (cisTauReal(arctan a) · scaledCis(−a)).im ≈ TauReal.zero. -/
+def TauComplex.cisTauReal_tangent_target_B : Prop :=
+  ∀ (a : TauRat) (ha : 2 * |a.toRat| ≤ 1),
+    TauReal.equiv
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat a ha)).mul
+        (TauComplex.scaledCis (TauRat.negate a))).im
+      TauReal.zero
+
+/-- **[I.D-CisTauReal-Squared-Tangent-Target]** The tangent identity in
+    squared, sqrt-free form (paired with Pythagorean β.4.7 to recover
+    A up to sign):
+
+        (cisTauReal(arctan a)).re² · (1 + a²) ≈ TauReal.one. -/
+def TauComplex.cisTauReal_squared_tangent_target : Prop :=
+  ∀ (a : TauRat) (ha : 2 * |a.toRat| ≤ 1),
+    TauReal.equiv
+      (TauReal.mul
+        (TauReal.mul (TauComplex.cisTauReal (TauReal.arctan_of_rat a ha)).re
+                    (TauComplex.cisTauReal (TauReal.arctan_of_rat a ha)).re)
+        (TauReal.fromTauRat (TauRat.add TauRat.one (TauRat.mul a a))))
+      TauReal.one
+
+/-! ### The analytical bridge (the capstone proof obligation)
+
+  Discharging any one of forms A / B / C proves the others (via β.4.7
+  Pythagorean and routine TauReal algebra). The analytical content is
+  genuinely deep — none of the existing structural facts (β.3 cisTauReal_add,
+  β.4.1 magnitude product, β.4.6 conjugate, β.4.7 Pythagorean) bootstrap
+  the tangent identity, because they're all expressible without using
+  the "tan(arctan a) = a" inverse-function content.
+
+  The shortest constructive paths to discharge:
+
+  **(i) Power-series combinatorial identity** (~300-500 LOC):
+    Prove that `sin(arctan x)` and `x · cos(arctan x)` agree
+    coefficient-by-coefficient as formal power series in x. Each
+    coefficient identity reduces to a finite Rat-arithmetic claim.
+
+  **(ii) TauReal-derivative machinery** (~500+ LOC new + capstone proof):
+    Build constructive derivatives at TauReal level, prove
+    `(arctan_of_rat)' a ≈ 1/(1+a²)`, then derive the tangent identity
+    via the ODE `h'(a) = a/(1+a²) · h(a)` with `h(0) = 0` ⇒ h ≡ 0.
+
+  **(iii) Bridge via Mathlib's Real.arctan** (uses bridge_functor_exists):
+    Use the Book III axiom to transport `Real.sin_arctan` into the
+    τ-stack. Adds no new content but uses a programme axiom.
+
+  This part declares the target predicates cleanly; downstream work
+  (arctan addition, Machin) can be developed against the targets, with
+  the analytical discharge as a separate sustained effort. -/
 
 end Tau.Boundary
