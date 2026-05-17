@@ -802,6 +802,52 @@ theorem arctan_partial_rat_lipschitz
       _ = 2 * ((n + 1 : Nat) : Rat) * |x - y| := by push_cast; ring
 
 -- ============================================================
+-- PART 8.6: Wave 6c.2 — TauReal-LEVEL LIPSCHITZ LIFT FOR ARCTAN
+-- ============================================================
+
+/-! ## Wave 6c.2 — TauReal-level Lipschitz lift
+
+  Lifts Wave 6c.1 (Rat-level Lipschitz with constant 2n) to TauReal:
+
+      For TauRat a, h with |a.toRat|, |(a+h).toRat| ≤ 1, and any depth N:
+        |((arctan_of_rat_seq (a+h)).approx N).toRat
+           - ((arctan_of_rat_seq a).approx N).toRat|
+         ≤ 2N · |h.toRat|
+
+  Proof: rewrite via `arctan_of_rat_seq_approx + arctan_partial_toRat` to
+  reduce to the Rat-level statement, then apply 6c.1.
+
+  Note on Lipschitz constant: 2N grows with depth, so this bound is loose
+  for the cisTauReal_add condition. The actual Lipschitz constant of
+  arctan_partial is 1 (since arctan'(t) = 1/(1+t²) ≤ 1), but proving
+  Lipschitz constant 1 requires either MVT (not available in τ-canon) or
+  a clever algebraic argument that captures cancellation across pair_terms.
+
+  For depth N = the IsDerivAt step depth, h_N = 1/2^N gives 2N/2^N → 0,
+  but the bound is NOT uniform across all approximation depths m.
+-/
+
+/-- **Wave 6c.2** — TauReal-level Lipschitz for `arctan_of_rat_seq`. -/
+theorem TauReal.arctan_of_rat_seq_lipschitz
+    (a h : TauRat) (ha : |a.toRat| ≤ 1) (hah : |(a.add h).toRat| ≤ 1) (N : Nat) :
+    |((TauReal.arctan_of_rat_seq (a.add h)).approx N).toRat
+       - ((TauReal.arctan_of_rat_seq a).approx N).toRat|
+      ≤ 2 * (N : Rat) * |h.toRat| := by
+  -- Rewrite both sides via arctan_of_rat_seq_approx + arctan_partial_toRat
+  rw [TauReal.arctan_of_rat_seq_approx, TauReal.arctan_of_rat_seq_approx]
+  rw [TauRat.arctan_partial_toRat, TauRat.arctan_partial_toRat]
+  -- Now goal: |arctan_partial_rat (a+h).toRat N - arctan_partial_rat a.toRat N|
+  --         ≤ 2N · |h.toRat|
+  -- Apply Wave 6c.1
+  have h_lip := arctan_partial_rat_lipschitz (a.add h).toRat a.toRat hah ha N
+  -- h_lip: |partial (a+h).toRat N - partial a.toRat N| ≤ 2N · |(a+h).toRat - a.toRat|
+  -- Need: (a+h).toRat - a.toRat = h.toRat
+  have h_sub : (a.add h).toRat - a.toRat = h.toRat := by
+    rw [toRat_add]; ring
+  rw [h_sub] at h_lip
+  exact h_lip
+
+-- ============================================================
 -- PART 9: Wave 6b — cis_arctan SMALL-ANGLE AT cis_arctan LEVEL
 -- ============================================================
 
