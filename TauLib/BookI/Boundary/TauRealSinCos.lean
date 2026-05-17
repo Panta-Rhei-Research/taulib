@@ -1,6 +1,7 @@
 import TauLib.BookI.Boundary.TauComplexExp
 import TauLib.BookI.Boundary.TauRealSin
 import TauLib.BookI.Boundary.TauRealCos
+import TauLib.BookI.Boundary.TauRealArctan
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.LinearCombination
 import Mathlib.Tactic.NormNum
@@ -2596,5 +2597,110 @@ theorem TauComplex.cisTauReal_magSq_equiv_one (x : TauReal)
   -- **Step 2 (β.4.1)**: (cis x · cis (negate x)).re ≈ TauReal.one
   have h_unit := TauComplex.cisTauReal_neg_self_equiv_one x hx
   exact TauReal.equiv_trans h_eq h_unit.1
+
+-- ============================================================
+-- PART 28: 🎯 TANGENT IDENTITY TARGETS + STRUCTURAL REDUCTION
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.8 — Tangent identity targets (analytical capstone)
+
+  The remaining analytical capstone for Wave Γ₈ Path B. Three equivalent
+  formulations of the tangent identity for `arctan_of_rat`:
+
+  **Form A (linear, "Option C" from design memo)**:
+      (cisTauReal(arctan a)).im ≈ a · (cisTauReal(arctan a)).re
+
+  **Form B (sqrt-free, vanishing-imag-part)**:
+      (cisTauReal(arctan a) · scaledCis(−a)).im ≈ 0
+
+  **Form C (sqrt-free squared)**:
+      (cisTauReal(arctan a)).re² · (1+a²) ≈ 1
+
+  All three are equivalent at TauReal level:
+  * A ⟺ B  by direct algebra:
+        (cisTauReal · scaledCis(-a)).im = .im · 1 + .re · (-a) = .im - a · .re.
+  * A ⟹ C  using Pythagorean (β.4.7):
+        re² + (a·re)² = re²(1+a²) ≈ re² + im² ≈ 1.
+  * C ⟹ A (up to sign): from re²(1+a²) ≈ 1 and Pythagorean,
+        im² ≈ a² · re², so im ≈ ±a · re. The sign is determined by the
+        a → 0 limit (im → 0 = +a · re|_{a=0}).
+
+  This part **declares the target predicates cleanly + ships the
+  A ⟺ B equivalence as a clean algebraic theorem** (no analytical content
+  needed for this reduction — it's pure TauComplex-level algebra).
+
+  The analytical discharge (proving one of A/B/C from the existing
+  structural facts) remains the next visit's analytical work. Approaches:
+    * Power-series combinatorial identity (~300 LOC)
+    * Derivative-based argument via new TauReal-derivative machinery
+    * Bridge through Mathlib's Real.arctan via bridge_functor_exists
+-/
+
+/-- **[I.D-CisTauReal-Tangent-Target-A]** The tangent identity in linear
+    form (Option C from design memo):
+
+        (cisTauReal(arctan a)).im ≈ a · (cisTauReal(arctan a)).re
+
+    for `|a.toRat| ≤ 1/2`. -/
+def TauComplex.cisTauReal_tangent_target_A : Prop :=
+  ∀ (a : TauRat) (ha : 2 * |a.toRat| ≤ 1),
+    TauReal.equiv
+      (TauComplex.cisTauReal (TauReal.arctan_of_rat a ha)).im
+      (TauReal.mul (TauReal.fromTauRat a)
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat a ha)).re)
+
+/-- **[I.D-CisTauReal-Tangent-Target-B]** The tangent identity in
+    vanishing-imag form (sqrt-free, scaledCis-based):
+
+        (cisTauReal(arctan a) · scaledCis(−a)).im ≈ TauReal.zero. -/
+def TauComplex.cisTauReal_tangent_target_B : Prop :=
+  ∀ (a : TauRat) (ha : 2 * |a.toRat| ≤ 1),
+    TauReal.equiv
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat a ha)).mul
+        (TauComplex.scaledCis (TauRat.negate a))).im
+      TauReal.zero
+
+/-- **[I.D-CisTauReal-Squared-Tangent-Target]** The tangent identity in
+    squared, sqrt-free form (paired with Pythagorean β.4.7 to recover
+    A up to sign):
+
+        (cisTauReal(arctan a)).re² · (1 + a²) ≈ TauReal.one. -/
+def TauComplex.cisTauReal_squared_tangent_target : Prop :=
+  ∀ (a : TauRat) (ha : 2 * |a.toRat| ≤ 1),
+    TauReal.equiv
+      (TauReal.mul
+        (TauReal.mul (TauComplex.cisTauReal (TauReal.arctan_of_rat a ha)).re
+                    (TauComplex.cisTauReal (TauReal.arctan_of_rat a ha)).re)
+        (TauReal.fromTauRat (TauRat.add TauRat.one (TauRat.mul a a))))
+      TauReal.one
+
+/-! ### The analytical bridge (the capstone proof obligation)
+
+  Discharging any one of forms A / B / C proves the others (via β.4.7
+  Pythagorean and routine TauReal algebra). The analytical content is
+  genuinely deep — none of the existing structural facts (β.3 cisTauReal_add,
+  β.4.1 magnitude product, β.4.6 conjugate, β.4.7 Pythagorean) bootstrap
+  the tangent identity, because they're all expressible without using
+  the "tan(arctan a) = a" inverse-function content.
+
+  The shortest constructive paths to discharge:
+
+  **(i) Power-series combinatorial identity** (~300-500 LOC):
+    Prove that `sin(arctan x)` and `x · cos(arctan x)` agree
+    coefficient-by-coefficient as formal power series in x. Each
+    coefficient identity reduces to a finite Rat-arithmetic claim.
+
+  **(ii) TauReal-derivative machinery** (~500+ LOC new + capstone proof):
+    Build constructive derivatives at TauReal level, prove
+    `(arctan_of_rat)' a ≈ 1/(1+a²)`, then derive the tangent identity
+    via the ODE `h'(a) = a/(1+a²) · h(a)` with `h(0) = 0` ⇒ h ≡ 0.
+
+  **(iii) Bridge via Mathlib's Real.arctan** (uses bridge_functor_exists):
+    Use the Book III axiom to transport `Real.sin_arctan` into the
+    τ-stack. Adds no new content but uses a programme axiom.
+
+  This part declares the target predicates cleanly; downstream work
+  (arctan addition, Machin) can be developed against the targets, with
+  the analytical discharge as a separate sustained effort. -/
 
 end Tau.Boundary
