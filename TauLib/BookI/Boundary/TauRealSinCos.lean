@@ -2040,4 +2040,103 @@ theorem TauComplex.exp_zero_equiv_one :
     have h_sin := TauReal.sin_of_rat_zero_equiv_zero
     exact TauReal.equiv_trans h_bridge h_sin
 
+-- ============================================================
+-- PART 23: 🎯 MAGNITUDE IDENTITY — cisTauReal(x) · cisTauReal(-x) ≈ 1
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.1 — `cisTauReal(x) · cisTauReal(−x) ≈ TauComplex.one`
+
+  Given a bounded-by-1 TauReal `x`:
+
+      cisTauReal(x) · cisTauReal(negate x) ≈ TauComplex.one
+
+  Proof chain:
+    1. By definition: cisTauReal(x) · cisTauReal(-x)
+         = exp(pureIm_of_real x) · exp(pureIm_of_real (negate x))
+    2. exp_add (M3 endpoint):
+         ≈ exp((pureIm_of_real x).add (pureIm_of_real (negate x)))
+    3. exp_respects_toRat_pointwise:
+         ≈ exp(TauComplex.zero)
+       (because componentwise toRat: .re both 0, .im both x-x=0)
+    4. exp_zero_equiv_one (β.4.0):
+         ≈ TauComplex.one
+
+  This is the structural sqrt-free magnitude identity for `cisTauReal`,
+  serving as a building block for the eventual scaledCis ↔ cisTauReal
+  bridge (Phase 2.6.B.2.β.4 main). -/
+
+/-- **Bounded-by-1 lifts through `TauReal.negate`**: if every
+    approximation of `x` has `abs.toRat ≤ 1`, the same holds for
+    `negate x`. -/
+theorem TauReal.negate_approx_abs_toRat_le_one (x : TauReal)
+    (hx : ∀ n, (x.approx n).abs.toRat ≤ 1) (n : Nat) :
+    ((TauReal.negate x).approx n).abs.toRat ≤ 1 := by
+  -- (TauReal.negate x).approx n = TauRat.negate (x.approx n)
+  show ((TauRat.negate (x.approx n))).abs.toRat ≤ 1
+  rw [TauRat.toRat_abs, toRat_negate, abs_neg]
+  rw [← TauRat.toRat_abs]
+  exact hx n
+
+/-- **🎯🎯🎯 Phase 2.6.B.2.β.4.1 — magnitude identity**:
+
+    For TauReal `x` with every approximation bounded by 1,
+
+        cisTauReal(x) · cisTauReal(negate x) ≈ TauComplex.one. -/
+theorem TauComplex.cisTauReal_neg_self_equiv_one (x : TauReal)
+    (hx : ∀ n, (x.approx n).abs.toRat ≤ 1) :
+    TauComplex.equiv
+      ((TauComplex.cisTauReal x).mul (TauComplex.cisTauReal (TauReal.negate x)))
+      TauComplex.one := by
+  -- Step 1: definitional unfold to exp's
+  show TauComplex.equiv
+        ((TauComplex.exp (TauComplex.pureIm_of_real x)).mul
+          (TauComplex.exp (TauComplex.pureIm_of_real (TauReal.negate x))))
+        TauComplex.one
+  -- Step 2: exp_add (M3)
+  have h_neg_bd : ∀ n, ((TauReal.negate x).approx n).abs.toRat ≤ 1 :=
+    TauReal.negate_approx_abs_toRat_le_one x hx
+  have h_add_back : TauComplex.equiv
+        (TauComplex.exp ((TauComplex.pureIm_of_real x).add
+                          (TauComplex.pureIm_of_real (TauReal.negate x))))
+        ((TauComplex.exp (TauComplex.pureIm_of_real x)).mul
+          (TauComplex.exp (TauComplex.pureIm_of_real (TauReal.negate x)))) :=
+    TauComplex.exp_add _ _
+      (TauComplex.pureIm_of_real_BoundedBy x 1 (by omega) hx)
+      (TauComplex.pureIm_of_real_BoundedBy (TauReal.negate x) 1 (by omega) h_neg_bd)
+  -- Step 3: bridge to exp(TauComplex.zero) via exp_respects_toRat_pointwise
+  have h_bridge_zero : TauComplex.equiv
+        (TauComplex.exp ((TauComplex.pureIm_of_real x).add
+                          (TauComplex.pureIm_of_real (TauReal.negate x))))
+        (TauComplex.exp TauComplex.zero) := by
+    apply TauComplex.exp_respects_toRat_pointwise
+    · -- .re componentwise toRat: both 0
+      intro n
+      show (TauRat.add ((TauComplex.pureIm_of_real x).re.approx n)
+                      ((TauComplex.pureIm_of_real (TauReal.negate x)).re.approx n)).toRat
+          = (TauComplex.zero.re.approx n).toRat
+      show (TauRat.add TauRat.zero TauRat.zero).toRat = (TauRat.zero).toRat
+      rw [toRat_add, toRat_zero]
+      ring
+    · -- .im componentwise toRat: LHS = (x.approx n).toRat + (-(x.approx n)).toRat = 0; RHS = 0
+      intro n
+      show (TauRat.add ((TauComplex.pureIm_of_real x).im.approx n)
+                      ((TauComplex.pureIm_of_real (TauReal.negate x)).im.approx n)).toRat
+          = (TauComplex.zero.im.approx n).toRat
+      -- pureIm_of_real x .im.approx n = x.approx n
+      -- pureIm_of_real (negate x) .im.approx n = (negate x).approx n = TauRat.negate (x.approx n)
+      show (TauRat.add (x.approx n) (TauRat.negate (x.approx n))).toRat
+          = (TauRat.zero).toRat
+      rw [toRat_add, toRat_negate, toRat_zero]
+      ring
+  -- Step 4: assemble — equiv_symm(h_add_back) ∘ h_bridge_zero ∘ exp_zero_equiv_one
+  have h_step1 : TauComplex.equiv
+        ((TauComplex.exp (TauComplex.pureIm_of_real x)).mul
+          (TauComplex.exp (TauComplex.pureIm_of_real (TauReal.negate x))))
+        (TauComplex.exp ((TauComplex.pureIm_of_real x).add
+                          (TauComplex.pureIm_of_real (TauReal.negate x)))) :=
+    TauComplex.equiv_symm h_add_back
+  exact TauComplex.equiv_trans
+          (TauComplex.equiv_trans h_step1 h_bridge_zero)
+          TauComplex.exp_zero_equiv_one
+
 end Tau.Boundary
