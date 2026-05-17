@@ -542,4 +542,423 @@ theorem TauReal.IsDerivAt_const_mul
     _ = 1 / ((k : Rat) + 1) := by
         field_simp
 
+-- ============================================================
+-- PART 9: PRODUCT RULE (LEIBNIZ) — Wave 1: HELPER LEMMAS
+-- ============================================================
+
+/-! ## Wave 1 — Helper lemmas for the full Leibniz product rule
+
+  Per the forensic roadmap in
+  `atlas/insights/2026-05-17-lean-tactic-friction-forensics-leibniz.md`,
+  the Leibniz proof is structured as three waves. Wave 1 ships the
+  Rat-level algebraic helpers and modulus-arithmetic lemmas. These are
+  independent testable units that don't reference `IsDerivAt`.
+
+  All helpers below follow the cheat-sheet patterns:
+    • `simp only [toRat_*]; ring` for algebraic identities
+    • Nat-level proof first, then `exact_mod_cast` to Rat
+    • `field_simp` only at final normalization
+-/
+
+/-- **Wave 1.1**: 4-piece algebraic decomposition of the Leibniz Diff.
+
+    Given `(Fh − Fa)·t = 1` (the dyadic-step inversion identity), the
+    Diff `((Fh·Gh − Fa·Ga)·t − Lf·Ga − Fa·Lg)` decomposes as:
+
+        α · Gh  +  Lf · β / t  +  Lf · Lg / t  +  Fa · β
+
+    where α := (Fh − Fa)·t − Lf and β := (Gh − Ga)·t − Lg.
+
+    Note: Unlike the simpler 3-piece form which uses `(Gh − Ga)`, this
+    4-piece form decomposes `Lf·(Gh − Ga)` into `Lf·β/t + Lf·Lg/t` for
+    cleaner per-piece bound analysis. -/
+private theorem scaledDiff_mul_4piece_split
+    (Fh Fa Gh Ga Lf Lg t : Rat) (h_t_ne : t ≠ 0) :
+    (Fh * Gh - Fa * Ga) * t - Lf * Ga - Fa * Lg
+    = ((Fh - Fa) * t - Lf) * Gh
+      + Lf * ((Gh - Ga) * t - Lg) / t
+      + Lf * Lg / t
+      + Fa * ((Gh - Ga) * t - Lg) := by
+  field_simp
+  ring
+
+/-- **Wave 1.2**: modulus arithmetic — four `1/(4M(k+1))` pieces sum to `1/(k+1)`. -/
+private theorem leibniz_four_quarter_sum (M : Nat) (hM : 1 ≤ M) (k : Nat) :
+    (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+      + (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+      + (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+      + (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+    = 1 / ((k : Rat) + 1) := by
+  have hM_pos : (0 : Rat) < (M : Rat) := by
+    exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have hM_ne : (M : Rat) ≠ 0 := ne_of_gt hM_pos
+  field_simp
+  ring
+
+/-- **Wave 1.3**: Bernoulli inequality `2^N ≥ N+1` at Nat level. -/
+private theorem leibniz_bernoulli_nat (N : Nat) : N + 1 ≤ 2 ^ N := by
+  induction N with
+  | zero => norm_num
+  | succ n ih =>
+    have h_pow_one : 1 ≤ 2^n := Nat.one_le_pow n 2 (by norm_num)
+    calc n + 1 + 1 ≤ 2^n + 2^n := by omega
+      _ = 2^(n+1) := by rw [pow_succ]; ring
+
+/-- **Wave 1.4**: Bernoulli at Rat level for `2^N`. -/
+private theorem leibniz_bernoulli_rat (N : Nat) :
+    ((N : Rat) + 1) ≤ (2 : Rat) ^ N := by
+  have h_nat := leibniz_bernoulli_nat N
+  have h_cast : ((N + 1 : Nat) : Rat) ≤ ((2 ^ N : Nat) : Rat) := by exact_mod_cast h_nat
+  have h_lhs : ((N + 1 : Nat) : Rat) = (N : Rat) + 1 := by push_cast; ring
+  have h_rhs : ((2 ^ N : Nat) : Rat) = (2 : Rat) ^ N := by push_cast; ring
+  linarith
+
+/-- **Wave 1.5**: Nat-level subtraction cast helper.
+
+    For modulus-cast manipulations: given `1 ≤ M·k + M`, the cast
+    `((M·k + M − 1 : Nat) : Rat) + 1 = M(k+1)` at Rat level.
+    Generalised to `c · k + c` form for c-multiplied moduli. -/
+private theorem leibniz_modulus_cast (c k : Nat) (hc : 1 ≤ c) :
+    (((c * (k + 1) - 1 : Nat) : Rat) + 1) = (c : Rat) * ((k : Rat) + 1) := by
+  have h_pos : 1 ≤ c * (k + 1) := by
+    have hk1 : 1 ≤ k + 1 := Nat.succ_pos k
+    exact Nat.one_le_iff_ne_zero.mpr (Nat.mul_pos hc (by omega)).ne'
+  have h_nat : c * (k + 1) - 1 + 1 = c * (k + 1) := by omega
+  have h_cast_eq : (((c * (k + 1) - 1 + 1) : Nat) : Rat) = ((c * (k + 1) : Nat) : Rat) := by
+    exact_mod_cast h_nat
+  have h_split : (((c * (k + 1) - 1 + 1) : Nat) : Rat)
+              = ((c * (k + 1) - 1 : Nat) : Rat) + 1 := by push_cast; ring
+  have h_final : ((c * (k + 1) : Nat) : Rat) = (c : Rat) * ((k : Rat) + 1) := by
+    push_cast; ring
+  linarith
+
+-- ============================================================
+-- PART 10: PRODUCT RULE (LEIBNIZ) — Wave 2: PIECE-BOUND LEMMAS
+-- ============================================================
+
+/-! ## Wave 2 — Four piece-bound lemmas
+
+  Each piece bounds one of the four terms in the 4-piece decomposition
+  by `1/(4(k+1))` strictly. Together they assemble to `< 1/(k+1)` via
+  triangle inequality + `leibniz_four_quarter_sum`.
+
+  All four use the same cheat-sheet `calc` pattern:
+    `mul_le_mul_of_nonneg_*` to absorb the bounded factor,
+    `mul_lt_mul_of_pos_*` to absorb the strict-bounded factor,
+    `field_simp` only at the final normalization.
+-/
+
+/-- **Wave 2.1**: piece 1 — bounds `|α · Gh|` by `1/(4(k+1))`.
+
+    Given strict bound `|α| < 1/(4M(k+1))` and nonstrict bound `|Gh| ≤ M`,
+    the product `|α · Gh| < 1/(4(k+1))`. -/
+private theorem bound_piece_1_alpha_Gh
+    (α Gh : Rat) (M : Nat) (hM : 1 ≤ M) (k : Nat)
+    (h_α : |α| < 1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+    (h_Gh : |Gh| ≤ (M : Rat)) :
+    |α * Gh| < 1 / (4 * ((k : Rat) + 1)) := by
+  have hM_pos : (0 : Rat) < (M : Rat) := by
+    exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  have hM_ne : (M : Rat) ≠ 0 := ne_of_gt hM_pos
+  rw [abs_mul]
+  calc |α| * |Gh|
+      ≤ |α| * (M : Rat) :=
+        mul_le_mul_of_nonneg_left h_Gh (_root_.abs_nonneg α)
+    _ < (1 / (4 * (M : Rat) * ((k : Rat) + 1))) * (M : Rat) :=
+        mul_lt_mul_of_pos_right h_α hM_pos
+    _ = 1 / (4 * ((k : Rat) + 1)) := by field_simp
+
+/-- **Wave 2.2**: piece 2 — bounds `|Lf · β / t|` by `1/(4(k+1))`.
+
+    Given `|Lf| ≤ M`, strict `|β| < 1/(4M(k+1))`, and `t ≥ 1`,
+    the quotient `|Lf · β / t| < 1/(4(k+1))`. The `/t` doesn't enlarge
+    since `t ≥ 1`. -/
+private theorem bound_piece_2_Lf_beta_t
+    (Lf β t : Rat) (M : Nat) (hM : 1 ≤ M) (k : Nat)
+    (h_Lf : |Lf| ≤ (M : Rat))
+    (h_β : |β| < 1 / (4 * (M : Rat) * ((k : Rat) + 1)))
+    (h_t_pos : 0 < t) (h_t_ge_one : 1 ≤ t) :
+    |Lf * β / t| < 1 / (4 * ((k : Rat) + 1)) := by
+  have hM_pos : (0 : Rat) < (M : Rat) := by
+    exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have hM_ne : (M : Rat) ≠ 0 := ne_of_gt hM_pos
+  rw [abs_div, abs_mul, abs_of_pos h_t_pos]
+  -- Goal: |Lf| * |β| / t < 1/(4(k+1))
+  -- Strategy: |Lf|·|β| ≤ M·|β| < M·(1/(4M(k+1))) = 1/(4(k+1)), then /t ≤ /1.
+  have h_num_bound : |Lf| * |β| < 1 / (4 * ((k : Rat) + 1)) := by
+    calc |Lf| * |β|
+        ≤ (M : Rat) * |β| :=
+          mul_le_mul_of_nonneg_right h_Lf (_root_.abs_nonneg β)
+      _ < (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1))) :=
+          mul_lt_mul_of_pos_left h_β hM_pos
+      _ = 1 / (4 * ((k : Rat) + 1)) := by field_simp
+  have h_num_nn : 0 ≤ |Lf| * |β| :=
+    mul_nonneg (_root_.abs_nonneg Lf) (_root_.abs_nonneg β)
+  -- |Lf|·|β| / t ≤ |Lf|·|β| (since 1/t ≤ 1)
+  have h_div_le : |Lf| * |β| / t ≤ |Lf| * |β| := by
+    rw [div_le_iff₀ h_t_pos]
+    calc |Lf| * |β| = |Lf| * |β| * 1 := by ring
+      _ ≤ |Lf| * |β| * t := mul_le_mul_of_nonneg_left h_t_ge_one h_num_nn
+  linarith
+
+/-- **Wave 2.3**: piece 3 — bounds `|Lf · Lg / t|` by `1/(4(k+1))`.
+
+    Given `|Lf| ≤ M`, `|Lg| ≤ M`, and `t ≥ 4M²(k+1) + 1` (Bernoulli
+    via `2^N ≥ N+1` from Wave 1.3), the quotient `|Lf · Lg / t| < 1/(4(k+1))`. -/
+private theorem bound_piece_3_Lf_Lg_t
+    (Lf Lg t : Rat) (M : Nat) (hM : 1 ≤ M) (k : Nat)
+    (h_Lf : |Lf| ≤ (M : Rat))
+    (h_Lg : |Lg| ≤ (M : Rat))
+    (h_t_pos : 0 < t)
+    (h_t_ge : 4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) + 1 ≤ t) :
+    |Lf * Lg / t| < 1 / (4 * ((k : Rat) + 1)) := by
+  have hM_pos : (0 : Rat) < (M : Rat) := by
+    exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  have h_4k1_pos : (0 : Rat) < 4 * ((k : Rat) + 1) := by linarith
+  have h_4MMk1_pos : (0 : Rat) < 4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) := by
+    have h_MM : (0 : Rat) < 4 * (M : Rat) * (M : Rat) := by nlinarith
+    exact mul_pos h_MM hk1_pos
+  have h_t_lb_pos : (0 : Rat) < 4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) + 1 := by linarith
+  rw [abs_div, abs_mul, abs_of_pos h_t_pos]
+  -- Goal: |Lf| * |Lg| / t < 1/(4(k+1))
+  -- Strategy: |Lf|·|Lg| ≤ M² ≤ M², then divide by t ≥ 4M²(k+1)+1
+  have h_num_bound : |Lf| * |Lg| ≤ (M : Rat) * (M : Rat) := by
+    calc |Lf| * |Lg|
+        ≤ (M : Rat) * |Lg| :=
+          mul_le_mul_of_nonneg_right h_Lf (_root_.abs_nonneg Lg)
+      _ ≤ (M : Rat) * (M : Rat) :=
+          mul_le_mul_of_nonneg_left h_Lg (le_of_lt hM_pos)
+  have h_num_nn : 0 ≤ |Lf| * |Lg| :=
+    mul_nonneg (_root_.abs_nonneg Lf) (_root_.abs_nonneg Lg)
+  -- |Lf|·|Lg| / t ≤ M² / t ≤ M² / (4M²(k+1)+1) < 1/(4(k+1))
+  have h_div1 : |Lf| * |Lg| / t ≤ (M : Rat) * (M : Rat) / t :=
+    div_le_div_of_nonneg_right h_num_bound (le_of_lt h_t_pos)
+  have h_div2 : (M : Rat) * (M : Rat) / t
+              ≤ (M : Rat) * (M : Rat) / (4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) + 1) := by
+    apply div_le_div_of_nonneg_left _ h_t_lb_pos h_t_ge
+    exact mul_nonneg (le_of_lt hM_pos) (le_of_lt hM_pos)
+  -- M² / (4M²(k+1)+1) < 1/(4(k+1)) iff M²·4(k+1) < 4M²(k+1)+1, i.e., 0 < 1
+  have h_div3 : (M : Rat) * (M : Rat) / (4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) + 1)
+              < 1 / (4 * ((k : Rat) + 1)) := by
+    rw [div_lt_div_iff₀ h_t_lb_pos h_4k1_pos]
+    -- M² · 4(k+1) < 1 · (4M²(k+1) + 1)
+    have h_eq : (M : Rat) * (M : Rat) * (4 * ((k : Rat) + 1))
+              = 4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) := by ring
+    linarith
+  linarith
+
+/-- **Wave 2.4**: piece 4 — bounds `|Fa · β|` by `1/(4(k+1))`.
+
+    Symmetric to piece 1 with roles swapped: nonstrict bound on `|Fa| ≤ M`,
+    strict bound `|β| < 1/(4M(k+1))`. -/
+private theorem bound_piece_4_Fa_beta
+    (Fa β : Rat) (M : Nat) (hM : 1 ≤ M) (k : Nat)
+    (h_Fa : |Fa| ≤ (M : Rat))
+    (h_β : |β| < 1 / (4 * (M : Rat) * ((k : Rat) + 1))) :
+    |Fa * β| < 1 / (4 * ((k : Rat) + 1)) := by
+  have hM_pos : (0 : Rat) < (M : Rat) := by
+    exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have hM_ne : (M : Rat) ≠ 0 := ne_of_gt hM_pos
+  rw [abs_mul]
+  calc |Fa| * |β|
+      ≤ (M : Rat) * |β| :=
+        mul_le_mul_of_nonneg_right h_Fa (_root_.abs_nonneg β)
+    _ < (M : Rat) * (1 / (4 * (M : Rat) * ((k : Rat) + 1))) :=
+        mul_lt_mul_of_pos_left h_β hM_pos
+    _ = 1 / (4 * ((k : Rat) + 1)) := by field_simp
+
+-- ============================================================
+-- PART 11: PRODUCT RULE (LEIBNIZ) — Wave 3: FINAL ASSEMBLY
+-- ============================================================
+
+/-! ## Wave 3 — Final assembly of the Leibniz product rule
+
+  Combines Wave 1's algebraic decomposition (`scaledDiff_mul_4piece_split`)
+  with Wave 2's four piece bounds via triangle inequality, then closes
+  with `leibniz_four_quarter_sum` (Wave 1.2).
+-/
+
+/-- **[I.T-IsDerivAt-Mul]** Full Leibniz product rule for TauReal derivative.
+
+    Given `IsDerivAt f a L_f`, `IsDerivAt g a L_g`, and uniform Nat bound
+    `M ≥ 1` on the relevant TauReal values:
+
+        IsDerivAt (f · g) a (L_f · g(a) + f(a) · L_g).
+
+    Modulus: `μ_(f·g)(k) := max(μ_f(4M(k+1)−1), μ_g(4M(k+1)−1), 4M²(k+1))`. -/
+theorem TauReal.IsDerivAt_mul
+    {f g : TauRat → TauReal} {a : TauRat} {L_f L_g : TauReal}
+    (M : Nat) (hM : 1 ≤ M)
+    (h_bound_fa : ∀ n, ((f a).approx n).abs.toRat ≤ M)
+    (h_bound_ga : ∀ n, ((g a).approx n).abs.toRat ≤ M)
+    (h_bound_g_at_steps : ∀ N n, ((g (a.add (TauRat.dyadicStep N))).approx n).abs.toRat ≤ M)
+    (h_bound_Lf : ∀ n, (L_f.approx n).abs.toRat ≤ M)
+    (h_bound_Lg : ∀ n, (L_g.approx n).abs.toRat ≤ M)
+    (hf : TauReal.IsDerivAt f a L_f) (hg : TauReal.IsDerivAt g a L_g) :
+    TauReal.IsDerivAt (fun x => (f x).mul (g x)) a
+        ((L_f.mul (g a)).add ((f a).mul L_g)) := by
+  obtain ⟨μ_f, hμ_f⟩ := hf
+  obtain ⟨μ_g, hμ_g⟩ := hg
+  refine ⟨fun k => max (max (μ_f (4*M*(k+1) - 1)) (μ_g (4*M*(k+1) - 1)))
+                       (4*M*M*(k+1)), fun k N hN => ?_⟩
+  have hN_f : μ_f (4*M*(k+1) - 1) ≤ N := le_of_max_le_left (le_of_max_le_left hN)
+  have hN_g : μ_g (4*M*(k+1) - 1) ≤ N := le_of_max_le_right (le_of_max_le_left hN)
+  have hN_pow : 4*M*M*(k+1) ≤ N := le_of_max_le_right hN
+  have h_f := hμ_f (4*M*(k+1) - 1) N hN_f
+  have h_g := hμ_g (4*M*(k+1) - 1) N hN_g
+  unfold TauRat.lt at h_f h_g ⊢
+  rw [TauRat.toRat_abs, TauRat.ofNatRecip_toRat] at h_f h_g ⊢
+  -- Bounds setup
+  have hM_pos : (0 : Rat) < (M : Rat) := by
+    exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have h4M_ge : 1 ≤ 4*M := by omega
+  -- Modulus cast: 1/(((4M(k+1)-1):Rat)+1) = 1/(4M(k+1))
+  have h_cast_mod : (((4*M*(k+1) - 1 : Nat) : Rat) + 1) = 4 * (M : Rat) * ((k : Rat) + 1) := by
+    have h := leibniz_modulus_cast (4*M) k h4M_ge
+    have h_eq : ((4*M : Nat) : Rat) * ((k : Rat) + 1) = 4 * (M : Rat) * ((k : Rat) + 1) := by
+      push_cast; ring
+    linarith [h, h_eq]
+  rw [h_cast_mod] at h_f h_g
+  -- h_f, h_g now: |·| < 1 / ((4*M : Rat) * (k+1))
+  -- TauRat bounds at depth N → Rat bounds
+  have h_Fa_bd : |((f a).approx N).toRat| ≤ (M : Rat) := by
+    have := h_bound_fa N; rw [TauRat.toRat_abs] at this; exact this
+  have h_Ga_bd : |((g a).approx N).toRat| ≤ (M : Rat) := by
+    have := h_bound_ga N; rw [TauRat.toRat_abs] at this; exact this
+  have h_Gh_bd : |((g (a.add (TauRat.dyadicStep N))).approx N).toRat| ≤ (M : Rat) := by
+    have := h_bound_g_at_steps N N; rw [TauRat.toRat_abs] at this; exact this
+  have h_Lf_bd : |(L_f.approx N).toRat| ≤ (M : Rat) := by
+    have := h_bound_Lf N; rw [TauRat.toRat_abs] at this; exact this
+  have h_Lg_bd : |(L_g.approx N).toRat| ≤ (M : Rat) := by
+    have := h_bound_Lg N; rw [TauRat.toRat_abs] at this; exact this
+  -- t = 2^N at Rat level
+  have h_t_eq : ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N).toRat = (2 : Rat)^N :=
+    TauRat.twoPowN_toRat N
+  have h_t_pos : (0 : Rat) < (2 : Rat)^N := by positivity
+  have h_t_ge_one : (1 : Rat) ≤ (2 : Rat)^N := by
+    have h_bern := leibniz_bernoulli_rat N
+    have h_N_nn : (0 : Rat) ≤ (N : Rat) := by exact_mod_cast Nat.zero_le N
+    linarith
+  -- Bernoulli: 2^N ≥ 4M²(k+1) + 1
+  have h_t_ge_4MM1 : 4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) + 1 ≤ (2 : Rat)^N := by
+    have h_bern := leibniz_bernoulli_rat N
+    have h_N_lb_rat : ((4*M*M*(k+1) : Nat) : Rat) ≤ (N : Rat) := by exact_mod_cast hN_pow
+    have h_cast2 : ((4*M*M*(k+1) : Nat) : Rat) = 4 * (M : Rat) * (M : Rat) * ((k : Rat) + 1) := by
+      push_cast; ring
+    rw [h_cast2] at h_N_lb_rat
+    linarith
+  -- Compute LHS at toRat level
+  -- The .approx N of the structural goal expression is a TauRat;
+  -- its .toRat is the Rat expression matching scaledDiff_mul_4piece_split's LHS.
+  have h_lhs_toRat :
+      ((((((fun x => (f x).mul (g x)) (a.add (TauRat.dyadicStep N))).sub
+            ((fun x => (f x).mul (g x)) a)).mul
+          (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+          ((L_f.mul (g a)).add ((f a).mul L_g))).approx N).toRat
+      = (((f (a.add (TauRat.dyadicStep N))).approx N).toRat
+            * ((g (a.add (TauRat.dyadicStep N))).approx N).toRat
+          - ((f a).approx N).toRat * ((g a).approx N).toRat)
+          * (2 : Rat)^N
+        - (L_f.approx N).toRat * ((g a).approx N).toRat
+        - ((f a).approx N).toRat * (L_g.approx N).toRat := by
+    show ((TauRat.add
+            (TauRat.mul
+              (TauRat.add
+                (TauRat.mul ((f (a.add (TauRat.dyadicStep N))).approx N)
+                            ((g (a.add (TauRat.dyadicStep N))).approx N))
+                (TauRat.negate
+                  (TauRat.mul ((f a).approx N) ((g a).approx N))))
+              ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N))
+            (TauRat.negate
+              (TauRat.add
+                (TauRat.mul (L_f.approx N) ((g a).approx N))
+                (TauRat.mul ((f a).approx N) (L_g.approx N))))).toRat) = _
+    simp only [toRat_add, toRat_mul, toRat_negate]
+    rw [h_t_eq]
+    ring
+  rw [h_lhs_toRat]
+  -- Apply scaledDiff_mul_4piece_split
+  have h_t_ne : ((2 : Rat) ^ N) ≠ 0 := ne_of_gt h_t_pos
+  rw [scaledDiff_mul_4piece_split _ _ _ _ _ _ _ h_t_ne]
+  -- Now: |α·Gh + Lf·β/t + Lf·Lg/t + Fa·β| < 1/((k:Rat)+1)
+  -- Get strict bounds α, β at Rat level by rewriting h_f, h_g
+  -- Convert h_f's TauRat-level bound to Rat-level form via change tactic
+  have h_α_eq :
+      (((((f (a.add (TauRat.dyadicStep N))).sub (f a)).mul
+            (TauReal.fromTauRat (TauRat.twoPowN N))).sub L_f).approx N).toRat
+      = (((f (a.add (TauRat.dyadicStep N))).approx N).toRat
+          - ((f a).approx N).toRat) * (2 : Rat)^N
+        - (L_f.approx N).toRat := by
+    -- (TauReal.sub a b).approx N = TauRat.add (a.approx N) (TauRat.negate (b.approx N)) by def
+    -- Similarly for .mul. Use simp to unfold definitionally.
+    change (TauRat.add
+              (TauRat.mul (TauRat.add ((f (a.add (TauRat.dyadicStep N))).approx N)
+                                      (TauRat.negate ((f a).approx N)))
+                          ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N))
+              (TauRat.negate (L_f.approx N))).toRat = _
+    simp only [toRat_add, toRat_mul, toRat_negate]
+    rw [h_t_eq]; ring
+  have h_β_eq :
+      (((((g (a.add (TauRat.dyadicStep N))).sub (g a)).mul
+            (TauReal.fromTauRat (TauRat.twoPowN N))).sub L_g).approx N).toRat
+      = (((g (a.add (TauRat.dyadicStep N))).approx N).toRat
+          - ((g a).approx N).toRat) * (2 : Rat)^N
+        - (L_g.approx N).toRat := by
+    change (TauRat.add
+              (TauRat.mul (TauRat.add ((g (a.add (TauRat.dyadicStep N))).approx N)
+                                      (TauRat.negate ((g a).approx N)))
+                          ((TauReal.fromTauRat (TauRat.twoPowN N)).approx N))
+              (TauRat.negate (L_g.approx N))).toRat = _
+    simp only [toRat_add, toRat_mul, toRat_negate]
+    rw [h_t_eq]; ring
+  rw [h_α_eq] at h_f
+  rw [h_β_eq] at h_g
+  -- h_f, h_g now: |Rat-form-α/β| < 1 / (4 * M * (k+1))
+  -- Aliases for readability (do NOT use `set` per cheat-sheet)
+  let α := (((f (a.add (TauRat.dyadicStep N))).approx N).toRat
+            - ((f a).approx N).toRat) * (2 : Rat)^N
+            - (L_f.approx N).toRat
+  let β := (((g (a.add (TauRat.dyadicStep N))).approx N).toRat
+            - ((g a).approx N).toRat) * (2 : Rat)^N
+            - (L_g.approx N).toRat
+  -- Apply triangle inequality on 4 pieces
+  have h_tri : ∀ a b c d : Rat, |a + b + c + d| ≤ |a| + |b| + |c| + |d| := by
+    intro a b c d
+    calc |a + b + c + d|
+        ≤ |a + b + c| + |d| := abs_add_le _ _
+      _ ≤ |a + b| + |c| + |d| := by linarith [abs_add_le (a + b) c]
+      _ ≤ |a| + |b| + |c| + |d| := by linarith [abs_add_le a b]
+  apply lt_of_le_of_lt (h_tri _ _ _ _)
+  -- Apply piece bounds
+  have h_p1 := bound_piece_1_alpha_Gh
+    ((((f (a.add (TauRat.dyadicStep N))).approx N).toRat
+      - ((f a).approx N).toRat) * (2 : Rat)^N - (L_f.approx N).toRat)
+    ((g (a.add (TauRat.dyadicStep N))).approx N).toRat
+    M hM k h_f h_Gh_bd
+  have h_p2 := bound_piece_2_Lf_beta_t
+    ((L_f.approx N).toRat)
+    ((((g (a.add (TauRat.dyadicStep N))).approx N).toRat
+      - ((g a).approx N).toRat) * (2 : Rat)^N - (L_g.approx N).toRat)
+    ((2 : Rat)^N) M hM k h_Lf_bd h_g h_t_pos h_t_ge_one
+  have h_p3 := bound_piece_3_Lf_Lg_t
+    ((L_f.approx N).toRat)
+    ((L_g.approx N).toRat)
+    ((2 : Rat)^N) M hM k h_Lf_bd h_Lg_bd h_t_pos h_t_ge_4MM1
+  have h_p4 := bound_piece_4_Fa_beta
+    ((f a).approx N).toRat
+    ((((g (a.add (TauRat.dyadicStep N))).approx N).toRat
+      - ((g a).approx N).toRat) * (2 : Rat)^N - (L_g.approx N).toRat)
+    M hM k h_Fa_bd h_g
+  -- Sum: 4 · 1/(4(k+1)) = 1/(k+1)
+  have h_sum_eq : 1 / (4 * ((k : Rat) + 1)) + 1 / (4 * ((k : Rat) + 1))
+                  + 1 / (4 * ((k : Rat) + 1)) + 1 / (4 * ((k : Rat) + 1))
+                = 1 / ((k : Rat) + 1) := by field_simp; ring
+  linarith
+
 end Tau.Boundary
