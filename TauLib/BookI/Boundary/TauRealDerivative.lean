@@ -430,4 +430,116 @@ theorem TauReal.IsDerivAt_sub
   -- TauReal.sub is defined as add ∘ negate, so this is definitionally what we want.
   exact h_add
 
+-- ============================================================
+-- PART 8: CONSTANT SCALAR RULE  (with bound)
+-- ============================================================
+
+/-- **Helper**: constant-scalar scaled-difference at depth N (Rat level).
+
+    Algebraic identity: the scaled-difference of `c · f` at depth N is
+    `c · (scaled-difference of f)`, at the .toRat level. -/
+private theorem scaledDiff_constMul_split
+    (c Fh Fa Lf t : TauRat) :
+    (TauRat.add
+        (TauRat.mul
+          (TauRat.add (TauRat.mul c Fh) (TauRat.negate (TauRat.mul c Fa)))
+          t)
+        (TauRat.negate (TauRat.mul c Lf))).toRat
+    = c.toRat * ((TauRat.add
+                    (TauRat.mul (TauRat.add Fh (TauRat.negate Fa)) t)
+                    (TauRat.negate Lf)).toRat) := by
+  simp only [toRat_add, toRat_mul, toRat_negate]
+  ring
+
+/-- **[I.T-IsDerivAt-ConstScale]** Constant-scalar rule for the TauReal derivative:
+
+        IsDerivAt f a L_f, (c is bounded)  ⟹
+          IsDerivAt (fun x => c · f x) a (c · L_f).
+
+    Modulus: μ_f(M·k + M − 1) where M is a Nat upper bound on |c|.
+    Justification: M · (1/(Mk+M)) = 1/(k+1). -/
+theorem TauReal.IsDerivAt_const_mul
+    {f : TauRat → TauReal} {a : TauRat} {L_f : TauReal}
+    (c : TauReal) (M : Nat) (hM : 1 ≤ M)
+    (h_bound : ∀ n, (c.approx n).abs.toRat ≤ M)
+    (hf : TauReal.IsDerivAt f a L_f) :
+    TauReal.IsDerivAt (fun x => c.mul (f x)) a (c.mul L_f) := by
+  obtain ⟨μ, hμ⟩ := hf
+  refine ⟨fun k => μ (M*k + M - 1), fun k N hN => ?_⟩
+  have h_f := hμ (M*k + M - 1) N hN
+  unfold TauRat.lt at h_f ⊢
+  rw [TauRat.toRat_abs, TauRat.ofNatRecip_toRat] at h_f ⊢
+  -- Set up names
+  set Fh : TauRat := (f (a.add (TauRat.dyadicStep N))).approx N with hFh
+  set Fa : TauRat := (f a).approx N with hFa
+  set Lf : TauRat := L_f.approx N with hLf
+  set cN : TauRat := c.approx N with hcN
+  set t : TauRat := (TauReal.fromTauRat (TauRat.twoPowN N)).approx N with ht
+  -- LHS .approx N: definitionally TauRat-level expression
+  have h_lhs_eq :
+      (((((fun x => c.mul (f x)) (a.add (TauRat.dyadicStep N))).sub
+            ((fun x => c.mul (f x)) a)).mul
+          (TauReal.fromTauRat (TauRat.twoPowN N))).sub
+          (c.mul L_f)).approx N
+      = TauRat.add
+          (TauRat.mul
+            (TauRat.add (TauRat.mul cN Fh) (TauRat.negate (TauRat.mul cN Fa)))
+            t)
+          (TauRat.negate (TauRat.mul cN Lf)) := rfl
+  have h_f_eq :
+      ((((f (a.add (TauRat.dyadicStep N))).sub (f a)).mul
+          (TauReal.fromTauRat (TauRat.twoPowN N))).sub L_f).approx N
+      = TauRat.add (TauRat.mul (TauRat.add Fh (TauRat.negate Fa)) t)
+                    (TauRat.negate Lf) := rfl
+  rw [h_lhs_eq]
+  rw [h_f_eq] at h_f
+  rw [scaledDiff_constMul_split]
+  rw [abs_mul]
+  -- Now: |cN.toRat| · |inner.toRat| < 1/((k:Rat)+1)
+  -- Bounds: |cN.toRat| ≤ M (from h_bound at depth N), |inner.toRat| < 1/((Mk+M-1:Nat)+1) = 1/(Mk+M)
+  -- M · 1/(Mk+M) = 1/(k+1). ✓
+  have h_c_bound : |TauRat.toRat cN| ≤ (M : Rat) := by
+    have h := h_bound N
+    rw [TauRat.toRat_abs] at h
+    exact h
+  have h_inner_nn : (0 : Rat) ≤
+      |(((Fh.add Fa.negate).mul t).add Lf.negate).toRat| := by
+    apply _root_.abs_nonneg
+  -- The cast for the inner tolerance
+  have h_cast : (((M * k + M - 1 : Nat) : Rat) + 1) = (M : Rat) * ((k : Rat) + 1) := by
+    have hM_pos : 1 ≤ M * k + M := by
+      have : M ≥ 1 := hM
+      omega
+    have hN_pos : 0 < M * k + M := by omega
+    have h_nat : (M * k + M - 1 + 1 : Nat) = M * k + M := by omega
+    push_cast
+    have : ((M * k + M - 1 : Nat) : Rat) + 1 = ((M * k + M : Nat) : Rat) := by
+      have h_cast_eq : (((M * k + M - 1 + 1) : Nat) : Rat) = ((M * k + M : Nat) : Rat) := by
+        exact_mod_cast h_nat
+      have h_split : (((M * k + M - 1 + 1) : Nat) : Rat) = ((M * k + M - 1 : Nat) : Rat) + 1 := by
+        push_cast; ring
+      linarith
+    rw [this]
+    push_cast
+    ring
+  rw [h_cast] at h_f
+  -- Goal: |cN.toRat| · |inner| < 1/(k+1). h_f: |inner| < 1/(M(k+1)).
+  -- |cN.toRat| ≤ M, so |cN.toRat| · |inner| ≤ M · |inner| < M · 1/(M(k+1)) = 1/(k+1).
+  have hM_pos : (0 : Rat) < (M : Rat) := by exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hM)
+  have h_k1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := by exact_mod_cast Nat.zero_le k
+    linarith
+  have h_Mk1_pos : (0 : Rat) < (M : Rat) * ((k : Rat) + 1) := mul_pos hM_pos h_k1_pos
+  calc |cN.toRat| * |((TauRat.add
+                        (TauRat.mul (TauRat.add Fh (TauRat.negate Fa)) t)
+                        (TauRat.negate Lf)).toRat)|
+      ≤ (M : Rat) * |((TauRat.add
+                        (TauRat.mul (TauRat.add Fh (TauRat.negate Fa)) t)
+                        (TauRat.negate Lf)).toRat)| := by
+        exact mul_le_mul_of_nonneg_right h_c_bound h_inner_nn
+    _ < (M : Rat) * (1 / ((M : Rat) * ((k : Rat) + 1))) := by
+        exact mul_lt_mul_of_pos_left h_f hM_pos
+    _ = 1 / ((k : Rat) + 1) := by
+        field_simp
+
 end Tau.Boundary
