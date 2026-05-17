@@ -2218,4 +2218,192 @@ theorem TauComplex.scaledCis_mul_neg_self_equiv_one_plus_sq (a : TauRat) :
     rw [toRat_add, toRat_mul, toRat_mul, toRat_one, toRat_negate, toRat_zero]
     ring
 
+-- ============================================================
+-- PART 25: 🎯 TauReal-arg toRat BRIDGE — pureIm_of_real powers + exp_term + exp_partial
+-- ============================================================
+
+/-! ## Phase 2.6.B.2.β.4.3 — TauReal-arg toRat bridge
+
+  Extends Parts 5/6/7's toRat-level infrastructure from TauRat angle
+  arguments to general TauReal angle arguments. The key substitution:
+
+      x : TauRat      →    x : TauReal
+      x.toRat         →    (x.approx m_a).toRat
+      pureIm x        →    pureIm_of_real x
+
+  All existing structural patterns transfer line-by-line, since:
+    * `(pureIm_of_real x).re.approx n = TauRat.zero`  (rfl, Part 18)
+    * `(pureIm_of_real x).im.approx n = x.approx n`    (rfl, Part 18)
+
+  matching the TauRat-arg analogs at `pureIm`.
+
+  **Foundation for the tangent identity** (β.4 main): once we know
+
+      ((cisTauReal x).re.approx n).toRat = expPartial_pureIm_re_rat ((x.approx n).toRat) n
+      ((cisTauReal x).im.approx n).toRat = expPartial_pureIm_im_rat ((x.approx n).toRat) n
+
+  the tangent identity `(cisTauReal(arctan_of_rat a)).im ≈ a · (cisTauReal(arctan_of_rat a)).re`
+  reduces to bounding
+
+      | expPartial_pureIm_im_rat (arctan_partial_rat a.toRat n) n
+          - a.toRat · expPartial_pureIm_re_rat (arctan_partial_rat a.toRat n) n | → 0
+
+  as `n → ∞`. -/
+
+/-- **[I.T-PureImOfReal-Pow-Succ-Re]** TauReal-arg version of
+    `pureIm_pow_succ_re_approx_toRat`. -/
+theorem pureIm_of_real_pow_succ_re_approx_toRat (x : TauReal) (k n : Nat) :
+    (((TauComplex.pureIm_of_real x).pow (k+1)).re.approx n).toRat
+      = -(((TauComplex.pureIm_of_real x).pow k).im.approx n).toRat
+        * (x.approx n).toRat := by
+  show (TauRat.sub
+          (TauRat.mul (((TauComplex.pureIm_of_real x).pow k).re.approx n)
+                      ((TauComplex.pureIm_of_real x).re.approx n))
+          (TauRat.mul (((TauComplex.pureIm_of_real x).pow k).im.approx n)
+                      ((TauComplex.pureIm_of_real x).im.approx n))).toRat
+       = -(((TauComplex.pureIm_of_real x).pow k).im.approx n).toRat
+         * (x.approx n).toRat
+  rw [TauComplex.pureIm_of_real_re_approx, TauComplex.pureIm_of_real_im_approx,
+      toRat_sub, toRat_mul, toRat_mul, toRat_zero]
+  ring
+
+/-- **[I.T-PureImOfReal-Pow-Succ-Im]** TauReal-arg version of
+    `pureIm_pow_succ_im_approx_toRat`. -/
+theorem pureIm_of_real_pow_succ_im_approx_toRat (x : TauReal) (k n : Nat) :
+    (((TauComplex.pureIm_of_real x).pow (k+1)).im.approx n).toRat
+      = (((TauComplex.pureIm_of_real x).pow k).re.approx n).toRat
+        * (x.approx n).toRat := by
+  show (TauRat.add
+          (TauRat.mul (((TauComplex.pureIm_of_real x).pow k).re.approx n)
+                      ((TauComplex.pureIm_of_real x).im.approx n))
+          (TauRat.mul (((TauComplex.pureIm_of_real x).pow k).im.approx n)
+                      ((TauComplex.pureIm_of_real x).re.approx n))).toRat
+       = (((TauComplex.pureIm_of_real x).pow k).re.approx n).toRat
+         * (x.approx n).toRat
+  rw [TauComplex.pureIm_of_real_re_approx, TauComplex.pureIm_of_real_im_approx,
+      toRat_add, toRat_mul, toRat_mul, toRat_zero]
+  ring
+
+/-- **[I.T-PureImOfReal-Pow-Zero-Re]**. -/
+theorem pureIm_of_real_pow_zero_re_approx_toRat (x : TauReal) (n : Nat) :
+    (((TauComplex.pureIm_of_real x).pow 0).re.approx n).toRat = 1 := by
+  show ((TauReal.one).approx n).toRat = 1
+  show (TauRat.one).toRat = 1
+  exact toRat_one
+
+/-- **[I.T-PureImOfReal-Pow-Zero-Im]**. -/
+theorem pureIm_of_real_pow_zero_im_approx_toRat (x : TauReal) (n : Nat) :
+    (((TauComplex.pureIm_of_real x).pow 0).im.approx n).toRat = 0 := by
+  show ((TauReal.zero).approx n).toRat = 0
+  show (TauRat.zero).toRat = 0
+  exact toRat_zero
+
+/-- **[I.T-PureImOfReal-Pow-Bridge]** Joint induction lifting the
+    `pureIm_pow_re_im_rat` recurrence pair to TauReal-arg pureIm. -/
+theorem pureIm_of_real_pow_re_im_approx_toRat (x : TauReal) (k n : Nat) :
+    (((TauComplex.pureIm_of_real x).pow k).re.approx n).toRat
+      = (pureIm_pow_re_im_rat (x.approx n).toRat k).1 ∧
+    (((TauComplex.pureIm_of_real x).pow k).im.approx n).toRat
+      = (pureIm_pow_re_im_rat (x.approx n).toRat k).2 := by
+  induction k with
+  | zero =>
+    refine ⟨?_, ?_⟩
+    · rw [pureIm_of_real_pow_zero_re_approx_toRat]; rfl
+    · rw [pureIm_of_real_pow_zero_im_approx_toRat]; rfl
+  | succ k IH =>
+    obtain ⟨ih_re, ih_im⟩ := IH
+    refine ⟨?_, ?_⟩
+    · rw [pureIm_of_real_pow_succ_re_approx_toRat, ih_im,
+          pureIm_pow_re_im_rat_succ]
+    · rw [pureIm_of_real_pow_succ_im_approx_toRat, ih_re,
+          pureIm_pow_re_im_rat_succ]
+
+/-- **[I.T-ExpTerm-PureImOfReal-Re]** TauReal-arg version of
+    `exp_term_pureIm_re_approx_toRat`. -/
+theorem exp_term_pureIm_of_real_re_approx_toRat (x : TauReal) (k n : Nat) :
+    ((TauComplex.exp_term (TauComplex.pureIm_of_real x) k).re.approx n).toRat
+      = (pureIm_pow_re_im_rat (x.approx n).toRat k).1 / (k.factorial : Rat) := by
+  rw [TauComplex.exp_term_re, TauReal.scale_by_inv_factorial_approx,
+      TauRat.scale_by_inv_factorial_toRat,
+      (pureIm_of_real_pow_re_im_approx_toRat x k n).1]
+
+/-- **[I.T-ExpTerm-PureImOfReal-Im]** TauReal-arg version of
+    `exp_term_pureIm_im_approx_toRat`. -/
+theorem exp_term_pureIm_of_real_im_approx_toRat (x : TauReal) (k n : Nat) :
+    ((TauComplex.exp_term (TauComplex.pureIm_of_real x) k).im.approx n).toRat
+      = (pureIm_pow_re_im_rat (x.approx n).toRat k).2 / (k.factorial : Rat) := by
+  rw [TauComplex.exp_term_im, TauReal.scale_by_inv_factorial_approx,
+      TauRat.scale_by_inv_factorial_toRat,
+      (pureIm_of_real_pow_re_im_approx_toRat x k n).2]
+
+/-- **[I.T-ExpPartial-PureImOfReal-Re-Bridge]** TauReal-arg version of
+    `expPartial_pureIm_re_approx_toRat_eq_rat`. -/
+theorem expPartial_pureIm_of_real_re_approx_toRat_eq_rat
+    (x : TauReal) (k m_a : Nat) :
+    ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) k).re.approx m_a).toRat
+      = expPartial_pureIm_re_rat (x.approx m_a).toRat k := by
+  induction k with
+  | zero =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) 0).re.approx m_a).toRat
+        = expPartial_pureIm_re_rat (x.approx m_a).toRat 0
+    rw [TauComplex.exp_partial_zero, expPartial_pureIm_re_rat_zero]
+    show (TauRat.zero).toRat = 0
+    exact toRat_zero
+  | succ k IH =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) (k+1)).re.approx m_a).toRat
+        = expPartial_pureIm_re_rat (x.approx m_a).toRat (k+1)
+    rw [TauComplex.exp_partial_succ, expPartial_pureIm_re_rat_succ]
+    show (TauRat.add
+            ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) k).re.approx m_a)
+            ((TauComplex.exp_term (TauComplex.pureIm_of_real x) k).re.approx m_a)).toRat
+        = expPartial_pureIm_re_rat (x.approx m_a).toRat k
+          + (pureIm_pow_re_im_rat (x.approx m_a).toRat k).1 / (k.factorial : Rat)
+    rw [toRat_add, IH, exp_term_pureIm_of_real_re_approx_toRat]
+
+/-- **[I.T-ExpPartial-PureImOfReal-Im-Bridge]** TauReal-arg version of
+    `expPartial_pureIm_im_approx_toRat_eq_rat`. -/
+theorem expPartial_pureIm_of_real_im_approx_toRat_eq_rat
+    (x : TauReal) (k m_a : Nat) :
+    ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) k).im.approx m_a).toRat
+      = expPartial_pureIm_im_rat (x.approx m_a).toRat k := by
+  induction k with
+  | zero =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) 0).im.approx m_a).toRat
+        = expPartial_pureIm_im_rat (x.approx m_a).toRat 0
+    rw [TauComplex.exp_partial_zero, expPartial_pureIm_im_rat_zero]
+    show (TauRat.zero).toRat = 0
+    exact toRat_zero
+  | succ k IH =>
+    show ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) (k+1)).im.approx m_a).toRat
+        = expPartial_pureIm_im_rat (x.approx m_a).toRat (k+1)
+    rw [TauComplex.exp_partial_succ, expPartial_pureIm_im_rat_succ]
+    show (TauRat.add
+            ((TauComplex.exp_partial (TauComplex.pureIm_of_real x) k).im.approx m_a)
+            ((TauComplex.exp_term (TauComplex.pureIm_of_real x) k).im.approx m_a)).toRat
+        = expPartial_pureIm_im_rat (x.approx m_a).toRat k
+          + (pureIm_pow_re_im_rat (x.approx m_a).toRat k).2 / (k.factorial : Rat)
+    rw [toRat_add, IH, exp_term_pureIm_of_real_im_approx_toRat]
+
+/-- **[I.T-CisTauReal-Re-toRat]** The toRat of `(cisTauReal x).re.approx n` is
+    the depth-`n` Rat-level partial sum `expPartial_pureIm_re_rat` evaluated at
+    `(x.approx n).toRat`. -/
+theorem cisTauReal_re_approx_toRat (x : TauReal) (n : Nat) :
+    ((TauComplex.cisTauReal x).re.approx n).toRat
+      = expPartial_pureIm_re_rat (x.approx n).toRat n := by
+  show ((TauComplex.exp (TauComplex.pureIm_of_real x)).re.approx n).toRat
+      = expPartial_pureIm_re_rat (x.approx n).toRat n
+  rw [TauComplex.exp_re_approx,
+      expPartial_pureIm_of_real_re_approx_toRat_eq_rat]
+
+/-- **[I.T-CisTauReal-Im-toRat]** The toRat of `(cisTauReal x).im.approx n` is
+    the depth-`n` Rat-level partial sum `expPartial_pureIm_im_rat` evaluated at
+    `(x.approx n).toRat`. -/
+theorem cisTauReal_im_approx_toRat (x : TauReal) (n : Nat) :
+    ((TauComplex.cisTauReal x).im.approx n).toRat
+      = expPartial_pureIm_im_rat (x.approx n).toRat n := by
+  show ((TauComplex.exp (TauComplex.pureIm_of_real x)).im.approx n).toRat
+      = expPartial_pureIm_im_rat (x.approx n).toRat n
+  rw [TauComplex.exp_im_approx,
+      expPartial_pureIm_of_real_im_approx_toRat_eq_rat]
+
 end Tau.Boundary
