@@ -1060,6 +1060,79 @@ theorem TauComplex.cisTauReal_arctan_factored_add
     exact TauReal.arctan_increment_bounded a h ha hah
 
 -- ============================================================
+-- PART 8.10: Wave 6c.6 — cisTauReal CONGRUENCE (via .approx-toRat bridge)
+-- ============================================================
+
+/-! ## Wave 6c.6 — cisTauReal congruence via pointwise toRat equality
+
+  KEY INSIGHT: `cisTauReal_re/im_approx_toRat` show that
+
+      ((cisTauReal x).re.approx n).toRat = expPartial_pureIm_re_rat ((x.approx n).toRat) n
+      ((cisTauReal x).im.approx n).toRat = expPartial_pureIm_im_rat ((x.approx n).toRat) n
+
+  i.e., `(cisTauReal x).{re,im}.approx n .toRat` depends ONLY on
+  `x.approx n .toRat` (not on higher .approx values of x).
+
+  So if two TauReals have the SAME `.approx n .toRat` at every n, their
+  cisTauReals agree at every `.{re,im}.approx n .toRat` — yielding full
+  TauComplex-equivalence without going through TauComplex.exp_congr.
+
+  This SIDESTEPS the cisTauReal_congr proof (which would normally require
+  TauComplex.exp_congr machinery) for the specific case we need.
+-/
+
+/-- **Wave 6c.6** — cisTauReal congruence under pointwise toRat equality. -/
+theorem TauComplex.cisTauReal_of_pointwise_toRat_eq
+    (x y : TauReal) (h : ∀ n, (x.approx n).toRat = (y.approx n).toRat) :
+    TauComplex.equiv (TauComplex.cisTauReal x) (TauComplex.cisTauReal y) := by
+  refine ⟨?_, ?_⟩
+  · -- .re ≈ .re via pointwise toRat
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    rw [cisTauReal_re_approx_toRat, cisTauReal_re_approx_toRat]
+    rw [h n]
+  · -- .im ≈ .im via pointwise toRat
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    rw [cisTauReal_im_approx_toRat, cisTauReal_im_approx_toRat]
+    rw [h n]
+
+/-- **🎯 Wave 6c.6 main result** — the full chain rule factorization:
+
+      cisTauReal(arctan(a+h)) ≈_TC cisTauReal(arctan(a)) · cisTauReal(δ)
+
+    where δ := arctan(a+h) − arctan(a), under Path β hypotheses
+    `4|a|, 4|a+h| ≤ 1`. -/
+theorem TauComplex.cisTauReal_arctan_factor
+    (a h : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add h).toRat| ≤ 1) :
+    TauComplex.equiv
+      (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq (a.add h)))
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal
+          ((TauReal.arctan_of_rat_seq (a.add h)).sub
+            (TauReal.arctan_of_rat_seq a)))) := by
+  -- Step 1: at every .approx n .toRat, arctan(a+h) and arctan(a)+(arctan(a+h)-arctan(a)) agree
+  have h_decomp_pointwise : ∀ n,
+      ((TauReal.arctan_of_rat_seq (a.add h)).approx n).toRat
+      = (((TauReal.arctan_of_rat_seq a).add
+            ((TauReal.arctan_of_rat_seq (a.add h)).sub
+             (TauReal.arctan_of_rat_seq a))).approx n).toRat := by
+    intro n
+    show ((TauReal.arctan_of_rat_seq (a.add h)).approx n).toRat
+       = (((TauReal.arctan_of_rat_seq a).approx n).add
+            (((TauReal.arctan_of_rat_seq (a.add h)).approx n).add
+              ((TauReal.arctan_of_rat_seq a).approx n).negate)).toRat
+    rw [toRat_add, toRat_add, toRat_negate]
+    ring
+  -- Step 2: cisTauReal bridges pointwise to TauComplex-equiv
+  have h_cis_eq := TauComplex.cisTauReal_of_pointwise_toRat_eq _ _ h_decomp_pointwise
+  -- Step 3: chain with the factored form (Wave 6c.5)
+  exact TauComplex.equiv_trans h_cis_eq
+    (TauComplex.cisTauReal_arctan_factored_add a h ha hah)
+
+-- ============================================================
 -- PART 9: Wave 6b — cis_arctan SMALL-ANGLE AT cis_arctan LEVEL
 -- ============================================================
 
