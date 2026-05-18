@@ -1716,6 +1716,112 @@ theorem TauReal.cis_arctan_im_add_factored
   (TauComplex.cisTauReal_arctan_factor a h ha hah).2
 
 -- ============================================================
+-- PART 8.15: Wave 6c.10b — DIFFERENCE FORMULA AT TauReal-EQUIV
+-- ============================================================
+
+/-! ## Wave 6c.10b — Algebraic difference formula at TauReal-equiv
+
+  From Wave 6c.10a's factored form:
+
+      cis_arctan_re(a+h) ≈ cis_arctan_re(a)·cisTauReal(δ).re
+                          − cis_arctan_im(a)·cisTauReal(δ).im
+
+  Subtracting `cis_arctan_re(a)` from both sides yields the
+  **difference formula**:
+
+      cis_arctan_re(a+h) − cis_arctan_re(a)
+        ≈ cis_arctan_re(a)·(cisTauReal(δ).re − 1)
+          − cis_arctan_im(a)·cisTauReal(δ).im
+
+  This is the algebraic foundation of the chain rule: combined with
+  Wave 5 (cisTauReal(δ).re − 1 = O(δ²)) and Module 3 (δ·2^N → arctan_deriv),
+  the full IsDerivAt assembly emerges.
+
+  Proof: equiv_sub_congr (Wave 6c.10a + reflexivity), then pointwise
+  algebraic rearrangement `(z·X − z·Y) − z = z·(X−1) − z·Y` at TauRat level.
+-/
+
+/-- **Wave 6c.10b (re)** — Difference formula for cis_arctan_re at TauReal-equiv. -/
+theorem TauReal.cis_arctan_re_diff_factored
+    (a h : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add h).toRat| ≤ 1) :
+    TauReal.equiv
+      ((TauReal.cis_arctan_re (a.add h)).sub (TauReal.cis_arctan_re a))
+      ((TauReal.cis_arctan_re a |>.mul
+          ((TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add h)).sub
+              (TauReal.arctan_of_rat_seq a))).re.sub TauReal.one)).sub
+        (TauReal.cis_arctan_im a |>.mul
+          (TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add h)).sub
+              (TauReal.arctan_of_rat_seq a))).im)) := by
+  -- Step 1: from 6c.10a, subtract cis_arctan_re(a) via equiv_sub_congr
+  have h_factored := TauReal.cis_arctan_re_add_factored a h ha hah
+  have h_step1 :=
+    TauReal.equiv_sub_congr h_factored (TauReal.equiv_refl (TauReal.cis_arctan_re a))
+  -- Step 2: rearrange (z·X − z·Y) − z ≈ z·(X−1) − z·Y via pointwise toRat
+  set δ_real := (TauReal.arctan_of_rat_seq (a.add h)).sub (TauReal.arctan_of_rat_seq a)
+  set X := (TauComplex.cisTauReal δ_real).re
+  set Y := (TauComplex.cisTauReal δ_real).im
+  set z := TauReal.cis_arctan_re a
+  set w := TauReal.cis_arctan_im a
+  have h_step2 : TauReal.equiv
+      ((z.mul X).sub (w.mul Y) |>.sub z)
+      ((z.mul (X.sub TauReal.one)).sub (w.mul Y)) := by
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    -- Pointwise: ((z·X − w·Y) − z).toRat = (z·(X−1) − w·Y).toRat
+    show ((TauRat.add
+            ((TauRat.add ((z.approx n).mul (X.approx n))
+              ((w.approx n).mul (Y.approx n)).negate))
+            (z.approx n).negate)).toRat
+          = (TauRat.add
+              ((z.approx n).mul (TauRat.add (X.approx n) (TauRat.one).negate))
+              ((w.approx n).mul (Y.approx n)).negate).toRat
+    simp only [toRat_add, toRat_negate, toRat_mul, toRat_one]
+    ring
+  exact TauReal.equiv_trans h_step1 h_step2
+
+/-- **Wave 6c.10b (im)** — Difference formula for cis_arctan_im at TauReal-equiv. -/
+theorem TauReal.cis_arctan_im_diff_factored
+    (a h : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add h).toRat| ≤ 1) :
+    TauReal.equiv
+      ((TauReal.cis_arctan_im (a.add h)).sub (TauReal.cis_arctan_im a))
+      ((TauReal.cis_arctan_re a |>.mul
+          (TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add h)).sub
+              (TauReal.arctan_of_rat_seq a))).im).add
+        (TauReal.cis_arctan_im a |>.mul
+          ((TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add h)).sub
+              (TauReal.arctan_of_rat_seq a))).re.sub TauReal.one))) := by
+  have h_factored := TauReal.cis_arctan_im_add_factored a h ha hah
+  have h_step1 :=
+    TauReal.equiv_sub_congr h_factored (TauReal.equiv_refl (TauReal.cis_arctan_im a))
+  set δ_real := (TauReal.arctan_of_rat_seq (a.add h)).sub (TauReal.arctan_of_rat_seq a)
+  set X := (TauComplex.cisTauReal δ_real).re
+  set Y := (TauComplex.cisTauReal δ_real).im
+  set z := TauReal.cis_arctan_re a
+  set w := TauReal.cis_arctan_im a
+  -- 6c.10a (im): cis_arctan_im(a+h) ≈ z·Y + w·X
+  -- After sub w: (z·Y + w·X) − w ≈ z·Y + w·(X−1)
+  have h_step2 : TauReal.equiv
+      ((z.mul Y).add (w.mul X) |>.sub w)
+      ((z.mul Y).add (w.mul (X.sub TauReal.one))) := by
+    apply TauReal.equiv_of_pointwise
+    intro n
+    rw [equiv_iff_toRat_eq]
+    show ((TauRat.add
+            (TauRat.add ((z.approx n).mul (Y.approx n))
+              ((w.approx n).mul (X.approx n)))
+            (w.approx n).negate)).toRat
+          = (TauRat.add ((z.approx n).mul (Y.approx n))
+              ((w.approx n).mul (TauRat.add (X.approx n) (TauRat.one).negate))).toRat
+    simp only [toRat_add, toRat_negate, toRat_mul, toRat_one]
+    ring
+  exact TauReal.equiv_trans h_step1 h_step2
+
+-- ============================================================
 -- PART 9: Wave 6b — cis_arctan SMALL-ANGLE AT cis_arctan LEVEL
 -- ============================================================
 
