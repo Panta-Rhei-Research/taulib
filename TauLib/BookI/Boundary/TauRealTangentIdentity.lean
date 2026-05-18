@@ -519,6 +519,290 @@ theorem pow_sub_pow_secant_taylor (α β : Rat) (h_α : |α| ≤ 1) (h_β : |β|
         nlinarith [h_sq_nn]
       linarith
 
+/-! ## Sub-Wave 6.M4.D.1 — Magnitude bounds for cis_arctan_re / cis_arctan_im
+
+  Triangle-inequality lifts of Wave 6b's small-angle bounds. Used downstream
+  in 6.M4.D.3 (linear-term extraction) to control products `|A_K · X|`,
+  `|B_K · Y|`.
+
+  - `|A_K| := |((cis_arctan_re a).approx K).toRat| ≤ 1 + K · α²`
+  - `|B_K| := |((cis_arctan_im a).approx K).toRat| ≤ |α| + K · |α|³`
+
+  where `α := ((arctan_of_rat_seq a).approx K).toRat`.
+
+  Under Path β (`4·|a.toRat| ≤ 1`), we have `|α| ≤ (4/3)·|a.toRat| ≤ 1/3`,
+  so `α² ≤ 1/9` and `|α|³ ≤ 1/27`.
+-/
+
+/-- **6.M4.D.1 (re)** — magnitude bound for `cis_arctan_re a` at `.approx K`. -/
+theorem TauReal.cis_arctan_re_approx_abs_bound
+    (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) (K : Nat) (hK : 1 ≤ K) :
+    |((TauReal.cis_arctan_re a).approx K).toRat|
+      ≤ 1 + (K : Rat) * (((TauReal.arctan_of_rat_seq a).approx K).toRat)^2 := by
+  have h_small := TauReal.cis_arctan_re_approx_small_angle_bound a ha K hK
+  -- |A_K - 1| ≤ K · α²
+  -- Triangle: |A_K| ≤ |A_K - 1| + 1 ≤ K · α² + 1
+  have h_tri : |((TauReal.cis_arctan_re a).approx K).toRat|
+      ≤ |((TauReal.cis_arctan_re a).approx K).toRat - 1| + |(1 : Rat)| := by
+    have := abs_add_le (((TauReal.cis_arctan_re a).approx K).toRat - 1) (1 : Rat)
+    have h_eq : ((TauReal.cis_arctan_re a).approx K).toRat - 1 + 1
+              = ((TauReal.cis_arctan_re a).approx K).toRat := by ring
+    rw [h_eq] at this
+    exact this
+  rw [abs_one] at h_tri
+  linarith
+
+/-- **6.M4.D.1 (im)** — magnitude bound for `cis_arctan_im a` at `.approx K`. -/
+theorem TauReal.cis_arctan_im_approx_abs_bound
+    (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) (K : Nat) (hK : 2 ≤ K) :
+    |((TauReal.cis_arctan_im a).approx K).toRat|
+      ≤ |((TauReal.arctan_of_rat_seq a).approx K).toRat|
+        + (K : Rat) * |((TauReal.arctan_of_rat_seq a).approx K).toRat|^3 := by
+  have h_small := TauReal.cis_arctan_im_approx_small_angle_bound a ha K hK
+  -- |B_K - α| ≤ K · |α|³
+  -- Triangle: |B_K| ≤ |B_K - α| + |α|
+  set B_K := ((TauReal.cis_arctan_im a).approx K).toRat
+  set α := ((TauReal.arctan_of_rat_seq a).approx K).toRat
+  have h_tri : |B_K| ≤ |B_K - α| + |α| := by
+    have := abs_add_le (B_K - α) α
+    have h_eq : B_K - α + α = B_K := by ring
+    rw [h_eq] at this
+    exact this
+  linarith
+
+/-- **6.M4.D.1 (re, Path β)** — under Path β, the magnitude bound becomes
+    `|A_K| ≤ 1 + K/9`. -/
+theorem TauReal.cis_arctan_re_approx_abs_bound_path_beta
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) (K : Nat) (hK : 1 ≤ K) :
+    |((TauReal.cis_arctan_re a).approx K).toRat| ≤ 1 + (K : Rat) / 9 := by
+  have ha2 : 2 * |a.toRat| ≤ 1 := by linarith [_root_.abs_nonneg a.toRat]
+  have h_gen := TauReal.cis_arctan_re_approx_abs_bound a ha2 K hK
+  -- Need: K · α² ≤ K/9, i.e., α² ≤ 1/9
+  set α := ((TauReal.arctan_of_rat_seq a).approx K).toRat
+  have h_α_bound : |α| ≤ (4/3) * |a.toRat| := by
+    have h := TauReal.arctan_of_rat_seq_abs_le_four_thirds a ha2 K
+    rwa [TauRat.toRat_abs] at h
+  have h_α_le_third : |α| ≤ 1/3 := by linarith
+  have h_α_nn : (0 : Rat) ≤ |α| := _root_.abs_nonneg _
+  have h_α_sq_bound : α^2 ≤ 1/9 := by
+    have h_α_abs_sq : α^2 = |α|^2 := by rw [sq_abs]
+    rw [h_α_abs_sq]
+    have : |α|^2 ≤ (1/3 : Rat)^2 := pow_le_pow_left₀ h_α_nn h_α_le_third 2
+    have h_third_sq : (1/3 : Rat)^2 = 1/9 := by norm_num
+    linarith
+  have h_K_nn : (0 : Rat) ≤ (K : Rat) := Nat.cast_nonneg _
+  have : (K : Rat) * α^2 ≤ (K : Rat) * (1/9) :=
+    mul_le_mul_of_nonneg_left h_α_sq_bound h_K_nn
+  linarith
+
+/-- **6.M4.D.1 (im, Path β)** — under Path β, the magnitude bound becomes
+    `|B_K| ≤ 1/3 + K/27`. -/
+theorem TauReal.cis_arctan_im_approx_abs_bound_path_beta
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) (K : Nat) (hK : 2 ≤ K) :
+    |((TauReal.cis_arctan_im a).approx K).toRat| ≤ 1/3 + (K : Rat) / 27 := by
+  have ha2 : 2 * |a.toRat| ≤ 1 := by linarith [_root_.abs_nonneg a.toRat]
+  have h_gen := TauReal.cis_arctan_im_approx_abs_bound a ha2 K hK
+  -- Need: |α| + K · |α|³ ≤ 1/3 + K/27
+  set α := ((TauReal.arctan_of_rat_seq a).approx K).toRat
+  have h_α_bound : |α| ≤ (4/3) * |a.toRat| := by
+    have h := TauReal.arctan_of_rat_seq_abs_le_four_thirds a ha2 K
+    rwa [TauRat.toRat_abs] at h
+  have h_α_le_third : |α| ≤ 1/3 := by linarith
+  have h_α_nn : (0 : Rat) ≤ |α| := _root_.abs_nonneg _
+  have h_α_cube_bound : |α|^3 ≤ 1/27 := by
+    have : |α|^3 ≤ (1/3 : Rat)^3 := pow_le_pow_left₀ h_α_nn h_α_le_third 3
+    have h_third_cube : (1/3 : Rat)^3 = 1/27 := by norm_num
+    linarith
+  have h_K_nn : (0 : Rat) ≤ (K : Rat) := Nat.cast_nonneg _
+  have h_K_times : (K : Rat) * |α|^3 ≤ (K : Rat) * (1/27) :=
+    mul_le_mul_of_nonneg_left h_α_cube_bound h_K_nn
+  linarith
+
+/-! ## Sub-Wave 6.M4.D.2 — `d_K` geometric identity at TauRat level
+
+  Module 3's `arctan_deriv_partial_rat_geometric_identity` says:
+
+      `arctan_deriv_partial_rat x n · (1 + x²) = 1 − x^(4n)`
+
+  This is the KEY algebraic tool for 6.M4.D.3 (linear-term extraction):
+  the coefficient `a/(1+a²)` emerges from this MULTIPLICATIVE form —
+  no inductive factorial arithmetic needed.
+
+  Here we:
+  1. Lift the identity to TauRat level via `arctan_deriv_partial_toRat`.
+  2. Bound the residual `|d_K · (1+a²) − 1| ≤ (1/4)^(4K)` under Path β.
+-/
+
+/-- **6.M4.D.2 (identity at TauRat)** — Geometric identity for
+    `TauRat.arctan_deriv_partial`. -/
+theorem TauRat.arctan_deriv_partial_geometric_identity_toRat
+    (a : TauRat) (K : Nat) :
+    (TauRat.arctan_deriv_partial a K).toRat * (1 + a.toRat^2)
+      = 1 - a.toRat^(4*K) := by
+  rw [TauRat.arctan_deriv_partial_toRat]
+  exact arctan_deriv_partial_rat_geometric_identity a.toRat K
+
+/-- **6.M4.D.2 (error bound)** — Under Path β (`4·|a.toRat| ≤ 1`),
+    `|d_K · (1+a²) − 1| ≤ (1/4)^(4K)`. -/
+theorem TauRat.arctan_deriv_partial_geometric_error_bound
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) (K : Nat) :
+    |(TauRat.arctan_deriv_partial a K).toRat * (1 + a.toRat^2) - 1|
+      ≤ (1/4 : Rat)^(4*K) := by
+  rw [TauRat.arctan_deriv_partial_geometric_identity_toRat]
+  have h_eq : (1 : Rat) - a.toRat^(4*K) - 1 = -(a.toRat^(4*K)) := by ring
+  rw [h_eq, abs_neg, abs_pow]
+  have h_abs_a : |a.toRat| ≤ 1/4 := by linarith [_root_.abs_nonneg a.toRat]
+  have h_abs_a_nn : (0 : Rat) ≤ |a.toRat| := _root_.abs_nonneg _
+  exact pow_le_pow_left₀ h_abs_a_nn h_abs_a (4*K)
+
+/-- **6.M4.D.2 (positivity)** — Under Path β, `d_K · (1+a²) ≥ 1 − (1/4)^(4K) > 0`,
+    so `d_K > 0` (the partial sum is positive). -/
+theorem TauRat.arctan_deriv_partial_geometric_positive
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) (K : Nat) :
+    1 - (1/4 : Rat)^(4*K)
+      ≤ (TauRat.arctan_deriv_partial a K).toRat * (1 + a.toRat^2) := by
+  have h_id := TauRat.arctan_deriv_partial_geometric_identity_toRat a K
+  rw [h_id]
+  -- Need: 1 - (1/4)^(4K) ≤ 1 - a.toRat^(4K)
+  -- i.e., a.toRat^(4K) ≤ (1/4)^(4K)
+  have h_abs_a : |a.toRat| ≤ 1/4 := by linarith [_root_.abs_nonneg a.toRat]
+  have h_abs_a_nn : (0 : Rat) ≤ |a.toRat| := _root_.abs_nonneg _
+  have h_a_pow_le : a.toRat^(4*K) ≤ (1/4 : Rat)^(4*K) := by
+    -- a.toRat^(4K) ≤ |a.toRat|^(4K) ≤ (1/4)^(4K)
+    have h_le_abs : a.toRat^(4*K) ≤ |a.toRat^(4*K)| := le_abs_self _
+    rw [abs_pow] at h_le_abs
+    have h_abs_pow_le : |a.toRat|^(4*K) ≤ (1/4 : Rat)^(4*K) :=
+      pow_le_pow_left₀ h_abs_a_nn h_abs_a (4*K)
+    linarith
+  linarith
+
+/-! ## Sub-Wave 6.M4.D.3 — Linear-term extraction (analytical heart)
+
+  The key algebraic identity at Rat level:
+
+      (α_h − α_a) · (A_K + a·B_K)
+        − dh · a · d_K · T_K
+        − dh · A_K · (1 − a^(4K))
+      = (A_K + a·B_K) · (α_h − α_a − dh·d_K)
+
+  where:
+  - α_a := `((arctan_of_rat_seq a).approx K).toRat`
+  - α_h := `((arctan_of_rat_seq (a+dh)).approx K).toRat`
+  - d_K := `arctan_deriv_partial_rat a.toRat K`
+  - A_K := `((cis_arctan_re a).approx K).toRat`
+  - B_K := `((cis_arctan_im a).approx K).toRat`
+  - T_K := `((tangent_defect a).approx K).toRat` = B_K − a·A_K
+
+  **The identity REQUIRES** `d_K · (1+a²) = 1 − a^(4K)` (the geometric identity,
+  6.M4.D.2) AND `T_K = B_K − a·A_K` (definition).
+
+  **The bound** follows by combining with 6.M3:
+  `|α_h − α_a − dh·d_K| ≤ dh²·2K²` ⟹
+
+      | LHS | ≤ |A_K + a·B_K| · dh² · 2K²
+
+  This is the analytical foundation: the linear coefficient `dh·a·d_K` (which
+  approximates `dh·a/(1+a²)`) emerges ALGEBRAICALLY from the geometric identity.
+-/
+
+/-- **6.M4.D.3 (linear-term extraction bound)** —
+    The KEY analytical lemma. Combines:
+    - the algebraic identity (from `d_K·(1+a²) = 1 − a^(4K)` and `T_K = B_K − a·A_K`)
+    - the secant Taylor bound (6.M3) on `|δ_K − dh·d_K|`. -/
+theorem TauReal.M4_D3_linear_extraction_bound
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1)
+    (hdh_nn : 0 ≤ dh.toRat) (hdh_le_half : dh.toRat ≤ 1/2)
+    (K : Nat) :
+    |(((TauReal.arctan_of_rat_seq (a.add dh)).sub
+         (TauReal.arctan_of_rat_seq a)).approx K).toRat
+       * (((TauReal.cis_arctan_re a).approx K).toRat
+            + a.toRat * ((TauReal.cis_arctan_im a).approx K).toRat)
+       - dh.toRat * a.toRat * arctan_deriv_partial_rat a.toRat K
+           * ((TauReal.tangent_defect a).approx K).toRat
+       - dh.toRat * ((TauReal.cis_arctan_re a).approx K).toRat
+           * (1 - a.toRat^(4*K))|
+      ≤ |((TauReal.cis_arctan_re a).approx K).toRat
+          + a.toRat * ((TauReal.cis_arctan_im a).approx K).toRat|
+        * (dh.toRat^2 * 2 * (K : Rat)^2) := by
+  -- Step 1: δ_K.toRat = α_h - α_a, where α_h := arctan_partial_rat(a+dh, K), α_a := ...
+  have h_delta_eq :
+      (((TauReal.arctan_of_rat_seq (a.add dh)).sub
+          (TauReal.arctan_of_rat_seq a)).approx K).toRat
+        = ((TauReal.arctan_of_rat_seq (a.add dh)).approx K).toRat
+          - ((TauReal.arctan_of_rat_seq a).approx K).toRat := by
+    show (TauRat.add ((TauReal.arctan_of_rat_seq (a.add dh)).approx K)
+            ((TauReal.arctan_of_rat_seq a).approx K).negate).toRat = _
+    rw [toRat_add, toRat_negate]; ring
+  -- Step 2: T_K.toRat = B_K - a·A_K (def of tangent_defect)
+  have h_T_eq :
+      ((TauReal.tangent_defect a).approx K).toRat
+        = ((TauReal.cis_arctan_im a).approx K).toRat
+          - a.toRat * ((TauReal.cis_arctan_re a).approx K).toRat := by
+    rw [TauReal.tangent_defect_approx_toRat]
+  -- Step 3: Apply 6.M3 — |δ_K - dh·d_K| ≤ dh²·2K²
+  have h_M3 := TauReal.arctan_increment_secant_taylor_bound a dh ha hdh_nn hdh_le_half K
+  rw [h_delta_eq] at h_M3
+  -- Step 4: Geometric identity at Rat level — d_K · (1+a²) = 1 - a^(4K)
+  have h_geom :
+      arctan_deriv_partial_rat a.toRat K * (1 + a.toRat^2) = 1 - a.toRat^(4*K) :=
+    arctan_deriv_partial_rat_geometric_identity a.toRat K
+  -- Step 5: Algebraic identity (using h_geom and h_T_eq):
+  --   (α_h - α_a)·(A_K + a·B_K) − dh·a·d_K·T_K − dh·A_K·(1 - a^(4K))
+  --     = (A_K + a·B_K)·(α_h - α_a - dh·d_K)
+  -- Then bound: |RHS| = |A_K + a·B_K|·|α_h - α_a - dh·d_K| ≤ |A_K + a·B_K| · dh²·2K²
+  rw [h_delta_eq, h_T_eq]
+  set α_a : Rat := ((TauReal.arctan_of_rat_seq a).approx K).toRat
+  set α_h : Rat := ((TauReal.arctan_of_rat_seq (a.add dh)).approx K).toRat
+  set d_K : Rat := arctan_deriv_partial_rat a.toRat K
+  set A_K : Rat := ((TauReal.cis_arctan_re a).approx K).toRat
+  set B_K : Rat := ((TauReal.cis_arctan_im a).approx K).toRat
+  -- h_M3 in terms of named abbreviations
+  change |α_h - α_a - dh.toRat * d_K| ≤ dh.toRat^2 * 2 * (K : Rat)^2 at h_M3
+  -- Goal in terms of named abbreviations
+  change
+      |(α_h - α_a) * (A_K + a.toRat * B_K)
+       - dh.toRat * a.toRat * d_K * (B_K - a.toRat * A_K)
+       - dh.toRat * A_K * (1 - a.toRat^(4*K))|
+      ≤ |A_K + a.toRat * B_K| * (dh.toRat^2 * 2 * (K : Rat)^2)
+  -- Algebraic identity (closed by h_geom via linear_combination)
+  have h_identity :
+      (α_h - α_a) * (A_K + a.toRat * B_K)
+        - dh.toRat * a.toRat * d_K * (B_K - a.toRat * A_K)
+        - dh.toRat * A_K * (1 - a.toRat^(4*K))
+      = (A_K + a.toRat * B_K) * (α_h - α_a - dh.toRat * d_K) := by
+    have h_step : d_K * (1 + a.toRat^2) - 1 + a.toRat^(4*K) = 0 := by linarith [h_geom]
+    linear_combination dh.toRat * A_K * h_step
+  rw [h_identity, abs_mul]
+  -- |A_K + a·B_K| · |α_h - α_a - dh·d_K| ≤ |A_K + a·B_K| · (dh²·2K²)
+  have h_nn : (0 : Rat) ≤ |A_K + a.toRat * B_K| := _root_.abs_nonneg _
+  exact mul_le_mul_of_nonneg_left h_M3 h_nn
+
+/-! ## Sub-Wave 6.M4.D.4 — Pointwise algebraic restatement of 6.M1 at .approx K
+
+  6.M1 is a TauReal-equiv obtained from `equiv_of_pointwise`, so at every
+  `.approx n .toRat` we have an EXACT Rat-level identity (no Cauchy modulus).
+  Here we extract that pointwise identity for direct use in 6.M5.
+
+  This is the cleanest pointwise foundation: it converts the
+  tangent_defect increment into three concrete Rat-level pieces that we
+  bound separately via Wave 6c.10b (at TauReal-equiv level, lifted) and
+  6.M3/6.M2/6.M4.D.1.
+-/
+
+/-- **6.M4.D.4 (pointwise increment identity)** — Pure Rat-level restatement
+    of 6.M1 at fixed `.approx K`. -/
+theorem TauReal.tangent_defect_increment_pointwise (a dh : TauRat) (K : Nat) :
+    ((TauReal.tangent_defect (a.add dh)).approx K).toRat
+        - ((TauReal.tangent_defect a).approx K).toRat
+      = (((TauReal.cis_arctan_im (a.add dh)).approx K).toRat
+            - ((TauReal.cis_arctan_im a).approx K).toRat)
+        - dh.toRat * ((TauReal.cis_arctan_re (a.add dh)).approx K).toRat
+        - a.toRat * (((TauReal.cis_arctan_re (a.add dh)).approx K).toRat
+            - ((TauReal.cis_arctan_re a).approx K).toRat) := by
+  rw [TauReal.tangent_defect_approx_toRat, TauReal.tangent_defect_approx_toRat,
+      toRat_add]
+  ring
+
 /-! ## Structural hooks for future Gronwall application
 
   The next sub-Wave will:
@@ -534,8 +818,9 @@ theorem pow_sub_pow_secant_taylor (α β : Rat) (h_α : |α| ≤ 1) (h_β : |β|
   - Wave 6c.10b (difference formulas)  ✅
   - β.4.9 (discrete Gronwall at Rat-sequence level)  ✅
 
-  Today's deliverable (this file): the FOUNDATION (definition + base case).
-  Subsequent sub-Waves: the increment bound + Gronwall application.
+  Today's deliverable (this file): the FOUNDATION (definition + base case)
+  + 6.M4 helpers (parity, secant Taylor, magnitude bounds).
+  Subsequent sub-Waves: 6.M4.D.2-D.4 + 6.M5.A-E.
 -/
 
 end Tau.Boundary
