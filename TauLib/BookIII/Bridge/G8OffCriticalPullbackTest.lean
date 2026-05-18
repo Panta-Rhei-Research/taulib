@@ -193,6 +193,84 @@ theorem g8e1_subobligations_require_sameXiDivisor
     ctx.base.transfer.completion.chart
     (g8e1_subobligations_require_g8c ctx h).left
 
+/-- The G8e.1 package still depends on the G3 zeta bridge obligation. -/
+theorem g8e1_subobligations_require_g3ZetaBridge
+    (ctx : OffCriticalPullbackTestContext)
+    (h : G8e1PullbackSubobligations ctx) :
+    ctx.base.transfer.completion.chart.g3ZetaBridge :=
+  g8d_transfer_requires_g3ZetaBridge ctx.base.transfer h.transfer
+
+/-- The G8e.1 package still depends on the G4 analytic-continuation obligation. -/
+theorem g8e1_subobligations_require_g4AnalyticContinuation
+    (ctx : OffCriticalPullbackTestContext)
+    (h : G8e1PullbackSubobligations ctx) :
+    ctx.base.transfer.completion.chart.g4AnalyticContinuation :=
+  g8d_transfer_requires_g4AnalyticContinuation ctx.base.transfer h.transfer
+
+/-- The G8e.1 package still depends on the G5 operator-carrier obligation. -/
+theorem g8e1_subobligations_require_g5OperatorCarrier
+    (ctx : OffCriticalPullbackTestContext)
+    (h : G8e1PullbackSubobligations ctx) :
+    ctx.base.transfer.completion.chart.g5OperatorCarrier :=
+  g8d_transfer_requires_g5OperatorCarrier ctx.base.transfer h.transfer
+
+/-- The G8e.1 package still depends on the G6 determinant/O3 bridge obligation. -/
+theorem g8e1_subobligations_require_g6O3DeterminantBridge
+    (ctx : OffCriticalPullbackTestContext)
+    (h : G8e1PullbackSubobligations ctx) :
+    ctx.base.transfer.completion.chart.g6O3DeterminantBridge :=
+  g8d_transfer_requires_g6O3DeterminantBridge ctx.base.transfer h.transfer
+
+/-- The G8e.1 package still depends on no-lost-zero transfer. -/
+theorem g8e1_subobligations_require_noLost
+    (ctx : OffCriticalPullbackTestContext)
+    (h : G8e1PullbackSubobligations ctx) :
+    ctx.base.transfer.noLostZeros :=
+  g8d_transfer_requires_noLost ctx.base.transfer h.transfer
+
+/-- The G8e.1 package still depends on no-spurious-zero transfer. -/
+theorem g8e1_subobligations_require_noSpurious
+    (ctx : OffCriticalPullbackTestContext)
+    (h : G8e1PullbackSubobligations ctx) :
+    ctx.base.transfer.noSpuriousZeros :=
+  g8d_transfer_requires_noSpurious ctx.base.transfer h.transfer
+
+/-- The G8e.1 package still depends on multiplicity preservation. -/
+theorem g8e1_subobligations_require_multiplicityPreserved
+    (ctx : OffCriticalPullbackTestContext)
+    (h : G8e1PullbackSubobligations ctx) :
+    ctx.base.transfer.multiplicityPreserved :=
+  g8d_transfer_requires_multiplicityPreserved ctx.base.transfer h.transfer
+
+/-- The G8e.1 package also exposes the chart-level no-lost-zero obligation. -/
+theorem g8e1_subobligations_require_chartNoLostZeros
+    (ctx : OffCriticalPullbackTestContext)
+    (h : G8e1PullbackSubobligations ctx) :
+    ctx.base.transfer.completion.chart.noLostZeros :=
+  g8d_transfer_requires_chartNoLostZeros ctx.base.transfer h.transfer
+
+/-- The G8e.1 package also exposes the chart-level no-spurious-zero obligation. -/
+theorem g8e1_subobligations_require_chartNoSpuriousZeros
+    (ctx : OffCriticalPullbackTestContext)
+    (h : G8e1PullbackSubobligations ctx) :
+    ctx.base.transfer.completion.chart.noSpuriousZeros :=
+  g8d_transfer_requires_chartNoSpuriousZeros ctx.base.transfer h.transfer
+
+/-- The G8e.1 package also exposes chart-level multiplicity preservation. -/
+theorem g8e1_subobligations_require_chartMultiplicityPreserved
+    (ctx : OffCriticalPullbackTestContext)
+    (h : G8e1PullbackSubobligations ctx) :
+    ctx.base.transfer.completion.chart.multiplicityPreserved :=
+  g8d_transfer_requires_chartMultiplicityPreserved ctx.base.transfer h.transfer
+
+/-- The G8e.1 package carries the non-uniqueness falsifier guardrail. -/
+theorem g8e1_subobligations_require_noTwoCompletionsGuard
+    (ctx : OffCriticalPullbackTestContext)
+    (h : G8e1PullbackSubobligations ctx) :
+    noTwoCompletions_sameTauTower_differentDivisor
+      ctx.base.transfer.completion.chart :=
+  g8d_transfer_requires_noTwoCompletionsGuard ctx.base.transfer h.transfer
+
 -- ============================================================
 -- CONDITIONAL TEST ASSEMBLY
 -- ============================================================
