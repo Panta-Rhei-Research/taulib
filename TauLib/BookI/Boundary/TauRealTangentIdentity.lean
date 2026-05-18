@@ -1428,6 +1428,122 @@ theorem TauReal.tangent_defect_increment_simplified_at_K
   rw [h_sub] at h
   exact h
 
+/-! ## F.1b helpers — bounds on `d_K`, `|A+a·B|`, and `|δ_K|`
+
+  Three small Rat-level helpers used in F.1b:
+  - `|d_K| ≤ 1` (under Path β, from geometric identity)
+  - `|A_K + a·B_K| ≤ 10` (uniform bound)
+  - `|δ_K| ≤ 2·dh` (under hypothesis `2·K²·dh ≤ 1`)
+-/
+
+/-- **Helper for F.1b** — Under Path β, `|d_K| ≤ 1`. -/
+theorem arctan_deriv_partial_rat_abs_le_one (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) (K : Nat) :
+    |arctan_deriv_partial_rat a.toRat K| ≤ 1 := by
+  -- From d_K · (1+a²) = 1 - a^(4K), we have d_K = (1 - a^(4K)) / (1+a²).
+  -- |1 - a^(4K)| ≤ 1 since 0 ≤ a^(4K) ≤ 1 (Path β + 4K even).
+  -- (1+a²) ≥ 1. So |d_K| ≤ 1.
+  have h_geom := arctan_deriv_partial_rat_geometric_identity a.toRat K
+  -- h_geom : d_K · (1 + a²) = 1 - a^(4K)
+  have h_a_abs : |a.toRat| ≤ 1/4 := by linarith [_root_.abs_nonneg a.toRat]
+  have h_a_pow_nn : (0 : Rat) ≤ a.toRat^(4*K) := by
+    have h_even : ∃ m, 4 * K = 2 * m := ⟨2 * K, by ring⟩
+    obtain ⟨m, hm⟩ := h_even
+    rw [hm, pow_mul]
+    exact pow_nonneg (sq_nonneg _) m
+  have h_a_pow_le_one : a.toRat^(4*K) ≤ 1 := by
+    have h_le_abs : a.toRat^(4*K) ≤ |a.toRat^(4*K)| := le_abs_self _
+    rw [abs_pow] at h_le_abs
+    have h_abs_le_one : |a.toRat| ≤ 1 := by linarith
+    have h_abs_pow_le_one : |a.toRat|^(4*K) ≤ 1 :=
+      pow_le_one₀ (_root_.abs_nonneg _) h_abs_le_one
+    linarith
+  have h_one_minus_pow_bound : |1 - a.toRat^(4*K)| ≤ 1 := by
+    rw [abs_of_nonneg]
+    · linarith
+    · linarith
+  have h_one_plus_sq_pos : (0 : Rat) < 1 + a.toRat^2 := by positivity
+  have h_one_plus_sq_ge_one : (1 : Rat) ≤ 1 + a.toRat^2 := by
+    have : (0 : Rat) ≤ a.toRat^2 := sq_nonneg _
+    linarith
+  -- |d_K| · (1+a²) = |d_K · (1+a²)| = |1 - a^(4K)| ≤ 1
+  -- (1+a²) ≥ 1, so |d_K| ≤ 1.
+  have h_abs_product : |arctan_deriv_partial_rat a.toRat K| * (1 + a.toRat^2)
+                       = |1 - a.toRat^(4*K)| := by
+    rw [show |arctan_deriv_partial_rat a.toRat K| * (1 + a.toRat^2)
+          = |arctan_deriv_partial_rat a.toRat K * (1 + a.toRat^2)| from by
+            rw [abs_mul, abs_of_pos h_one_plus_sq_pos]]
+    rw [h_geom]
+  have h_d_K_nn : (0 : Rat) ≤ |arctan_deriv_partial_rat a.toRat K| := _root_.abs_nonneg _
+  nlinarith [h_abs_product, h_one_minus_pow_bound, h_one_plus_sq_ge_one, h_d_K_nn]
+
+/-- **Helper for F.1b** — Under Path β, `|A_K + a·B_K| ≤ 10`. -/
+theorem TauReal.cis_arctan_re_plus_a_cis_arctan_im_abs_le_ten
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) (K : Nat) :
+    |((TauReal.cis_arctan_re a).approx K).toRat
+       + a.toRat * ((TauReal.cis_arctan_im a).approx K).toRat| ≤ 10 := by
+  have ha2 : 2 * |a.toRat| ≤ 1 := by linarith [_root_.abs_nonneg a.toRat]
+  have h_a_abs : |a.toRat| ≤ 1/4 := by linarith [_root_.abs_nonneg a.toRat]
+  have h_A_K : ((TauReal.cis_arctan_re a).approx K).abs.toRat ≤ 8 :=
+    TauReal.cis_arctan_re_approx_abs_le_8 a ha2 K
+  have h_B_K : ((TauReal.cis_arctan_im a).approx K).abs.toRat ≤ 8 :=
+    TauReal.cis_arctan_im_approx_abs_le_8 a ha2 K
+  rw [TauRat.toRat_abs] at h_A_K h_B_K
+  have h_tri : |((TauReal.cis_arctan_re a).approx K).toRat
+                  + a.toRat * ((TauReal.cis_arctan_im a).approx K).toRat|
+                ≤ |((TauReal.cis_arctan_re a).approx K).toRat|
+                  + |a.toRat * ((TauReal.cis_arctan_im a).approx K).toRat| :=
+    abs_add_le _ _
+  have h_aB_abs : |a.toRat * ((TauReal.cis_arctan_im a).approx K).toRat|
+                = |a.toRat| * |((TauReal.cis_arctan_im a).approx K).toRat| := abs_mul _ _
+  have h_aB_bound : |a.toRat| * |((TauReal.cis_arctan_im a).approx K).toRat| ≤ (1/4) * 8 := by
+    have h_a_nn : (0 : Rat) ≤ |a.toRat| := _root_.abs_nonneg _
+    have h_B_nn : (0 : Rat) ≤ |((TauReal.cis_arctan_im a).approx K).toRat| := _root_.abs_nonneg _
+    nlinarith [h_a_abs, h_B_K, h_a_nn, h_B_nn]
+  linarith [h_tri, h_A_K, h_aB_abs, h_aB_bound]
+
+/-! ## Sub-Wave F.1b — Per-step Gronwall increment bound (NEXT SESSION)
+
+  F.1b combines the modulus destructure (6.M5.D), 6.M4.D.3 (linear-term
+  extraction), 6.M2 (small-angle bounds), 6.M3 (secant Taylor), F.1a
+  (re-residual), and the helpers `|d_K| ≤ 1`, `|A+a·B| ≤ 10` to derive
+  the Gronwall recurrence form.
+
+  This is the HIGH RISK piece per the red team's plan — ~200 LOC of
+  intricate polynomial bound composition. Deferred to next focused
+  session.
+
+  Bound formula (verified by hand-analysis):
+  ```
+  |T(a+dh).K − T(a).K|
+    ≤ (dh/2 + 9·K·dh²) · |T(a).K|             [M_step]
+      + 100·K²·dh² + 10·dh·|a|^(4K) + 1/(k_M+1)  [δ_step]
+  ```
+
+  Under hypothesis `2·K²·dh ≤ 1` (satisfied with N = K⁴), the polynomial
+  degrees work out for Gronwall convergence at K = k+2, N = (k+2)⁴.
+-/
+
+/-
+F.1b proof skeleton (~200 LOC, for next session):
+
+theorem TauReal.tangent_defect_step_bound_at_K
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1)
+    (hdh_nn : 0 ≤ dh.toRat) (hdh_le_half : dh.toRat ≤ 1/2) :
+    ∃ μ_5C : Nat → Nat, ∀ k_M K, μ_5C k_M ≤ K → 2 ≤ K →
+      2 * (K : Rat)^2 * dh.toRat ≤ 1 →
+      |T(a+dh).K - T(a).K|
+        ≤ (dh/2 + 9·K·dh²) · |T(a).K|
+          + 100·K²·dh² + 10·dh·|a|^(4K) + 1/(k_M+1)
+
+Proof structure:
+1. Destructure 6.M5.C → μ_5C
+2. Set Rat abbreviations (A_K, B_K, R_K, I_K, re_h_K, T_a_K, T_h_K, δ_K, d_K)
+3. Pointwise bounds (h_5C, h_d_K, h_AaB, h_M3, h_δ_abs, h_M2_re, h_M2_im, h_F1a, h_D3)
+4. Algebraic decomposition of RHS_5C via 6.M4.D.3 + F.1a
+5. Triangle inequalities (5 terms)
+6. Final linarith with all hypotheses
+-/
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
