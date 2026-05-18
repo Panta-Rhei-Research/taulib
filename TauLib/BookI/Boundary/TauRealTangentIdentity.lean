@@ -268,7 +268,63 @@ theorem TauReal.cisTauReal_arctan_increment_im_small_angle
   exact h_bound
 
 -- ============================================================
--- PART 5: STRUCTURAL HOOKS — INCREMENT BOUND (FUTURE WAVE)
+-- PART 5: SUB-WAVE 6.M3 — δ_arctan SECANT TAYLOR BOUND
+-- ============================================================
+
+/-! ## Sub-Wave 6.M3 — δ_arctan ≈ dh · arctan_deriv(a) at .approx K
+
+  Specializes Module 3's `arctan_partial_rat_secant_taylor_bound` to
+  the arctan-increment at `.approx K .toRat`:
+
+      |δ_arctan.approx K .toRat − dh.toRat · arctan_deriv_partial(a, K).toRat|
+        ≤ dh.toRat² · 2K²
+
+  where δ_arctan := arctan_of_rat_seq(a+dh) − arctan_of_rat_seq(a).
+
+  This is the LINEAR APPROXIMATION of the arctan-increment, with explicit
+  quadratic error bound. The Gronwall recurrence's linear coefficient
+  `dh · a/(1+a²)` emerges from this when chained with 6.M2's bounds.
+
+  HYPOTHESES:
+  - `4|a| ≤ 1` (Path β, implies `|a| ≤ 1/2`)
+  - `0 ≤ dh.toRat` (positive step; we walk from 0 toward positive a)
+  - `dh.toRat ≤ 1/2` (step bounded by 1/2; required by Module 3's secant Taylor)
+
+  The case `a < 0` or `dh < 0` is handled separately by symmetry (tangent_defect
+  is ODD in `a`, so the proof transfers via negation).
+-/
+
+/-- **Sub-Wave 6.M3** — secant Taylor bound for δ_arctan at .approx K. -/
+theorem TauReal.arctan_increment_secant_taylor_bound
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hdh_nn : 0 ≤ dh.toRat)
+    (hdh_le_half : dh.toRat ≤ 1/2) (K : Nat) :
+    |(((TauReal.arctan_of_rat_seq (a.add dh)).sub
+        (TauReal.arctan_of_rat_seq a)).approx K).toRat
+       - dh.toRat * arctan_deriv_partial_rat a.toRat K|
+      ≤ dh.toRat^2 * 2 * (K : Rat)^2 := by
+  -- δ_arctan.approx K .toRat = arctan_partial(a+dh, K).toRat − arctan_partial(a, K).toRat
+  have h_a_abs_le : |a.toRat| ≤ 1/2 := by linarith
+  -- Compute δ.approx K .toRat
+  have h_delta_toRat :
+      (((TauReal.arctan_of_rat_seq (a.add dh)).sub
+          (TauReal.arctan_of_rat_seq a)).approx K).toRat
+        = arctan_partial_rat (a.toRat + dh.toRat) K - arctan_partial_rat a.toRat K := by
+    show (TauRat.add ((TauReal.arctan_of_rat_seq (a.add dh)).approx K)
+            ((TauReal.arctan_of_rat_seq a).approx K).negate).toRat = _
+    rw [toRat_add, toRat_negate, TauReal.arctan_of_rat_seq_approx,
+        TauReal.arctan_of_rat_seq_approx, TauRat.arctan_partial_toRat,
+        TauRat.arctan_partial_toRat, toRat_add]
+    ring
+  rw [h_delta_toRat]
+  -- Apply Module 3's secant Taylor bound at a.toRat, dh.toRat
+  have h_taylor :=
+    arctan_partial_rat_secant_taylor_bound a.toRat dh.toRat h_a_abs_le hdh_nn hdh_le_half K
+  -- h_taylor: |arctan_partial(a+dh, K) - arctan_partial(a, K) - dh · arctan_deriv_partial(a, K)|
+  --           ≤ dh² · 2K²
+  exact h_taylor
+
+-- ============================================================
+-- PART 6: STRUCTURAL HOOKS — INCREMENT BOUND (FUTURE WAVE)
 -- ============================================================
 
 /-! ## Structural hooks for future Gronwall application
