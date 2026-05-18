@@ -138,7 +138,84 @@ theorem TauReal.tangent_defect_at_zero_equiv :
   ring
 
 -- ============================================================
--- PART 3: STRUCTURAL HOOKS — INCREMENT BOUND (FUTURE WAVE)
+-- PART 3: SUB-WAVE 6.M1 — INCREMENT REARRANGEMENT (PURE ALGEBRA)
+-- ============================================================
+
+/-! ## Sub-Wave 6.M1 — algebraic rearrangement of the increment
+
+  The tangent_defect increment decomposes algebraically as:
+
+      tangent_defect(a+dh) − tangent_defect(a)
+        = [im(a+dh) − im(a)] − dh·re(a+dh) − a·[re(a+dh) − re(a)]
+
+  where `im = cis_arctan_im`, `re = cis_arctan_re`. The proof is pure
+  algebra: `(a+dh) · re(a+dh) = a · re(a+dh) + dh · re(a+dh)`, then
+  collect terms.
+
+  This rearrangement isolates the THREE pieces that the Gronwall bound
+  will treat separately:
+  - `[im(a+dh) − im(a)]`: handled by Wave 6c.10b (im diff formula)
+  - `dh·re(a+dh)`: scaled by step size, multiplied by `cis_arctan_re(a+dh)`
+  - `a·[re(a+dh) − re(a)]`: linear coefficient times re diff (Wave 6c.10b re)
+
+  The proof: at each .approx n .toRat, expand both sides via
+  `tangent_defect_approx_toRat` + toRat algebra, then ring.
+-/
+
+/-- **Sub-Wave 6.M1** — Pure algebraic rearrangement of the tangent-defect
+    increment at TauReal-equiv level. No hypotheses needed (pure ring). -/
+theorem TauReal.tangent_defect_increment_rearranged (a dh : TauRat) :
+    TauReal.equiv
+      ((TauReal.tangent_defect (a.add dh)).sub (TauReal.tangent_defect a))
+      ((((TauReal.cis_arctan_im (a.add dh)).sub (TauReal.cis_arctan_im a)).sub
+          ((TauReal.fromTauRat dh).mul (TauReal.cis_arctan_re (a.add dh)))).sub
+        ((TauReal.fromTauRat a).mul
+          ((TauReal.cis_arctan_re (a.add dh)).sub (TauReal.cis_arctan_re a)))) := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  -- Establish LHS and RHS as concrete Rat expressions in 4 opaque variables.
+  have h_LHS :
+      ((((TauReal.tangent_defect (a.add dh)).sub (TauReal.tangent_defect a)).approx n)).toRat
+        = ((TauReal.cis_arctan_im (a.add dh)).approx n).toRat
+          - (a.toRat + dh.toRat) * ((TauReal.cis_arctan_re (a.add dh)).approx n).toRat
+          - (((TauReal.cis_arctan_im a).approx n).toRat
+              - a.toRat * ((TauReal.cis_arctan_re a).approx n).toRat) := by
+    show (TauRat.add ((TauReal.tangent_defect (a.add dh)).approx n)
+            ((TauReal.tangent_defect a).approx n).negate).toRat = _
+    rw [toRat_add, toRat_negate,
+        TauReal.tangent_defect_approx_toRat, TauReal.tangent_defect_approx_toRat,
+        toRat_add]
+    ring
+  have h_RHS :
+      (((((TauReal.cis_arctan_im (a.add dh)).sub (TauReal.cis_arctan_im a)).sub
+            ((TauReal.fromTauRat dh).mul (TauReal.cis_arctan_re (a.add dh)))).sub
+          ((TauReal.fromTauRat a).mul
+            ((TauReal.cis_arctan_re (a.add dh)).sub
+              (TauReal.cis_arctan_re a)))).approx n).toRat
+        = ((TauReal.cis_arctan_im (a.add dh)).approx n).toRat
+          - ((TauReal.cis_arctan_im a).approx n).toRat
+          - dh.toRat * ((TauReal.cis_arctan_re (a.add dh)).approx n).toRat
+          - a.toRat * (((TauReal.cis_arctan_re (a.add dh)).approx n).toRat
+              - ((TauReal.cis_arctan_re a).approx n).toRat) := by
+    show (TauRat.add
+            (TauRat.add
+              (TauRat.add ((TauReal.cis_arctan_im (a.add dh)).approx n)
+                ((TauReal.cis_arctan_im a).approx n).negate)
+              (((TauReal.fromTauRat dh).approx n).mul
+                ((TauReal.cis_arctan_re (a.add dh)).approx n)).negate)
+            (((TauReal.fromTauRat a).approx n).mul
+              (TauRat.add ((TauReal.cis_arctan_re (a.add dh)).approx n)
+                ((TauReal.cis_arctan_re a).approx n).negate)).negate).toRat = _
+    simp only [toRat_add, toRat_negate, toRat_mul,
+               show ((TauReal.fromTauRat dh).approx n).toRat = dh.toRat from rfl,
+               show ((TauReal.fromTauRat a).approx n).toRat = a.toRat from rfl]
+    ring
+  rw [h_LHS, h_RHS]
+  ring
+
+-- ============================================================
+-- PART 4: STRUCTURAL HOOKS — INCREMENT BOUND (FUTURE WAVE)
 -- ============================================================
 
 /-! ## Structural hooks for future Gronwall application
