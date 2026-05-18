@@ -115,6 +115,15 @@ import TauLib.BookIII.Bridge.G8PrimePolarityChartEquation
 import TauLib.BookIII.Bridge.G8PrimePolarityLocalizationAudit
 import TauLib.BookIII.Bridge.G8PrimePolarityChartConstruction
 import TauLib.BookIII.Bridge.G8PrimePolarityAxisOffsetAlignment
+import TauLib.BookIII.Bridge.G8OrthodoxShadowSource
+import TauLib.BookIII.Bridge.G8OrthodoxShadowReadability
+import TauLib.BookIII.Bridge.G8OrthodoxCenteredChartHygiene
+import TauLib.BookIII.Bridge.G8OrthodoxShadowAxisSource
+import TauLib.BookIII.Bridge.G8OrthodoxPrimePolarityAxisPullback
+import TauLib.BookIII.Bridge.G8OrthodoxTauAxisRelation
+import TauLib.BookIII.Bridge.G8OrthodoxTauPreimageExistence
+import TauLib.BookIII.Bridge.G8OrthodoxNormalizedAxisClass
+import TauLib.BookIII.Bridge.G8OrthodoxTauUnitWitnessSupply
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
