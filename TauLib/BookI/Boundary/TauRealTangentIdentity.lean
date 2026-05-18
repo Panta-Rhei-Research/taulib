@@ -1149,6 +1149,67 @@ theorem TauRat.gronwallWalkStep_full_toRat (a : TauRat) (N : Nat) (hN : 0 < N) :
   have h_N_pos : (0 : Rat) < (N : Rat) := by exact_mod_cast hN
   field_simp
 
+/-! ## Sub-Wave 6.M5.D-application — Per-step increment bound at .approx K
+
+  The analytical heart of the Gronwall walk discharge. Combines:
+  - 6.M5.C TauReal-equiv at `.approx K` (spending the Cauchy modulus
+    from `cisTauReal_add` propagation)
+  - 6.M4.D.3 linear-term extraction (pointwise at Rat level)
+  - 6.M2 small-angle bounds (pointwise at Rat level)
+  - 6.M3 secant Taylor (pointwise at Rat level)
+  - 6.M4.D.1 magnitude bounds (pointwise at Rat level)
+
+  Yields the Gronwall recurrence form:
+  ```
+  |T(a+dh).approx K_eff - T(a).approx K_eff|
+    ≤ M(K_eff,dh) · |T(a).approx K_eff| + δ(K_eff,dh)
+  ```
+
+  where the linear coefficient `M` comes from `(R−1) + dh·a·d_K` and the
+  absolute term `δ` bounds all the O(dh²·K²) and exponentially-small
+  `a^(4K)` errors, plus the modulus error from 6.M5.C.
+-/
+
+/-- **Destructure helper** — Extract the modulus from 6.M5.C's TauReal-equiv,
+    exposing an explicit `K_M` (the modulus) and the pointwise bound at .approx K
+    for all K ≥ K_M. -/
+theorem TauReal.tangent_defect_increment_simplified_at_K
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1) :
+    ∃ μ_5C : Nat → Nat, ∀ k_M K, μ_5C k_M ≤ K →
+      |((TauReal.tangent_defect (a.add dh)).approx K).toRat
+        - ((TauReal.tangent_defect a).approx K).toRat
+        - ((((((TauReal.cis_arctan_re a).add
+                ((TauReal.fromTauRat a).mul (TauReal.cis_arctan_im a))).mul
+              (TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                  (TauReal.arctan_of_rat_seq a))).im).add
+            ((TauReal.tangent_defect a).mul
+              (((TauComplex.cisTauReal
+                  ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                    (TauReal.arctan_of_rat_seq a))).re).sub TauReal.one))).sub
+          ((TauReal.fromTauRat dh).mul
+            (TauReal.cis_arctan_re (a.add dh)))).approx K).toRat|
+      < 1 / ((k_M : Rat) + 1) := by
+  obtain ⟨μ_5C, hμ_5C⟩ :=
+    TauReal.tangent_defect_increment_simplified a dh ha hah
+  refine ⟨μ_5C, ?_⟩
+  intro k_M K hK
+  have h := hμ_5C k_M K hK
+  unfold TauRat.lt at h
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat] at h
+  -- h has (T(a+dh).sub T(a)).approx K .toRat; we want T(a+dh).approx K .toRat - T(a).approx K .toRat
+  -- These are equal via toRat_add + toRat_negate (since .sub = .add . negate definitionally).
+  have h_sub :
+      (((TauReal.tangent_defect (a.add dh)).sub
+          (TauReal.tangent_defect a)).approx K).toRat
+        = ((TauReal.tangent_defect (a.add dh)).approx K).toRat
+          - ((TauReal.tangent_defect a).approx K).toRat := by
+    show (TauRat.add ((TauReal.tangent_defect (a.add dh)).approx K)
+            ((TauReal.tangent_defect a).approx K).negate).toRat = _
+    rw [toRat_add, toRat_negate]; ring
+  rw [h_sub] at h
+  exact h
+
 /-! ## Structural hooks for future Gronwall application
 
   The next sub-Wave will:
