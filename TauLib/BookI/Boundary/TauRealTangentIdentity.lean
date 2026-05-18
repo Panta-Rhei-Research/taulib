@@ -1596,6 +1596,54 @@ theorem TauReal.I_K_minus_delta_K_abs_le_eight_K_dh_cube
   have h_8_K_dh_cube : (K : Rat) * (2 * dh.toRat)^3 = 8 * (K : Rat) * dh.toRat^3 := by ring
   linarith [h_M2_im]
 
+/-! ## Helper A — Pure TauReal→Rat unfolding of the 6.M5.C RHS
+
+  This isolates the deeply-nested TauReal expression normalization into
+  a single small theorem. The technique is identical to the inline
+  unfold in `tangent_defect_increment_simplified` (line 1248-1268).
+
+  By extracting the unfold into its own theorem, F.1b's main proof can
+  `rw` with this lemma in O(1) rather than re-doing the whnf-heavy
+  `show + simp only + ring` ritual inside the deeply-set-bound context.
+-/
+
+/-- **Helper A** — Pure TauReal→Rat bridge for the 6.M5.C RHS at .approx K. -/
+theorem TauReal.RHS_5C_at_K_toRat_unfold (a dh : TauRat) (K : Nat) :
+    ((((((TauReal.cis_arctan_re a).add
+            ((TauReal.fromTauRat a).mul (TauReal.cis_arctan_im a))).mul
+          (TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+              (TauReal.arctan_of_rat_seq a))).im).add
+        ((TauReal.tangent_defect a).mul
+          (((TauComplex.cisTauReal
+              ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                (TauReal.arctan_of_rat_seq a))).re).sub TauReal.one))).sub
+      ((TauReal.fromTauRat dh).mul (TauReal.cis_arctan_re (a.add dh)))).approx K).toRat
+      = (((TauReal.cis_arctan_re a).approx K).toRat
+          + a.toRat * ((TauReal.cis_arctan_im a).approx K).toRat)
+        * ((TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+              (TauReal.arctan_of_rat_seq a))).im.approx K).toRat
+        + ((TauReal.tangent_defect a).approx K).toRat
+          * (((TauComplex.cisTauReal
+              ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                (TauReal.arctan_of_rat_seq a))).re.approx K).toRat - 1)
+        - dh.toRat * ((TauReal.cis_arctan_re (a.add dh)).approx K).toRat := by
+  show (TauRat.add
+          (TauRat.add
+            ((TauRat.add ((TauReal.cis_arctan_re a).approx K)
+                (((TauReal.fromTauRat a).approx K).mul
+                  ((TauReal.cis_arctan_im a).approx K))).mul
+              ((TauComplex.cisTauReal _).im.approx K))
+            (((TauReal.tangent_defect a).approx K).mul
+              (TauRat.add ((TauComplex.cisTauReal _).re.approx K) TauRat.one.negate)))
+          (((TauReal.fromTauRat dh).approx K).mul
+            ((TauReal.cis_arctan_re (a.add dh)).approx K)).negate).toRat = _
+  simp only [toRat_add, toRat_negate, toRat_mul, toRat_one,
+             show ((TauReal.fromTauRat dh).approx K).toRat = dh.toRat from rfl,
+             show ((TauReal.fromTauRat a).approx K).toRat = a.toRat from rfl]
+  ring
+
 /-! ## Sub-Wave F.1b — Per-step Gronwall increment bound (NEXT SESSION)
 
   F.1b combines the modulus destructure (6.M5.D), 6.M4.D.3 (linear-term
