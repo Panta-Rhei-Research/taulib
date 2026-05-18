@@ -425,6 +425,100 @@ theorem pureIm_pow_im_rat_odd_closed (α : Rat) (j : Nat) :
   rw [show 2*j + 1 = (2*j) + 1 from rfl, pow_succ]
   ring
 
+-- ============================================================
+-- PART 7: SUB-WAVE 6.M4.B HELPER — pow_sub_pow SECANT TAYLOR
+-- ============================================================
+
+/-! ## Helper: secant Taylor for `α^n`
+
+  For |α|, |β| ≤ 1 and n : Nat:
+    |α^n − β^n − n · β^(n-1) · (α − β)| ≤ n² · (α − β)² / 2
+
+  Proof: induction on n using the recursion
+    R(n+1) = α · R(n) + n · β^(n-1) · (α − β)²
+  where R(n) := α^n − β^n − n · β^(n-1) · (α − β).
+-/
+
+/-- **6.M4.B helper** — secant Taylor for `α^n`. -/
+theorem pow_sub_pow_secant_taylor (α β : Rat) (h_α : |α| ≤ 1) (h_β : |β| ≤ 1) (n : Nat) :
+    |α^n - β^n - (n : Rat) * β^(n-1) * (α - β)| ≤ (n : Rat)^2 * (α - β)^2 / 2 := by
+  induction n with
+  | zero =>
+    show |α^0 - β^0 - (0 : Rat) * β^(0-1) * (α - β)| ≤ (0 : Rat)^2 * (α - β)^2 / 2
+    simp
+  | succ n ih =>
+    -- Case split: n = 0 (so we're proving for n+1 = 1) vs n ≥ 1 (recursion works)
+    rcases n with _ | m
+    · -- n = 0, so we're proving for n+1 = 1.
+      -- R(1) = α^1 - β^1 - 1·β^0·(α-β) = α - β - (α - β) = 0
+      show |α^1 - β^1 - ((0+1 : Nat) : Rat) * β^((0+1)-1) * (α - β)|
+              ≤ ((0+1 : Nat) : Rat)^2 * (α - β)^2 / 2
+      have h_zero : α^1 - β^1 - ((0+1 : Nat) : Rat) * β^((0+1)-1) * (α - β) = 0 := by
+        push_cast; ring
+      rw [h_zero, abs_zero]
+      have h_sq_nn : (0 : Rat) ≤ ((0+1 : Nat) : Rat)^2 * (α - β)^2 / 2 := by positivity
+      exact h_sq_nn
+    · -- n = m+1 ≥ 1. Now β^n = β · β^(n-1) holds cleanly.
+      -- We're proving R(m+2) using IH for R(m+1).
+      set n := m + 1
+      have h_n_pos : 1 ≤ n := by omega
+      have h_recursion :
+          α^(n+1) - β^(n+1) - ((n+1 : Nat) : Rat) * β^((n+1)-1) * (α - β)
+            = α * (α^n - β^n - (n : Rat) * β^(n-1) * (α - β))
+              + (n : Rat) * β^(n-1) * (α - β)^2 := by
+        have h_n_succ_sub : (n + 1 : Nat) - 1 = n := by omega
+        rw [h_n_succ_sub]
+        have h_β_pow_succ : β^(n+1) = β * β^n := by rw [pow_succ]; ring
+        have h_α_pow_succ : α^(n+1) = α * α^n := by rw [pow_succ]; ring
+        rw [h_β_pow_succ, h_α_pow_succ]
+        have h_β_pow_n : β^n = β * β^(n-1) := by
+          show β^(m+1) = β * β^((m+1)-1)
+          have h_m1_sub : (m+1) - 1 = m := by omega
+          rw [h_m1_sub, pow_succ]; ring
+        push_cast
+        rw [h_β_pow_n]
+        ring
+      rw [h_recursion]
+      have h_α_R_bound : |α * (α^n - β^n - (n : Rat) * β^(n-1) * (α - β))| ≤
+          (n : Rat)^2 * (α - β)^2 / 2 := by
+        rw [abs_mul]
+        calc |α| * |α^n - β^n - (n : Rat) * β^(n-1) * (α - β)|
+            ≤ 1 * |α^n - β^n - (n : Rat) * β^(n-1) * (α - β)| :=
+                mul_le_mul_of_nonneg_right h_α (_root_.abs_nonneg _)
+          _ = |α^n - β^n - (n : Rat) * β^(n-1) * (α - β)| := one_mul _
+          _ ≤ (n : Rat)^2 * (α - β)^2 / 2 := ih
+      have h_β_pow_n_minus_1_bound : |β^(n-1)| ≤ 1 := by
+        rw [abs_pow]; exact pow_le_one₀ (_root_.abs_nonneg _) h_β
+      have h_n_term_bound : |(n : Rat) * β^(n-1) * (α - β)^2| ≤ (n : Rat) * (α - β)^2 := by
+        have h_n_nn : (0 : Rat) ≤ (n : Rat) := Nat.cast_nonneg _
+        have h_sq_nn : (0 : Rat) ≤ (α - β)^2 := sq_nonneg _
+        rw [abs_mul, abs_mul]
+        have h_n_abs : |(n : Rat)| = (n : Rat) := abs_of_nonneg h_n_nn
+        have h_sq_abs : |(α - β)^2| = (α - β)^2 := abs_of_nonneg h_sq_nn
+        rw [h_n_abs, h_sq_abs]
+        calc (n : Rat) * |β^(n-1)| * (α - β)^2
+            ≤ (n : Rat) * 1 * (α - β)^2 :=
+                mul_le_mul_of_nonneg_right
+                  (mul_le_mul_of_nonneg_left h_β_pow_n_minus_1_bound h_n_nn) h_sq_nn
+          _ = (n : Rat) * (α - β)^2 := by ring
+      have h_sum_bound :
+          |α * (α^n - β^n - (n : Rat) * β^(n-1) * (α - β))
+            + (n : Rat) * β^(n-1) * (α - β)^2|
+            ≤ (n : Rat)^2 * (α - β)^2 / 2 + (n : Rat) * (α - β)^2 := by
+        calc |α * (α^n - β^n - (n : Rat) * β^(n-1) * (α - β))
+              + (n : Rat) * β^(n-1) * (α - β)^2|
+            ≤ |α * (α^n - β^n - (n : Rat) * β^(n-1) * (α - β))|
+              + |(n : Rat) * β^(n-1) * (α - β)^2| := abs_add_le _ _
+          _ ≤ (n : Rat)^2 * (α - β)^2 / 2 + (n : Rat) * (α - β)^2 := by linarith
+      have h_final :
+          (n : Rat)^2 * (α - β)^2 / 2 + (n : Rat) * (α - β)^2
+            ≤ ((n+1 : Nat) : Rat)^2 * (α - β)^2 / 2 := by
+        have h_sq_nn : (0 : Rat) ≤ (α - β)^2 := sq_nonneg _
+        have h_n_cast : ((n+1 : Nat) : Rat) = (n : Rat) + 1 := by push_cast; ring
+        rw [h_n_cast]
+        nlinarith [h_sq_nn]
+      linarith
+
 /-! ## Structural hooks for future Gronwall application
 
   The next sub-Wave will:
