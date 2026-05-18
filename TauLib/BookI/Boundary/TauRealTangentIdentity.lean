@@ -803,6 +803,60 @@ theorem TauReal.tangent_defect_increment_pointwise (a dh : TauRat) (K : Nat) :
       toRat_add]
   ring
 
+/-! ## Uniform pointwise bound for cisTauReal_re/im (Path-β-conditional)
+
+  The 6.M4.D.1 magnitude bound `|cis_arctan_re.approx n .toRat| ≤ 1 + n·α²`
+  is K-DEPENDENT, which blocks `equiv_mul_congr` (requires Nat bound
+  uniformly in n).
+
+  Here we provide a UNIFORM bound (≤ 8 for any n) by replaying the
+  residual+cos_partial bound from `exp_pureIm_re_approx_abs_toRat_le_8`
+  (TauRealSinCos.lean), bridged via `cisTauReal_re_approx_toRat`.
+-/
+
+/-- **Uniform .approx bound (re)** — For any TauReal `x` with `|x.approx n .toRat| ≤ 1`:
+    `((cisTauReal x).re.approx n).abs.toRat ≤ 8`. -/
+theorem TauComplex.cisTauReal_re_approx_abs_le_8
+    (x : TauReal) (n : Nat) (hx : |(x.approx n).toRat| ≤ 1) :
+    ((TauComplex.cisTauReal x).re.approx n).abs.toRat ≤ 8 := by
+  rw [TauRat.toRat_abs, cisTauReal_re_approx_toRat]
+  -- Goal: |expPartial_pureIm_re_rat (x.approx n).toRat n| ≤ 8
+  have h := exp_pureIm_re_approx_abs_toRat_le_8 (x.approx n) hx n
+  rw [TauRat.toRat_abs, TauComplex.exp_re_approx,
+      expPartial_pureIm_re_approx_toRat_eq_rat] at h
+  exact h
+
+/-- **Uniform .approx bound (im)** — For any TauReal `x` with `|x.approx n .toRat| ≤ 1`:
+    `((cisTauReal x).im.approx n).abs.toRat ≤ 8`. -/
+theorem TauComplex.cisTauReal_im_approx_abs_le_8
+    (x : TauReal) (n : Nat) (hx : |(x.approx n).toRat| ≤ 1) :
+    ((TauComplex.cisTauReal x).im.approx n).abs.toRat ≤ 8 := by
+  rw [TauRat.toRat_abs, cisTauReal_im_approx_toRat]
+  have h := exp_pureIm_im_approx_abs_toRat_le_8 (x.approx n) hx n
+  rw [TauRat.toRat_abs, TauComplex.exp_im_approx,
+      expPartial_pureIm_im_approx_toRat_eq_rat] at h
+  exact h
+
+/-- **Uniform bound for cis_arctan_re** under Path β. -/
+theorem TauReal.cis_arctan_re_approx_abs_le_8
+    (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) (n : Nat) :
+    ((TauReal.cis_arctan_re a).approx n).abs.toRat ≤ 8 := by
+  show ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).abs.toRat ≤ 8
+  apply TauComplex.cisTauReal_re_approx_abs_le_8
+  have h_bound := TauReal.arctan_of_rat_seq_bounded a ha n
+  rw [TauRat.toRat_abs] at h_bound
+  exact h_bound
+
+/-- **Uniform bound for cis_arctan_im** under Path β. -/
+theorem TauReal.cis_arctan_im_approx_abs_le_8
+    (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) (n : Nat) :
+    ((TauReal.cis_arctan_im a).approx n).abs.toRat ≤ 8 := by
+  show ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).abs.toRat ≤ 8
+  apply TauComplex.cisTauReal_im_approx_abs_le_8
+  have h_bound := TauReal.arctan_of_rat_seq_bounded a ha n
+  rw [TauRat.toRat_abs] at h_bound
+  exact h_bound
+
 /-! ## Sub-Wave 6.M5.A — TauReal-equiv increment with Wave 6c.10b (im) substituted
 
   Chains 6.M1 (algebraic rearrangement) with Wave 6c.10b (im, difference
@@ -853,6 +907,83 @@ theorem TauReal.tangent_defect_increment_via_6c10b_im
       exact TauReal.equiv_refl _
   · -- a·re_diff ≈_TR a·re_diff (refl — no substitution here)
     exact TauReal.equiv_refl _
+
+/-! ## Sub-Wave 6.M5.B — Full TauReal-equiv decomposition
+
+  Chains 6.M5.A with `equiv_mul_congr` to substitute Wave 6c.10b (re) into
+  the `a · (re(a+dh) − re(a))` term. The substitution requires the uniform
+  bound `|cis_arctan_re.approx n| ≤ 8` (now shipped above), enabling
+  `equiv_mul_congr` with Ma = 1, Mb = 16.
+
+  Final form:
+      T(a+dh) − T(a) ≈_TR  [A·I + B·(R−1)] − dh·re(a+dh) − a·[A·(R−1) − B·I]
+-/
+
+/-- **6.M5.B** — Full TauReal-equiv decomposition of the increment with
+    both Wave 6c.10b diffs substituted. -/
+theorem TauReal.tangent_defect_increment_via_6c10b_full
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1) :
+    TauReal.equiv
+      ((TauReal.tangent_defect (a.add dh)).sub (TauReal.tangent_defect a))
+      (((((TauReal.cis_arctan_re a).mul
+              (TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                  (TauReal.arctan_of_rat_seq a))).im).add
+            ((TauReal.cis_arctan_im a).mul
+              (((TauComplex.cisTauReal
+                  ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                    (TauReal.arctan_of_rat_seq a))).re).sub TauReal.one))).sub
+          ((TauReal.fromTauRat dh).mul (TauReal.cis_arctan_re (a.add dh)))).sub
+        ((TauReal.fromTauRat a).mul
+          (((TauReal.cis_arctan_re a).mul
+              (((TauComplex.cisTauReal
+                  ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                    (TauReal.arctan_of_rat_seq a))).re).sub TauReal.one)).sub
+            ((TauReal.cis_arctan_im a).mul
+              (TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                  (TauReal.arctan_of_rat_seq a))).im)))) := by
+  -- Start from 6.M5.A: (im_diff substituted, re_diff untouched)
+  apply TauReal.equiv_trans (TauReal.tangent_defect_increment_via_6c10b_im a dh ha hah)
+  -- Goal: substitute re_diff inside `a · re_diff` via equiv_mul_congr
+  apply TauReal.equiv_sub_congr
+  · -- Inner part unchanged
+    exact TauReal.equiv_refl _
+  · -- `a · re_diff ≈_TR a · re_diff_factored` via equiv_mul_congr
+    apply TauReal.equiv_mul_congr (Ma := 1) (Mb := 16) (by omega : (1:Nat) ≤ 1) (by omega : (1:Nat) ≤ 16)
+    · -- Bound on `fromTauRat a`: |a.toRat| ≤ 1
+      intro n
+      show ((TauReal.fromTauRat a).approx n).abs.toRat ≤ (1 : Nat)
+      show (a.abs).toRat ≤ (1 : Rat)
+      rw [TauRat.toRat_abs]
+      have h_abs : |a.toRat| ≤ 1/4 := by linarith [_root_.abs_nonneg a.toRat]
+      linarith
+    · -- Bound on `re_diff = cis_arctan_re(a+dh) - cis_arctan_re(a)`: |.approx n| ≤ 16
+      intro n
+      show (((TauReal.cis_arctan_re (a.add dh)).sub (TauReal.cis_arctan_re a)).approx n).abs.toRat
+            ≤ (16 : Nat)
+      show (TauRat.add ((TauReal.cis_arctan_re (a.add dh)).approx n)
+              ((TauReal.cis_arctan_re a).approx n).negate).abs.toRat ≤ (16 : Rat)
+      rw [TauRat.toRat_abs, toRat_add, toRat_negate]
+      -- |x + (-y)| ≤ |x| + |y|, each ≤ 8
+      have h_h : ((TauReal.cis_arctan_re (a.add dh)).approx n).abs.toRat ≤ 8 := by
+        apply TauReal.cis_arctan_re_approx_abs_le_8
+        linarith [_root_.abs_nonneg (a.add dh).toRat]
+      have h_a : ((TauReal.cis_arctan_re a).approx n).abs.toRat ≤ 8 := by
+        apply TauReal.cis_arctan_re_approx_abs_le_8
+        linarith [_root_.abs_nonneg a.toRat]
+      rw [TauRat.toRat_abs] at h_h h_a
+      have h_tri :
+          |((TauReal.cis_arctan_re (a.add dh)).approx n).toRat
+            + -((TauReal.cis_arctan_re a).approx n).toRat|
+            ≤ |((TauReal.cis_arctan_re (a.add dh)).approx n).toRat|
+              + |-((TauReal.cis_arctan_re a).approx n).toRat| := abs_add_le _ _
+      rw [abs_neg] at h_tri
+      linarith
+    · -- a = a (refl)
+      exact TauReal.equiv_refl _
+    · -- Wave 6c.10b (re): re_diff ≈_TR (A·(R-1) - B·I)
+      exact TauReal.cis_arctan_re_diff_factored a dh ha hah
 
 /-! ## Structural hooks for future Gronwall application
 
