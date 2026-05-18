@@ -103,6 +103,7 @@ import TauLib.BookIII.Bridge.G8CompletionAdmissibilityLadder
 import TauLib.BookIII.Bridge.G8OneSidedPullbackCorridor
 import TauLib.BookIII.Bridge.G8OffCriticalExclusionTransfer
 import TauLib.BookIII.Bridge.G8OffAxisGhostExclusionCorridor
+import TauLib.BookIII.Bridge.G8StageAwareOffAxisGhostCorridor
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
