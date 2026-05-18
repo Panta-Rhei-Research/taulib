@@ -100,6 +100,7 @@ import TauLib.BookIII.Bridge.G8StageAwarePullbackAudit
 import TauLib.BookIII.Bridge.G8StageAwarePullbackTarget
 import TauLib.BookIII.Bridge.G8StageCompletionLab
 import TauLib.BookIII.Bridge.G8CompletionAdmissibilityLadder
+import TauLib.BookIII.Bridge.G8OneSidedPullbackCorridor
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
