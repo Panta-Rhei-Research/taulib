@@ -1400,8 +1400,7 @@ theorem arctan_deriv_partial_rat_at_zero (N : Nat) (hN : 1 ≤ N) :
   All ingredients are shipped — assembly is purely mechanical for next session.
 -/
 
-/- DEFERRED: full proof of IsDerivAt cis_arctan_im at zero — see Wave 6c.9 status above.
-
+/-- **Wave 6c.9** — IsDerivAt for `cis_arctan_im` at `a = 0` with derivative `TauReal.one`. -/
 theorem TauReal.cis_arctan_im_isDerivAt_zero :
     TauReal.IsDerivAt TauReal.cis_arctan_im TauRat.zero TauReal.one := by
   refine ⟨fun k => max (26 * (k + 1)) 2, fun k N hN => ?_⟩
@@ -1529,13 +1528,10 @@ theorem TauReal.cis_arctan_im_isDerivAt_zero :
   --       ≤ N · |α|^3 · 2^N + 2N² · h² · 2^N
   have h_α_cube_bound : |α|^3 ≤ (4/3)^3 * (1 / (2 : Rat)^N)^3 := by
     have h_α_nn : (0 : Rat) ≤ |α| := _root_.abs_nonneg _
-    have h_bound_nn : (0 : Rat) ≤ (4/3 : Rat) * (1 / (2 : Rat)^N) := by positivity
-    have h_4_3_pos : (0 : Rat) ≤ (4/3 : Rat) := by norm_num
-    rw [← h_h_abs_eq] at h_α_bound
-    calc |α|^3 ≤ ((4/3) * |h|)^3 := by
-          apply pow_le_pow_left₀ h_α_nn h_α_bound
-        _ = (4/3)^3 * |h|^3 := by ring
-        _ = (4/3)^3 * (1 / (2 : Rat)^N)^3 := by rw [h_h_abs_eq]
+    calc |α|^3 ≤ ((4/3) * |h|)^3 :=
+          pow_le_pow_left₀ h_α_nn h_α_bound 3
+      _ = (4/3)^3 * |h|^3 := by ring
+      _ = (4/3)^3 * (1 / (2 : Rat)^N)^3 := by rw [h_h_abs_eq]
   -- (4/3)^3 = 64/27, (1/2^N)^3 = 1/8^N
   have h_8N_eq : (1 / (2 : Rat)^N)^3 = 1 / (8 : Rat)^N := by
     rw [div_pow, one_pow]
@@ -1568,7 +1564,6 @@ theorem TauReal.cis_arctan_im_isDerivAt_zero :
       rw [h_8N_eq2]
       have h_4N_pos : (0 : Rat) < (4 : Rat)^N := by positivity
       field_simp
-      ring
     linarith
   -- |(α - h) · 2^N| ≤ h² · 2N² · 2^N = 2N²/2^N
   have h_second_bound : |(α - h) * (2 : Rat)^N| ≤ 2 * (N : Rat)^2 / (2 : Rat)^N := by
@@ -1582,7 +1577,6 @@ theorem TauReal.cis_arctan_im_isDerivAt_zero :
                   = 2 * (N : Rat)^2 / (2 : Rat)^N := by
       rw [h_h_sq_eq]
       field_simp
-      ring
     linarith
   -- Total bound: 64N/(27·4^N) + 2N²/2^N
   have h_total_bound :
@@ -1603,20 +1597,33 @@ theorem TauReal.cis_arctan_im_isDerivAt_zero :
     have h_2N_ge_2 : (2 : Rat) ≤ (2 : Rat)^N := by
       calc (2 : Rat) = (2 : Rat)^1 := by ring
         _ ≤ (2 : Rat)^N := pow_le_pow_right₀ (by norm_num : (1 : Rat) ≤ 2) hN_1
-    -- Want: 64N · 2^N ≤ 2N² · 27 · 4^N = 54 N² · (2^N)²
-    -- Have: N ≥ 1, 2^N ≥ 2, 4^N = (2^N)²
-    -- 54 N² (2^N)² ≥ 54 · 1 · 2^N · 2 · 2^N = 108 N · 2^N (using N²≥N and 2^N≥2)
-    -- Wait simpler: 54 N² (2^N)² ≥ 54 N² · 2 · 2^N ≥ 108 N · 2^N ≥ 64 N · 2^N (since N²≥N).
     rw [h_4N_eq]
-    have h_N_sq_ge_N : (N : Rat) * (N : Rat) ≥ (N : Rat) := by nlinarith [h_N_ge_1_rat]
-    have h_step1 : 54 * (N : Rat)^2 * ((2 : Rat)^N * (2 : Rat)^N)
-                   ≥ 108 * (N : Rat)^2 * (2 : Rat)^N := by
-      have h_2N_nn : (0 : Rat) ≤ (2 : Rat)^N := h_2N_pos.le
-      nlinarith [h_2N_ge_2, h_2N_nn, sq_nonneg ((N : Rat))]
-    have h_step2 : 108 * (N : Rat)^2 * (2 : Rat)^N ≥ 64 * (N : Rat) * (2 : Rat)^N := by
-      have : (N : Rat)^2 ≥ (N : Rat) := by nlinarith [h_N_ge_1_rat]
-      have h_2N_nn : (0 : Rat) ≤ (2 : Rat)^N := h_2N_pos.le
-      nlinarith [h_2N_nn]
+    -- Goal: 64 N · 2^N ≤ 2 N² · (27 · (2^N · 2^N)) = 54 N² · 2^N · 2^N
+    -- Proof: 54 N² · 2^N · 2^N - 64 N · 2^N = 2 · 2^N · (27 N² · 2^N - 32 N)
+    --                                       = 2 N · 2^N · (27 N · 2^N - 32)
+    -- For N ≥ 1, 2^N ≥ 2: 27 N · 2^N ≥ 27 · 1 · 2 = 54 ≥ 32. ✓
+    have h_27N2N_ge_54 : 27 * (N : Rat) * (2 : Rat)^N ≥ 54 := by
+      have h_nn : (0 : Rat) ≤ (N : Rat) := by linarith [h_N_ge_1_rat]
+      calc 27 * (N : Rat) * (2 : Rat)^N
+          ≥ 27 * 1 * (2 : Rat)^N := by
+            apply mul_le_mul_of_nonneg_right (by linarith [h_N_ge_1_rat]) h_2N_pos.le
+        _ = 27 * (2 : Rat)^N := by ring
+        _ ≥ 27 * 2 := by linarith [h_2N_ge_2]
+        _ = 54 := by ring
+    -- Now derive the bound:
+    -- 2 N² · 27 · (2^N · 2^N) - 64 N · 2^N = 2 N · 2^N · (27 N · 2^N - 32)
+    have h_factor :
+        2 * (N : Rat)^2 * (27 * ((2 : Rat)^N * (2 : Rat)^N)) - 64 * (N : Rat) * (2 : Rat)^N
+        = 2 * (N : Rat) * (2 : Rat)^N * (27 * (N : Rat) * (2 : Rat)^N - 32) := by ring
+    have h_diff_nn :
+        0 ≤ 2 * (N : Rat)^2 * (27 * ((2 : Rat)^N * (2 : Rat)^N)) - 64 * (N : Rat) * (2 : Rat)^N := by
+      rw [h_factor]
+      have h_27N2N_sub_nn : (0 : Rat) ≤ 27 * (N : Rat) * (2 : Rat)^N - 32 := by
+        linarith [h_27N2N_ge_54]
+      have h_N_nn : (0 : Rat) ≤ (N : Rat) := by linarith [h_N_ge_1_rat]
+      have h_2_2N_nn : (0 : Rat) ≤ 2 * (N : Rat) * (2 : Rat)^N :=
+        mul_nonneg (mul_nonneg (by norm_num) h_N_nn) h_2N_pos.le
+      exact mul_nonneg h_2_2N_nn h_27N2N_sub_nn
     linarith
   -- Total ≤ 2N²/2^N + 2N²/2^N = 4N²/2^N
   -- 4N²/2^N < 1/(k+1) for N ≥ 26(k+1) via arctan_modulus_bound with k'=2k+1
@@ -1645,7 +1652,6 @@ theorem TauReal.cis_arctan_im_isDerivAt_zero :
             = 4 * (N : Rat)^2 / (2 : Rat)^N := by ring
     linarith [h_chain1]
   linarith [h_total_bound, h_total_4N2, h_div_lt]
--/
 
 -- ============================================================
 -- PART 9: Wave 6b — cis_arctan SMALL-ANGLE AT cis_arctan LEVEL
