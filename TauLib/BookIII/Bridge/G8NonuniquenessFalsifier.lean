@@ -44,6 +44,16 @@ uniqueness obligation exposed by the zeta-as-chart context. -/
 structure G8NonuniquenessFalsifierInterface
     (ctx : G8cCompletionUniquenessContext) where
   completionUnique : tauTower_analyticCompletion_unique ctx.chart
+  g3ZetaBridge : ctx.chart.g3ZetaBridge
+  g4AnalyticContinuation : ctx.chart.g4AnalyticContinuation
+  g5OperatorCarrier : ctx.chart.g5OperatorCarrier
+  g6O3DeterminantBridge : ctx.chart.g6O3DeterminantBridge
+  sameXiDivisor : ctx.chart.sameXiDivisor
+  noLostZeros : ctx.chart.noLostZeros
+  noSpuriousZeros : ctx.chart.noSpuriousZeros
+  multiplicityPreserved : ctx.chart.multiplicityPreserved
+  noTwoCompletionsGuard :
+    noTwoCompletions_sameTauTower_differentDivisor ctx.chart
   noSameTowerDifferentDivisor : G8cNoNonuniqueCompletion ctx
 
 /-- Build the non-uniqueness guard interface from G8c-admissible transfer. -/
@@ -52,6 +62,24 @@ def g8c_nonuniquenessInterface_from_transfer
     (h : G8cZeroDivisorTransferAdmissible ctx) :
     G8NonuniquenessFalsifierInterface ctx where
   completionUnique := g8c_transfer_requires_completionUnique ctx h
+  g3ZetaBridge :=
+    zeroDivisorClaimsAdmissible_g3ZetaBridge ctx.chart h.left
+  g4AnalyticContinuation :=
+    zeroDivisorClaimsAdmissible_g4AnalyticContinuation ctx.chart h.left
+  g5OperatorCarrier :=
+    zeroDivisorClaimsAdmissible_g5OperatorCarrier ctx.chart h.left
+  g6O3DeterminantBridge :=
+    zeroDivisorClaimsAdmissible_g6O3DeterminantBridge ctx.chart h.left
+  sameXiDivisor :=
+    zeroDivisorClaimsAdmissible_sameXiDivisor ctx.chart h.left
+  noLostZeros :=
+    zeroDivisorClaimsAdmissible_noLostZeros ctx.chart h.left
+  noSpuriousZeros :=
+    zeroDivisorClaimsAdmissible_noSpuriousZeros ctx.chart h.left
+  multiplicityPreserved :=
+    zeroDivisorClaimsAdmissible_multiplicityPreserved ctx.chart h.left
+  noTwoCompletionsGuard :=
+    zeroDivisorClaimsAdmissible_noTwoCompletionsGuard ctx.chart h.left
   noSameTowerDifferentDivisor :=
     g8c_transfer_requires_noNonuniqueCompletion ctx h
 
@@ -124,6 +152,27 @@ def g8e4_nonuniquenessInterface_from_routeCertificate
     (cert : G8PullbackRouteCertificate ctx) :
     G8NonuniquenessFalsifierInterface (g8e4CompletionContext ctx) where
   completionUnique := cert.dependencies.completionUnique
+  g3ZetaBridge := cert.dependencies.g3ZetaBridge
+  g4AnalyticContinuation := cert.dependencies.g4AnalyticContinuation
+  g5OperatorCarrier := cert.dependencies.g5OperatorCarrier
+  g6O3DeterminantBridge := cert.dependencies.g6O3DeterminantBridge
+  sameXiDivisor := cert.dependencies.sameXiDivisor
+  noLostZeros :=
+    zeroDivisorClaimsAdmissible_noLostZeros
+      (g8e4ZetaChartContext ctx)
+      cert.dependencies.zeroDivisorClaims
+  noSpuriousZeros :=
+    zeroDivisorClaimsAdmissible_noSpuriousZeros
+      (g8e4ZetaChartContext ctx)
+      cert.dependencies.zeroDivisorClaims
+  multiplicityPreserved :=
+    zeroDivisorClaimsAdmissible_multiplicityPreserved
+      (g8e4ZetaChartContext ctx)
+      cert.dependencies.zeroDivisorClaims
+  noTwoCompletionsGuard :=
+    zeroDivisorClaimsAdmissible_noTwoCompletionsGuard
+      (g8e4ZetaChartContext ctx)
+      cert.dependencies.zeroDivisorClaims
   noSameTowerDifferentDivisor := cert.dependencies.noNonuniqueCompletion
 
 /-- An assembled target also carries the decisive non-uniqueness guard
@@ -133,6 +182,27 @@ def g8e4_nonuniquenessInterface_from_target
     (target : G8ConditionalPullbackTarget ctx) :
     G8NonuniquenessFalsifierInterface (g8e4CompletionContext ctx) where
   completionUnique := target.dependencies.completionUnique
+  g3ZetaBridge := target.dependencies.g3ZetaBridge
+  g4AnalyticContinuation := target.dependencies.g4AnalyticContinuation
+  g5OperatorCarrier := target.dependencies.g5OperatorCarrier
+  g6O3DeterminantBridge := target.dependencies.g6O3DeterminantBridge
+  sameXiDivisor := target.dependencies.sameXiDivisor
+  noLostZeros :=
+    zeroDivisorClaimsAdmissible_noLostZeros
+      (g8e4ZetaChartContext ctx)
+      target.dependencies.zeroDivisorClaims
+  noSpuriousZeros :=
+    zeroDivisorClaimsAdmissible_noSpuriousZeros
+      (g8e4ZetaChartContext ctx)
+      target.dependencies.zeroDivisorClaims
+  multiplicityPreserved :=
+    zeroDivisorClaimsAdmissible_multiplicityPreserved
+      (g8e4ZetaChartContext ctx)
+      target.dependencies.zeroDivisorClaims
+  noTwoCompletionsGuard :=
+    zeroDivisorClaimsAdmissible_noTwoCompletionsGuard
+      (g8e4ZetaChartContext ctx)
+      target.dependencies.zeroDivisorClaims
   noSameTowerDifferentDivisor := target.dependencies.noNonuniqueCompletion
 
 end Tau.BookIII.Bridge
