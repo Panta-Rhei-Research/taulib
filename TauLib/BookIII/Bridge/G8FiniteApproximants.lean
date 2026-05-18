@@ -141,6 +141,76 @@ def primorialStageSupport (stage : Nat) : TauFiniteArithmeticSupport where
   stage := stage
   modulus_dvd_stage := dvd_refl (primorial stage)
 
+/-- Primary finite determinant approximant pinned to a primorial stage.
+
+This is the first G8b object that carries both the finite determinant scaffold
+and the arithmetic support that makes the stage visible in the G8a tower. -/
+structure TauFiniteDetStageApprox where
+  stage : Nat
+  factor : Nat → Nat
+  family : TauFiniteDetApproxFamily :=
+    mkTauFiniteDetApproxFamily stage factor
+  conventions : G8bApproxConventions := primaryFiniteDetConventions
+
+/-- The arithmetic support carried by a staged finite determinant approximant.
+
+The support is derived from the stage, not stored as overrideable data, so it
+cannot drift away from the approximant's primorial cutoff. -/
+def TauFiniteDetStageApprox.support
+    (A : TauFiniteDetStageApprox) : TauFiniteArithmeticSupport :=
+  primorialStageSupport A.stage
+
+/-- Constructor for a staged primary finite determinant approximant. -/
+def mkTauFiniteDetStageApprox (stage : Nat) (factor : Nat → Nat) :
+    TauFiniteDetStageApprox where
+  stage := stage
+  factor := factor
+
+/-- A staged finite determinant approximant uses the primary finite
+    determinant role. -/
+theorem mkTauFiniteDetStageApprox_role
+    (stage : Nat) (factor : Nat → Nat) :
+    (mkTauFiniteDetStageApprox stage factor).conventions.role =
+      .primaryFiniteDeterminant :=
+  rfl
+
+/-- A staged finite determinant approximant is visible at its own primorial
+    stage. -/
+theorem tauFiniteDetStageApprox_support_visibleAtOwnStage
+    (A : TauFiniteDetStageApprox) :
+    G8aFiniteSupportVisibleAt A.support.modulus A.support.stage :=
+  g8a_finiteSupport_visibleAtOwnStage A.support
+
+/-- Projection to the staged support preserves residues at that support. -/
+theorem tauFiniteDetStageApprox_support_projection_compatible
+    (A : TauFiniteDetStageApprox) (x : Nat) :
+    A.support.residue (PrimorialStageProjection x A.support.stage) =
+      A.support.residue x :=
+  finiteSupport_projection_compatible A.support x
+
+/-- Lift a staged finite determinant approximant to a deeper primorial stage,
+    keeping the same finite factor family while enlarging the cutoff. -/
+def TauFiniteDetStageApprox.liftTo
+    (A : TauFiniteDetStageApprox) (l : Nat) (_h : A.stage ≤ l) :
+    TauFiniteDetStageApprox where
+  stage := l
+  factor := A.factor
+
+/-- The lifted staged approximant remains visible at its own stage. -/
+theorem tauFiniteDetStageApprox_lift_visibleAtOwnStage
+    (A : TauFiniteDetStageApprox) {l : Nat} (h : A.stage ≤ l) :
+    G8aFiniteSupportVisibleAt (A.liftTo l h).support.modulus
+      (A.liftTo l h).support.stage :=
+  tauFiniteDetStageApprox_support_visibleAtOwnStage (A.liftTo l h)
+
+/-- The original support of a staged approximant remains visible at every
+    deeper lifted stage. -/
+theorem tauFiniteDetStageApprox_originalSupport_visibleAtLift
+    (A : TauFiniteDetStageApprox) {l : Nat} (h : A.stage ≤ l) :
+    G8aFiniteSupportVisibleAt A.support.modulus l :=
+  g8a_visibleAt_mono
+    (tauFiniteDetStageApprox_support_visibleAtOwnStage A) h
+
 /-- Finite primorial/Euler-style comparison approximant.
 
 This object is useful for comparing prime-coordinate bookkeeping against the
@@ -194,9 +264,19 @@ multiplicity preservation before any orthodox `xi` divisor statement. -/
 structure G8bFiniteApproximantContext where
   arithmetic : G8aArithmeticCofinalityContext := primorialG8aContext
   primaryFamily : Type 1 := TauFiniteDetApproxFamily
+  stagedPrimaryFamily : Type 1 := TauFiniteDetStageApprox
   comparisonFamily : Type := PrimorialEulerComparisonApprox
   primaryConventions : G8bApproxConventions := primaryFiniteDetConventions
   comparisonConventions : G8bApproxConventions := primorialEulerComparisonConventions
+  stagedSupportVisible :
+    ∀ (A : TauFiniteDetStageApprox),
+      G8aFiniteSupportVisibleAt A.support.modulus A.support.stage :=
+    tauFiniteDetStageApprox_support_visibleAtOwnStage
+  stagedSupportProjectionCompat :
+    ∀ (A : TauFiniteDetStageApprox) (x : Nat),
+      A.support.residue (PrimorialStageProjection x A.support.stage) =
+        A.support.residue x :=
+    tauFiniteDetStageApprox_support_projection_compatible
   finiteOnly : Prop := True
   noXiDivisorClaim : Prop := True
   noAnalyticCompletionClaim : Prop := True
@@ -216,5 +296,17 @@ theorem finiteG8bContext_noXiDivisorClaim :
 theorem finiteG8bContext_noAnalyticCompletionClaim :
     finiteG8bContext.noAnalyticCompletionClaim :=
   trivial
+
+/-- G8b guardrail package: the context is finite-only and carries neither
+    zero-divisor transfer nor analytic-completion uniqueness. -/
+def G8bFiniteOnlyGuardrails
+    (ctx : G8bFiniteApproximantContext) : Prop :=
+  ctx.finiteOnly ∧ ctx.noXiDivisorClaim ∧ ctx.noAnalyticCompletionClaim
+
+/-- The theorem-backed finite G8b context satisfies the finite-only
+    guardrails. -/
+theorem finiteG8bContext_guardrails :
+    G8bFiniteOnlyGuardrails finiteG8bContext :=
+  ⟨trivial, trivial, trivial⟩
 
 end Tau.BookIII.Bridge
