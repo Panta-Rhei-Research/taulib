@@ -109,6 +109,7 @@ import TauLib.BookIII.Bridge.G8WeakOffAxisPullbackRealization
 import TauLib.BookIII.Bridge.G8OffAxisChartFaithfulnessCore
 import TauLib.BookIII.Bridge.G8OffAxisChartObject
 import TauLib.BookIII.Bridge.G8OffAxisChartAudit
+import TauLib.BookIII.Bridge.G8OffAxisChartFaithfulnessDecomposition
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
