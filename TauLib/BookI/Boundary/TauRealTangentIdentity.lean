@@ -1838,6 +1838,96 @@ theorem TauReal.tangent_defect_step_bound_explicit
   linarith [h_tri, h_piece_lin, h_piece_D3, h_piece_Iδ, h_piece_F1a, h_M_step,
             h_dh_a_pow_nn, h_K_dh_sq_nn, h_K_sq_dh_sq_nn]
 
+/-! ## Sub-Wave F.1b — Per-step Gronwall increment bound (WRAPPER, completes Phase A)
+
+  Thin TauReal-aware wrapper that assembles Helper A (TauReal→Rat unfold)
+  + Helper B (pure Rat-level analytical bound) + the 8 shipped sub-helpers
+  + 6.M5.D destructure into the Gronwall step form.
+
+  ```
+  |T(a+dh).K − T(a).K|
+    ≤ (dh/2 + 9·K·dh²) · |T(a).K|
+      + 200·K²·dh² + 10·dh·|a|^(4K) + 1/(k_M+1)
+  ```
+-/
+
+set_option maxHeartbeats 1600000 in
+/-- **F.1b** — Per-step Gronwall increment bound at .approx K (THE CAPSTONE). -/
+theorem TauReal.tangent_defect_step_bound_at_K
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1)
+    (hdh_nn : 0 ≤ dh.toRat) (hdh_le_half : dh.toRat ≤ 1/2) :
+    ∃ μ_5C : Nat → Nat, ∀ k_M K, μ_5C k_M ≤ K → 2 ≤ K →
+      2 * (K : Rat)^2 * dh.toRat ≤ 1 →
+      |((TauReal.tangent_defect (a.add dh)).approx K).toRat
+        - ((TauReal.tangent_defect a).approx K).toRat|
+        ≤ (dh.toRat / 2 + 9 * (K : Rat) * dh.toRat^2)
+            * |((TauReal.tangent_defect a).approx K).toRat|
+          + 200 * (K : Rat)^2 * dh.toRat^2
+          + 10 * dh.toRat * |a.toRat|^(4*K)
+          + 1 / ((k_M : Rat) + 1) := by
+  -- Step 1: destructure 6.M5.D, get μ_5C and the existential bound
+  obtain ⟨μ_5C, hμ_5C⟩ :=
+    TauReal.tangent_defect_increment_simplified_at_K a dh ha hah
+  refine ⟨μ_5C, ?_⟩
+  intro k_M K hμ_le hK hK_dh
+  have h_5C := hμ_5C k_M K hμ_le
+  -- Step 2: unfold RHS_5C via Helper A
+  rw [TauReal.RHS_5C_at_K_toRat_unfold a dh K] at h_5C
+  -- Now h_5C is in pure Rat-algebra form using the 8 _K quantities directly.
+  -- Step 3: instantiate the 8 shipped pointwise bounds
+  have h_d_K   := arctan_deriv_partial_rat_abs_le_one a ha K
+  have h_AaB   := TauReal.cis_arctan_re_plus_a_cis_arctan_im_abs_le_ten a ha K
+  have h_δ_abs := TauReal.arctan_increment_abs_le_two_dh a dh ha hdh_nn hdh_le_half K hK_dh
+  have h_R_m1  := TauReal.R_K_minus_1_abs_le_four_K_dh_sq a dh ha hah hdh_nn hdh_le_half K
+                    (by omega : 1 ≤ K) hK_dh
+  have h_I_m_δ := TauReal.I_K_minus_delta_K_abs_le_eight_K_dh_cube a dh ha hah
+                    hdh_nn hdh_le_half K hK hK_dh
+  have h_D3    := TauReal.M4_D3_linear_extraction_bound a dh ha hdh_nn hdh_le_half K
+  have h_F1a   := TauReal.tangent_defect_re_residual_bound a dh ha hah K
+  have h_a_abs : |a.toRat| ≤ 1/4 := by linarith [_root_.abs_nonneg a.toRat]
+  have h_T_def : ((TauReal.tangent_defect a).approx K).toRat
+              = ((TauReal.cis_arctan_im a).approx K).toRat
+                - a.toRat * ((TauReal.cis_arctan_re a).approx K).toRat :=
+    TauReal.tangent_defect_approx_toRat a K
+  -- Step 4: apply Helper B with the 8 Rat-level quantities
+  have h_explicit := TauReal.tangent_defect_step_bound_explicit
+      a.toRat dh.toRat
+      ((TauReal.cis_arctan_re a).approx K).toRat
+      ((TauReal.cis_arctan_im a).approx K).toRat
+      ((TauComplex.cisTauReal
+          ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+            (TauReal.arctan_of_rat_seq a))).re.approx K).toRat
+      ((TauComplex.cisTauReal
+          ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+            (TauReal.arctan_of_rat_seq a))).im.approx K).toRat
+      ((TauReal.cis_arctan_re (a.add dh)).approx K).toRat
+      ((TauReal.tangent_defect a).approx K).toRat
+      (((TauReal.arctan_of_rat_seq (a.add dh)).sub
+          (TauReal.arctan_of_rat_seq a)).approx K).toRat
+      (arctan_deriv_partial_rat a.toRat K)
+      K h_T_def h_d_K h_AaB h_δ_abs h_R_m1 h_I_m_δ h_D3 h_F1a
+      h_a_abs hdh_nn hdh_le_half hK hK_dh
+  -- Step 5: close via triangle: |T_h - T_a| ≤ |T_h - T_a - RHS_form| + |RHS_form|
+  --        < 1/(k_M+1) + bound (Helper B)
+  have h_tri_abs : ∀ x y : Rat, |x| ≤ |x - y| + |y| := fun x y => by
+    have := abs_add_le (x - y) y
+    have h_eq : x - y + y = x := by ring
+    rw [h_eq] at this
+    exact this
+  linarith [h_5C, h_explicit, h_tri_abs
+    (((TauReal.tangent_defect (a.add dh)).approx K).toRat
+      - ((TauReal.tangent_defect a).approx K).toRat)
+    ((((TauReal.cis_arctan_re a).approx K).toRat
+       + a.toRat * ((TauReal.cis_arctan_im a).approx K).toRat)
+        * ((TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+              (TauReal.arctan_of_rat_seq a))).im.approx K).toRat
+      + ((TauReal.tangent_defect a).approx K).toRat
+        * (((TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+              (TauReal.arctan_of_rat_seq a))).re.approx K).toRat - 1)
+      - dh.toRat * ((TauReal.cis_arctan_re (a.add dh)).approx K).toRat)]
+
 /-! ## Sub-Wave F.1b — Per-step Gronwall increment bound (NEXT SESSION)
 
   F.1b combines the modulus destructure (6.M5.D), 6.M4.D.3 (linear-term
