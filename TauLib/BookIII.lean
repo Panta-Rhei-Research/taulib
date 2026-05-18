@@ -106,6 +106,7 @@ import TauLib.BookIII.Bridge.G8OffAxisGhostExclusionCorridor
 import TauLib.BookIII.Bridge.G8StageAwareOffAxisGhostCorridor
 import TauLib.BookIII.Bridge.G8WeakOffAxisCompletionLab
 import TauLib.BookIII.Bridge.G8WeakOffAxisPullbackRealization
+import TauLib.BookIII.Bridge.G8OffAxisChartFaithfulnessCore
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
