@@ -1049,6 +1049,71 @@ theorem TauReal.tangent_defect_increment_simplified
              TauReal.tangent_defect_approx_toRat]
   ring
 
+/-! ## Sub-Wave 6.M5.D — Gronwall walk foundation
+
+  Two foundational pieces:
+  1. **Pointwise base case**: `T(0).approx K .toRat = 0` at every depth K.
+  2. **Gronwall wrapper**: given a per-step increment bound, derive the final
+     Gronwall bound via `Rat.discrete_gronwall_abs`.
+
+  The wrapper takes the increment bound as a HYPOTHESIS — the increment bound
+  discharge (from 6.M5.C + 6.M2 + 6.M3 + 6.M4.D.3) is the analytical content
+  to be filled in at the application site.
+-/
+
+/-- **Pointwise base case** — `T(0).approx K .toRat = 0` at every depth. -/
+theorem TauReal.tangent_defect_zero_approx_toRat (K : Nat) :
+    ((TauReal.tangent_defect TauRat.zero).approx K).toRat = 0 := by
+  rw [TauReal.tangent_defect_approx_toRat,
+      TauReal.cis_arctan_im_at_zero_approx_zero K]
+  show (0 : Rat) - TauRat.zero.toRat * _ = 0
+  rw [toRat_zero]
+  ring
+
+/-- **6.M5.D (Gronwall wrapper)** — Given a base-case-zero walk and a per-step
+    increment bound `|T(a_{n+1}) − T(a_n)|.approx K .toRat ≤ M·|T(a_n)| + δ`,
+    derive the final Gronwall bound via `Rat.discrete_gronwall_abs`. -/
+theorem TauReal.tangent_defect_gronwall_walk_bound
+    (K : Nat) (M δ : Rat) (hM : 0 ≤ M) (hδ : 0 ≤ δ)
+    (a_seq : Nat → TauRat)
+    (h_a_0 : a_seq 0 = TauRat.zero)
+    (h_step_bound : ∀ n,
+      |((TauReal.tangent_defect (a_seq (n+1))).approx K).toRat
+        - ((TauReal.tangent_defect (a_seq n)).approx K).toRat|
+      ≤ M * |((TauReal.tangent_defect (a_seq n)).approx K).toRat| + δ) :
+    ∀ N, |((TauReal.tangent_defect (a_seq N)).approx K).toRat|
+          ≤ (N : Rat) * (1+M)^N * δ := by
+  -- Define v(n) := T(a_seq n).approx K .toRat
+  set v : Nat → Rat := fun n => ((TauReal.tangent_defect (a_seq n)).approx K).toRat
+  -- v(0) = 0 (base case)
+  have h_v_0 : v 0 = 0 := by
+    show ((TauReal.tangent_defect (a_seq 0)).approx K).toRat = 0
+    rw [h_a_0, TauReal.tangent_defect_zero_approx_toRat]
+  have h_v_0_abs : |v 0| ≤ 0 := by rw [h_v_0]; simp
+  -- Step bound: |v(n+1)| ≤ (1+M) · |v n| + δ
+  -- Derived from h_step_bound via triangle inequality
+  have h_v_step : ∀ n, |v (n+1)| ≤ (1+M) * |v n| + δ := by
+    intro n
+    show |((TauReal.tangent_defect (a_seq (n+1))).approx K).toRat|
+          ≤ (1+M) * |((TauReal.tangent_defect (a_seq n)).approx K).toRat| + δ
+    have h_inc := h_step_bound n
+    -- |T_{n+1}| ≤ |T_{n+1} - T_n| + |T_n|
+    set v_n := ((TauReal.tangent_defect (a_seq n)).approx K).toRat
+    set v_n1 := ((TauReal.tangent_defect (a_seq (n+1))).approx K).toRat
+    have h_tri : |v_n1| ≤ |v_n1 - v_n| + |v_n| := by
+      have := abs_add_le (v_n1 - v_n) v_n
+      simpa using this
+    linarith
+  -- Apply Rat.discrete_gronwall_abs with ε₀ = 0
+  have h_ε₀_nn : (0 : Rat) ≤ 0 := by norm_num
+  have h_gronwall := Rat.discrete_gronwall_abs v M δ (0 : Rat) hM hδ
+    h_ε₀_nn h_v_0_abs h_v_step
+  intro N
+  have h_N := h_gronwall N
+  -- u_N ≤ (1+M)^N * 0 + N * (1+M)^N * δ = N * (1+M)^N * δ
+  have h_simp : (1+M)^N * 0 + (N : Rat) * (1+M)^N * δ = (N : Rat) * (1+M)^N * δ := by ring
+  linarith
+
 /-! ## Structural hooks for future Gronwall application
 
   The next sub-Wave will:
