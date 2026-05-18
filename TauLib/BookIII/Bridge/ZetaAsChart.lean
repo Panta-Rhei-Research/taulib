@@ -168,6 +168,38 @@ def noTwoCompletions_sameTauTower_differentDivisor
   ctx.noLostZeros ∧
   ctx.noSpuriousZeros
 
+/-- Any admissible zero-divisor claim exposes the G3 zeta bridge
+    obligation. -/
+theorem zeroDivisorClaimsAdmissible_g3ZetaBridge
+    (ctx : ZetaAsCoordinateChartContext)
+    (h : ZeroDivisorClaimsAdmissible ctx) :
+    ctx.g3ZetaBridge :=
+  h.left
+
+/-- Any admissible zero-divisor claim exposes the G4 analytic-continuation
+    obligation. -/
+theorem zeroDivisorClaimsAdmissible_g4AnalyticContinuation
+    (ctx : ZetaAsCoordinateChartContext)
+    (h : ZeroDivisorClaimsAdmissible ctx) :
+    ctx.g4AnalyticContinuation :=
+  h.right.left
+
+/-- Any admissible zero-divisor claim exposes the G5 operator-carrier
+    obligation. -/
+theorem zeroDivisorClaimsAdmissible_g5OperatorCarrier
+    (ctx : ZetaAsCoordinateChartContext)
+    (h : ZeroDivisorClaimsAdmissible ctx) :
+    ctx.g5OperatorCarrier :=
+  h.right.right.left
+
+/-- Any admissible zero-divisor claim exposes the G6 determinant/O3 bridge
+    obligation. -/
+theorem zeroDivisorClaimsAdmissible_g6O3DeterminantBridge
+    (ctx : ZetaAsCoordinateChartContext)
+    (h : ZeroDivisorClaimsAdmissible ctx) :
+    ctx.g6O3DeterminantBridge :=
+  h.right.right.right.left
+
 /-- Any admissible zero-divisor claim exposes the same-xi-divisor hypothesis. -/
 theorem zeroDivisorClaimsAdmissible_sameXiDivisor
     (ctx : ZetaAsCoordinateChartContext)

@@ -179,6 +179,40 @@ theorem g8d_transfer_requires_chartClaims
     ZeroDivisorClaimsAdmissible ctx.completion.chart :=
   (g8d_transfer_requires_g8c ctx h).left
 
+/-- Any G8d-admissible transfer exposes the G3 zeta bridge obligation. -/
+theorem g8d_transfer_requires_g3ZetaBridge
+    (ctx : G8dZeroDivisorTransferContext)
+    (h : G8dZeroDivisorTransferAdmissible ctx) :
+    ctx.completion.chart.g3ZetaBridge :=
+  zeroDivisorClaimsAdmissible_g3ZetaBridge ctx.completion.chart
+    (g8d_transfer_requires_chartClaims ctx h)
+
+/-- Any G8d-admissible transfer exposes the G4 analytic-continuation
+    obligation. -/
+theorem g8d_transfer_requires_g4AnalyticContinuation
+    (ctx : G8dZeroDivisorTransferContext)
+    (h : G8dZeroDivisorTransferAdmissible ctx) :
+    ctx.completion.chart.g4AnalyticContinuation :=
+  zeroDivisorClaimsAdmissible_g4AnalyticContinuation ctx.completion.chart
+    (g8d_transfer_requires_chartClaims ctx h)
+
+/-- Any G8d-admissible transfer exposes the G5 operator-carrier obligation. -/
+theorem g8d_transfer_requires_g5OperatorCarrier
+    (ctx : G8dZeroDivisorTransferContext)
+    (h : G8dZeroDivisorTransferAdmissible ctx) :
+    ctx.completion.chart.g5OperatorCarrier :=
+  zeroDivisorClaimsAdmissible_g5OperatorCarrier ctx.completion.chart
+    (g8d_transfer_requires_chartClaims ctx h)
+
+/-- Any G8d-admissible transfer exposes the G6 determinant/O3 bridge
+    obligation. -/
+theorem g8d_transfer_requires_g6O3DeterminantBridge
+    (ctx : G8dZeroDivisorTransferContext)
+    (h : G8dZeroDivisorTransferAdmissible ctx) :
+    ctx.completion.chart.g6O3DeterminantBridge :=
+  zeroDivisorClaimsAdmissible_g6O3DeterminantBridge ctx.completion.chart
+    (g8d_transfer_requires_chartClaims ctx h)
+
 /-- Any G8d-admissible transfer exposes the chart-level analytic-completion
     uniqueness obligation. -/
 theorem g8d_transfer_requires_chartCompletionUnique
