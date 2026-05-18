@@ -179,6 +179,88 @@ theorem g8e2_subobligations_yield_g8e1
     tauWitness := h.tauWitness
     noChartOnly := h.noChartOnly }
 
+/-- The G8e.2 package still depends on the G3 zeta bridge obligation. -/
+theorem g8e2_subobligations_require_g3ZetaBridge
+    (ctx : ChartFaithfulnessContext)
+    (h : G8e2PullbackSubobligations ctx) :
+    ctx.test.base.transfer.completion.chart.g3ZetaBridge :=
+  g8e1_subobligations_require_g3ZetaBridge ctx.test
+    (g8e2_subobligations_yield_g8e1 ctx h)
+
+/-- The G8e.2 package still depends on the G4 analytic-continuation obligation. -/
+theorem g8e2_subobligations_require_g4AnalyticContinuation
+    (ctx : ChartFaithfulnessContext)
+    (h : G8e2PullbackSubobligations ctx) :
+    ctx.test.base.transfer.completion.chart.g4AnalyticContinuation :=
+  g8e1_subobligations_require_g4AnalyticContinuation ctx.test
+    (g8e2_subobligations_yield_g8e1 ctx h)
+
+/-- The G8e.2 package still depends on the G5 operator-carrier obligation. -/
+theorem g8e2_subobligations_require_g5OperatorCarrier
+    (ctx : ChartFaithfulnessContext)
+    (h : G8e2PullbackSubobligations ctx) :
+    ctx.test.base.transfer.completion.chart.g5OperatorCarrier :=
+  g8e1_subobligations_require_g5OperatorCarrier ctx.test
+    (g8e2_subobligations_yield_g8e1 ctx h)
+
+/-- The G8e.2 package still depends on the G6 determinant/O3 bridge obligation. -/
+theorem g8e2_subobligations_require_g6O3DeterminantBridge
+    (ctx : ChartFaithfulnessContext)
+    (h : G8e2PullbackSubobligations ctx) :
+    ctx.test.base.transfer.completion.chart.g6O3DeterminantBridge :=
+  g8e1_subobligations_require_g6O3DeterminantBridge ctx.test
+    (g8e2_subobligations_yield_g8e1 ctx h)
+
+/-- The G8e.2 package still depends on analytic-completion uniqueness. -/
+theorem g8e2_subobligations_require_completionUnique
+    (ctx : ChartFaithfulnessContext)
+    (h : G8e2PullbackSubobligations ctx) :
+    tauTower_analyticCompletion_unique
+      ctx.test.base.transfer.completion.chart :=
+  g8e1_subobligations_require_completionUnique ctx.test
+    (g8e2_subobligations_yield_g8e1 ctx h)
+
+/-- The G8e.2 package still depends on same-xi-divisor discipline. -/
+theorem g8e2_subobligations_require_sameXiDivisor
+    (ctx : ChartFaithfulnessContext)
+    (h : G8e2PullbackSubobligations ctx) :
+    ctx.test.base.transfer.completion.chart.sameXiDivisor :=
+  g8e1_subobligations_require_sameXiDivisor ctx.test
+    (g8e2_subobligations_yield_g8e1 ctx h)
+
+/-- The G8e.2 package still depends on no-lost-zero transfer. -/
+theorem g8e2_subobligations_require_noLost
+    (ctx : ChartFaithfulnessContext)
+    (h : G8e2PullbackSubobligations ctx) :
+    ctx.test.base.transfer.noLostZeros :=
+  g8e1_subobligations_require_noLost ctx.test
+    (g8e2_subobligations_yield_g8e1 ctx h)
+
+/-- The G8e.2 package still depends on no-spurious-zero transfer. -/
+theorem g8e2_subobligations_require_noSpurious
+    (ctx : ChartFaithfulnessContext)
+    (h : G8e2PullbackSubobligations ctx) :
+    ctx.test.base.transfer.noSpuriousZeros :=
+  g8e1_subobligations_require_noSpurious ctx.test
+    (g8e2_subobligations_yield_g8e1 ctx h)
+
+/-- The G8e.2 package still depends on multiplicity preservation. -/
+theorem g8e2_subobligations_require_multiplicityPreserved
+    (ctx : ChartFaithfulnessContext)
+    (h : G8e2PullbackSubobligations ctx) :
+    ctx.test.base.transfer.multiplicityPreserved :=
+  g8e1_subobligations_require_multiplicityPreserved ctx.test
+    (g8e2_subobligations_yield_g8e1 ctx h)
+
+/-- The G8e.2 package carries the non-uniqueness falsifier guardrail. -/
+theorem g8e2_subobligations_require_noTwoCompletionsGuard
+    (ctx : ChartFaithfulnessContext)
+    (h : G8e2PullbackSubobligations ctx) :
+    noTwoCompletions_sameTauTower_differentDivisor
+      ctx.test.base.transfer.completion.chart :=
+  g8e1_subobligations_require_noTwoCompletionsGuard ctx.test
+    (g8e2_subobligations_yield_g8e1 ctx h)
+
 /-- The G8e.2 package exposes the no-preimage falsifier guardrail. -/
 theorem g8e2_subobligations_ruleOut_noPreimageFalsifier
     (ctx : ChartFaithfulnessContext)

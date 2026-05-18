@@ -209,6 +209,88 @@ theorem g8e3_subobligations_yield_g8e2
     tauWitness := h.tauWitness
     noChartOnly := h.noChartOnly }
 
+/-- The G8e.3 package still depends on the G3 zeta bridge obligation. -/
+theorem g8e3_subobligations_require_g3ZetaBridge
+    (ctx : HyperbolicEllipticChartRelationContext)
+    (h : G8e3PullbackSubobligations ctx) :
+    ctx.faithfulness.test.base.transfer.completion.chart.g3ZetaBridge :=
+  g8e2_subobligations_require_g3ZetaBridge ctx.faithfulness
+    (g8e3_subobligations_yield_g8e2 ctx h)
+
+/-- The G8e.3 package still depends on the G4 analytic-continuation obligation. -/
+theorem g8e3_subobligations_require_g4AnalyticContinuation
+    (ctx : HyperbolicEllipticChartRelationContext)
+    (h : G8e3PullbackSubobligations ctx) :
+    ctx.faithfulness.test.base.transfer.completion.chart.g4AnalyticContinuation :=
+  g8e2_subobligations_require_g4AnalyticContinuation ctx.faithfulness
+    (g8e3_subobligations_yield_g8e2 ctx h)
+
+/-- The G8e.3 package still depends on the G5 operator-carrier obligation. -/
+theorem g8e3_subobligations_require_g5OperatorCarrier
+    (ctx : HyperbolicEllipticChartRelationContext)
+    (h : G8e3PullbackSubobligations ctx) :
+    ctx.faithfulness.test.base.transfer.completion.chart.g5OperatorCarrier :=
+  g8e2_subobligations_require_g5OperatorCarrier ctx.faithfulness
+    (g8e3_subobligations_yield_g8e2 ctx h)
+
+/-- The G8e.3 package still depends on the G6 determinant/O3 bridge obligation. -/
+theorem g8e3_subobligations_require_g6O3DeterminantBridge
+    (ctx : HyperbolicEllipticChartRelationContext)
+    (h : G8e3PullbackSubobligations ctx) :
+    ctx.faithfulness.test.base.transfer.completion.chart.g6O3DeterminantBridge :=
+  g8e2_subobligations_require_g6O3DeterminantBridge ctx.faithfulness
+    (g8e3_subobligations_yield_g8e2 ctx h)
+
+/-- The G8e.3 package still depends on analytic-completion uniqueness. -/
+theorem g8e3_subobligations_require_completionUnique
+    (ctx : HyperbolicEllipticChartRelationContext)
+    (h : G8e3PullbackSubobligations ctx) :
+    tauTower_analyticCompletion_unique
+      ctx.faithfulness.test.base.transfer.completion.chart :=
+  g8e2_subobligations_require_completionUnique ctx.faithfulness
+    (g8e3_subobligations_yield_g8e2 ctx h)
+
+/-- The G8e.3 package still depends on same-xi-divisor discipline. -/
+theorem g8e3_subobligations_require_sameXiDivisor
+    (ctx : HyperbolicEllipticChartRelationContext)
+    (h : G8e3PullbackSubobligations ctx) :
+    ctx.faithfulness.test.base.transfer.completion.chart.sameXiDivisor :=
+  g8e2_subobligations_require_sameXiDivisor ctx.faithfulness
+    (g8e3_subobligations_yield_g8e2 ctx h)
+
+/-- The G8e.3 package still depends on no-lost-zero transfer. -/
+theorem g8e3_subobligations_require_noLost
+    (ctx : HyperbolicEllipticChartRelationContext)
+    (h : G8e3PullbackSubobligations ctx) :
+    ctx.faithfulness.test.base.transfer.noLostZeros :=
+  g8e2_subobligations_require_noLost ctx.faithfulness
+    (g8e3_subobligations_yield_g8e2 ctx h)
+
+/-- The G8e.3 package still depends on no-spurious-zero transfer. -/
+theorem g8e3_subobligations_require_noSpurious
+    (ctx : HyperbolicEllipticChartRelationContext)
+    (h : G8e3PullbackSubobligations ctx) :
+    ctx.faithfulness.test.base.transfer.noSpuriousZeros :=
+  g8e2_subobligations_require_noSpurious ctx.faithfulness
+    (g8e3_subobligations_yield_g8e2 ctx h)
+
+/-- The G8e.3 package still depends on multiplicity preservation. -/
+theorem g8e3_subobligations_require_multiplicityPreserved
+    (ctx : HyperbolicEllipticChartRelationContext)
+    (h : G8e3PullbackSubobligations ctx) :
+    ctx.faithfulness.test.base.transfer.multiplicityPreserved :=
+  g8e2_subobligations_require_multiplicityPreserved ctx.faithfulness
+    (g8e3_subobligations_yield_g8e2 ctx h)
+
+/-- The G8e.3 package carries the non-uniqueness falsifier guardrail. -/
+theorem g8e3_subobligations_require_noTwoCompletionsGuard
+    (ctx : HyperbolicEllipticChartRelationContext)
+    (h : G8e3PullbackSubobligations ctx) :
+    noTwoCompletions_sameTauTower_differentDivisor
+      ctx.faithfulness.test.base.transfer.completion.chart :=
+  g8e2_subobligations_require_noTwoCompletionsGuard ctx.faithfulness
+    (g8e3_subobligations_yield_g8e2 ctx h)
+
 /-- G8e.3 test-level admissibility. -/
 def G8e3ContradictionTestAdmissible
     (ctx : HyperbolicEllipticChartRelationContext) : Prop :=
