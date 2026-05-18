@@ -16,8 +16,10 @@ Polarized omega-germs: B-polarized, C-polarized, and the crossing-point germ.
 
 ## Mathematical Content
 
-Given the spectral signature σ_N(p) = (B_max, C_max), the polarity at each
-primorial stage provides a sequence of B/C channel values. An omega-germ is:
+Given the legacy spectral signature σ_N(p) = (B_max, C_max), the
+bound-dependent diagnostic polarity at each primorial stage provides a
+sequence of B/C channel values. This is a germ-level diagnostic layer, not the
+canonical Legendre `(2/p)` prime-polarity classifier. An omega-germ is:
 
 - B-polarized if the C-channel eventually freezes AND the B-channel keeps refining
 - C-polarized if the B-channel eventually freezes AND the C-channel keeps refining

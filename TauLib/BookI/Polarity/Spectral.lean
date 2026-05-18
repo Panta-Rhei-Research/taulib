@@ -3,7 +3,7 @@ import TauLib.BookI.Coordinates.Hyperfact
 /-!
 # TauLib.BookI.Polarity.Spectral
 
-Spectral signatures and growth-rate separation.
+Legacy spectral signatures and growth-rate separation.
 
 ## Registry Cross-References
 
@@ -16,12 +16,19 @@ Spectral signatures and growth-rate separation.
 
 For a prime p and bound N, the spectral signature σ_N(p) = (B_max, C_max)
 records the highest B and C coordinates among objects X ≤ N with coord_A(X) = p.
+This is a finite, bound-dependent diagnostic surface.
+
+It is **not** the canonical prime-polarity classifier from the prime-polarity
+paper. The canonical classifier is the Legendre/Kronecker label `(2/p)`,
+implemented in `PrimePolarityClassifier.lean` and
+`PrimePolarityIsomorphism.lean`; B iff `(2/p)=+1` (`p ≡ ±1 mod 8`) and C iff
+`(2/p)=-1` (`p ≡ ±3 mod 8`), with `p=2` carrying the crossing label X.
 
 The growth-rate separation theorem shows tetration eventually dominates
 exponentiation: for every B, there exists C such that a↑↑C > a^B.
 This is already proved as `tetration_unbounded` in TowerAtoms.
 
-The polarity at bound N is: p is B-dominant if B_max > C_max.
+The diagnostic polarity at bound N is: p is B-dominant if B_max > C_max.
 -/
 
 namespace Tau.Polarity
@@ -61,7 +68,9 @@ def c_max (p N : TauIdx) : TauIdx := (spectral_sig p N).2
 -- POLARITY AT A BOUND
 -- ============================================================
 
-/-- Polarity at bound N: true = B-dominant, false = C-dominant. -/
+/-- Bound-dependent diagnostic polarity at bound N:
+    true = B-dominant, false = C-dominant. This is not the canonical
+    Legendre `(2/p)` polarity. -/
 def pol_at (p N : TauIdx) : Bool := b_max p N > c_max p N
 
 /-- String polarity label. -/

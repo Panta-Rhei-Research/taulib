@@ -4,42 +4,37 @@ import Mathlib.Tactic.Linarith
 /-!
 # TauLib.BookI.Polarity.LegendreClassifier
 
-**Prop-level prime polarity dichotomy** — Hinge 2 `thm:prime-polarity` from
-`papers/prime-polarity/main.tex`, lifted from the existing Boolean
-`partition_check` verifier in `Polarity.lean` to a proper `Prop`-level
-dichotomy statement.
+**Legacy Prop-level bridge for bound-dependent spectral diagnostics.**
+
+Despite the historical file name, this module does not implement the canonical
+Legendre `(2/p)` classifier from `papers/prime-polarity/main.tex`. It lifts the
+older Boolean `partition_check` / `pol_at` diagnostics from `Polarity.lean` to
+Prop-level statements.
 
 ## Workstream B1.3 deliverable (Phase 2B partial)
 
-Per the A1 dossier
-(`atlas/audits/taulib/2026-05-03-foundations-bridges-state-of-the-union.md`),
-B1.3 ultimately targets the full **Dirichlet density 1/2** result for the
-B/C polarity partition. Reaching the full Dirichlet limit requires a
-Mathlib analytic-NT bridge (the policy decision flagged in §4.5 / §B1.4
-of the dossier — likely `Mathlib.NumberTheory.DirichletPrimes`-style
-imports, scoped under a new `BookI/Polarity/Bridge/` subdirectory).
-
-This module ships the **finitist, kernel-pure** half of the bridge:
+This module ships the **finitist, kernel-pure** diagnostic bridge:
 
 1. **Bool ↔ Prop bridges** — `partition_check_iff`,
    `b_class_witness_iff`, `c_class_witness_iff` convert the existing
    `Bool` verifiers into Prop predicates suitable for theorem citation.
-2. **Prop-level dichotomy** (`prime_polarity_dichotomy`) — every prime
-   is either B-dominant or C-dominant at any bound `N`.
+2. **Prop-level diagnostic dichotomy** (`prime_polarity_dichotomy`) — every
+   prime is either B-dominant or C-dominant at any bound `N`.
 3. **Disjointness** (`b_c_dominance_disjoint`,
    `prime_class_dichotomy_disjoint`) — no prime is both B-dominant and
    C-dominant at the same bound.
 4. **Exhaustiveness at prime level** (`prime_class_dichotomy_exhaustive`)
    — every prime is classified by exactly one witness.
 
-The full Dirichlet density theorem (`b_density_one_half`) is queued
-as **B1.3c** — a follow-up wave that imports the analytic-NT bridge
-and proves the asymptotic counting limit.
+For the canonical prime-polarity theorem, use
+`PrimePolarityClassifier.lean`, `PrimePolarityIsomorphism.lean`, and
+`H2H3ClassifierBridge.lean`: B iff `(2/p)=+1`, C iff `(2/p)=-1`, and `p=2`
+is the crossing label X.
 
 ## Registry Cross-References
 
-- [I.T05]                 Prime Polarity Theorem (Bool verifier in
-                          `Polarity.lean`)
+- [I.D19e]                Bound-dependent spectral diagnostic verifier in
+                          `Polarity.lean`
 - [I.T-PP-Dichotomy-Prop] `prime_polarity_dichotomy` (this module)
 - [I.T-PP-BoolPropBridge] `partition_check_iff` /
                           `{b,c}_class_witness_iff` (this module)
@@ -105,7 +100,7 @@ theorem c_class_witness_iff (p N : TauIdx) :
 -- PART 2: PROP-LEVEL POLARITY DICHOTOMY
 -- ============================================================
 
-/-- **Prime Polarity Dichotomy (Prop form).**
+/-- **Bound-dependent diagnostic polarity dichotomy (Prop form).**
 
     For every prime `p` and every bound `N`, the polarity classification
     `pol_at p N : Bool` is either `true` (B-dominant: B_max > C_max in

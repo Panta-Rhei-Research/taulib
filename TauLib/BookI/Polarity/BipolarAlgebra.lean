@@ -269,12 +269,14 @@ theorem polarity_inv_swaps_sectors (z : SplitComplex) :
 -- CHI SPLIT-COMPLEX LIFT [chunk_0228, chunk_0310]
 -- ============================================================
 
-/-- [chunk_0228] Split-complex lift of the polarity character.
-    Maps the Int-valued polarity_chi to sector idempotents:
+/-- [chunk_0228] Split-complex lift of the legacy diagnostic polarity
+    character. Maps the Int-valued `polarity_chi` to sector idempotents:
     - B-dominant (chi = -1) → e_plus_sector = (1, 0)
     - C-dominant (chi = +1) → e_minus_sector = (0, 1)
     - non-prime (chi = 0)   → (0, 0)
-    Ground truth: chunk_0228_M002194 — χ̃(p) ∈ {e⁻, e⁺}. -/
+    Ground truth: chunk_0228_M002194 — χ̃(p) ∈ {e⁻, e⁺}.
+    For canonical prime polarity use the Legendre `(2/p)` classifier in
+    `PrimePolarityClassifier.lean`. -/
 def chi_split (p N : TauIdx) : SectorPair :=
   if polarity_chi p N == -1 then e_plus_sector      -- B-dominant → B-sector
   else if polarity_chi p N == 1 then e_minus_sector  -- C-dominant → C-sector

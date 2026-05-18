@@ -226,14 +226,18 @@ theorem sigma_swaps_chi (z : SplitComplex) :
 -- BRIDGE TO CHI_SPLIT [chunk_0310]
 -- ============================================================
 
-/-- Bridge: for a B-dominant prime (polarity_chi = -1), chi_split maps to
-    e_plus_sector = (1,0), which is in the image of chi_plus (up to scaling). -/
+/-- Legacy diagnostic bridge: for a B-dominant prime at bound `N`
+    (`polarity_chi = -1`), `chi_split` maps to e_plus_sector = (1,0), which
+    is in the image of chi_plus (up to scaling). For canonical prime polarity,
+    use the Legendre `(2/p)` bridge modules. -/
 theorem chi_split_b_sector (p N : Tau.Denotation.TauIdx) (h : polarity_chi p N = -1) :
     chi_split p N = e_plus_sector :=
   chi_split_of_b p N h
 
-/-- Bridge: for a C-dominant prime (polarity_chi = +1), chi_split maps to
-    e_minus_sector = (0,1), which is in the image of chi_minus (up to scaling). -/
+/-- Legacy diagnostic bridge: for a C-dominant prime at bound `N`
+    (`polarity_chi = +1`), `chi_split` maps to e_minus_sector = (0,1), which
+    is in the image of chi_minus (up to scaling). For canonical prime polarity,
+    use the Legendre `(2/p)` bridge modules. -/
 theorem chi_split_c_sector (p N : Tau.Denotation.TauIdx) (h : polarity_chi p N = 1) :
     chi_split p N = e_minus_sector :=
   chi_split_of_c p N h

@@ -3,33 +3,42 @@ import TauLib.BookI.Polarity.Spectral
 /-!
 # TauLib.BookI.Polarity.Polarity
 
-Prime Polarity Theorem: the canonical bipolar partition of primes.
+Legacy bound-dependent spectral polarity diagnostics.
 
 ## Registry Cross-References
 
-- [I.T05] Prime Polarity Theorem — `polarity_map`, `b_channel_unbounded`,
-  `c_channel_unbounded`, `b_class_witness`, `c_class_witness`
+- [I.D19e] Spectral Signature — `polarity_map`, `polarity_chi`,
+  `b_channel_unbounded`, `c_channel_unbounded`, `b_class_witness`,
+  `c_class_witness`
 
 ## Ground Truth Sources
 - chunk_0310_M002679: Polarity predicate Pol(p,N), Chi character (Thms 3-4, lines 219-248)
 
 ## Mathematical Content
 
-The Prime Polarity Theorem (I.T05) establishes:
-1. (Dichotomy) Every prime carries a canonical polarity (B-dominant or C-dominant).
-2. (B-class infinite) The B-dominant class is infinite.
-3. (C-class infinite) The C-dominant class is infinite.
+This module preserves the original bound-dependent spectral-signature
+diagnostics from the early polarity implementation. It should not be read as
+the canonical prime-polarity theorem.
+
+Canonical source truth:
+
+1. The canonical B/C prime classifier is the Legendre/Kronecker label `(2/p)`.
+2. B iff `(2/p)=+1` (`p ≡ ±1 mod 8`); C iff `(2/p)=-1`
+   (`p ≡ ±3 mod 8`); `p=2` carries the crossing label X.
+3. The canonical classifier is implemented in `PrimePolarityClassifier.lean`
+   and `PrimePolarityIsomorphism.lean`.
 
 The B-channel (exponentiation) and C-channel (tetration) are both unbounded
-for every prime. The polarity is determined by which channel dominates the
-spectral signature at a given bound.
+for every prime. The finite diagnostic below asks which channel dominates the
+spectral signature at a given bound; that diagnostic is useful for historical
+tests and bridge experiments, but it is not the canonical polarity classifier.
 
 Growth-rate separation (proved in Spectral.lean) shows tetration eventually
 beats any exponentiation: for a ≥ 2 and any B, ∃ C with a↑↑C > a^B.
 Conversely, exponentiation can always match any tetration level: for any C,
 ∃ B coprime to a with a^B > a↑↑C.
 
-The effective polarity at bound N is computed via the spectral signature
+The diagnostic polarity at bound N is computed via the spectral signature
 σ_N(p) = (B_max, C_max): p is B-dominant at N when B_max > C_max.
 -/
 
@@ -113,11 +122,13 @@ termination_by fuel
 def large_prime_batch (hi N : TauIdx) : Bool := large_prime_batch_go 3 hi N hi
 
 -- ============================================================
--- POLARITY MAP [I.T05]
+-- DIAGNOSTIC POLARITY MAP [I.D19e]
 -- ============================================================
 
-/-- [I.T05] The polarity map at bound N: returns true (B-dominant) or false (C-dominant)
-    based on the spectral signature comparison B_max > C_max. -/
+/-- [I.D19e] The diagnostic polarity map at bound N: returns true
+    (B-dominant) or false (C-dominant) based on the spectral-signature
+    comparison B_max > C_max. For canonical prime polarity, use
+    `PrimePolarityClassifier.lean` / `PrimePolarityIsomorphism.lean`. -/
 def polarity_map (p N : TauIdx) : Bool := pol_at p N
 
 /-- String label for polarity. -/
@@ -128,9 +139,12 @@ def polarity_label (p N : TauIdx) : String :=
 -- POLARITY CHARACTER Chi [chunk_0310, Thm 3-4]
 -- ============================================================
 
-/-- Polarity character on primes: Chi(p,N) = +1 if C-dominant, -1 if B-dominant.
+/-- Diagnostic polarity character on primes:
+    Chi(p,N) = +1 if C-dominant, -1 if B-dominant at bound `N`.
     Returns 0 for non-primes. Ground truth (chunk_0310, lines 219-234):
-    Chi: (ℕ,×) → (ℤ,+), Chi(p) = +1 if p ∈ P_C, Chi(p) = -1 if p ∈ P_B. -/
+    Chi: (ℕ,×) → (ℤ,+), Chi(p) = +1 if p ∈ P_C, Chi(p) = -1 if p ∈ P_B.
+    This is a legacy bound-dependent character, not the canonical Legendre
+    `(2/p)` polarity character. -/
 def polarity_chi (p N : TauIdx) : Int :=
   if ¬is_prime_bool p then 0
   else if polarity_map p N then -1  -- B-dominant
@@ -168,12 +182,12 @@ def chi_additive_check (a b N : TauIdx) : Bool :=
 -- B-CLASS AND C-CLASS WITNESSES
 -- ============================================================
 
-/-- B-class witness: verify prime p is B-dominant at bound N.
+/-- Diagnostic B-class witness: verify prime p is B-dominant at bound N.
     A prime is B-dominant when B_max > C_max in the spectral signature. -/
 def b_class_witness (p N : TauIdx) : Bool :=
   is_prime_bool p && pol_at p N
 
-/-- C-class witness: verify prime p is C-dominant at bound N.
+/-- Diagnostic C-class witness: verify prime p is C-dominant at bound N.
     A prime is C-dominant when C_max ≥ B_max in the spectral signature. -/
 def c_class_witness (p N : TauIdx) : Bool :=
   is_prime_bool p && !(pol_at p N)

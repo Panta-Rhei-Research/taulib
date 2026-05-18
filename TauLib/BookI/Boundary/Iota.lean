@@ -34,21 +34,31 @@ deliverable in `TauRealIotaTau.lean`.
 
 - [I.D01]    Master Constant — `iota_tau_numer`, `iota_tau_denom`, `iota_tau_float` (this module, fiat form)
 - [I.D-IotaTau-Structural] `TauReal.iota_tau` (TauRealIotaTau.lean, structural form)
-- [I.D28]    Boundary Local Ring — B/C ratio, `bc_ratio`
+- [I.D28]    Boundary Local Ring — legacy finite B/C diagnostic counts,
+             `bc_ratio`
 
 ## Ground Truth Sources
 - chunk_0015_M000074: iota_tau = 2/(pi + e), foundational constant
-- chunk_0310_M002679: Polarity counting, B/C ratio convergence
+- iota-tau research paper: `iota_tau` is the crossing-germ balance readout,
+  not a prime-density ratio
+- prime-polarity research paper: canonical B/C prime polarity is the
+  Legendre/Kronecker `(2/p)` classifier
 
 ## Mathematical Content
 
-The master constant iota_tau = 2/(pi + e) ~ 0.341304 governs the asymptotic
-ratio of B-dominant to C-dominant primes. This module provides:
+The master constant iota_tau = 2/(pi + e) ~ 0.341304 is the structural
+crossing-germ balance readout. It is related to the B/C channel split at the
+boundary, but it is **not** the asymptotic ratio of B-dominant to C-dominant
+primes.
+
+This module provides:
 
 1. **Rational approximation**: iota_tau ~ 341304/1000000 (6 decimal places)
-2. **B/C ratio**: count_b / count_c computed at various bounds
-3. **Convergence axiom stub**: the B/C ratio converges to iota_tau
-   (the formal proof requires analytic number theory beyond current scope)
+2. **Legacy B/C diagnostic counts**: count_b / count_c computed at various
+   bounds using the older spectral-signature diagnostics
+3. **Retired convergence-shape predicates**: archived Prop shapes for old
+   experiments; they are not axioms and should not be cited as source truth
+   for `iota_tau`
 
 For the **structural** Cauchy-completion form of iota_tau (used by
 theorem-cited identities rather than Nat-decidable witnesses), see
@@ -90,44 +100,54 @@ def iota_tau_rat_float : Float :=
   Float.ofNat iota_tau_numer / Float.ofNat iota_tau_denom
 
 -- ============================================================
--- B/C RATIO
+-- LEGACY B/C DIAGNOSTIC COUNTS
 -- ============================================================
 
-/-- B/C count ratio as a pair (numerator, denominator).
-    Returns (count_b, count_c) where the ratio is count_b / count_c. -/
+/-- Legacy B/C diagnostic count pair (numerator, denominator).
+    Returns `(count_b, count_c)` using the older bound-dependent
+    spectral-signature diagnostics. This is not a canonical prime-density
+    ratio and does not define `iota_tau`. -/
 def bc_ratio_pair (n N : TauIdx) : Nat × Nat :=
   (count_b_dominant n N, count_c_dominant n N)
 
-/-- B/C ratio as a Float. Returns 0.0 if there are no C-dominant primes. -/
+/-- Legacy B/C diagnostic ratio as a Float. Returns 0.0 if there are no
+    C-dominant primes. This diagnostic ratio should not be identified with
+    `iota_tau`. -/
 def bc_ratio_float (n N : TauIdx) : Float :=
   let (b, c) := bc_ratio_pair n N
   if c = 0 then 0.0
   else Float.ofNat b / Float.ofNat c
 
-/-- Scaled B/C ratio: (count_b * 1000000) / count_c, for integer comparison. -/
+/-- Scaled legacy B/C diagnostic ratio:
+    `(count_b * 1000000) / count_c`, retained for integer comparison in
+    older finite checks. -/
 def bc_ratio_scaled (n N : TauIdx) : Nat :=
   let (b, c) := bc_ratio_pair n N
   if c = 0 then 0
   else (b * 1000000) / c
 
 -- ============================================================
--- CONVERGENCE FRAMEWORK
+-- RETIRED CONVERGENCE-SHAPE PREDICATES
 -- ============================================================
 
-/-- The convergence claim: for all epsilon > 0, there exists N₀ such that
-    for all n ≥ N₀, |bc_ratio(n, N) - iota_tau| < epsilon.
-    This is an axiom stub — the proof requires analytic number theory
-    (effective prime number theorem + polarity equidistribution)
-    which is beyond the current mechanization scope. -/
+/-- Retired convergence-shape predicate for the old diagnostic experiment:
+    for all epsilon > 0, there exists N₀ such that for all n ≥ N₀,
+    |bc_ratio(n, N) - iota_tau| < epsilon.
+
+    This is not an axiom, not a theorem, and not source truth for `iota_tau`.
+    The iota-tau paper withdraws the identification of `iota_tau` with a
+    B/C prime-density ratio; `iota_tau` is the crossing-germ balance readout. -/
 def ConvergenceClaimFloat (N : TauIdx) : Prop :=
   ∀ (eps : Float), eps > 0.0 →
     ∃ (n0 : Nat), ∀ (n : Nat), n ≥ n0 →
       Float.abs (bc_ratio_float n N - iota_tau_float) < eps
 
-/-- Convergence claim in rational form: for all k (precision level),
+/-- Retired convergence-shape predicate in rational form: for all k
+    (precision level),
     there exists n0 such that for n ≥ n0,
     |count_b(n,N) * denom - numer * count_c(n,N)| < count_c(n,N) * (denom / 10^k).
-    This is the pure Nat formulation avoiding Float. -/
+    This is the pure Nat formulation avoiding Float for archived diagnostics;
+    it should not be cited as an active convergence claim. -/
 def ConvergenceClaimRat (N : TauIdx) (k : Nat) : Prop :=
   ∃ (n0 : Nat), ∀ (n : Nat), n ≥ n0 →
     let (b, c) := bc_ratio_pair n N
@@ -147,44 +167,38 @@ def both_channels_active (n N : TauIdx) : Bool :=
   let (b, c) := bc_ratio_pair n N
   b > 0 && c > 0
 
-/-- Check that B-count < C-count (since iota_tau < 1, B should be minority). -/
+/-- Legacy diagnostic check that B-count < C-count at the chosen finite
+    bounds. This is not justified by `iota_tau` and has no canonical
+    density meaning. -/
 def b_minority_check (n N : TauIdx) : Bool :=
   let (b, c) := bc_ratio_pair n N
   b < c
 
 -- ============================================================
--- NATIVE_DECIDE VERIFICATIONS
+-- ARCHIVED SMOKE-TEST RECIPES
 -- ============================================================
 
--- Both channels active for moderate bounds
-example : both_channels_active 50 1000 = true := by native_decide
-example : both_channels_active 100 1000 = true := by native_decide
+/-!
+The old finite diagnostic checks below used to run during every build. They
+are intentionally kept as archived recipes rather than compiled `#eval` /
+`native_decide` obligations: this module is retained for compatibility with
+legacy callsites, while source truth for `iota_tau` now lives in the structural
+crossing-germ modules.
 
--- B is the minority channel for large enough n (iota_tau < 0.5)
--- Note: at small bounds (n=50), B can be majority; minority emerges asymptotically
-example : b_minority_check 100 1000 = true := by native_decide
-example : b_minority_check 200 1000 = true := by native_decide
+Example interactive checks, if a future audit needs them:
 
--- ============================================================
--- SMOKE TESTS
--- ============================================================
-
--- Master constant
-#eval iota_tau_float           -- ~ 0.341304
-#eval iota_tau_rat_float       -- 0.341304
-
--- B/C ratio at various bounds
-#eval bc_ratio_pair 50 1000    -- (B-count, C-count)
+```lean
+#eval iota_tau_float
+#eval iota_tau_rat_float
+#eval bc_ratio_pair 50 1000
 #eval bc_ratio_pair 100 1000
-#eval bc_ratio_float 50 1000   -- Float ratio
+#eval bc_ratio_float 50 1000
 #eval bc_ratio_float 100 1000
-
--- Scaled ratio (for integer comparison with iota_tau_numer)
 #eval bc_ratio_scaled 50 1000
 #eval bc_ratio_scaled 100 1000
-
--- Channel activity
-#eval both_channels_active 50 1000    -- true
-#eval b_minority_check 100 1000       -- true
+#eval both_channels_active 50 1000
+#eval b_minority_check 100 1000
+```
+-/
 
 end Tau.Boundary
