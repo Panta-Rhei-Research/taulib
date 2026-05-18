@@ -69,6 +69,45 @@ theorem g8e4_admissible_requires_zeroDivisorClaimsAdmissible
     ZeroDivisorClaimsAdmissible (g8e4ZetaChartContext ctx) :=
   (g8e4_admissible_requires_g8c ctx h).left
 
+/-- The indirect pullback route still needs the G3 zeta bridge obligation. -/
+theorem g8e4_admissible_requires_g3ZetaBridge
+    (ctx : G8MasterSwitchContext)
+    (h : G8e4ContradictionTestAdmissible ctx) :
+    (g8e4ZetaChartContext ctx).g3ZetaBridge :=
+  g8d_transfer_requires_g3ZetaBridge
+    (g8e4TransferContext ctx)
+    (g8e4_admissible_requires_g8d ctx h)
+
+/-- The indirect pullback route still needs the G4 analytic-continuation
+    obligation. -/
+theorem g8e4_admissible_requires_g4AnalyticContinuation
+    (ctx : G8MasterSwitchContext)
+    (h : G8e4ContradictionTestAdmissible ctx) :
+    (g8e4ZetaChartContext ctx).g4AnalyticContinuation :=
+  g8d_transfer_requires_g4AnalyticContinuation
+    (g8e4TransferContext ctx)
+    (g8e4_admissible_requires_g8d ctx h)
+
+/-- The indirect pullback route still needs the G5 operator-carrier
+    obligation. -/
+theorem g8e4_admissible_requires_g5OperatorCarrier
+    (ctx : G8MasterSwitchContext)
+    (h : G8e4ContradictionTestAdmissible ctx) :
+    (g8e4ZetaChartContext ctx).g5OperatorCarrier :=
+  g8d_transfer_requires_g5OperatorCarrier
+    (g8e4TransferContext ctx)
+    (g8e4_admissible_requires_g8d ctx h)
+
+/-- The indirect pullback route still needs the G6 determinant/O3 bridge
+    obligation. -/
+theorem g8e4_admissible_requires_g6O3DeterminantBridge
+    (ctx : G8MasterSwitchContext)
+    (h : G8e4ContradictionTestAdmissible ctx) :
+    (g8e4ZetaChartContext ctx).g6O3DeterminantBridge :=
+  g8d_transfer_requires_g6O3DeterminantBridge
+    (g8e4TransferContext ctx)
+    (g8e4_admissible_requires_g8d ctx h)
+
 /-- In particular, the indirect pullback route does not bypass analytic
     completion uniqueness. -/
 theorem g8e4_admissible_requires_completionUnique
@@ -160,6 +199,12 @@ structure G8PullbackDependencyChain
   g8d : G8dZeroDivisorTransferAdmissible (g8e4TransferContext ctx)
   g8c : G8cZeroDivisorTransferAdmissible (g8e4CompletionContext ctx)
   zeroDivisorClaims : ZeroDivisorClaimsAdmissible (g8e4ZetaChartContext ctx)
+  g3ZetaBridge : (g8e4ZetaChartContext ctx).g3ZetaBridge
+  g4AnalyticContinuation :
+    (g8e4ZetaChartContext ctx).g4AnalyticContinuation
+  g5OperatorCarrier : (g8e4ZetaChartContext ctx).g5OperatorCarrier
+  g6O3DeterminantBridge :
+    (g8e4ZetaChartContext ctx).g6O3DeterminantBridge
   completionUnique :
     tauTower_analyticCompletion_unique (g8e4ZetaChartContext ctx)
   sameXiDivisor : (g8e4ZetaChartContext ctx).sameXiDivisor
@@ -183,6 +228,12 @@ def g8e4_dependencyChain
   g8c := g8e4_admissible_requires_g8c ctx h
   zeroDivisorClaims :=
     g8e4_admissible_requires_zeroDivisorClaimsAdmissible ctx h
+  g3ZetaBridge := g8e4_admissible_requires_g3ZetaBridge ctx h
+  g4AnalyticContinuation :=
+    g8e4_admissible_requires_g4AnalyticContinuation ctx h
+  g5OperatorCarrier := g8e4_admissible_requires_g5OperatorCarrier ctx h
+  g6O3DeterminantBridge :=
+    g8e4_admissible_requires_g6O3DeterminantBridge ctx h
   completionUnique := g8e4_admissible_requires_completionUnique ctx h
   sameXiDivisor := g8e4_admissible_requires_sameXiDivisor ctx h
   noLost := g8e4_admissible_requires_noLost ctx h
