@@ -988,6 +988,93 @@ theorem TauReal.cis_arctan_im_approx_abs_le_8
   rw [TauRat.toRat_abs] at h_bound
   exact h_bound
 
+/-! ## Sub-Wave F.1a — Residual bound for `dh · re(a+dh)` vs. `dh · A_K · (1−a^(4K))`
+
+  Combines F.0 (Lipschitz for expPartial_re) with the geometric tail
+  `a^(4K)` and the uniform bound `|A_K| ≤ 8`:
+
+      |dh · A_h.K − dh · A_K · (1 − a^(4K))|
+        ≤ |dh| · K · |δ_arctan.K| + 8·|dh| · |a|^(4K)
+
+  Downstream (F.1b), the `|δ_arctan.K|` factor is bounded via 6.M3
+  (`δ_arctan.K = dh · d_K + O(dh² · K²)`), and `|a|^(4K)` is bounded by
+  `(1/4)^(4K)` under Path β — exponentially small in K.
+-/
+
+/-- **F.1a** — Residual bound for `dh · re(a+dh) − dh · A_K · (1 − a^(4K))`. -/
+theorem TauReal.tangent_defect_re_residual_bound
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1)
+    (K : Nat) :
+    |dh.toRat * (((TauReal.cis_arctan_re (a.add dh)).approx K).toRat)
+       - dh.toRat * (((TauReal.cis_arctan_re a).approx K).toRat)
+          * (1 - a.toRat^(4*K))|
+      ≤ |dh.toRat| * (K : Rat) *
+          |(((TauReal.arctan_of_rat_seq (a.add dh)).sub
+              (TauReal.arctan_of_rat_seq a)).approx K).toRat|
+        + |dh.toRat| * 8 * |a.toRat|^(4*K) := by
+  -- Decompose: A_h.K - A_K · (1 - a^(4K)) = (A_h.K - A_K) + A_K · a^(4K)
+  set A_K : Rat := ((TauReal.cis_arctan_re a).approx K).toRat
+  set A_h_K : Rat := ((TauReal.cis_arctan_re (a.add dh)).approx K).toRat
+  set δ_arctan : Rat := (((TauReal.arctan_of_rat_seq (a.add dh)).sub
+      (TauReal.arctan_of_rat_seq a)).approx K).toRat
+  have h_decomp :
+      dh.toRat * A_h_K - dh.toRat * A_K * (1 - a.toRat^(4*K))
+        = dh.toRat * (A_h_K - A_K) + dh.toRat * A_K * a.toRat^(4*K) := by ring
+  rw [h_decomp]
+  have h_tri :
+      |dh.toRat * (A_h_K - A_K) + dh.toRat * A_K * a.toRat^(4*K)|
+      ≤ |dh.toRat * (A_h_K - A_K)| + |dh.toRat * A_K * a.toRat^(4*K)| :=
+    abs_add_le _ _
+  -- Part 1: |dh · (A_h_K - A_K)| ≤ |dh| · K · |δ_arctan|
+  have h_part1 : |dh.toRat * (A_h_K - A_K)| ≤ |dh.toRat| * (K : Rat) * |δ_arctan| := by
+    rw [abs_mul]
+    have h_α_h_bound : |((TauReal.arctan_of_rat_seq (a.add dh)).approx K).toRat| ≤ 1 := by
+      have := TauReal.arctan_of_rat_seq_bounded (a.add dh)
+        (by linarith [_root_.abs_nonneg (a.add dh).toRat]) K
+      rwa [TauRat.toRat_abs] at this
+    have h_α_a_bound : |((TauReal.arctan_of_rat_seq a).approx K).toRat| ≤ 1 := by
+      have := TauReal.arctan_of_rat_seq_bounded a
+        (by linarith [_root_.abs_nonneg a.toRat]) K
+      rwa [TauRat.toRat_abs] at this
+    have h_F0 : |A_h_K - A_K| ≤ (K : Rat) *
+        |((TauReal.arctan_of_rat_seq (a.add dh)).approx K).toRat
+          - ((TauReal.arctan_of_rat_seq a).approx K).toRat| := by
+      show |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq (a.add dh))).re.approx K).toRat
+            - ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx K).toRat|
+            ≤ _
+      rw [cisTauReal_re_approx_toRat, cisTauReal_re_approx_toRat]
+      exact expPartial_pureIm_re_rat_lipschitz_bound _ _ h_α_h_bound h_α_a_bound K
+    have h_δ_eq :
+        |((TauReal.arctan_of_rat_seq (a.add dh)).approx K).toRat
+          - ((TauReal.arctan_of_rat_seq a).approx K).toRat|
+        = |δ_arctan| := by
+      show _ = |(TauRat.add ((TauReal.arctan_of_rat_seq (a.add dh)).approx K)
+                   ((TauReal.arctan_of_rat_seq a).approx K).negate).toRat|
+      rw [toRat_add, toRat_negate]
+      congr 1; ring
+    rw [h_δ_eq] at h_F0
+    have h_dh_abs_nn : (0 : Rat) ≤ |dh.toRat| := _root_.abs_nonneg _
+    calc |dh.toRat| * |A_h_K - A_K|
+        ≤ |dh.toRat| * ((K : Rat) * |δ_arctan|) :=
+            mul_le_mul_of_nonneg_left h_F0 h_dh_abs_nn
+      _ = |dh.toRat| * (K : Rat) * |δ_arctan| := by ring
+  -- Part 2: |dh · A_K · a^(4K)| ≤ |dh| · 8 · |a|^(4K)
+  have h_part2 : |dh.toRat * A_K * a.toRat^(4*K)|
+      ≤ |dh.toRat| * 8 * |a.toRat|^(4*K) := by
+    rw [abs_mul, abs_mul]
+    have h_A_K_bound : |A_K| ≤ 8 := by
+      have := TauReal.cis_arctan_re_approx_abs_le_8 a
+        (by linarith [_root_.abs_nonneg a.toRat]) K
+      rwa [TauRat.toRat_abs] at this
+    have h_a_pow_abs : |a.toRat^(4*K)| = |a.toRat|^(4*K) := abs_pow _ _
+    rw [h_a_pow_abs]
+    have h_dh_abs_nn : (0 : Rat) ≤ |dh.toRat| := _root_.abs_nonneg _
+    have h_a_pow_nn : (0 : Rat) ≤ |a.toRat|^(4*K) := by positivity
+    have h_dh_AK : |dh.toRat| * |A_K| ≤ |dh.toRat| * 8 :=
+      mul_le_mul_of_nonneg_left h_A_K_bound h_dh_abs_nn
+    exact mul_le_mul_of_nonneg_right h_dh_AK h_a_pow_nn
+  linarith [h_tri, h_part1, h_part2]
+
 /-! ## Sub-Wave 6.M5.A — TauReal-equiv increment with Wave 6c.10b (im) substituted
 
   Chains 6.M1 (algebraic rearrangement) with Wave 6c.10b (im, difference
