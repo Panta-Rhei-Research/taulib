@@ -803,6 +803,57 @@ theorem TauReal.tangent_defect_increment_pointwise (a dh : TauRat) (K : Nat) :
       toRat_add]
   ring
 
+/-! ## Sub-Wave 6.M5.A — TauReal-equiv increment with Wave 6c.10b (im) substituted
+
+  Chains 6.M1 (algebraic rearrangement) with Wave 6c.10b (im, difference
+  formula) to express the tangent_defect increment as:
+
+      T(a+dh) − T(a)
+        ≈_TR  [A·I + B·(R−1)] − dh·re(a+dh) − a·(re(a+dh) − re(a))
+
+  where A := cis_arctan_re(a), B := cis_arctan_im(a),
+  R := cisTauReal(δ_arctan).re, I := cisTauReal(δ_arctan).im,
+  δ_arctan := arctan_of_rat_seq(a+dh) − arctan_of_rat_seq(a).
+
+  The Wave 6c.10b (re) substitution into `a·(re(a+dh) − re(a))` requires
+  `equiv_mul_congr` with uniform bounds on re_diff — which we don't have
+  pointwise (since |cis_arctan_re.approx n| ≤ 1 + n·α² is K-dependent).
+  Substituting Wave 6c.10b (re) is therefore handled at .approx K
+  via pointwise toRat algebra in 6.M5.B (next sub-Wave).
+-/
+
+/-- **6.M5.A** — Increment via 6.M1 + Wave 6c.10b (im). -/
+theorem TauReal.tangent_defect_increment_via_6c10b_im
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1) :
+    TauReal.equiv
+      ((TauReal.tangent_defect (a.add dh)).sub (TauReal.tangent_defect a))
+      (((((TauReal.cis_arctan_re a).mul
+              (TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                  (TauReal.arctan_of_rat_seq a))).im).add
+            ((TauReal.cis_arctan_im a).mul
+              (((TauComplex.cisTauReal
+                  ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                    (TauReal.arctan_of_rat_seq a))).re).sub TauReal.one))).sub
+          ((TauReal.fromTauRat dh).mul (TauReal.cis_arctan_re (a.add dh)))).sub
+        ((TauReal.fromTauRat a).mul
+          ((TauReal.cis_arctan_re (a.add dh)).sub (TauReal.cis_arctan_re a)))) := by
+  -- Chain: 6.M1 → substitute Wave 6c.10b (im) inside via equiv_sub_congr
+  apply TauReal.equiv_trans (TauReal.tangent_defect_increment_rearranged a dh)
+  -- Goal: 6.M1 RHS ≈_TR target
+  -- Structure: 6.M1 RHS = ((im_diff - dh·re_h) - a·re_diff)
+  --            target   = ((6c.10b_im_RHS - dh·re_h) - a·re_diff)
+  -- So substitute im_diff ≈ 6c.10b_im_RHS via equiv_sub_congr (twice nested).
+  apply TauReal.equiv_sub_congr
+  · -- Inner: (im_diff - dh·re_h) ≈_TR (6c.10b_im_RHS - dh·re_h)
+    apply TauReal.equiv_sub_congr
+    · -- im_diff ≈_TR 6c.10b_im_RHS (= Wave 6c.10b im)
+      exact TauReal.cis_arctan_im_diff_factored a dh ha hah
+    · -- dh·re_h ≈_TR dh·re_h (refl)
+      exact TauReal.equiv_refl _
+  · -- a·re_diff ≈_TR a·re_diff (refl — no substitution here)
+    exact TauReal.equiv_refl _
+
 /-! ## Structural hooks for future Gronwall application
 
   The next sub-Wave will:
