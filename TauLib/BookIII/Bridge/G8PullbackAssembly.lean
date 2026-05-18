@@ -66,6 +66,36 @@ theorem g8e4_target_requires_completionUnique
     tauTower_analyticCompletion_unique (g8e4ZetaChartContext ctx) :=
   target.dependencies.completionUnique
 
+/-- The assembled target still exposes the G3 zeta bridge dependency. -/
+theorem g8e4_target_requires_g3ZetaBridge
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    (g8e4ZetaChartContext ctx).g3ZetaBridge :=
+  target.dependencies.g3ZetaBridge
+
+/-- The assembled target still exposes the G4 analytic-continuation
+    dependency. -/
+theorem g8e4_target_requires_g4AnalyticContinuation
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    (g8e4ZetaChartContext ctx).g4AnalyticContinuation :=
+  target.dependencies.g4AnalyticContinuation
+
+/-- The assembled target still exposes the G5 operator-carrier dependency. -/
+theorem g8e4_target_requires_g5OperatorCarrier
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    (g8e4ZetaChartContext ctx).g5OperatorCarrier :=
+  target.dependencies.g5OperatorCarrier
+
+/-- The assembled target still exposes the G6 determinant/O3 bridge
+    dependency. -/
+theorem g8e4_target_requires_g6O3DeterminantBridge
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    (g8e4ZetaChartContext ctx).g6O3DeterminantBridge :=
+  target.dependencies.g6O3DeterminantBridge
+
 /-- The assembled target still exposes the same-xi-divisor dependency. -/
 theorem g8e4_target_requires_sameXiDivisor
     (ctx : G8MasterSwitchContext)

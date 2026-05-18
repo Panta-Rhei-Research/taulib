@@ -57,6 +57,34 @@ theorem g8e4_certificate_requires_completionUnique
     tauTower_analyticCompletion_unique (g8e4ZetaChartContext ctx) :=
   cert.dependencies.completionUnique
 
+/-- A certificate still exposes the G3 zeta bridge dependency. -/
+theorem g8e4_certificate_requires_g3ZetaBridge
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    (g8e4ZetaChartContext ctx).g3ZetaBridge :=
+  cert.dependencies.g3ZetaBridge
+
+/-- A certificate still exposes the G4 analytic-continuation dependency. -/
+theorem g8e4_certificate_requires_g4AnalyticContinuation
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    (g8e4ZetaChartContext ctx).g4AnalyticContinuation :=
+  cert.dependencies.g4AnalyticContinuation
+
+/-- A certificate still exposes the G5 operator-carrier dependency. -/
+theorem g8e4_certificate_requires_g5OperatorCarrier
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    (g8e4ZetaChartContext ctx).g5OperatorCarrier :=
+  cert.dependencies.g5OperatorCarrier
+
+/-- A certificate still exposes the G6 determinant/O3 bridge dependency. -/
+theorem g8e4_certificate_requires_g6O3DeterminantBridge
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    (g8e4ZetaChartContext ctx).g6O3DeterminantBridge :=
+  cert.dependencies.g6O3DeterminantBridge
+
 /-- A certificate still exposes the same-xi-divisor dependency. -/
 theorem g8e4_certificate_requires_sameXiDivisor
     (ctx : G8MasterSwitchContext)
