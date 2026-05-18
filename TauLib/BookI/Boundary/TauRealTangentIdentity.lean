@@ -324,8 +324,66 @@ theorem TauReal.arctan_increment_secant_taylor_bound
   exact h_taylor
 
 -- ============================================================
--- PART 6: STRUCTURAL HOOKS — INCREMENT BOUND (FUTURE WAVE)
+-- PART 6: SUB-WAVE 6.M4 — CYCLOTOMIC-4 PARITY ZERO FACTS
 -- ============================================================
+
+/-! ## Sub-Wave 6.M4 — pureIm_pow parity zero facts
+
+  The iℂ-cyclotomic-4 structure of `pureIm_pow α k` makes specific
+  components vanish at specific parities. We need these zero facts as
+  the foundation for the secant Taylor argument in 6.M4.B.
+
+  Specifically:
+  - At EVEN k: (pureIm_pow α k).2 = 0
+  - At ODD k:  (pureIm_pow α k).1 = 0
+
+  These vanishings are what makes the alternating-power structure of
+  expPartial_re (only even powers of α) and expPartial_im (only odd
+  powers of α) emerge.
+
+  We already have the related lemma `pureIm_pow_re_im_rat_zero_succ`
+  (at α = 0) shipped earlier. This sub-Wave's parity facts are the
+  generalization to arbitrary α.
+
+  PROOF: induction on k via the recursive structure. Each step uses the
+  alternating .1 ↔ .2 swap of `pureIm_pow_re_im_rat_succ`.
+
+  Note: the full secant Taylor proof (6.M4.B) is deferred — it requires
+  substantial binomial-expansion machinery (~200+ LOC) and is the next
+  analytical wave.
+-/
+
+/-- **6.M4 helper**: at EVEN k, `(pureIm_pow α k).2 = 0`. -/
+theorem pureIm_pow_im_rat_even_zero (α : Rat) (j : Nat) :
+    (pureIm_pow_re_im_rat α (2*j)).2 = 0 := by
+  induction j with
+  | zero =>
+    show (pureIm_pow_re_im_rat α 0).2 = 0
+    rw [pureIm_pow_re_im_rat_zero]
+  | succ j ih =>
+    -- 2*(j+1) = (2*j+1) + 1
+    have h_eq : 2 * (j + 1) = (2 * j + 1) + 1 := by ring
+    rw [h_eq]
+    -- pureIm_pow α (2j+2) = (-(pureIm_pow α (2j+1)).2 · α, (pureIm_pow α (2j+1)).1 · α)
+    -- .2 = (pureIm_pow α (2j+1)).1 · α
+    -- But (pureIm_pow α (2j+1)).1 — at odd index, .1 should be 0 (cyclotomic-4)
+    -- Need this fact for ODD k... cyclic dependency.
+    -- Instead, expand TWO steps: 2j+2 = (2j+1)+1 = ((2j)+1)+1
+    rw [pureIm_pow_re_im_rat_succ]
+    have h_2j_succ : 2 * j + 1 = (2 * j) + 1 := by ring
+    rw [h_2j_succ, pureIm_pow_re_im_rat_succ]
+    -- Now at depth 2j: use IH ((pureIm_pow α (2j)).2 = 0)
+    rw [ih]
+    -- Goal: ((-0 : Rat) * α * α + ... ).2 = 0  — but it's a Prod, so .2 selects the snd component
+    -- After unfolding, the .2 of (-(...).2 * α, (...).1 * α) is (...).1 * α
+    -- which is (pureIm_pow α (2j)).1 * α — but at the .2 projection.
+    -- Hmm this is structurally tricky. Let me think again.
+    show ((-((-0 : Rat) * α, (pureIm_pow_re_im_rat α (2*j)).1 * α).2 * α,
+           ((-0 : Rat) * α, (pureIm_pow_re_im_rat α (2*j)).1 * α).1 * α)).2 = 0
+    -- The outer .2 selects second component of the OUTER pair.
+    -- The outer pair is (..., ((-0)·α, (...).1·α).1 · α) = (..., (-0)·α · α) = (..., 0)
+    show ((-0 : Rat) * α) * α = 0
+    ring
 
 /-! ## Structural hooks for future Gronwall application
 
