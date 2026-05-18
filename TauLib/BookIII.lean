@@ -111,6 +111,7 @@ import TauLib.BookIII.Bridge.G8OffAxisChartObject
 import TauLib.BookIII.Bridge.G8OffAxisChartAudit
 import TauLib.BookIII.Bridge.G8OffAxisChartFaithfulnessDecomposition
 import TauLib.BookIII.Bridge.G8PrimePolarityChartContext
+import TauLib.BookIII.Bridge.G8PrimePolarityChartEquation
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
