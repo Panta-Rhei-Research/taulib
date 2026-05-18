@@ -985,6 +985,70 @@ theorem TauReal.tangent_defect_increment_via_6c10b_full
     · -- Wave 6c.10b (re): re_diff ≈_TR (A·(R-1) - B·I)
       exact TauReal.cis_arctan_re_diff_factored a dh ha hah
 
+/-! ## Sub-Wave 6.M5.C — Algebraic simplification: extract `T(a)·(R−1)`
+
+  Simplifies 6.M5.B's RHS by recognizing `B − a·A = T(a)`:
+
+      [A·I + B·(R−1)] − dh·re(a+dh) − a·[A·(R−1) − B·I]
+        = (A + a·B)·I + (B − a·A)·(R−1) − dh·re(a+dh)
+        = (A + a·B)·I + T(a)·(R−1) − dh·re(a+dh)
+
+  Pure algebra at TauReal-equiv level. Proven via direct pointwise toRat
+  comparison: both sides expand to the same Rat-level polynomial.
+-/
+
+/-- **6.M5.C** — Full TauReal-equiv decomposition with `T(a)·(R−1)` exposed.
+
+    Proof: chain 6.M5.B's TauReal-equiv with the algebraic identity
+    proved pointwise at every `.approx n .toRat`. -/
+theorem TauReal.tangent_defect_increment_simplified
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1) :
+    TauReal.equiv
+      ((TauReal.tangent_defect (a.add dh)).sub (TauReal.tangent_defect a))
+      (((((TauReal.cis_arctan_re a).add
+              ((TauReal.fromTauRat a).mul (TauReal.cis_arctan_im a))).mul
+            (TauComplex.cisTauReal
+              ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                (TauReal.arctan_of_rat_seq a))).im).add
+          ((TauReal.tangent_defect a).mul
+            (((TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                  (TauReal.arctan_of_rat_seq a))).re).sub TauReal.one))).sub
+        ((TauReal.fromTauRat dh).mul (TauReal.cis_arctan_re (a.add dh)))) := by
+  -- Use 6.M5.B to convert LHS, then prove the algebraic simplification pointwise.
+  -- The simplification: 6.M5.B RHS ≈_TR 6.M5.C RHS at every .approx n.
+  apply TauReal.equiv_trans
+    (TauReal.tangent_defect_increment_via_6c10b_full a dh ha hah)
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  -- Both sides are pointwise equal at .approx n .toRat after using T(a) = B - a·A.
+  -- Strategy: rewrite using TauReal.tangent_defect_approx_toRat in the goal, then ring.
+  -- The goal is structurally `(LHS).approx n .toRat = (RHS).approx n .toRat`.
+  -- Each side unfolds via the @[simp] lemmas for sub/add/mul of TauReal (definitional).
+  -- After distributing .toRat through toRat_add/mul/negate, we get Rat expressions.
+  simp only [show ∀ (x y : TauReal) (m : Nat), ((x.sub y).approx m).toRat
+               = (x.approx m).toRat - (y.approx m).toRat from by
+                 intros x y m
+                 show (TauRat.add (x.approx m) (y.approx m).negate).toRat = _
+                 rw [toRat_add, toRat_negate]; ring,
+             show ∀ (x y : TauReal) (m : Nat), ((x.add y).approx m).toRat
+               = (x.approx m).toRat + (y.approx m).toRat from by
+                 intros x y m
+                 show (TauRat.add (x.approx m) (y.approx m)).toRat = _
+                 rw [toRat_add],
+             show ∀ (x y : TauReal) (m : Nat), ((x.mul y).approx m).toRat
+               = (x.approx m).toRat * (y.approx m).toRat from by
+                 intros x y m
+                 show (TauRat.mul (x.approx m) (y.approx m)).toRat = _
+                 rw [toRat_mul],
+             show ((TauReal.one).approx n).toRat = 1 from by
+               show (TauRat.one).toRat = _; rw [toRat_one],
+             show ((TauReal.fromTauRat dh).approx n).toRat = dh.toRat from rfl,
+             show ((TauReal.fromTauRat a).approx n).toRat = a.toRat from rfl,
+             TauReal.tangent_defect_approx_toRat]
+  ring
+
 /-! ## Structural hooks for future Gronwall application
 
   The next sub-Wave will:
