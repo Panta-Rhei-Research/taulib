@@ -96,6 +96,7 @@ import TauLib.BookIII.Bridge.G8PullbackRouteCertificate
 import TauLib.BookIII.Bridge.G8PullbackAssembly
 import TauLib.BookIII.Bridge.G8NonuniquenessFalsifier
 import TauLib.BookIII.Bridge.G8PullbackRouteAudit
+import TauLib.BookIII.Bridge.G8StageAwarePullbackAudit
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
