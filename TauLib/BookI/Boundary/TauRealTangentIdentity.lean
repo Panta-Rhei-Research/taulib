@@ -353,7 +353,7 @@ theorem TauReal.arctan_increment_secant_taylor_bound
   analytical wave.
 -/
 
-/-- **6.M4 helper**: at EVEN k, `(pureIm_pow α k).2 = 0`. -/
+/-- **6.M4.A.1**: at EVEN k, `(pureIm_pow α k).2 = 0`. -/
 theorem pureIm_pow_im_rat_even_zero (α : Rat) (j : Nat) :
     (pureIm_pow_re_im_rat α (2*j)).2 = 0 := by
   induction j with
@@ -361,29 +361,69 @@ theorem pureIm_pow_im_rat_even_zero (α : Rat) (j : Nat) :
     show (pureIm_pow_re_im_rat α 0).2 = 0
     rw [pureIm_pow_re_im_rat_zero]
   | succ j ih =>
-    -- 2*(j+1) = (2*j+1) + 1
     have h_eq : 2 * (j + 1) = (2 * j + 1) + 1 := by ring
-    rw [h_eq]
-    -- pureIm_pow α (2j+2) = (-(pureIm_pow α (2j+1)).2 · α, (pureIm_pow α (2j+1)).1 · α)
-    -- .2 = (pureIm_pow α (2j+1)).1 · α
-    -- But (pureIm_pow α (2j+1)).1 — at odd index, .1 should be 0 (cyclotomic-4)
-    -- Need this fact for ODD k... cyclic dependency.
-    -- Instead, expand TWO steps: 2j+2 = (2j+1)+1 = ((2j)+1)+1
-    rw [pureIm_pow_re_im_rat_succ]
+    rw [h_eq, pureIm_pow_re_im_rat_succ]
     have h_2j_succ : 2 * j + 1 = (2 * j) + 1 := by ring
     rw [h_2j_succ, pureIm_pow_re_im_rat_succ]
-    -- Now at depth 2j: use IH ((pureIm_pow α (2j)).2 = 0)
     rw [ih]
-    -- Goal: ((-0 : Rat) * α * α + ... ).2 = 0  — but it's a Prod, so .2 selects the snd component
-    -- After unfolding, the .2 of (-(...).2 * α, (...).1 * α) is (...).1 * α
-    -- which is (pureIm_pow α (2j)).1 * α — but at the .2 projection.
-    -- Hmm this is structurally tricky. Let me think again.
     show ((-((-0 : Rat) * α, (pureIm_pow_re_im_rat α (2*j)).1 * α).2 * α,
            ((-0 : Rat) * α, (pureIm_pow_re_im_rat α (2*j)).1 * α).1 * α)).2 = 0
-    -- The outer .2 selects second component of the OUTER pair.
-    -- The outer pair is (..., ((-0)·α, (...).1·α).1 · α) = (..., (-0)·α · α) = (..., 0)
     show ((-0 : Rat) * α) * α = 0
     ring
+
+/-- **6.M4.A.2**: at ODD k, `(pureIm_pow α k).1 = 0`.
+    Follows from the .2-even-zero fact via one step of `pureIm_pow_re_im_rat_succ`. -/
+theorem pureIm_pow_re_rat_odd_zero (α : Rat) (j : Nat) :
+    (pureIm_pow_re_im_rat α (2*j+1)).1 = 0 := by
+  -- pureIm_pow α (2j+1) = pureIm_pow α ((2j)+1) = (-(pureIm_pow α (2j)).2·α, (pureIm_pow α (2j)).1·α)
+  -- So .1 = -(pureIm_pow α (2j)).2 · α
+  -- By 6.M4.A.1: (pureIm_pow α (2j)).2 = 0, so .1 = -0·α = 0.
+  have h_eq : 2*j+1 = (2*j)+1 := by ring
+  rw [h_eq, pureIm_pow_re_im_rat_succ]
+  rw [pureIm_pow_im_rat_even_zero]
+  show (-(0 : Rat) * α) = 0
+  ring
+
+/-- **6.M4.A.3 (re-even closed form)**: at EVEN k = 2j,
+    `(pureIm_pow α (2j)).1 = (-1)^j · α^(2j)`. -/
+theorem pureIm_pow_re_rat_even_closed (α : Rat) (j : Nat) :
+    (pureIm_pow_re_im_rat α (2*j)).1 = (-1)^j * α^(2*j) := by
+  induction j with
+  | zero =>
+    show (pureIm_pow_re_im_rat α 0).1 = (-1)^0 * α^0
+    rw [pureIm_pow_re_im_rat_zero]; simp
+  | succ j ih =>
+    have h_eq : 2 * (j + 1) = (2 * j + 1) + 1 := by ring
+    rw [h_eq, pureIm_pow_re_im_rat_succ]
+    have h_2j_succ : 2 * j + 1 = (2 * j) + 1 := by ring
+    rw [h_2j_succ, pureIm_pow_re_im_rat_succ]
+    rw [ih]
+    -- After unfolding, goal projects to .1 of outer pair, which equals
+    -- -((pureIm_pow_re_im_rat α (2j+1)).2 · α)
+    -- And (pureIm_pow_re_im_rat α (2j+1)).2 = (-1)^j · α^(2j) · α
+    show (-(((-1)^j * α^(2*j)) * α) * α) = (-1)^(j+1) * α^(2*(j+1))
+    -- Pure Rat ring identity: -(x · α^(2j) · α) · α = -x · α^(2j+2) = (-x) · α^(2j+2)
+    -- (-1)^(j+1) = -(-1)^j
+    have h_pow_succ : (-1 : Rat)^(j+1) = -((-1 : Rat)^j) := by
+      rw [pow_succ]; ring
+    rw [h_pow_succ]
+    have h_2jp2 : 2*(j+1) = 2*j+2 := by ring
+    rw [h_2jp2]
+    ring
+
+/-- **6.M4.A.4 (im-odd closed form)**: at ODD k = 2j+1,
+    `(pureIm_pow α (2j+1)).2 = (-1)^j · α^(2j+1)`. -/
+theorem pureIm_pow_im_rat_odd_closed (α : Rat) (j : Nat) :
+    (pureIm_pow_re_im_rat α (2*j+1)).2 = (-1)^j * α^(2*j+1) := by
+  -- pureIm_pow α (2j+1) = ((-(pureIm_pow α 2j).2 · α, (pureIm_pow α 2j).1 · α))
+  -- .2 = (pureIm_pow α 2j).1 · α = (-1)^j · α^(2j) · α = (-1)^j · α^(2j+1)
+  have h_eq : 2*j+1 = (2*j)+1 := by ring
+  rw [h_eq, pureIm_pow_re_im_rat_succ]
+  rw [pureIm_pow_re_rat_even_closed]
+  show ((-(pureIm_pow_re_im_rat α (2*j)).2 * α, (-1)^j * α^(2*j) * α).2) = (-1)^j * α^(2*j+1)
+  show ((-1)^j * α^(2*j) * α) = (-1)^j * α^(2*j+1)
+  rw [show 2*j + 1 = (2*j) + 1 from rfl, pow_succ]
+  ring
 
 /-! ## Structural hooks for future Gronwall application
 
