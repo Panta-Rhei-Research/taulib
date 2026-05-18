@@ -1501,6 +1501,101 @@ theorem TauReal.cis_arctan_re_plus_a_cis_arctan_im_abs_le_ten
     nlinarith [h_a_abs, h_B_K, h_a_nn, h_B_nn]
   linarith [h_tri, h_A_K, h_aB_abs, h_aB_bound]
 
+/-! ## F.1b Sub-helpers — Per-piece bounds on δ_K, |R-1|, |I-δ|
+
+  Three small Rat-level helpers that bound the key δ_K-related quantities
+  under the hypothesis `2·K²·dh ≤ 1`:
+  - `|δ_K| ≤ 2·dh` (using 6.M3 + |d_K| ≤ 1)
+  - `|R_K − 1| ≤ 4·K·dh²` (using 6.M2 re + |δ_K| ≤ 2·dh)
+  - `|I_K − δ_K| ≤ 8·K·dh³` (using 6.M2 im + |δ_K| ≤ 2·dh)
+-/
+
+/-- **F.1b Sub-helper** — Under `2·K²·dh ≤ 1`, `|δ_K| ≤ 2·dh`. -/
+theorem TauReal.arctan_increment_abs_le_two_dh
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1)
+    (hdh_nn : 0 ≤ dh.toRat) (hdh_le_half : dh.toRat ≤ 1/2)
+    (K : Nat) (hKdh : 2 * (K : Rat)^2 * dh.toRat ≤ 1) :
+    |(((TauReal.arctan_of_rat_seq (a.add dh)).sub
+        (TauReal.arctan_of_rat_seq a)).approx K).toRat| ≤ 2 * dh.toRat := by
+  have h_M3 := TauReal.arctan_increment_secant_taylor_bound a dh ha hdh_nn hdh_le_half K
+  have h_d_K := arctan_deriv_partial_rat_abs_le_one a ha K
+  have h_dh_d_abs : |dh.toRat * arctan_deriv_partial_rat a.toRat K| ≤ dh.toRat := by
+    rw [abs_mul, abs_of_nonneg hdh_nn]
+    have := mul_le_mul_of_nonneg_left h_d_K hdh_nn
+    linarith
+  have h_K_pow_dh : dh.toRat^2 * 2 * (K : Rat)^2 ≤ dh.toRat := by
+    have h_K_sq_nn : (0 : Rat) ≤ (K : Rat)^2 := sq_nonneg _
+    have h_dh_sq : (0 : Rat) ≤ dh.toRat^2 := sq_nonneg _
+    nlinarith [hKdh, hdh_nn, h_K_sq_nn, h_dh_sq]
+  have h_tri : |(((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                  (TauReal.arctan_of_rat_seq a)).approx K).toRat|
+      ≤ |(((TauReal.arctan_of_rat_seq (a.add dh)).sub
+            (TauReal.arctan_of_rat_seq a)).approx K).toRat
+          - dh.toRat * arctan_deriv_partial_rat a.toRat K|
+        + |dh.toRat * arctan_deriv_partial_rat a.toRat K| := by
+    have := abs_add_le
+      ((((TauReal.arctan_of_rat_seq (a.add dh)).sub
+          (TauReal.arctan_of_rat_seq a)).approx K).toRat
+        - dh.toRat * arctan_deriv_partial_rat a.toRat K)
+      (dh.toRat * arctan_deriv_partial_rat a.toRat K)
+    have h_eq : (((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                  (TauReal.arctan_of_rat_seq a)).approx K).toRat
+                - dh.toRat * arctan_deriv_partial_rat a.toRat K
+                + dh.toRat * arctan_deriv_partial_rat a.toRat K
+                = (((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                    (TauReal.arctan_of_rat_seq a)).approx K).toRat := by ring
+    rw [h_eq] at this
+    exact this
+  linarith
+
+/-- **F.1b Sub-helper** — Under `2·K²·dh ≤ 1`, `|R_K − 1| ≤ 4·K·dh²`. -/
+theorem TauReal.R_K_minus_1_abs_le_four_K_dh_sq
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1)
+    (hdh_nn : 0 ≤ dh.toRat) (hdh_le_half : dh.toRat ≤ 1/2)
+    (K : Nat) (hK : 1 ≤ K) (hKdh : 2 * (K : Rat)^2 * dh.toRat ≤ 1) :
+    |((TauComplex.cisTauReal
+        ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+          (TauReal.arctan_of_rat_seq a))).re.approx K).toRat - 1|
+      ≤ 4 * (K : Rat) * dh.toRat^2 := by
+  have h_M2_re := TauReal.cisTauReal_arctan_increment_re_small_angle a dh ha hah K hK
+  have h_δ_abs := TauReal.arctan_increment_abs_le_two_dh a dh ha hdh_nn hdh_le_half K hKdh
+  set δ_K : Rat := (((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                    (TauReal.arctan_of_rat_seq a)).approx K).toRat
+  have h_δ_sq_bound : δ_K^2 ≤ (2 * dh.toRat)^2 := by
+    have h_δ_abs_sq : δ_K^2 = |δ_K|^2 := by rw [sq_abs]
+    rw [h_δ_abs_sq]
+    have h_δ_abs_nn : (0 : Rat) ≤ |δ_K| := _root_.abs_nonneg _
+    exact pow_le_pow_left₀ h_δ_abs_nn h_δ_abs 2
+  have h_K_nn : (0 : Rat) ≤ (K : Rat) := Nat.cast_nonneg _
+  have h_K_step : (K : Rat) * δ_K^2 ≤ (K : Rat) * (2 * dh.toRat)^2 :=
+    mul_le_mul_of_nonneg_left h_δ_sq_bound h_K_nn
+  have h_4_K_dh_sq : (K : Rat) * (2 * dh.toRat)^2 = 4 * (K : Rat) * dh.toRat^2 := by ring
+  linarith [h_M2_re]
+
+/-- **F.1b Sub-helper** — Under `2·K²·dh ≤ 1`, `|I_K − δ_K| ≤ 8·K·dh³`. -/
+theorem TauReal.I_K_minus_delta_K_abs_le_eight_K_dh_cube
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1)
+    (hdh_nn : 0 ≤ dh.toRat) (hdh_le_half : dh.toRat ≤ 1/2)
+    (K : Nat) (hK : 2 ≤ K) (hKdh : 2 * (K : Rat)^2 * dh.toRat ≤ 1) :
+    |((TauComplex.cisTauReal
+        ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+          (TauReal.arctan_of_rat_seq a))).im.approx K).toRat
+      - (((TauReal.arctan_of_rat_seq (a.add dh)).sub
+          (TauReal.arctan_of_rat_seq a)).approx K).toRat|
+      ≤ 8 * (K : Rat) * dh.toRat^3 := by
+  have h_M2_im := TauReal.cisTauReal_arctan_increment_im_small_angle a dh ha hah K hK
+  have h_δ_abs := TauReal.arctan_increment_abs_le_two_dh a dh ha hdh_nn hdh_le_half K hKdh
+  set δ_K : Rat := (((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                    (TauReal.arctan_of_rat_seq a)).approx K).toRat
+  have h_δ_cube_bound : |δ_K|^3 ≤ (2 * dh.toRat)^3 := by
+    have h_δ_abs_nn : (0 : Rat) ≤ |δ_K| := _root_.abs_nonneg _
+    exact pow_le_pow_left₀ h_δ_abs_nn h_δ_abs 3
+  have h_K_nn : (0 : Rat) ≤ (K : Rat) := Nat.cast_nonneg _
+  have h_K_step : (K : Rat) * |δ_K|^3 ≤ (K : Rat) * (2 * dh.toRat)^3 :=
+    mul_le_mul_of_nonneg_left h_δ_cube_bound h_K_nn
+  have h_8_K_dh_cube : (K : Rat) * (2 * dh.toRat)^3 = 8 * (K : Rat) * dh.toRat^3 := by ring
+  linarith [h_M2_im]
+
 /-! ## Sub-Wave F.1b — Per-step Gronwall increment bound (NEXT SESSION)
 
   F.1b combines the modulus destructure (6.M5.D), 6.M4.D.3 (linear-term
