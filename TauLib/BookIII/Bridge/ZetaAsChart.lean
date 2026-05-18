@@ -182,4 +182,40 @@ theorem zeroDivisorClaimsAdmissible_completionUnique
     tauTower_analyticCompletion_unique ctx :=
   h.right.right.right.right.left
 
+/-- Any admissible zero-divisor claim exposes the no-lost-zero hypothesis. -/
+theorem zeroDivisorClaimsAdmissible_noLostZeros
+    (ctx : ZetaAsCoordinateChartContext)
+    (h : ZeroDivisorClaimsAdmissible ctx) :
+    ctx.noLostZeros :=
+  h.right.right.right.right.right.right.left
+
+/-- Any admissible zero-divisor claim exposes the no-spurious-zero
+    hypothesis. -/
+theorem zeroDivisorClaimsAdmissible_noSpuriousZeros
+    (ctx : ZetaAsCoordinateChartContext)
+    (h : ZeroDivisorClaimsAdmissible ctx) :
+    ctx.noSpuriousZeros :=
+  h.right.right.right.right.right.right.right.left
+
+/-- Any admissible zero-divisor claim exposes the multiplicity-preservation
+    hypothesis. -/
+theorem zeroDivisorClaimsAdmissible_multiplicityPreserved
+    (ctx : ZetaAsCoordinateChartContext)
+    (h : ZeroDivisorClaimsAdmissible ctx) :
+    ctx.multiplicityPreserved :=
+  h.right.right.right.right.right.right.right.right
+
+/-- Any admissible zero-divisor claim supplies the standing non-uniqueness
+    falsifier guardrail package. -/
+theorem zeroDivisorClaimsAdmissible_noTwoCompletionsGuard
+    (ctx : ZetaAsCoordinateChartContext)
+    (h : ZeroDivisorClaimsAdmissible ctx) :
+    noTwoCompletions_sameTauTower_differentDivisor ctx :=
+  ⟨
+    zeroDivisorClaimsAdmissible_completionUnique ctx h,
+    zeroDivisorClaimsAdmissible_sameXiDivisor ctx h,
+    zeroDivisorClaimsAdmissible_noLostZeros ctx h,
+    zeroDivisorClaimsAdmissible_noSpuriousZeros ctx h
+  ⟩
+
 end Tau.BookIII.Bridge

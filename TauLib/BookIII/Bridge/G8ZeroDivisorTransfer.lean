@@ -171,6 +171,67 @@ theorem g8d_transfer_requires_g8c
     G8cZeroDivisorTransferAdmissible ctx.completion :=
   h.left
 
+/-- Any G8d-admissible transfer exposes the underlying zeta-as-chart
+    admissibility bundle. -/
+theorem g8d_transfer_requires_chartClaims
+    (ctx : G8dZeroDivisorTransferContext)
+    (h : G8dZeroDivisorTransferAdmissible ctx) :
+    ZeroDivisorClaimsAdmissible ctx.completion.chart :=
+  (g8d_transfer_requires_g8c ctx h).left
+
+/-- Any G8d-admissible transfer exposes the chart-level analytic-completion
+    uniqueness obligation. -/
+theorem g8d_transfer_requires_chartCompletionUnique
+    (ctx : G8dZeroDivisorTransferContext)
+    (h : G8dZeroDivisorTransferAdmissible ctx) :
+    tauTower_analyticCompletion_unique ctx.completion.chart :=
+  zeroDivisorClaimsAdmissible_completionUnique ctx.completion.chart
+    (g8d_transfer_requires_chartClaims ctx h)
+
+/-- Any G8d-admissible transfer exposes the same-xi-divisor obligation. -/
+theorem g8d_transfer_requires_sameXiDivisor
+    (ctx : G8dZeroDivisorTransferContext)
+    (h : G8dZeroDivisorTransferAdmissible ctx) :
+    ctx.completion.chart.sameXiDivisor :=
+  zeroDivisorClaimsAdmissible_sameXiDivisor ctx.completion.chart
+    (g8d_transfer_requires_chartClaims ctx h)
+
+/-- Any G8d-admissible transfer exposes the chart-level no-lost-zero
+    obligation. -/
+theorem g8d_transfer_requires_chartNoLostZeros
+    (ctx : G8dZeroDivisorTransferContext)
+    (h : G8dZeroDivisorTransferAdmissible ctx) :
+    ctx.completion.chart.noLostZeros :=
+  zeroDivisorClaimsAdmissible_noLostZeros ctx.completion.chart
+    (g8d_transfer_requires_chartClaims ctx h)
+
+/-- Any G8d-admissible transfer exposes the chart-level no-spurious-zero
+    obligation. -/
+theorem g8d_transfer_requires_chartNoSpuriousZeros
+    (ctx : G8dZeroDivisorTransferContext)
+    (h : G8dZeroDivisorTransferAdmissible ctx) :
+    ctx.completion.chart.noSpuriousZeros :=
+  zeroDivisorClaimsAdmissible_noSpuriousZeros ctx.completion.chart
+    (g8d_transfer_requires_chartClaims ctx h)
+
+/-- Any G8d-admissible transfer exposes the chart-level
+    multiplicity-preservation obligation. -/
+theorem g8d_transfer_requires_chartMultiplicityPreserved
+    (ctx : G8dZeroDivisorTransferContext)
+    (h : G8dZeroDivisorTransferAdmissible ctx) :
+    ctx.completion.chart.multiplicityPreserved :=
+  zeroDivisorClaimsAdmissible_multiplicityPreserved ctx.completion.chart
+    (g8d_transfer_requires_chartClaims ctx h)
+
+/-- Any G8d-admissible transfer carries the zeta-as-chart non-uniqueness
+    falsifier guardrail package. -/
+theorem g8d_transfer_requires_noTwoCompletionsGuard
+    (ctx : G8dZeroDivisorTransferContext)
+    (h : G8dZeroDivisorTransferAdmissible ctx) :
+    noTwoCompletions_sameTauTower_differentDivisor ctx.completion.chart :=
+  zeroDivisorClaimsAdmissible_noTwoCompletionsGuard ctx.completion.chart
+    (g8d_transfer_requires_chartClaims ctx h)
+
 /-- Any G8d-admissible transfer exposes the no-lost-zero obligation. -/
 theorem g8d_transfer_requires_noLost
     (ctx : G8dZeroDivisorTransferContext)
