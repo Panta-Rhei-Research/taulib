@@ -1644,6 +1644,200 @@ theorem TauReal.RHS_5C_at_K_toRat_unfold (a dh : TauRat) (K : Nat) :
              show ((TauReal.fromTauRat a).approx K).toRat = a.toRat from rfl]
   ring
 
+/-! ## Helper B — Pure Rat-level analytical heart of F.1b
+
+  Bounds the 6.M5.C RHS at Rat level, with all `.approx K .toRat`
+  quantities passed as parameters and all needed bounds passed as
+  hypotheses. The proof operates ONLY on Rat arithmetic — no TauReal
+  unfolding, no `set` abbreviations — letting `linarith`/`nlinarith`/
+  `linear_combination` excel.
+
+  ```
+  |(A + a·B)·I + T_a·(R−1) − dh·re_h|
+    ≤ (dh/2 + 9·K·dh²)·|T_a|
+      + 200·K²·dh² + 10·dh·|a|^(4K)
+  ```
+
+  The four piece bounds compose with generous constants (4 → 9; 20 + 20
+  + 2 = 42 ≤ 200; 8 ≤ 10).
+-/
+
+set_option maxHeartbeats 1600000 in
+/-- **Helper B** — Pure Rat-level analytical bound for the 6.M5.C RHS. -/
+theorem TauReal.tangent_defect_step_bound_explicit
+    (a_R dh_R A_K B_K R_K I_K re_h_K T_a_K δ_K d_K : Rat) (K : Nat)
+    (h_T_def : T_a_K = B_K - a_R * A_K)
+    (h_d_K_abs : |d_K| ≤ 1)
+    (h_AaB_abs : |A_K + a_R * B_K| ≤ 10)
+    (h_δ_abs : |δ_K| ≤ 2 * dh_R)
+    (h_R_minus_1 : |R_K - 1| ≤ 4 * (K : Rat) * dh_R^2)
+    (h_I_minus_δ : |I_K - δ_K| ≤ 8 * (K : Rat) * dh_R^3)
+    (h_D3 : |δ_K * (A_K + a_R * B_K) - dh_R * a_R * d_K * T_a_K
+              - dh_R * A_K * (1 - a_R^(4*K))|
+              ≤ |A_K + a_R * B_K| * (dh_R^2 * 2 * (K : Rat)^2))
+    (h_F1a : |dh_R * re_h_K - dh_R * A_K * (1 - a_R^(4*K))|
+              ≤ |dh_R| * (K : Rat) * |δ_K| + |dh_R| * 8 * |a_R|^(4*K))
+    (h_a_abs : |a_R| ≤ 1/4)
+    (h_dh_nn : 0 ≤ dh_R) (h_dh_le_half : dh_R ≤ 1/2)
+    (h_K_ge_2 : 2 ≤ K)
+    (h_K_dh : 2 * (K : Rat)^2 * dh_R ≤ 1) :
+    |(A_K + a_R * B_K) * I_K + T_a_K * (R_K - 1) - dh_R * re_h_K|
+      ≤ (dh_R / 2 + 9 * (K : Rat) * dh_R^2) * |T_a_K|
+        + 200 * (K : Rat)^2 * dh_R^2
+        + 10 * dh_R * |a_R|^(4*K) := by
+  have h_K_nn : (0 : Rat) ≤ (K : Rat) := Nat.cast_nonneg _
+  have h_K_ge_2_R : (2 : Rat) ≤ (K : Rat) := by exact_mod_cast h_K_ge_2
+  have h_K_ge_1 : (1 : Rat) ≤ (K : Rat) := by linarith
+  have h_dh_sq_nn : 0 ≤ dh_R^2 := sq_nonneg _
+  have h_T_nn : 0 ≤ |T_a_K| := _root_.abs_nonneg _
+  have h_dh_abs_eq : |dh_R| = dh_R := abs_of_nonneg h_dh_nn
+  -- Step 1: algebraic identity (no abs)
+  have h_target_eq :
+      (A_K + a_R * B_K) * I_K + T_a_K * (R_K - 1) - dh_R * re_h_K
+        = (dh_R * a_R * d_K * T_a_K + T_a_K * (R_K - 1))
+          + (δ_K * (A_K + a_R * B_K)
+             - dh_R * a_R * d_K * T_a_K
+             - dh_R * A_K * (1 - a_R^(4*K)))
+          + (A_K + a_R * B_K) * (I_K - δ_K)
+          - (dh_R * re_h_K - dh_R * A_K * (1 - a_R^(4*K))) := by
+    ring
+  -- Step 2: triangle on h_target_eq
+  have h_tri :
+      |(A_K + a_R * B_K) * I_K + T_a_K * (R_K - 1) - dh_R * re_h_K|
+        ≤ |dh_R * a_R * d_K * T_a_K + T_a_K * (R_K - 1)|
+          + |δ_K * (A_K + a_R * B_K) - dh_R * a_R * d_K * T_a_K
+              - dh_R * A_K * (1 - a_R^(4*K))|
+          + |(A_K + a_R * B_K) * (I_K - δ_K)|
+          + |dh_R * re_h_K - dh_R * A_K * (1 - a_R^(4*K))| := by
+    rw [h_target_eq]
+    have h1 := abs_add_le
+      ((dh_R * a_R * d_K * T_a_K + T_a_K * (R_K - 1))
+        + (δ_K * (A_K + a_R * B_K) - dh_R * a_R * d_K * T_a_K
+            - dh_R * A_K * (1 - a_R^(4*K))))
+      ((A_K + a_R * B_K) * (I_K - δ_K))
+    have h2 := abs_add_le
+      (dh_R * a_R * d_K * T_a_K + T_a_K * (R_K - 1))
+      (δ_K * (A_K + a_R * B_K) - dh_R * a_R * d_K * T_a_K
+        - dh_R * A_K * (1 - a_R^(4*K)))
+    have h3 := abs_sub
+      ((dh_R * a_R * d_K * T_a_K + T_a_K * (R_K - 1))
+        + (δ_K * (A_K + a_R * B_K) - dh_R * a_R * d_K * T_a_K
+            - dh_R * A_K * (1 - a_R^(4*K)))
+        + (A_K + a_R * B_K) * (I_K - δ_K))
+      (dh_R * re_h_K - dh_R * A_K * (1 - a_R^(4*K)))
+    linarith [h1, h2, h3]
+  -- Step 3 (piece 1): linear-in-T_a_K coefficient: |dh·a·d·T + T·(R-1)| ≤ (dh/4 + 4K·dh²)·|T|
+  have h_piece_lin :
+      |dh_R * a_R * d_K * T_a_K + T_a_K * (R_K - 1)|
+        ≤ (dh_R / 4 + 4 * (K : Rat) * dh_R^2) * |T_a_K| := by
+    -- |a · d_K| ≤ 1/4 · 1 = 1/4
+    have h_a_d : |a_R * d_K| ≤ 1/4 := by
+      rw [abs_mul]
+      have h_a_nn : 0 ≤ |a_R| := _root_.abs_nonneg _
+      nlinarith [h_a_abs, h_d_K_abs, h_a_nn]
+    -- |dh·a·d| ≤ dh · 1/4
+    have h_dh_a_d : |dh_R * a_R * d_K| ≤ dh_R / 4 := by
+      rw [show dh_R * a_R * d_K = dh_R * (a_R * d_K) from by ring, abs_mul,
+          abs_of_nonneg h_dh_nn]
+      nlinarith [h_a_d, h_dh_nn]
+    -- |dh·a·d·T| ≤ (dh/4)·|T|
+    have h_dh_a_d_T : |dh_R * a_R * d_K * T_a_K| ≤ (dh_R / 4) * |T_a_K| := by
+      rw [show dh_R * a_R * d_K * T_a_K = (dh_R * a_R * d_K) * T_a_K from by ring,
+          abs_mul]
+      exact mul_le_mul_of_nonneg_right h_dh_a_d h_T_nn
+    -- |T·(R-1)| ≤ |T|·|R-1| ≤ |T|·(4K·dh²)
+    have h_R1_T : |T_a_K * (R_K - 1)| ≤ |T_a_K| * (4 * (K : Rat) * dh_R^2) := by
+      rw [abs_mul]
+      exact mul_le_mul_of_nonneg_left h_R_minus_1 h_T_nn
+    -- Combine via triangle
+    have h_split :=
+      abs_add_le (dh_R * a_R * d_K * T_a_K) (T_a_K * (R_K - 1))
+    nlinarith [h_split, h_dh_a_d_T, h_R1_T, h_T_nn, h_dh_nn]
+  -- Step 4 (piece 2): D3 error ≤ 20·K²·dh²
+  have h_piece_D3 :
+      |δ_K * (A_K + a_R * B_K) - dh_R * a_R * d_K * T_a_K
+        - dh_R * A_K * (1 - a_R^(4*K))|
+        ≤ 20 * (K : Rat)^2 * dh_R^2 := by
+    have h_AaB_nn : 0 ≤ |A_K + a_R * B_K| := _root_.abs_nonneg _
+    have h_K_sq_nn : 0 ≤ (K : Rat)^2 := sq_nonneg _
+    have h_step : |A_K + a_R * B_K| * (dh_R^2 * 2 * (K : Rat)^2)
+                  ≤ 10 * (dh_R^2 * 2 * (K : Rat)^2) := by
+      have h_prod_nn : 0 ≤ dh_R^2 * 2 * (K : Rat)^2 := by positivity
+      exact mul_le_mul_of_nonneg_right h_AaB_abs h_prod_nn
+    nlinarith [h_D3, h_step]
+  -- Step 5 (piece 3): |(A+a·B)·(I-δ)| ≤ 20·K²·dh²
+  -- Path: 10 · 8K·dh³ = 80K·dh³.
+  -- 80K·dh³ = (40K·dh²)·(2·dh) ≤ (40K·dh²)·1 = 40K·dh².
+  -- 40K·dh² ≤ 20·K²·dh² since 2K ≤ K² (K ≥ 2).
+  have h_piece_Iδ :
+      |(A_K + a_R * B_K) * (I_K - δ_K)| ≤ 20 * (K : Rat)^2 * dh_R^2 := by
+    rw [abs_mul]
+    have h_Iδ_nn : 0 ≤ |I_K - δ_K| := _root_.abs_nonneg _
+    -- |A+a·B|·|I-δ| ≤ 10 · 8·K·dh³ = 80·K·dh³
+    have h_prod : |A_K + a_R * B_K| * |I_K - δ_K| ≤ 10 * (8 * (K : Rat) * dh_R^3) :=
+      mul_le_mul h_AaB_abs h_I_minus_δ h_Iδ_nn (by linarith)
+    -- Pre-establish polynomial slack: dh^3 = dh^2 * dh
+    have h_dh_cube : dh_R^3 = dh_R^2 * dh_R := by ring
+    -- 80·K·dh² ≥ 0
+    have h_80K_dh_sq_nn : 0 ≤ 80 * (K : Rat) * dh_R^2 := by positivity
+    -- 80·K·dh³ ≤ 80·K·dh² · (1/2) = 40·K·dh² (using dh ≤ 1/2)
+    have h_80_cube_le_half : 10 * (8 * (K : Rat) * dh_R^3) ≤ 40 * (K : Rat) * dh_R^2 := by
+      rw [show 10 * (8 * (K : Rat) * dh_R^3) = 80 * (K : Rat) * dh_R^2 * dh_R from by ring]
+      have h_le : 80 * (K : Rat) * dh_R^2 * dh_R ≤ 80 * (K : Rat) * dh_R^2 * (1/2) :=
+        mul_le_mul_of_nonneg_left h_dh_le_half h_80K_dh_sq_nn
+      linarith
+    -- 40·K·dh² ≤ 20·K²·dh² (using 2K ≤ K², ie K ≥ 2)
+    have h_K_sq_ge_2K : 2 * (K : Rat) ≤ (K : Rat)^2 := by nlinarith [h_K_ge_2_R, h_K_nn]
+    have h_40_le_20K : 40 * (K : Rat) * dh_R^2 ≤ 20 * (K : Rat)^2 * dh_R^2 := by
+      have h_step : 40 * (K : Rat) = 20 * (2 * (K : Rat)) := by ring
+      have h_step2 : 20 * (2 * (K : Rat)) ≤ 20 * (K : Rat)^2 := by linarith
+      nlinarith [h_step2, h_dh_sq_nn]
+    linarith [h_prod, h_80_cube_le_half, h_40_le_20K]
+  -- Step 6 (piece 4): F.1a residual ≤ 2·K²·dh² + 8·dh·|a|^(4K)
+  have h_piece_F1a :
+      |dh_R * re_h_K - dh_R * A_K * (1 - a_R^(4*K))|
+        ≤ 2 * (K : Rat)^2 * dh_R^2 + 8 * dh_R * |a_R|^(4*K) := by
+    have h_F1a_dh : |dh_R * re_h_K - dh_R * A_K * (1 - a_R^(4*K))|
+                  ≤ dh_R * (K : Rat) * |δ_K| + dh_R * 8 * |a_R|^(4*K) := by
+      rw [h_dh_abs_eq] at h_F1a
+      exact h_F1a
+    have h_dh_K_nn : 0 ≤ dh_R * (K : Rat) := mul_nonneg h_dh_nn h_K_nn
+    -- dh·K·|δ| ≤ dh·K·2·dh = 2·K·dh²
+    have h_δ_step : dh_R * (K : Rat) * |δ_K| ≤ dh_R * (K : Rat) * (2 * dh_R) :=
+      mul_le_mul_of_nonneg_left h_δ_abs h_dh_K_nn
+    have h_simp_2K : dh_R * (K : Rat) * (2 * dh_R) = 2 * (K : Rat) * dh_R^2 := by ring
+    -- 2·K·dh² ≤ 2·K²·dh² (using K ≤ K² for K ≥ 1)
+    have h_K_le_K_sq : (K : Rat) ≤ (K : Rat)^2 := by
+      have h_K_step : (K : Rat)^2 - (K : Rat) = (K : Rat) * ((K : Rat) - 1) := by ring
+      have h_K_minus_1_nn : (0 : Rat) ≤ (K : Rat) - 1 := by linarith
+      nlinarith [h_K_step, h_K_nn, h_K_minus_1_nn]
+    have h_2K_le_2K_sq : 2 * (K : Rat) * dh_R^2 ≤ 2 * (K : Rat)^2 * dh_R^2 := by
+      have h_step : 2 * (K : Rat) ≤ 2 * (K : Rat)^2 := by linarith
+      nlinarith [h_step, h_dh_sq_nn]
+    -- dh · 8 · |a|^4K = 8 · dh · |a|^4K (commute)
+    have h_a_pow_nn : 0 ≤ |a_R|^(4*K) := by positivity
+    have h_simp_8 : dh_R * 8 * |a_R|^(4*K) = 8 * dh_R * |a_R|^(4*K) := by ring
+    linarith [h_F1a_dh, h_δ_step, h_simp_2K, h_2K_le_2K_sq, h_simp_8]
+  -- Final closure: combine 4 pieces via h_tri
+  -- target ≤ piece_lin + piece_D3 + piece_Iδ + piece_F1a
+  --        ≤ (dh/4 + 4K·dh²)·|T| + 20K²·dh² + 20K²·dh² + (2K²·dh² + 8·dh·|a|^4K)
+  --        ≤ (dh/2 + 9K·dh²)·|T| + 200K²·dh² + 10·dh·|a|^4K
+  -- Need: (dh/4 + 4K·dh²)·|T| ≤ (dh/2 + 9K·dh²)·|T| (using |T| ≥ 0)
+  --       20 + 20 + 2 = 42 ≤ 200 (trivial)
+  --       8 ≤ 10 (trivial)
+  have h_K_dh_sq_nn : 0 ≤ (K : Rat) * dh_R^2 := mul_nonneg h_K_nn h_dh_sq_nn
+  have h_K_sq_dh_sq_nn : 0 ≤ (K : Rat)^2 * dh_R^2 :=
+    mul_nonneg (sq_nonneg _) h_dh_sq_nn
+  have h_M_step : (dh_R / 4 + 4 * (K : Rat) * dh_R^2) * |T_a_K|
+                  ≤ (dh_R / 2 + 9 * (K : Rat) * dh_R^2) * |T_a_K| := by
+    have h_step : (dh_R / 4 + 4 * (K : Rat) * dh_R^2)
+                ≤ (dh_R / 2 + 9 * (K : Rat) * dh_R^2) := by linarith
+    exact mul_le_mul_of_nonneg_right h_step h_T_nn
+  have h_a_pow_nn : 0 ≤ |a_R|^(4*K) := by positivity
+  have h_dh_a_pow_nn : 0 ≤ dh_R * |a_R|^(4*K) := mul_nonneg h_dh_nn h_a_pow_nn
+  linarith [h_tri, h_piece_lin, h_piece_D3, h_piece_Iδ, h_piece_F1a, h_M_step,
+            h_dh_a_pow_nn, h_K_dh_sq_nn, h_K_sq_dh_sq_nn]
+
 /-! ## Sub-Wave F.1b — Per-step Gronwall increment bound (NEXT SESSION)
 
   F.1b combines the modulus destructure (6.M5.D), 6.M4.D.3 (linear-term
