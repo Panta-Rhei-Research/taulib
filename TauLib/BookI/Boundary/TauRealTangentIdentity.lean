@@ -215,7 +215,60 @@ theorem TauReal.tangent_defect_increment_rearranged (a dh : TauRat) :
   ring
 
 -- ============================================================
--- PART 4: STRUCTURAL HOOKS — INCREMENT BOUND (FUTURE WAVE)
+-- PART 4: SUB-WAVE 6.M2 — SMALL-ANGLE BOUNDS ON cisTauReal(δ_arctan)
+-- ============================================================
+
+/-! ## Sub-Wave 6.M2 — bounds on (R−1) and (I − δ_arctan) at .approx K
+
+  Specializes Wave 6a's small-angle bounds to the arctan-increment input
+  `δ_arctan := arctan_of_rat_seq(a+dh) − arctan_of_rat_seq(a)`:
+
+      |R.approx K .toRat − 1|             ≤ K · (δ_arctan.approx K .toRat)²
+      |I.approx K .toRat − δ_arctan.approx K .toRat|  ≤ K · |δ_arctan.approx K .toRat|³
+
+  where `R := cisTauReal(δ_arctan).re`, `I := cisTauReal(δ_arctan).im`.
+
+  These are POINTWISE bounds at fixed `.approx K`, suitable for the
+  Gronwall recurrence in 6.M4.
+
+  PROOF: direct application of `cisTauReal_re_approx_small_angle_bound`
+  (Wave 6a re) / `cisTauReal_im_approx_small_angle_bound` (Wave 6a im),
+  with the boundedness hypothesis discharged via Wave 6c.3
+  (`arctan_increment_bounded`).
+-/
+
+/-- **Sub-Wave 6.M2 (re)** — small-angle bound for `cisTauReal(δ_arctan).re`. -/
+theorem TauReal.cisTauReal_arctan_increment_re_small_angle
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1)
+    (K : Nat) (hK : 1 ≤ K) :
+    |((TauComplex.cisTauReal
+        ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+          (TauReal.arctan_of_rat_seq a))).re.approx K).toRat - 1|
+      ≤ (K : Rat) * (((((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                          (TauReal.arctan_of_rat_seq a)).approx K)).toRat)^2 := by
+  apply TauReal.cisTauReal_re_approx_small_angle_bound _ K hK
+  have h_bound := TauReal.arctan_increment_bounded a dh ha hah K
+  rw [TauRat.toRat_abs] at h_bound
+  exact h_bound
+
+/-- **Sub-Wave 6.M2 (im)** — small-angle bound for `cisTauReal(δ_arctan).im`. -/
+theorem TauReal.cisTauReal_arctan_increment_im_small_angle
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1)
+    (K : Nat) (hK : 2 ≤ K) :
+    |((TauComplex.cisTauReal
+        ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+          (TauReal.arctan_of_rat_seq a))).im.approx K).toRat
+       - ((((TauReal.arctan_of_rat_seq (a.add dh)).sub
+            (TauReal.arctan_of_rat_seq a)).approx K)).toRat|
+      ≤ (K : Rat) * |(((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                       (TauReal.arctan_of_rat_seq a)).approx K).toRat|^3 := by
+  apply TauReal.cisTauReal_im_approx_small_angle_bound _ K hK
+  have h_bound := TauReal.arctan_increment_bounded a dh ha hah K
+  rw [TauRat.toRat_abs] at h_bound
+  exact h_bound
+
+-- ============================================================
+-- PART 5: STRUCTURAL HOOKS — INCREMENT BOUND (FUTURE WAVE)
 -- ============================================================
 
 /-! ## Structural hooks for future Gronwall application
