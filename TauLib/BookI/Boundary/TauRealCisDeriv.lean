@@ -1654,6 +1654,68 @@ theorem TauReal.cis_arctan_im_isDerivAt_zero :
   linarith [h_total_bound, h_total_4N2, h_div_lt]
 
 -- ============================================================
+-- PART 8.14: Wave 6c.10a — re/im FACTORIZATION PROJECTIONS
+-- ============================================================
+
+/-! ## Wave 6c.10a — Project the TauComplex factorization to .re and .im
+
+  Wave 6c.6 shipped the TauComplex-equiv factorization:
+
+      cisTauReal(arctan(a+h)) ≈_TC cisTauReal(arctan(a)) · cisTauReal(δ)
+
+  Since TauComplex.equiv decomposes as `equiv .re ∧ equiv .im`, we
+  immediately get the .re and .im TauReal-equiv projections.
+
+  By the definition of TauComplex.mul:
+    (z · w).re = z.re·w.re − z.im·w.im
+    (z · w).im = z.re·w.im + z.im·w.re
+
+  So the projected identities are:
+
+      cis_arctan_re(a+h) ≈_TR cis_arctan_re(a)·cisTauReal(δ).re
+                              − cis_arctan_im(a)·cisTauReal(δ).im
+
+      cis_arctan_im(a+h) ≈_TR cis_arctan_re(a)·cisTauReal(δ).im
+                              + cis_arctan_im(a)·cisTauReal(δ).re
+
+  These are the algebraic foundation of the chain rule — once we further
+  decompose `cisTauReal(δ).re = 1 + (small)` and `cisTauReal(δ).im = δ + (small)`,
+  the derivative `L_re = −cis_arctan_im(a) · arctan_deriv(a)` emerges.
+-/
+
+/-- **Wave 6c.10a (re)** — TauReal-equiv .re projection of Wave 6c.6. -/
+theorem TauReal.cis_arctan_re_add_factored
+    (a h : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add h).toRat| ≤ 1) :
+    TauReal.equiv
+      (TauReal.cis_arctan_re (a.add h))
+      (TauReal.sub
+        (TauReal.mul (TauReal.cis_arctan_re a)
+          (TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add h)).sub
+              (TauReal.arctan_of_rat_seq a))).re)
+        (TauReal.mul (TauReal.cis_arctan_im a)
+          (TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add h)).sub
+              (TauReal.arctan_of_rat_seq a))).im)) :=
+  (TauComplex.cisTauReal_arctan_factor a h ha hah).1
+
+/-- **Wave 6c.10a (im)** — TauReal-equiv .im projection of Wave 6c.6. -/
+theorem TauReal.cis_arctan_im_add_factored
+    (a h : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add h).toRat| ≤ 1) :
+    TauReal.equiv
+      (TauReal.cis_arctan_im (a.add h))
+      (TauReal.add
+        (TauReal.mul (TauReal.cis_arctan_re a)
+          (TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add h)).sub
+              (TauReal.arctan_of_rat_seq a))).im)
+        (TauReal.mul (TauReal.cis_arctan_im a)
+          (TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add h)).sub
+              (TauReal.arctan_of_rat_seq a))).re)) :=
+  (TauComplex.cisTauReal_arctan_factor a h ha hah).2
+
+-- ============================================================
 -- PART 9: Wave 6b — cis_arctan SMALL-ANGLE AT cis_arctan LEVEL
 -- ============================================================
 
