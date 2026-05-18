@@ -519,6 +519,137 @@ theorem pow_sub_pow_secant_taylor (α β : Rat) (h_α : |α| ≤ 1) (h_β : |β|
         nlinarith [h_sq_nn]
       linarith
 
+/-! ## Sub-Wave F.0 — Lipschitz bound for `α^n` (helper)
+
+  Standard fact: for `|α|, |β| ≤ 1`, `|α^n − β^n| ≤ n · |α − β|`. Proven by
+  induction on `n` via the recurrence `α^(n+1) − β^(n+1) = α·(α^n − β^n)
+  + (α − β)·β^n` plus `|α|, |β^n| ≤ 1`.
+
+  Used in F.0's `expPartial_pureIm_re_rat_lipschitz_bound`.
+-/
+
+/-- **Lipschitz bound** for `α^n` at bounded inputs. -/
+theorem pow_sub_pow_lipschitz (α β : Rat) (h_α : |α| ≤ 1) (h_β : |β| ≤ 1) (n : Nat) :
+    |α^n - β^n| ≤ (n : Rat) * |α - β| := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    have h_recurrence : α^(n+1) - β^(n+1) = α * (α^n - β^n) + (α - β) * β^n := by
+      rw [pow_succ, pow_succ]; ring
+    rw [h_recurrence]
+    have h_β_n_abs : |β^n| ≤ 1 := by
+      rw [abs_pow]; exact pow_le_one₀ (_root_.abs_nonneg _) h_β
+    calc |α * (α^n - β^n) + (α - β) * β^n|
+        ≤ |α * (α^n - β^n)| + |(α - β) * β^n| := abs_add_le _ _
+      _ = |α| * |α^n - β^n| + |α - β| * |β^n| := by rw [abs_mul, abs_mul]
+      _ ≤ 1 * |α^n - β^n| + |α - β| * 1 := by
+          have h_diff_nn : (0 : Rat) ≤ |α^n - β^n| := _root_.abs_nonneg _
+          have h_αβ_nn : (0 : Rat) ≤ |α - β| := _root_.abs_nonneg _
+          nlinarith [h_α, h_β_n_abs, h_diff_nn, h_αβ_nn]
+      _ = |α^n - β^n| + |α - β| := by ring
+      _ ≤ (n : Rat) * |α - β| + |α - β| := by linarith [ih]
+      _ = ((n + 1 : Nat) : Rat) * |α - β| := by push_cast; ring
+
+/-! ## Sub-Wave F.0 — Lipschitz bound for `expPartial_pureIm_re_rat`
+
+  For `|α|, |β| ≤ 1` and `K : Nat`:
+
+      |expPartial_pureIm_re_rat α K − expPartial_pureIm_re_rat β K| ≤ K · |α − β|
+
+  Bounds `|A_K − A_h.K|` in the increment analysis, ensuring that the
+  `re_h` residual contributes only to the quadratic error term `δ_K`,
+  not to a linear `M · |T|` term.
+-/
+
+/-- **F.0** — Lipschitz bound for `expPartial_pureIm_re_rat`. -/
+theorem expPartial_pureIm_re_rat_lipschitz_bound
+    (α β : Rat) (h_α : |α| ≤ 1) (h_β : |β| ≤ 1) (K : Nat) :
+    |expPartial_pureIm_re_rat α K - expPartial_pureIm_re_rat β K|
+      ≤ (K : Rat) * |α - β| := by
+  induction K with
+  | zero =>
+    show |expPartial_pureIm_re_rat α 0 - expPartial_pureIm_re_rat β 0|
+          ≤ (0 : Rat) * |α - β|
+    rw [expPartial_pureIm_re_rat_zero, expPartial_pureIm_re_rat_zero]
+    simp
+  | succ K ih =>
+    -- expPartial α (K+1) - expPartial β (K+1)
+    --   = (expPartial α K - expPartial β K) + new_term_diff
+    -- where new_term_diff := ((pureIm_pow α K).1 - (pureIm_pow β K).1) / K!
+    rw [expPartial_pureIm_re_rat_succ, expPartial_pureIm_re_rat_succ]
+    have h_rearr :
+        (expPartial_pureIm_re_rat α K
+          + (pureIm_pow_re_im_rat α K).1 / (K.factorial : Rat))
+          - (expPartial_pureIm_re_rat β K
+              + (pureIm_pow_re_im_rat β K).1 / (K.factorial : Rat))
+        = (expPartial_pureIm_re_rat α K - expPartial_pureIm_re_rat β K)
+          + ((pureIm_pow_re_im_rat α K).1 - (pureIm_pow_re_im_rat β K).1)
+              / (K.factorial : Rat) := by ring
+    rw [h_rearr]
+    have h_tri : |(expPartial_pureIm_re_rat α K - expPartial_pureIm_re_rat β K)
+                 + ((pureIm_pow_re_im_rat α K).1
+                    - (pureIm_pow_re_im_rat β K).1) / (K.factorial : Rat)|
+        ≤ |expPartial_pureIm_re_rat α K - expPartial_pureIm_re_rat β K|
+          + |((pureIm_pow_re_im_rat α K).1
+              - (pureIm_pow_re_im_rat β K).1) / (K.factorial : Rat)| :=
+      abs_add_le _ _
+    -- Bound the new term ≤ |α - β| via parity case-split.
+    have h_new :
+        |((pureIm_pow_re_im_rat α K).1
+          - (pureIm_pow_re_im_rat β K).1) / (K.factorial : Rat)|
+          ≤ |α - β| := by
+      rcases Nat.even_or_odd K with hEven | hOdd
+      · -- K even: K = 2j, closed form (-1)^j · X^(2j)
+        obtain ⟨j, hj⟩ := hEven
+        have hK_eq : K = 2 * j := by omega
+        rw [hK_eq, pureIm_pow_re_rat_even_closed, pureIm_pow_re_rat_even_closed]
+        rw [show (-1 : Rat)^j * α^(2*j) - (-1 : Rat)^j * β^(2*j)
+              = (-1 : Rat)^j * (α^(2*j) - β^(2*j)) from by ring]
+        rw [abs_div, abs_mul]
+        have h_neg_one_pow_abs : |((-1 : Rat))^j| = 1 := by
+          rw [abs_pow]; simp
+        rw [h_neg_one_pow_abs, one_mul]
+        have h_pow_diff := pow_sub_pow_lipschitz α β h_α h_β (2*j)
+        -- h_pow_diff : |α^(2j) - β^(2j)| ≤ 2j · |α-β|
+        -- Goal: |α^(2j) - β^(2j)| / |(2j)!| ≤ |α-β|
+        have h_fac_pos : (0 : Rat) < ((2*j).factorial : Rat) := by
+          have := Nat.factorial_pos (2*j); exact_mod_cast this
+        have h_abs_fac : |((2*j).factorial : Rat)| = ((2*j).factorial : Rat) :=
+          abs_of_pos h_fac_pos
+        rw [h_abs_fac]
+        -- Need: |α^(2j) - β^(2j)| / (2j)! ≤ |α - β|
+        -- Equivalent: |α^(2j) - β^(2j)| ≤ (2j)! · |α - β|
+        -- Have: |α^(2j) - β^(2j)| ≤ 2j · |α - β|, and 2j ≤ (2j)! for j ≥ 1.
+        -- For j = 0: 2j = 0, so |...| ≤ 0, and (2j)! = 1 so RHS = |α-β| ≥ 0. ✓
+        have h_factorial_ge : (2 * j : Rat) ≤ ((2*j).factorial : Rat) := by
+          rcases Nat.eq_zero_or_pos j with hj0 | hj_pos
+          · -- j = 0: 0 ≤ 0! = 1
+            rw [hj0]; simp
+          · -- j ≥ 1: 2j ≤ (2j)!
+            -- (2j)! = (2j) · (2j-1)! ≥ (2j) since (2j-1)! ≥ 1
+            have h_2j_pos : 1 ≤ 2 * j := by omega
+            have h_fac_ge_2j : 2 * j ≤ (2*j).factorial := by
+              have := Nat.self_le_factorial (2*j)
+              exact this
+            exact_mod_cast h_fac_ge_2j
+        rw [div_le_iff₀ h_fac_pos]
+        have h_αβ_nn : (0 : Rat) ≤ |α - β| := _root_.abs_nonneg _
+        calc |α^(2*j) - β^(2*j)|
+            ≤ ((2 * j : Nat) : Rat) * |α - β| := h_pow_diff
+          _ = (2 * (j : Rat)) * |α - β| := by push_cast; ring
+          _ ≤ ((2*j).factorial : Rat) * |α - β| :=
+              mul_le_mul_of_nonneg_right h_factorial_ge h_αβ_nn
+          _ = |α - β| * ((2*j).factorial : Rat) := by ring
+      · -- K odd: K = 2j+1, both diff components are 0
+        obtain ⟨j, hj⟩ := hOdd
+        rw [hj, pureIm_pow_re_rat_odd_zero, pureIm_pow_re_rat_odd_zero]
+        simp
+    -- Combine: |old_diff| ≤ K · |α-β|, |new_term| ≤ |α-β|, sum ≤ (K+1) · |α-β|
+    have h_cast : ((K + 1 : Nat) : Rat) = (K : Rat) + 1 := by push_cast; ring
+    rw [h_cast]
+    have h_αβ_nn : (0 : Rat) ≤ |α - β| := _root_.abs_nonneg _
+    linarith [ih, h_tri, h_new]
+
 /-! ## Sub-Wave 6.M4.D.1 — Magnitude bounds for cis_arctan_re / cis_arctan_im
 
   Triangle-inequality lifts of Wave 6b's small-angle bounds. Used downstream

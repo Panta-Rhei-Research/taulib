@@ -274,6 +274,30 @@ theorem TauReal.equiv_trans {a b c : TauReal}
     push_cast; field_simp; ring
   linarith [h_triangle, h_ab, h_bc, h_eq]
 
+/-- **Subtract-to-zero bridge**: if `x − y ≈_TR 0`, then `x ≈_TR y`.
+
+    Standard pattern: whenever a TauReal is defined as a difference (e.g.,
+    `tangent_defect a := cis_arctan_im a − a · cis_arctan_re a`), proving
+    the difference equiv zero is equivalent to proving the equiv between
+    the two summands. -/
+theorem TauReal.equiv_of_sub_equiv_zero {x y : TauReal}
+    (h : TauReal.equiv (x.sub y) TauReal.zero) : TauReal.equiv x y := by
+  obtain ⟨μ, hμ⟩ := h
+  refine ⟨μ, fun k n hn => ?_⟩
+  have h_lt := hμ k n hn
+  unfold TauRat.lt at h_lt ⊢
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat] at h_lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  -- h_lt : |((x.sub y).approx n).toRat - (TauReal.zero.approx n).toRat| < 1/(k+1)
+  -- Goal:  |(x.approx n).toRat - (y.approx n).toRat| < 1/(k+1)
+  have h_sub_unfold :
+      ((x.sub y).approx n).toRat - (TauReal.zero.approx n).toRat
+        = (x.approx n).toRat - (y.approx n).toRat := by
+    show (TauRat.add (x.approx n) (y.approx n).negate).toRat - (TauRat.zero).toRat = _
+    rw [toRat_add, toRat_negate, toRat_zero]; ring
+  rw [h_sub_unfold] at h_lt
+  exact h_lt
+
 -- ============================================================
 -- [I.P39] RING AXIOMS (UP TO equiv)
 -- ============================================================
