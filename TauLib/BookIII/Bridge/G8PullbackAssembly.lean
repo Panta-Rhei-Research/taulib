@@ -131,6 +131,126 @@ theorem g8e4_target_carries_falsifierGuards
     G8PullbackFalsifierGuards ctx :=
   target.falsifierGuards
 
+/-- The assembled target rules out the non-unique-completion falsifier. -/
+theorem g8e4_target_rulesOut_nonuniqueCompletion
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    G8cNoNonuniqueCompletion (g8e4CompletionContext ctx) :=
+  target.falsifierGuards.noNonuniqueCompletion
+
+/-- The assembled target rules out concrete lost-zero witnesses. -/
+theorem g8e4_target_rulesOut_lostZero
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    G8dNoLostZeros (g8e4TransferContext ctx) :=
+  target.falsifierGuards.noLostZero
+
+/-- The assembled target rules out concrete spurious-zero witnesses. -/
+theorem g8e4_target_rulesOut_spuriousZero
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    G8dNoSpuriousZeros (g8e4TransferContext ctx) :=
+  target.falsifierGuards.noSpuriousZero
+
+/-- The assembled target rules out concrete multiplicity-mismatch witnesses. -/
+theorem g8e4_target_rulesOut_multiplicityMismatch
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    G8dNoMultiplicityMismatch (g8e4TransferContext ctx) :=
+  target.falsifierGuards.noMultiplicityMismatch
+
+/-- The assembled target rules out chart-only off-critical-zero witnesses. -/
+theorem g8e4_target_rulesOut_chartOnly
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    G8e1NoChartOnlyOffCriticalZero (g8e4TestContext ctx) :=
+  target.falsifierGuards.noChartOnly
+
+/-- The assembled target rules out meromorphic-artifact falsifiers. -/
+theorem g8e4_target_rulesOut_meromorphicArtifact
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    ¬ Nonempty (MeromorphicChartArtifactFalsifier ctx.chart) :=
+  target.falsifierGuards.noMeromorphicArtifact
+
+/-- The assembled target rules out no-preimage falsifiers. -/
+theorem g8e4_target_rulesOut_noPreimage
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    G8e2NoTauPreimageFalsifier ctx.chart.faithfulness :=
+  target.falsifierGuards.noNoPreimage
+
+/-- The assembled target rules out balanced-preimage falsifiers. -/
+theorem g8e4_target_rulesOut_balancedPreimage
+    (ctx : G8MasterSwitchContext)
+    (target : G8ConditionalPullbackTarget ctx) :
+    G8e2NoBalancedPreimageFalsifier ctx.chart.faithfulness :=
+  target.falsifierGuards.noBalancedPreimage
+
+/-- A non-unique-completion witness refutes the assembled target. -/
+theorem g8e4_nonuniqueCompletionWitness_refutes_conditionalTarget
+    (ctx : G8MasterSwitchContext)
+    (w : G8cNonuniqueCompletionWitness (g8e4CompletionContext ctx)) :
+    ¬ G8ConditionalPullbackTarget ctx := by
+  intro target
+  exact target.falsifierGuards.noNonuniqueCompletion ⟨w⟩
+
+/-- A lost-zero witness refutes the assembled target. -/
+theorem g8e4_lostZeroWitness_refutes_conditionalTarget
+    (ctx : G8MasterSwitchContext)
+    (w : LostOrthodoxZeroWitness (g8e4TransferContext ctx)) :
+    ¬ G8ConditionalPullbackTarget ctx := by
+  intro target
+  exact target.falsifierGuards.noLostZero ⟨w⟩
+
+/-- A spurious-zero witness refutes the assembled target. -/
+theorem g8e4_spuriousZeroWitness_refutes_conditionalTarget
+    (ctx : G8MasterSwitchContext)
+    (w : SpuriousTauZeroWitness (g8e4TransferContext ctx)) :
+    ¬ G8ConditionalPullbackTarget ctx := by
+  intro target
+  exact target.falsifierGuards.noSpuriousZero ⟨w⟩
+
+/-- A multiplicity-mismatch witness refutes the assembled target. -/
+theorem g8e4_multiplicityMismatchWitness_refutes_conditionalTarget
+    (ctx : G8MasterSwitchContext)
+    (w : MultiplicityMismatchWitness (g8e4TransferContext ctx)) :
+    ¬ G8ConditionalPullbackTarget ctx := by
+  intro target
+  exact target.falsifierGuards.noMultiplicityMismatch ⟨w⟩
+
+/-- A chart-only witness refutes the assembled target. -/
+theorem g8e4_chartOnlyWitness_refutes_conditionalTarget
+    (ctx : G8MasterSwitchContext)
+    (w : ChartOnlyOffCriticalZeroWitness (g8e4BaseContext ctx)) :
+    ¬ G8ConditionalPullbackTarget ctx := by
+  intro target
+  exact target.falsifierGuards.noChartOnly ⟨w⟩
+
+/-- A meromorphic-artifact witness refutes the assembled target. -/
+theorem g8e4_meromorphicArtifactWitness_refutes_conditionalTarget
+    (ctx : G8MasterSwitchContext)
+    (w : MeromorphicChartArtifactFalsifier ctx.chart) :
+    ¬ G8ConditionalPullbackTarget ctx := by
+  intro target
+  exact target.falsifierGuards.noMeromorphicArtifact ⟨w⟩
+
+/-- A no-preimage witness refutes the assembled target. -/
+theorem g8e4_noPreimageWitness_refutes_conditionalTarget
+    (ctx : G8MasterSwitchContext)
+    (w : NoTauPreimageForOffAxisShadowWitness ctx.chart.faithfulness) :
+    ¬ G8ConditionalPullbackTarget ctx := by
+  intro target
+  exact target.falsifierGuards.noNoPreimage ⟨w⟩
+
+/-- A balanced-preimage witness refutes the assembled target. -/
+theorem g8e4_balancedPreimageWitness_refutes_conditionalTarget
+    (ctx : G8MasterSwitchContext)
+    (w : BalancedTauPreimageWitness ctx.chart.faithfulness) :
+    ¬ G8ConditionalPullbackTarget ctx := by
+  intro target
+  exact target.falsifierGuards.noBalancedPreimage ⟨w⟩
+
 -- ============================================================
 -- CERTIFICATE-TO-TARGET CONVENIENCE THEOREM
 -- ============================================================

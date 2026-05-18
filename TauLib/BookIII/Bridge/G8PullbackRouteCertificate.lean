@@ -120,6 +120,126 @@ theorem g8e4_certificate_carries_falsifierGuards
     G8PullbackFalsifierGuards ctx :=
   cert.falsifierGuards
 
+/-- A certificate rules out the non-unique-completion falsifier. -/
+theorem g8e4_certificate_rulesOut_nonuniqueCompletion
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    G8cNoNonuniqueCompletion (g8e4CompletionContext ctx) :=
+  cert.falsifierGuards.noNonuniqueCompletion
+
+/-- A certificate rules out concrete lost-zero witnesses. -/
+theorem g8e4_certificate_rulesOut_lostZero
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    G8dNoLostZeros (g8e4TransferContext ctx) :=
+  cert.falsifierGuards.noLostZero
+
+/-- A certificate rules out concrete spurious-zero witnesses. -/
+theorem g8e4_certificate_rulesOut_spuriousZero
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    G8dNoSpuriousZeros (g8e4TransferContext ctx) :=
+  cert.falsifierGuards.noSpuriousZero
+
+/-- A certificate rules out concrete multiplicity-mismatch witnesses. -/
+theorem g8e4_certificate_rulesOut_multiplicityMismatch
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    G8dNoMultiplicityMismatch (g8e4TransferContext ctx) :=
+  cert.falsifierGuards.noMultiplicityMismatch
+
+/-- A certificate rules out chart-only off-critical-zero witnesses. -/
+theorem g8e4_certificate_rulesOut_chartOnly
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    G8e1NoChartOnlyOffCriticalZero (g8e4TestContext ctx) :=
+  cert.falsifierGuards.noChartOnly
+
+/-- A certificate rules out meromorphic-artifact falsifiers. -/
+theorem g8e4_certificate_rulesOut_meromorphicArtifact
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    ¬ Nonempty (MeromorphicChartArtifactFalsifier ctx.chart) :=
+  cert.falsifierGuards.noMeromorphicArtifact
+
+/-- A certificate rules out no-preimage falsifiers. -/
+theorem g8e4_certificate_rulesOut_noPreimage
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    G8e2NoTauPreimageFalsifier ctx.chart.faithfulness :=
+  cert.falsifierGuards.noNoPreimage
+
+/-- A certificate rules out balanced-preimage falsifiers. -/
+theorem g8e4_certificate_rulesOut_balancedPreimage
+    (ctx : G8MasterSwitchContext)
+    (cert : G8PullbackRouteCertificate ctx) :
+    G8e2NoBalancedPreimageFalsifier ctx.chart.faithfulness :=
+  cert.falsifierGuards.noBalancedPreimage
+
+/-- A non-unique-completion witness refutes the route certificate. -/
+theorem g8e4_nonuniqueCompletionWitness_refutes_routeCertificate
+    (ctx : G8MasterSwitchContext)
+    (w : G8cNonuniqueCompletionWitness (g8e4CompletionContext ctx)) :
+    ¬ G8PullbackRouteCertificate ctx := by
+  intro cert
+  exact cert.falsifierGuards.noNonuniqueCompletion ⟨w⟩
+
+/-- A lost-zero witness refutes the route certificate. -/
+theorem g8e4_lostZeroWitness_refutes_routeCertificate
+    (ctx : G8MasterSwitchContext)
+    (w : LostOrthodoxZeroWitness (g8e4TransferContext ctx)) :
+    ¬ G8PullbackRouteCertificate ctx := by
+  intro cert
+  exact cert.falsifierGuards.noLostZero ⟨w⟩
+
+/-- A spurious-zero witness refutes the route certificate. -/
+theorem g8e4_spuriousZeroWitness_refutes_routeCertificate
+    (ctx : G8MasterSwitchContext)
+    (w : SpuriousTauZeroWitness (g8e4TransferContext ctx)) :
+    ¬ G8PullbackRouteCertificate ctx := by
+  intro cert
+  exact cert.falsifierGuards.noSpuriousZero ⟨w⟩
+
+/-- A multiplicity-mismatch witness refutes the route certificate. -/
+theorem g8e4_multiplicityMismatchWitness_refutes_routeCertificate
+    (ctx : G8MasterSwitchContext)
+    (w : MultiplicityMismatchWitness (g8e4TransferContext ctx)) :
+    ¬ G8PullbackRouteCertificate ctx := by
+  intro cert
+  exact cert.falsifierGuards.noMultiplicityMismatch ⟨w⟩
+
+/-- A chart-only witness refutes the route certificate. -/
+theorem g8e4_chartOnlyWitness_refutes_routeCertificate
+    (ctx : G8MasterSwitchContext)
+    (w : ChartOnlyOffCriticalZeroWitness (g8e4BaseContext ctx)) :
+    ¬ G8PullbackRouteCertificate ctx := by
+  intro cert
+  exact cert.falsifierGuards.noChartOnly ⟨w⟩
+
+/-- A meromorphic-artifact witness refutes the route certificate. -/
+theorem g8e4_meromorphicArtifactWitness_refutes_routeCertificate
+    (ctx : G8MasterSwitchContext)
+    (w : MeromorphicChartArtifactFalsifier ctx.chart) :
+    ¬ G8PullbackRouteCertificate ctx := by
+  intro cert
+  exact cert.falsifierGuards.noMeromorphicArtifact ⟨w⟩
+
+/-- A no-preimage witness refutes the route certificate. -/
+theorem g8e4_noPreimageWitness_refutes_routeCertificate
+    (ctx : G8MasterSwitchContext)
+    (w : NoTauPreimageForOffAxisShadowWitness ctx.chart.faithfulness) :
+    ¬ G8PullbackRouteCertificate ctx := by
+  intro cert
+  exact cert.falsifierGuards.noNoPreimage ⟨w⟩
+
+/-- A balanced-preimage witness refutes the route certificate. -/
+theorem g8e4_balancedPreimageWitness_refutes_routeCertificate
+    (ctx : G8MasterSwitchContext)
+    (w : BalancedTauPreimageWitness ctx.chart.faithfulness) :
+    ¬ G8PullbackRouteCertificate ctx := by
+  intro cert
+  exact cert.falsifierGuards.noBalancedPreimage ⟨w⟩
+
 -- ============================================================
 -- CONDITIONAL CONCLUSION
 -- ============================================================
