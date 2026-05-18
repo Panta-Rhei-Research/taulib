@@ -1114,6 +1114,41 @@ theorem TauReal.tangent_defect_gronwall_walk_bound
   have h_simp : (1+M)^N * 0 + (N : Rat) * (1+M)^N * δ = (N : Rat) * (1+M)^N * δ := by ring
   linarith
 
+/-! ## Sub-Wave 6.M5.D-application — Walk construction
+
+  Defines a TauRat walk from 0 to `a` in N steps, used to instantiate the
+  Gronwall wrapper. The walk step is `n·a/N` represented as a TauRat by
+  scaling the numerator by `n` and the denominator by `N`.
+-/
+
+/-- **Gronwall walk step** — TauRat representing `n·a/N` for `n ≤ N`. -/
+def TauRat.gronwallWalkStep (a : TauRat) (n N : Nat) (hN : 0 < N) : TauRat :=
+  ⟨a.num.mul (TauInt.fromNat n), a.den * N, Nat.mul_pos a.den_pos hN⟩
+
+/-- The walk-step .toRat is `(n : Rat) · a.toRat / N`. -/
+theorem TauRat.gronwallWalkStep_toRat (a : TauRat) (n N : Nat) (hN : 0 < N) :
+    (TauRat.gronwallWalkStep a n N hN).toRat = (n : Rat) * a.toRat / (N : Rat) := by
+  show ((a.num.mul (TauInt.fromNat n)).toInt : Rat) / ((a.den * N : Nat) : Rat) = _
+  rw [toInt_mul, toInt_fromNat]
+  unfold TauRat.toRat
+  push_cast
+  have h_a_den_pos : (0 : Rat) < (a.den : Rat) := by exact_mod_cast a.den_pos
+  have h_N_pos : (0 : Rat) < (N : Rat) := by exact_mod_cast hN
+  field_simp
+
+/-- At `n = 0`, the walk step has `.toRat = 0`. -/
+theorem TauRat.gronwallWalkStep_zero_toRat (a : TauRat) (N : Nat) (hN : 0 < N) :
+    (TauRat.gronwallWalkStep a 0 N hN).toRat = 0 := by
+  rw [TauRat.gronwallWalkStep_toRat]
+  simp
+
+/-- At `n = N`, the walk step has `.toRat = a.toRat` (endpoint matches). -/
+theorem TauRat.gronwallWalkStep_full_toRat (a : TauRat) (N : Nat) (hN : 0 < N) :
+    (TauRat.gronwallWalkStep a N N hN).toRat = a.toRat := by
+  rw [TauRat.gronwallWalkStep_toRat]
+  have h_N_pos : (0 : Rat) < (N : Rat) := by exact_mod_cast hN
+  field_simp
+
 /-! ## Structural hooks for future Gronwall application
 
   The next sub-Wave will:
