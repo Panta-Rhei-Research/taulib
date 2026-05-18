@@ -118,6 +118,31 @@ theorem finiteOnlyCompletionCandidate_finiteCompatible
     CompletionCandidateFiniteCompatible (finiteOnlyCompletionCandidate A D) :=
   trivial
 
+/-- Finite-only candidates do not provide the receiving zeta/xi chart
+    compatibility required by G8c. -/
+theorem finiteOnlyCompletionCandidate_not_chartCompatible
+    (A D : Type 1) :
+    ¬ CompletionCandidateChartCompatible (finiteOnlyCompletionCandidate A D) := by
+  intro h
+  exact h
+
+/-- Finite-only candidates do not provide the determinant/O3 compatibility
+    required by G8c. -/
+theorem finiteOnlyCompletionCandidate_not_determinantCompatible
+    (A D : Type 1) :
+    ¬ CompletionCandidateDeterminantCompatible
+      (finiteOnlyCompletionCandidate A D) := by
+  intro h
+  exact h
+
+/-- Finite-only candidates cannot be promoted to G8c-admissible analytic
+    completions without additional chart and determinant bridge data. -/
+theorem finiteOnlyCompletionCandidate_not_admissible
+    (A D : Type 1) :
+    ¬ CompletionCandidateAdmissible (finiteOnlyCompletionCandidate A D) := by
+  intro h
+  exact finiteOnlyCompletionCandidate_not_chartCompatible A D h.right.right.left
+
 -- ============================================================
 -- G8C UNIQUENESS CONTEXT
 -- ============================================================
