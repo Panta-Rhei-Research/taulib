@@ -1210,6 +1210,36 @@ theorem TauReal.tangent_defect_increment_simplified_at_K
   rw [h_sub] at h
   exact h
 
+/-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
+
+  The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
+  at `a = TauRat.zero`. Both sides are ≈_TR 0:
+  - LHS: `(cisTauReal (arctan 0)).im ≈_TR 0` (by cis_arctan_im_zero_equiv_zero)
+  - RHS: `(fromTauRat 0) · (cisTauReal (arctan 0)).re ≈_TR 0` (since fromTauRat 0 ≈ 0)
+
+  This is the analytical base case that anchors the Gronwall walk in
+  `tangent_defect_equiv_zero` (next sub-piece).
+-/
+
+/-- **target_A at a = 0** — The tangent identity holds at `a = 0` directly. -/
+theorem TauReal.tangent_target_A_at_zero :
+    TauReal.equiv
+      (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.zero)).im
+      ((TauReal.fromTauRat TauRat.zero).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.zero)).re) := by
+  -- Both sides ≈_TR 0; chain via tangent_defect_at_zero_equiv structure.
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  show ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.zero)).im.approx n).toRat
+      = (TauRat.mul ((TauReal.fromTauRat TauRat.zero).approx n)
+          ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.zero)).re.approx n)).toRat
+  rw [toRat_mul]
+  show ((TauReal.cis_arctan_im TauRat.zero).approx n).toRat
+      = TauRat.zero.toRat * ((TauReal.cis_arctan_re TauRat.zero).approx n).toRat
+  rw [TauReal.cis_arctan_im_at_zero_approx_zero n, toRat_zero]
+  ring
+
 /-! ## Structural hooks for future Gronwall application
 
   The next sub-Wave will:
