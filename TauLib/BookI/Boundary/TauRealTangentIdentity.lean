@@ -3123,6 +3123,69 @@ theorem F2_NM_bound_lemma (a_val : Rat) (k : Nat)
   have h_a_half : a_val / 2 ≤ 1/8 := by linarith
   linarith [h_a_half, h_term2_bound]
 
+/-! ## F.2 walk definition + `.toRat` properties
+
+  Walk constructed as a regular `def` (avoids Nat.rec elaboration issues
+  inside proofs). Capped at N: extends structurally for n < N, constant
+  for n ≥ N. -/
+
+/-- F.2 walk sequence — capped at N (via Nat.rec). -/
+def F2_walk_seq (a : TauRat) (N : Nat) (hN : 0 < N) (n : Nat) : TauRat :=
+  Nat.rec TauRat.zero
+    (fun m prev => if m < N then prev.add (TauRat.gronwallWalkStep a 1 N hN) else prev) n
+
+@[simp] theorem F2_walk_seq_zero (a : TauRat) (N : Nat) (hN : 0 < N) :
+    F2_walk_seq a N hN 0 = TauRat.zero := rfl
+
+@[simp] theorem F2_walk_seq_succ (a : TauRat) (N : Nat) (hN : 0 < N) (n : Nat) :
+    F2_walk_seq a N hN (n + 1)
+      = (if n < N then (F2_walk_seq a N hN n).add (TauRat.gronwallWalkStep a 1 N hN)
+         else F2_walk_seq a N hN n) := rfl
+
+set_option maxHeartbeats 1600000 in
+/-- **F.2 walk definition** — Properties of the capped Gronwall walk. -/
+theorem F2_walk_defn (a : TauRat)
+    (h_a_nn : 0 ≤ a.toRat) (h_a_le : 4 * a.toRat ≤ 1) (k : Nat) :
+    let N : Nat := 100 * (3 * k + 60)^2 * (k + 1)
+    let hN : 0 < N := by show 0 < 100 * (3 * k + 60)^2 * (k + 1); positivity
+    (F2_walk_seq a N hN 0 = TauRat.zero) ∧
+    ((TauRat.gronwallWalkStep a 1 N hN).toRat = a.toRat / (N : Rat)) ∧
+    (∀ n, (F2_walk_seq a N hN n).toRat
+        = (Nat.min n N : Rat) * a.toRat / (N : Rat)) ∧
+    (∀ n, n < N →
+        F2_walk_seq a N hN (n + 1)
+          = (F2_walk_seq a N hN n).add (TauRat.gronwallWalkStep a 1 N hN)) ∧
+    (∀ n, N ≤ n → F2_walk_seq a N hN (n + 1) = F2_walk_seq a N hN n) := by
+  intro N hN
+  have hN_pos : (0 : Rat) < (N : Rat) := by exact_mod_cast hN
+  have hN_ne : (N : Rat) ≠ 0 := ne_of_gt hN_pos
+  refine ⟨rfl, ?_, ?_, ?_, ?_⟩
+  · -- dh_step.toRat = a.toRat / N
+    rw [TauRat.gronwallWalkStep_toRat]; simp
+  · -- ∀ n, (walk n).toRat = min(n, N) · a / N
+    intro n
+    induction n with
+    | zero =>
+      show (TauRat.zero).toRat = _
+      rw [toRat_zero]; simp
+    | succ m ih =>
+      rw [F2_walk_seq_succ]
+      by_cases hm : m < N
+      · rw [if_pos hm, toRat_add, TauRat.gronwallWalkStep_toRat, ih]
+        rw [show Nat.min m N = m from Nat.min_eq_left (le_of_lt hm)]
+        rw [show Nat.min (m + 1) N = m + 1 from Nat.min_eq_left hm]
+        push_cast; field_simp
+      · rw [if_neg hm, ih]
+        push_neg at hm
+        rw [show Nat.min m N = N from Nat.min_eq_right hm]
+        rw [show Nat.min (m + 1) N = N from Nat.min_eq_right (by omega)]
+  · -- ∀ n < N, walk (n+1) = (walk n).add dh_step
+    intro n hn
+    rw [F2_walk_seq_succ, if_pos hn]
+  · -- ∀ n ≥ N, walk (n+1) = walk n
+    intro n hn
+    rw [F2_walk_seq_succ, if_neg (not_lt.mpr hn)]
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
