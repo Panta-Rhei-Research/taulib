@@ -671,4 +671,49 @@ theorem TauReal.machin_45_polynomial_at_F6 (a b : TauRat) (n : Nat)
     Each step is mechanical; total ~500-1000 LOC of bound-tracking.
 -/
 
+-- ============================================================
+-- PART 9: NAMED TARGET PROPOSITION FOR THE TauReal-EQUIV LIFT
+-- ============================================================
+
+/-- **The 45°-line identity as a named target proposition**
+    (Phase E Scope 2A-lift target).
+
+    Asserts that the parity-substituted Machin product at constants
+    `a = 1/5, b = 1/239` lies on the 45° line in the τ-native complex
+    plane, i.e., its `.re` and `.im` are TauReal-equiv:
+
+        `(cisTauReal(arctan(1/5))⁴ · ⟨cisB.re, negate cisB.im⟩).re`
+          `≈ (cisTauReal(arctan(1/5))⁴ · ⟨cisB.re, negate cisB.im⟩).im`
+
+    where `cisB := cisTauReal(arctan(1/239))`.
+
+    This is the τ-native incarnation of Machin's classical identity
+    `4·arctan(1/5) − arctan(1/239) = π/4` at the cisTauReal-product
+    level (modulo the magnitude factor cos(arctan(1/5))⁴ · cos(arctan(1/239))).
+
+    The discharge requires the Cauchy-modulus lift documented in Part 8,
+    consuming the pointwise infrastructure (`machin_45_re/im_approx`,
+    `machin_45_difference_under_F6`,
+    `machin_45_vanishes_at_machin_constants_under_F6`) shipped in
+    this module plus F.6's `tangent_defect_equiv_zero` and
+    `cis_arctan_re/im_approx_abs_le_8` bounds. -/
+def MachinFortyFiveDegreeIdentity : Prop :=
+  TauReal.equiv
+    ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth))).mul
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)))).mul
+      ⟨(TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_two_three_nine)).re,
+       TauReal.negate
+        (TauComplex.cisTauReal
+          (TauReal.arctan_of_rat_seq TauRat.one_two_three_nine)).im⟩).re
+    ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth))).mul
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)))).mul
+      ⟨(TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_two_three_nine)).re,
+       TauReal.negate
+        (TauComplex.cisTauReal
+          (TauReal.arctan_of_rat_seq TauRat.one_two_three_nine)).im⟩).im
+
 end Tau.Boundary
