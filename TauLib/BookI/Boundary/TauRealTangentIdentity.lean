@@ -2130,6 +2130,162 @@ theorem TauComplex.cisTauReal_add_explicit_error_at_K
     rw [abs_sub_comm]
     exact h_cpb_im
 
+/-! ## Path 2 Step 2 — `cis_arctan_re/im_add_factored` explicit error at depth K
+
+  Lifts Step 1 (`cisTauReal_add_explicit_error_at_K`) via depth-locality
+  to give the explicit error bound on the cis_arctan_re/im add-factored
+  form at .approx K.
+
+  Apply Step 1 with `x := arctan_of_rat_seq(a)` and
+  `y := arctan_of_rat_seq(a+h).sub arctan_of_rat_seq(a)` (= δ).
+  Boundedness comes from:
+  - `arctan_of_rat_seq_bounded a (ha_2 : 2|a|≤1)` for x bounded by 1
+  - `arctan_increment_bounded a h ha hah` for δ bounded by 1
+
+  The bridge from `cisTauReal(x+y)` to `cisTauReal(arctan_of_rat_seq(a+h))`
+  at .approx K is exact via depth-locality
+  (`cisTauReal_re/im_approx_toRat`).
+-/
+
+/-- **Path 2 Step 2** — Explicit error bound for `cis_arctan_re/im` add-factored
+    form at depth K.
+
+    Replaces the equiv-level Cauchy modulus error in `cis_arctan_re/im_add_factored`
+    by an explicit super-exponentially-decaying bound `242·K/2^(K−1)`.
+
+    Form (.re): `cos(α+β) = cos α · cos β − sin α · sin β`
+    Form (.im): `sin(α+β) = cos α · sin β + sin α · cos β`
+    (truncated at depth K with explicit error). -/
+theorem TauReal.cis_arctan_add_factored_explicit_error_at_K
+    (a h : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add h).toRat| ≤ 1)
+    (K : Nat) (hK : 1 ≤ K) :
+    |((TauReal.cis_arctan_re (a.add h)).approx K).toRat
+      - ((TauReal.sub
+            (TauReal.mul (TauReal.cis_arctan_re a)
+              (TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                  (TauReal.arctan_of_rat_seq a))).re)
+            (TauReal.mul (TauReal.cis_arctan_im a)
+              (TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                  (TauReal.arctan_of_rat_seq a))).im)).approx K).toRat|
+    ≤ 242 * (K : Rat) / 2 ^ (K - 1)
+    ∧
+    |((TauReal.cis_arctan_im (a.add h)).approx K).toRat
+      - ((TauReal.add
+            (TauReal.mul (TauReal.cis_arctan_re a)
+              (TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                  (TauReal.arctan_of_rat_seq a))).im)
+            (TauReal.mul (TauReal.cis_arctan_im a)
+              (TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                  (TauReal.arctan_of_rat_seq a))).re)).approx K).toRat|
+    ≤ 242 * (K : Rat) / 2 ^ (K - 1) := by
+  -- Setup: bounds on Step 1's x, y
+  have ha_2 : 2 * |a.toRat| ≤ 1 := by linarith
+  have h_x_bound := TauReal.arctan_of_rat_seq_bounded a ha_2
+  have h_y_bound := TauReal.arctan_increment_bounded a h ha hah
+  -- Apply Step 1 with x = arctan(a), y = δ
+  obtain ⟨h_step1_re, h_step1_im⟩ := TauComplex.cisTauReal_add_explicit_error_at_K
+    (TauReal.arctan_of_rat_seq a)
+    ((TauReal.arctan_of_rat_seq (a.add h)).sub (TauReal.arctan_of_rat_seq a))
+    h_x_bound h_y_bound K hK
+  -- Pointwise toRat: arctan(a) + δ and arctan(a+h) agree at every .approx n .toRat
+  have h_inner_eq :
+      (((TauReal.arctan_of_rat_seq a).add
+          ((TauReal.arctan_of_rat_seq (a.add h)).sub
+            (TauReal.arctan_of_rat_seq a))).approx K).toRat
+        = ((TauReal.arctan_of_rat_seq (a.add h)).approx K).toRat := by
+    show (((TauReal.arctan_of_rat_seq a).approx K).add
+           (((TauReal.arctan_of_rat_seq (a.add h)).approx K).add
+             ((TauReal.arctan_of_rat_seq a).approx K).negate)).toRat = _
+    rw [toRat_add, toRat_add, toRat_negate]; ring
+  -- Bridge LHS at .approx K via depth-locality:
+  --   cisTauReal(arctan(a) + δ).re.approx K .toRat = cisTauReal(arctan(a+h)).re.approx K .toRat
+  -- because cisTauReal_re_approx_toRat depends only on inner.approx K .toRat,
+  -- and arctan(a)+δ and arctan(a+h) agree there.
+  have h_bridge_re :
+      ((TauComplex.cisTauReal
+          ((TauReal.arctan_of_rat_seq a).add
+            ((TauReal.arctan_of_rat_seq (a.add h)).sub
+              (TauReal.arctan_of_rat_seq a)))).re.approx K).toRat
+        = ((TauReal.cis_arctan_re (a.add h)).approx K).toRat := by
+    rw [cisTauReal_re_approx_toRat]
+    show _ = ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq (a.add h))).re.approx K).toRat
+    rw [cisTauReal_re_approx_toRat, h_inner_eq]
+  have h_bridge_im :
+      ((TauComplex.cisTauReal
+          ((TauReal.arctan_of_rat_seq a).add
+            ((TauReal.arctan_of_rat_seq (a.add h)).sub
+              (TauReal.arctan_of_rat_seq a)))).im.approx K).toRat
+        = ((TauReal.cis_arctan_im (a.add h)).approx K).toRat := by
+    rw [cisTauReal_im_approx_toRat]
+    show _ = ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq (a.add h))).im.approx K).toRat
+    rw [cisTauReal_im_approx_toRat, h_inner_eq]
+  -- Substitute the LHS bridges into Step 1's bound
+  rw [h_bridge_re] at h_step1_re
+  rw [h_bridge_im] at h_step1_im
+  refine ⟨?_, ?_⟩
+  · -- .re component
+    -- h_step1_re: |cis_arctan_re(a+h).approx K .toRat
+    --              - ((cisTauReal arctan(a)).mul (cisTauReal δ)).re.approx K .toRat| ≤ ...
+    -- Want: |cis_arctan_re(a+h).approx K .toRat
+    --         - ((cis_arctan_re a · cisTauReal δ .re).sub (cis_arctan_im a · cisTauReal δ .im)).approx K .toRat| ≤ ...
+    -- Bridge the RHS: both equal a common Rat expression via mul_re_approx + toRat_sub/mul.
+    have h_rhs_re :
+        (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+            (TauComplex.cisTauReal
+              ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                (TauReal.arctan_of_rat_seq a)))).re.approx K).toRat
+          = ((TauReal.sub
+                (TauReal.mul (TauReal.cis_arctan_re a)
+                  (TauComplex.cisTauReal
+                    ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                      (TauReal.arctan_of_rat_seq a))).re)
+                (TauReal.mul (TauReal.cis_arctan_im a)
+                  (TauComplex.cisTauReal
+                    ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                      (TauReal.arctan_of_rat_seq a))).im)).approx K).toRat := by
+      rw [TauComplex.mul_re_approx]
+      show (TauRat.sub
+             (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx K) _)
+             (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx K) _)).toRat
+            = (TauRat.add
+                (TauRat.mul ((TauReal.cis_arctan_re a).approx K) _)
+                ((TauRat.mul ((TauReal.cis_arctan_im a).approx K) _).negate)).toRat
+      rw [toRat_sub, toRat_mul, toRat_mul, toRat_add, toRat_negate, toRat_mul, toRat_mul]
+      simp only [TauReal.cis_arctan_re_approx, TauReal.cis_arctan_im_approx]
+      ring
+    rw [h_rhs_re] at h_step1_re
+    exact h_step1_re
+  · -- .im component
+    have h_rhs_im :
+        (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+            (TauComplex.cisTauReal
+              ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                (TauReal.arctan_of_rat_seq a)))).im.approx K).toRat
+          = ((TauReal.add
+                (TauReal.mul (TauReal.cis_arctan_re a)
+                  (TauComplex.cisTauReal
+                    ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                      (TauReal.arctan_of_rat_seq a))).im)
+                (TauReal.mul (TauReal.cis_arctan_im a)
+                  (TauComplex.cisTauReal
+                    ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                      (TauReal.arctan_of_rat_seq a))).re)).approx K).toRat := by
+      rw [TauComplex.mul_im_approx]
+      show (TauRat.add
+             (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx K) _)
+             (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx K) _)).toRat
+            = (TauRat.add
+                (TauRat.mul ((TauReal.cis_arctan_re a).approx K) _)
+                (TauRat.mul ((TauReal.cis_arctan_im a).approx K) _)).toRat
+      rw [toRat_add, toRat_mul, toRat_mul, toRat_add, toRat_mul, toRat_mul]
+      simp only [TauReal.cis_arctan_re_approx, TauReal.cis_arctan_im_approx]
+    rw [h_rhs_im] at h_step1_im
+    exact h_step1_im
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
