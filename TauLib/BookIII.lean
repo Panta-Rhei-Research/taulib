@@ -148,6 +148,22 @@ import TauLib.BookIII.Bridge.G8PointSensitiveBoundaryAddress
 import TauLib.BookIII.Bridge.G8ActualXiZetaBoundaryAddressMap
 import TauLib.BookIII.Bridge.G8ActualXiZetaAddressResolvedPreimage
 import TauLib.BookIII.Bridge.G8ActualXiZetaCanonicalBoundaryCarrier
+import TauLib.BookIII.Bridge.G8ActualXiZetaShadowAddressConstruction
+import TauLib.BookIII.Bridge.G8ActualXiZetaShadowAddressCorrectness
+import TauLib.BookIII.Bridge.G8FinalRHSpine
+import TauLib.BookIII.Bridge.G8FinalRHSpineDischarge
+import TauLib.BookIII.Bridge.G8AcceptedTauSpectralPurityDomain
+import TauLib.BookIII.Bridge.G8AcceptedSpectralStageCertificate
+import TauLib.BookIII.Bridge.G8AcceptedTauSpectralAdmissionModel
+import TauLib.BookIII.Bridge.G8BookIIISpectralPurityAdapter
+import TauLib.BookIII.Bridge.G8BookIIIAcceptedBalanceDischarge
+import TauLib.BookIII.Bridge.G8BookIIITowerSpectralBalance
+import TauLib.BookIII.Bridge.G8BookIIITowerAdmissionConflict
+import TauLib.BookIII.Bridge.G8BookIIITowerAdmissionLaw
+import TauLib.BookIII.Bridge.G8PrimeCharacterCoverage
+import TauLib.BookIII.Bridge.G8BookIIICharacterCoverageDischarge
+import TauLib.BookIII.Bridge.G8BookIIICharacterAcceptedRealizationLaw
+import TauLib.BookIII.Bridge.G8BookIIICharacterAcceptedRealizationProofDraft
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
