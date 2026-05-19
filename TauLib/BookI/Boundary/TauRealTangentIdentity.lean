@@ -2794,6 +2794,169 @@ theorem F2_bernoulli_upper (x : Rat) (hx : 0 ≤ x) :
       nlinarith [hx, h_n_x, h_2nx_bound, sq_nonneg x]
     linarith [h_step1, h_expand, h_step2]
 
+/-! ## F.2 polynomial closure helpers — three sub-bounds factored from F.2 main
+
+  Each helper is a self-contained Rat-level polynomial inequality, isolated
+  to keep tactic memory usage tractable (the monolithic F.2 main hit OOM
+  even at 4M heartbeats). Together they discharge `N·δ_step ≤ 1/(4(k+1))`
+  with N = 100·K²·(k+1) and K = 3k+60. -/
+
+set_option maxHeartbeats 800000 in
+/-- **F.2 term1 bound** — main δ term `200·K²·a²/N ≤ 1/(8(k+1))` for
+    `0 ≤ a_val ≤ 1/4`, K = 3k+60, N = 100·K²·(k+1). -/
+theorem F2_term1_bound (a_val : Rat) (k : Nat)
+    (h_a_nn : 0 ≤ a_val) (h_a_le : 4 * a_val ≤ 1) :
+    200 * ((3 * k + 60 : Nat) : Rat)^2 * a_val^2
+      / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+      ≤ 1 / (8 * ((k : Rat) + 1)) := by
+  set K : Nat := 3 * k + 60 with hK_def
+  set N : Nat := 100 * K^2 * (k + 1) with hN_def
+  have hK_pos : 0 < K := by rw [hK_def]; omega
+  have hK_rat_pos : (0 : Rat) < (K : Rat) := by exact_mod_cast hK_pos
+  have hK_sq_pos : (0 : Rat) < (K : Rat)^2 := by positivity
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k; linarith
+  have hN_val : (N : Rat) = 100 * (K : Rat)^2 * ((k : Rat) + 1) := by
+    rw [hN_def]; push_cast; ring
+  have h_a_quarter : a_val ≤ 1/4 := by linarith
+  have h_a_sq_le : a_val^2 ≤ 1/16 := by
+    have : a_val * a_val ≤ (1/4) * (1/4) :=
+      mul_le_mul h_a_quarter h_a_quarter h_a_nn (by linarith)
+    have h_sq_eq : a_val^2 = a_val * a_val := sq a_val
+    linarith [h_sq_eq]
+  rw [hN_val]
+  have h_denom_pos : (0 : Rat) < 100 * (K : Rat)^2 * ((k : Rat) + 1) := by positivity
+  have h_8k1_pos : (0 : Rat) < 8 * ((k : Rat) + 1) := by linarith
+  rw [div_le_div_iff₀ h_denom_pos h_8k1_pos]
+  -- Goal: 200·K²·a²·8·(k+1) ≤ 100·K²·(k+1)·1
+  -- Cancel K²·(k+1): 1600·a² ≤ 100 ⟺ a² ≤ 1/16 ✓
+  have h_K_k_nn : 0 ≤ (K : Rat)^2 * ((k : Rat) + 1) :=
+    mul_nonneg (le_of_lt hK_sq_pos) (le_of_lt hk1_pos)
+  have h_1600_a_sq : 1600 * a_val^2 ≤ 100 := by linarith [h_a_sq_le]
+  have h_lhs_eq : 200 * (K : Rat)^2 * a_val^2 * (8 * ((k : Rat) + 1))
+                = 1600 * a_val^2 * ((K : Rat)^2 * ((k : Rat) + 1)) := by ring
+  have h_rhs_eq : 1 * (100 * (K : Rat)^2 * ((k : Rat) + 1))
+                = 100 * ((K : Rat)^2 * ((k : Rat) + 1)) := by ring
+  rw [h_lhs_eq, h_rhs_eq]
+  exact mul_le_mul_of_nonneg_right h_1600_a_sq h_K_k_nn
+
+set_option maxHeartbeats 800000 in
+/-- **F.2 term3 bound** — modulus δ term `484·N·K/2^(K-1) ≤ 1/(9(k+1))`
+    via `F2_polynomial_bound_at_K_min`. -/
+theorem F2_term3_bound (k : Nat) :
+    484 * ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) * ((3 * k + 60 : Nat) : Rat)
+      / 2 ^ ((3 * k + 60) - 1)
+      ≤ 1 / (9 * ((k : Rat) + 1)) := by
+  set K : Nat := 3 * k + 60 with hK_def
+  set N : Nat := 100 * K^2 * (k + 1) with hN_def
+  have hK_pos : 0 < K := by rw [hK_def]; omega
+  have hK_rat_pos : (0 : Rat) < (K : Rat) := by exact_mod_cast hK_pos
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k; linarith
+  have hN_val : (N : Rat) = 100 * (K : Rat)^2 * ((k : Rat) + 1) := by
+    rw [hN_def]; push_cast; ring
+  rw [hN_val]
+  have h_pow_pos : (0 : Rat) < 2 ^ (K - 1) := by positivity
+  have h_9k1_pos : (0 : Rat) < 9 * ((k : Rat) + 1) := by linarith
+  rw [div_le_div_iff₀ h_pow_pos h_9k1_pos]
+  -- 484·(100·K²·(k+1))·K·9·(k+1) = 435600·K³·(k+1)²
+  have h_lhs_eq : 484 * (100 * (K : Rat)^2 * ((k : Rat) + 1)) * (K : Rat)
+                  * (9 * ((k : Rat) + 1))
+                = 435600 * (K : Rat)^3 * ((k : Rat) + 1)^2 := by ring
+  -- Apply F2_polynomial_bound_at_K_min
+  have h_helper := F2_polynomial_bound_at_K_min k
+  have h_K_cast : ((3 * k + 60 : Nat) : Rat) = (K : Rat) := by rw [hK_def]
+  have h_K_minus_1 : K - 1 = 3 * k + 59 := by rw [hK_def]; omega
+  rw [h_K_cast] at h_helper
+  rw [← h_K_minus_1] at h_helper
+  linarith [h_helper]
+
+set_option maxHeartbeats 800000 in
+/-- **F.2 term2 bound** — power δ term `10·a·|a|^(4K) ≤ 1/(72(k+1))` for
+    `0 ≤ a_val ≤ 1/4` and K = 3k+60. Derives `180·(k+1) ≤ 2^(8K)` from
+    `F2_polynomial_bound_at_K_min` via the chain
+    `2^(K-1) ≥ 435600·K³·(k+1)² ≥ 360·(k+1)`, then `2^(K-1) ≤ 2^(8K)`. -/
+theorem F2_term2_bound (a_val : Rat) (k : Nat)
+    (h_a_nn : 0 ≤ a_val) (h_a_le : 4 * a_val ≤ 1) :
+    10 * a_val * |a_val|^(4 * (3 * k + 60)) ≤ 1 / (72 * ((k : Rat) + 1)) := by
+  set K : Nat := 3 * k + 60 with hK_def
+  have hK_pos : 0 < K := by rw [hK_def]; omega
+  have hK_rat_pos : (0 : Rat) < (K : Rat) := by exact_mod_cast hK_pos
+  have hK_ge_60 : 60 ≤ K := by rw [hK_def]; omega
+  have hK_rat_ge_60 : (60 : Rat) ≤ (K : Rat) := by exact_mod_cast hK_ge_60
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k; linarith
+  have h_a_quarter : a_val ≤ 1/4 := by linarith
+  have h_a_abs_le : |a_val| ≤ 1/4 := by rw [abs_of_nonneg h_a_nn]; exact h_a_quarter
+  have h_a_abs_nn : 0 ≤ |a_val| := _root_.abs_nonneg _
+  -- Apply F2_polynomial_bound_at_K_min and chain to derive 360·(k+1) ≤ 2^(8K)
+  have h_helper := F2_polynomial_bound_at_K_min k
+  have h_K_cast : ((3 * k + 60 : Nat) : Rat) = (K : Rat) := by rw [hK_def]
+  have h_K_minus_1 : K - 1 = 3 * k + 59 := by rw [hK_def]; omega
+  rw [h_K_cast] at h_helper
+  rw [← h_K_minus_1] at h_helper
+  -- 360·(k+1) ≤ 435600·K³·(k+1)² via simple polynomial bound
+  have hK3_ge : (60 : Rat)^3 ≤ (K : Rat)^3 :=
+    pow_le_pow_left₀ (by norm_num) hK_rat_ge_60 3
+  have h60_3 : (60 : Rat)^3 = 216000 := by norm_num
+  have hK3_ge_216000 : (216000 : Rat) ≤ (K : Rat)^3 := by linarith
+  have hk1_ge_1 : (1 : Rat) ≤ (k : Rat) + 1 := by linarith
+  have hk1_sq_ge_k1 : ((k : Rat) + 1) ≤ ((k : Rat) + 1)^2 := by
+    have h_sq : ((k : Rat) + 1)^2 = ((k : Rat) + 1) * ((k : Rat) + 1) := sq _
+    have : ((k : Rat) + 1) * 1 ≤ ((k : Rat) + 1) * ((k : Rat) + 1) :=
+      mul_le_mul_of_nonneg_left hk1_ge_1 (le_of_lt hk1_pos)
+    linarith [h_sq]
+  have h_360_helper : 360 * ((k : Rat) + 1) ≤ 435600 * (K : Rat)^3 * ((k : Rat) + 1)^2 := by
+    -- 435600·K³·(k+1)² ≥ 435600·216000·(k+1)² ≥ 435600·216000·(k+1) ≥ 360·(k+1)
+    have h_K3_k1_sq : 435600 * 216000 * ((k : Rat) + 1)^2
+                    ≤ 435600 * (K : Rat)^3 * ((k : Rat) + 1)^2 := by
+      have h_k1_sq_nn : 0 ≤ ((k : Rat) + 1)^2 := sq_nonneg _
+      have : 435600 * 216000 ≤ 435600 * (K : Rat)^3 := by linarith [hK3_ge_216000]
+      exact mul_le_mul_of_nonneg_right this h_k1_sq_nn
+    have h_360_k1_sq : 360 * ((k : Rat) + 1) ≤ 435600 * 216000 * ((k : Rat) + 1)^2 := by
+      have : 360 * ((k : Rat) + 1) ≤ 435600 * 216000 * ((k : Rat) + 1) := by linarith
+      linarith [mul_le_mul_of_nonneg_left hk1_sq_ge_k1
+                  (by norm_num : (0:Rat) ≤ 435600 * 216000)]
+    linarith [h_360_k1_sq, h_K3_k1_sq]
+  have h_360_2pow : 360 * ((k : Rat) + 1) ≤ 2 ^ (K - 1) := le_trans h_360_helper h_helper
+  -- 2^(K-1) ≤ 2^(8K) via Nat power monotonicity in exponent
+  have h_pow_mono_nat : (2 : Nat) ^ (K - 1) ≤ (2 : Nat) ^ (8 * K) :=
+    Nat.pow_le_pow_right (by norm_num : 1 ≤ 2) (by omega : K - 1 ≤ 8 * K)
+  have h_pow_mono : (2 : Rat) ^ (K - 1) ≤ (2 : Rat) ^ (8 * K) := by
+    have h_cast : ∀ n : Nat, ((2 ^ n : Nat) : Rat) = (2 : Rat) ^ n := fun n => by push_cast; rfl
+    rw [← h_cast (K - 1), ← h_cast (8 * K)]
+    exact_mod_cast h_pow_mono_nat
+  have h_360_8K : 360 * ((k : Rat) + 1) ≤ 2 ^ (8 * K) := le_trans h_360_2pow h_pow_mono
+  -- (1/4)^(4K) = 1/2^(8K)
+  have h_4_to_2 : (4 : Rat) ^ (4 * K) = (2 : Rat) ^ (8 * K) := by
+    rw [show (4 : Rat) = 2 ^ 2 from by norm_num]
+    rw [← pow_mul]
+    rw [show 2 * (4 * K) = 8 * K from by ring]
+  have h_4_pow_eq : ((1 : Rat) / 4) ^ (4 * K) = 1 / (2 : Rat) ^ (8 * K) := by
+    rw [div_pow, one_pow, h_4_to_2]
+  -- Chain: 10·a·|a|^(4K) ≤ 10·(1/4)·(1/4)^(4K) = (5/2)/2^(8K) ≤ 1/(72(k+1))
+  have h_a_pow_bound : |a_val| ^ (4 * K) ≤ ((1 : Rat) / 4) ^ (4 * K) :=
+    pow_le_pow_left₀ h_a_abs_nn h_a_abs_le _
+  have h_quarter_pow_nn : 0 ≤ ((1 : Rat) / 4) ^ (4 * K) := by positivity
+  have h_10a_le : 10 * a_val ≤ 10 * (1/4) := by linarith
+  have h_10a_nn : 0 ≤ 10 * a_val := by linarith
+  have h_chain : 10 * a_val * |a_val| ^ (4 * K) ≤ 10 * (1/4) * ((1 : Rat) / 4) ^ (4 * K) := by
+    calc 10 * a_val * |a_val| ^ (4 * K)
+        ≤ 10 * a_val * ((1 : Rat) / 4) ^ (4 * K) :=
+            mul_le_mul_of_nonneg_left h_a_pow_bound h_10a_nn
+      _ ≤ 10 * (1/4) * ((1 : Rat) / 4) ^ (4 * K) :=
+            mul_le_mul_of_nonneg_right h_10a_le h_quarter_pow_nn
+  have h_simp : 10 * ((1 : Rat) / 4) * ((1 : Rat) / 4) ^ (4 * K)
+              = (5/2) / 2 ^ (8 * K) := by
+    rw [h_4_pow_eq]; ring
+  have h_2pow_pos : (0 : Rat) < 2 ^ (8 * K) := by positivity
+  have h_72k1_pos : (0 : Rat) < 72 * ((k : Rat) + 1) := by linarith
+  have h_final : (5/2 : Rat) / (2 : Rat) ^ (8 * K) ≤ 1 / (72 * ((k : Rat) + 1)) := by
+    rw [div_le_div_iff₀ h_2pow_pos h_72k1_pos]
+    have : (5/2 : Rat) * (72 * ((k : Rat) + 1)) = 180 * ((k : Rat) + 1) := by ring
+    linarith [h_360_8K]
+  linarith [h_chain, h_simp, h_final]
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
