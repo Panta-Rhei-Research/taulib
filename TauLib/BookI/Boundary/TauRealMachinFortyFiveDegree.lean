@@ -633,4 +633,42 @@ theorem TauReal.machin_45_polynomial_at_F6 (a b : TauRat) (n : Nat)
            (1 - b.toRat) * (4*a.toRat - 4*a.toRat^3)) :=
   TauReal.machin_45_difference_under_F6 a b n h_a_F6 h_b_F6
 
+-- ============================================================
+-- PART 8: TauReal-EQUIV LIFT — THE FULL 45°-LINE IDENTITY
+-- ============================================================
+
+/-! ## Scope 2A-lift — the Cauchy-modulus lift of the 45°-line identity
+
+  We now lift the depth-n pointwise vanishing (under F.6 hypothesis)
+  to a full TauReal-equiv 45°-line identity.
+
+  Strategy:
+  1. Express D_n := .re_n - .im_n as a polynomial in R, I, B_R, B_I.
+  2. Substitute I = a·R + ε_a and B_I = b·B_R + ε_b where
+     ε_a = (tangent_defect a).approx n .toRat,
+     ε_b = (tangent_defect b).approx n .toRat.
+  3. Algebraically expand: D_n = [R⁴·B_R·K(a,b)] + ε_a·P_1 + ε_b·P_2
+     where P_1, P_2 are bounded polynomials in R, I, B_R, B_I, a, b.
+  4. At Machin constants K = 0, so D_n = ε_a·P_1 + ε_b·P_2.
+  5. By cis_arctan_re/im_approx_abs_le_8: |R|, |I|, |B_R|, |B_I| ≤ 8.
+     Hence |P_1|, |P_2| ≤ M_bound for some computable M_bound.
+  6. F.6 gives both ε_a, ε_b → 0 in Cauchy sense. Combined with the
+     polynomial bound, D_n → 0.
+-/
+
+/-! ### What's not closed in this commit (deferred to Phase E next session)
+
+    The lift to TauReal-equiv `.re ≈ .im` requires constructing a Cauchy
+    modulus from:
+    1. The polynomial decomposition `D_n = R⁴·B_R·K(a,b) + ε_a·P_1 + ε_b·P_2`
+       at Machin constants (K = 0).
+    2. Uniform bounds on |P_1|, |P_2| via `|R|, |I|, |B_R|, |B_I| ≤ 8`.
+    3. F.6's `tangent_defect_equiv_zero` providing ε_a, ε_b → 0 in
+       Cauchy sense.
+    4. Combined Cauchy modulus via two-arg modulus composition.
+    5. Reverse `equiv_of_sub_equiv_zero` to conclude `.re ≈ .im`.
+
+    Each step is mechanical; total ~500-1000 LOC of bound-tracking.
+-/
+
 end Tau.Boundary
