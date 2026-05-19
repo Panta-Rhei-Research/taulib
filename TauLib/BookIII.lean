@@ -124,6 +124,30 @@ import TauLib.BookIII.Bridge.G8OrthodoxTauAxisRelation
 import TauLib.BookIII.Bridge.G8OrthodoxTauPreimageExistence
 import TauLib.BookIII.Bridge.G8OrthodoxNormalizedAxisClass
 import TauLib.BookIII.Bridge.G8OrthodoxTauUnitWitnessSupply
+import TauLib.BookIII.Bridge.G8OrthodoxTauNormalFormWitnessSource
+import TauLib.BookIII.Bridge.G8OrthodoxTauShadowNormalFormSource
+import TauLib.BookIII.Bridge.G8OrthodoxTauWitnessRealization
+import TauLib.BookIII.Bridge.G8CanonicalBoundaryWitnessRealization
+import TauLib.BookIII.Bridge.G8CanonicalTauWitnessContext
+import TauLib.BookIII.Bridge.G8CanonicalTauWitnessSelector
+import TauLib.BookIII.Bridge.G8ActualOrthodoxCenteredChart
+import TauLib.BookIII.Bridge.G8ActualOrthodoxCenteredChartNormalizedCorridor
+import TauLib.BookIII.Bridge.G8CanonicalActualOrthodoxCenteredChartSelector
+import TauLib.BookIII.Bridge.G8ActualXiZetaCore
+import TauLib.BookIII.Bridge.G8ActualXiZetaSource
+import TauLib.BookIII.Bridge.G8ActualXiZetaCorridor
+import TauLib.BookIII.Bridge.G8ActualXiZetaCoverage
+import TauLib.BookIII.Bridge.G8ActualXiZetaNoGhostDecomposition
+import TauLib.BookIII.Bridge.G8ActualXiZetaCanonicalPreimageRealization
+import TauLib.BookIII.Bridge.G8ActualXiZetaThinSource
+import TauLib.BookIII.Bridge.G8ActualXiZetaStrictPointGeometry
+import TauLib.BookIII.Bridge.G8ActualXiZetaStrictGeometryCorridor
+import TauLib.BookIII.Bridge.G8ActualXiZetaStrictGeometryDiscipline
+import TauLib.BookIII.Bridge.G8PointSensitiveBoundarySelector
+import TauLib.BookIII.Bridge.G8PointSensitiveBoundaryAddress
+import TauLib.BookIII.Bridge.G8ActualXiZetaBoundaryAddressMap
+import TauLib.BookIII.Bridge.G8ActualXiZetaAddressResolvedPreimage
+import TauLib.BookIII.Bridge.G8ActualXiZetaCanonicalBoundaryCarrier
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
