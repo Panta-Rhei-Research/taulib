@@ -98,6 +98,32 @@ theorem TauReal.tangent_defect_approx_toRat (a : TauRat) (n : Nat) :
       = _
   ring
 
+/-- **B.1 aux** — `tangent_defect`'s `.approx K .toRat` depends only on `a.toRat`.
+
+    If two TauRats `a` and `b` have the same `.toRat`, then their `tangent_defect`
+    values agree at every depth `K` in `.toRat`. Used by F.2 to bridge the
+    Gronwall walk endpoint `a_seq N` (which has `.toRat = a.toRat` via
+    `gronwallWalkStep_full_toRat`) to the actual TauRat `a`.
+
+    Proof: `tangent_defect_approx_toRat` shows that the `.toRat` depends on
+    `a.toRat` and on `(cis_arctan_re/im a).approx K .toRat`. The latter
+    reduce to `expPartial_pureIm_*_rat (arctan_partial_rat a.toRat K) K`
+    via the depth-locality bridge — all functions of `a.toRat`. -/
+theorem TauReal.tangent_defect_toRat_congr (a b : TauRat) (K : Nat)
+    (h_eq : a.toRat = b.toRat) :
+    ((TauReal.tangent_defect a).approx K).toRat
+      = ((TauReal.tangent_defect b).approx K).toRat := by
+  rw [TauReal.tangent_defect_approx_toRat, TauReal.tangent_defect_approx_toRat]
+  -- (cis_arctan_re/im a).approx K .toRat = expPartial_pureIm_*_rat (arctan_partial_rat a.toRat K) K
+  show ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx K).toRat
+        - a.toRat * ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx K).toRat
+      = ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).im.approx K).toRat
+        - b.toRat * ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re.approx K).toRat
+  rw [cisTauReal_re_approx_toRat, cisTauReal_re_approx_toRat,
+      cisTauReal_im_approx_toRat, cisTauReal_im_approx_toRat,
+      TauReal.arctan_of_rat_seq_approx, TauReal.arctan_of_rat_seq_approx,
+      TauRat.arctan_partial_toRat, TauRat.arctan_partial_toRat, h_eq]
+
 -- ============================================================
 -- PART 2: BASE CASE — tangent_defect 0 ≈ 0
 -- ============================================================
