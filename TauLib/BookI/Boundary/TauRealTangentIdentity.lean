@@ -4142,6 +4142,31 @@ theorem TauReal.cis_arctan_im_isCauchy (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) :
     field_simp; ring
   linarith [h_tri, h_T1_strict, h_T2_le, h_double]
 
+/-- **B.3 / tangent_defect IsCauchy** — For `a : TauRat` with `4·|a.toRat| ≤ 1`,
+    the tangent defect `tangent_defect a := cis_arctan_im a − (fromTauRat a)·cis_arctan_re a`
+    is Cauchy. Composes the Cauchy properties of `cis_arctan_re/im` (B.3 partial)
+    via standard arithmetic preservation lemmas: `IsCauchy_add`, `IsCauchy_mul`,
+    `IsCauchy_negate`, `IsCauchy_fromTauRat`.
+
+    The hypothesis `4·|a.toRat| ≤ 1` implies `2·|a.toRat| ≤ 1` (since `|a.toRat| ≥ 0`),
+    so we can invoke `cis_arctan_re_isCauchy` and `cis_arctan_im_isCauchy`. -/
+theorem TauReal.tangent_defect_isCauchy (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) :
+    (TauReal.tangent_defect a).IsCauchy := by
+  -- Convert the hypothesis 4·|a.toRat| ≤ 1 into 2·|a.toRat| ≤ 1.
+  have ha_2 : 2 * |a.toRat| ≤ 1 := by linarith [_root_.abs_nonneg a.toRat]
+  -- Cauchy properties of the building blocks.
+  have h_im : (TauReal.cis_arctan_im a).IsCauchy :=
+    TauReal.cis_arctan_im_isCauchy a ha_2
+  have h_re : (TauReal.cis_arctan_re a).IsCauchy :=
+    TauReal.cis_arctan_re_isCauchy a ha_2
+  have h_const : (TauReal.fromTauRat a).IsCauchy :=
+    TauReal.IsCauchy_fromTauRat a
+  -- `tangent_defect a = (cis_arctan_im a).sub ((fromTauRat a).mul (cis_arctan_re a))`
+  -- and `TauReal.sub x y = x.add y.negate`, so chain the preservation lemmas.
+  unfold TauReal.tangent_defect TauReal.sub
+  exact TauReal.IsCauchy_add _ _ h_im
+    (TauReal.IsCauchy_negate _ (TauReal.IsCauchy_mul _ _ h_const h_re))
+
 /-! ## F.2 main — Tangent defect Gronwall instance at depth 3k+60
 
   Orchestrates F2_walk_endpoint_bound + B.1 toRat_congr + polynomial
