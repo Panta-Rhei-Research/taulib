@@ -4240,6 +4240,88 @@ theorem TauReal.tangent_defect_gronwall_instance (a : TauRat)
     field_simp; ring
   linarith [h_bound, hT1, hT2, hT3, h_sum_le]
 
+/-! ## F.5 — tangent_defect equiv zero (Phase B keystone)
+
+  The TauReal-level analytical capstone: `tangent_defect a ≈_TR 0` for
+  `0 ≤ a.toRat` and `4·a.toRat ≤ 1`.
+
+  Strategy (universal-K transfer via Cauchy):
+  1. F.2 gives `|.approx (3k'+60)| ≤ 1/(2(k'+1))` for any k'.
+  2. B.3 gives `tangent_defect a` is IsCauchy with modulus μ_C.
+  3. Pick k' := max(2k+1, μ_C(2k+1)). Then 3k'+60 ≥ μ_C(2k+1) (anchor depth
+     is past the Cauchy modulus), and 1/(2(k'+1)) ≤ 1/(4(k+1)).
+  4. For n ≥ 3k'+60: Cauchy gives `|.approx n - .approx (3k'+60)| < 1/(2(k+1))`,
+     F.2 gives `|.approx (3k'+60)| ≤ 1/(4(k+1))`. Triangle: total < 3/(4(k+1)) < 1/(k+1). ✓ -/
+
+set_option maxHeartbeats 800000 in
+/-- **F.5 / tangent_defect equiv zero** — Phase B keystone: the tangent defect
+    is equivalent to zero at TauReal level, under `0 ≤ a.toRat` and `4·a.toRat ≤ 1`. -/
+theorem TauReal.tangent_defect_equiv_zero (a : TauRat)
+    (ha_nn : 0 ≤ a.toRat) (ha_le : 4 * a.toRat ≤ 1) :
+    TauReal.equiv (TauReal.tangent_defect a) TauReal.zero := by
+  have h_abs_a : 4 * |a.toRat| ≤ 1 := by rw [abs_of_nonneg ha_nn]; exact ha_le
+  obtain ⟨μ_C, h_C⟩ := TauReal.tangent_defect_isCauchy a h_abs_a
+  refine ⟨fun k => 3 * (max (2*k+1) (μ_C (2*k+1))) + 60, fun k n hn => ?_⟩
+  set k' := max (2*k+1) (μ_C (2*k+1)) with hk'_def
+  have hk'_ge_2k1 : 2*k+1 ≤ k' := le_max_left _ _
+  have hk'_ge_μC : μ_C (2*k+1) ≤ k' := le_max_right _ _
+  have h_anchor_ge_μC : μ_C (2*k+1) ≤ 3*k' + 60 := by
+    have : (μ_C (2*k+1) : Nat) ≤ k' := hk'_ge_μC
+    omega
+  have h_n_anchor : 3*k' + 60 ≤ n := hn
+  have h_n_μC : μ_C (2*k+1) ≤ n := Nat.le_trans h_anchor_ge_μC h_n_anchor
+  -- F.2 bound at anchor depth 3k'+60
+  have h_F2 := TauReal.tangent_defect_gronwall_instance a ha_nn ha_le k'
+  -- Cauchy bound from anchor depth to n
+  have h_C_lt := h_C (2*k+1) n (3*k'+60) h_n_μC h_anchor_ge_μC
+  -- Unfold equiv at n
+  unfold TauRat.lt at h_C_lt ⊢
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat] at h_C_lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  -- h_C_lt : |((tangent_defect a).approx n).toRat - ((tangent_defect a).approx (3k'+60)).toRat| < 1/(2k+2)
+  -- Goal: |((tangent_defect a).approx n).toRat - (TauReal.zero.approx n).toRat| < 1/(k+1)
+  have h_zero : (TauReal.zero.approx n).toRat = 0 := by
+    show (TauRat.zero).toRat = 0; rw [toRat_zero]
+  rw [h_zero, sub_zero]
+  -- Convert Cauchy bound denominator
+  have h_cauchy_eq : (1 : Rat) / (((2*k+1 : Nat) : Rat) + 1) = 1 / (2 * ((k:Rat) + 1)) := by
+    push_cast; ring
+  rw [h_cauchy_eq] at h_C_lt
+  -- Triangle: |T(n)| ≤ |T(n) - T(3k'+60)| + |T(3k'+60)|
+  have h_tri : |((TauReal.tangent_defect a).approx n).toRat|
+             ≤ |((TauReal.tangent_defect a).approx n).toRat
+                - ((TauReal.tangent_defect a).approx (3*k'+60)).toRat|
+              + |((TauReal.tangent_defect a).approx (3*k'+60)).toRat| := by
+    have h := abs_add_le
+      (((TauReal.tangent_defect a).approx n).toRat
+        - ((TauReal.tangent_defect a).approx (3*k'+60)).toRat)
+      (((TauReal.tangent_defect a).approx (3*k'+60)).toRat)
+    have h_eq : ((TauReal.tangent_defect a).approx n).toRat
+                - ((TauReal.tangent_defect a).approx (3*k'+60)).toRat
+                + ((TauReal.tangent_defect a).approx (3*k'+60)).toRat
+              = ((TauReal.tangent_defect a).approx n).toRat := by ring
+    rw [h_eq] at h
+    exact h
+  -- F.2 bound 1/(2(k'+1)) ≤ 1/(4(k+1)) (since k' ≥ 2k+1, so k'+1 ≥ 2k+2 = 2(k+1))
+  have hk1_pos : (0 : Rat) < (k:Rat) + 1 := by
+    have : (0 : Rat) ≤ (k:Rat) := Nat.cast_nonneg k; linarith
+  have hk'1_pos : (0 : Rat) < ((k':Nat):Rat) + 1 := by
+    have : (0 : Rat) ≤ ((k':Nat):Rat) := Nat.cast_nonneg _; linarith
+  have hk1_le : 2 * ((k:Rat) + 1) ≤ ((k':Nat):Rat) + 1 := by
+    have h_cast : ((2*k+1 : Nat) : Rat) ≤ ((k':Nat) : Rat) := by exact_mod_cast hk'_ge_2k1
+    push_cast at h_cast; linarith
+  have h_F2_loose : (1 : Rat) / (2 * (((k':Nat):Rat) + 1)) ≤ 1 / (4 * ((k:Rat) + 1)) := by
+    rw [div_le_div_iff₀ (by linarith) (by linarith)]
+    linarith
+  -- Combine: 1/(2(k+1)) + 1/(4(k+1)) = 3/(4(k+1)) < 1/(k+1)
+  have h_sum_lt : 1/(2*((k:Rat)+1)) + 1/(4*((k:Rat)+1)) < 1/((k:Rat)+1) := by
+    rw [div_add_div _ _ (by linarith : (2 * ((k:Rat) + 1)) ≠ 0)
+                       (by linarith : (4 * ((k:Rat) + 1)) ≠ 0)]
+    rw [div_lt_div_iff₀ (by positivity) hk1_pos]
+    ring_nf
+    nlinarith
+  linarith [h_tri, h_F2, h_F2_loose, h_C_lt, h_sum_lt]
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
