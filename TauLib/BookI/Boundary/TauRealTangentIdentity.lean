@@ -2759,6 +2759,41 @@ theorem F2_polynomial_bound_at_K_min (k : Nat) :
       _ ≤ 8 * 2^(3 * k + 59) :=
             mul_le_mul_of_nonneg_left ih' (by norm_num : (0:Rat) ≤ 8)
 
+/-- **Weak Bernoulli upper bound** for F.2's `(1+M)^N ≤ 2` step.
+
+    For `x ≥ 0` and `n·x ≤ 1/2`, `(1+x)^n ≤ 1 + 2·n·x ≤ 2`.
+
+    Proven by induction on n: at step n+1, `(1+x)^(n+1) = (1+x)·(1+x)^n`,
+    and the cross term `2nx²` is absorbed using `2nx ≤ 1 - 2x` (from
+    `(n+1)·x ≤ 1/2`). -/
+theorem F2_bernoulli_upper (x : Rat) (hx : 0 ≤ x) :
+    ∀ (n : Nat), (n : Rat) * x ≤ 1/2 → (1 + x)^n ≤ 1 + 2 * (n : Rat) * x := by
+  intro n
+  induction n with
+  | zero => intro _; simp
+  | succ n ih =>
+    intro h_succ
+    have h_succ_cast : ((n : Rat) + 1) * x ≤ 1/2 := by
+      have : ((n + 1 : Nat) : Rat) * x = ((n : Rat) + 1) * x := by push_cast; ring
+      linarith [h_succ]
+    have h_n_x : (n : Rat) * x ≤ 1/2 := by nlinarith [hx]
+    have ih_applied := ih h_n_x
+    have h_pow_succ : (1 + x)^(n + 1) = (1 + x) * (1 + x)^n := by ring
+    rw [h_pow_succ]
+    have h_step1 : (1 + x) * (1 + x)^n ≤ (1 + x) * (1 + 2 * (n : Rat) * x) :=
+      mul_le_mul_of_nonneg_left ih_applied (by linarith)
+    have h_expand : (1 + x) * (1 + 2 * (n : Rat) * x)
+                  = 1 + 2 * (n : Rat) * x + x + 2 * (n : Rat) * x^2 := by ring
+    have h_step2 : 1 + 2 * (n : Rat) * x + x + 2 * (n : Rat) * x^2
+                ≤ 1 + 2 * ((n + 1 : Nat) : Rat) * x := by
+      have h_succ_eq : 1 + 2 * ((n + 1 : Nat) : Rat) * x = 1 + 2 * (n : Rat) * x + 2 * x := by
+        push_cast; ring
+      rw [h_succ_eq]
+      -- Need: x + 2nx² ≤ 2x ⟺ 2nx² ≤ x ⟺ 2nx ≤ 1
+      have h_2nx_bound : 2 * (n : Rat) * x ≤ 1 := by nlinarith [h_n_x, hx]
+      nlinarith [hx, h_n_x, h_2nx_bound, sq_nonneg x]
+    linarith [h_step1, h_expand, h_step2]
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
