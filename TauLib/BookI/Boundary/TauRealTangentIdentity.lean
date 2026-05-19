@@ -2563,6 +2563,91 @@ theorem TauReal.tangent_defect_increment_simplified_at_K_tight
                   = 484 * (K : Rat) / 2 ^ (K - 1) := by ring
   linarith [h_tri, h_combine, h_final_eq]
 
+/-! ## Path 2 Step 5a — `tangent_defect_step_bound_at_K_tight` (tight wrapper)
+
+  Replaces F.1b's wrapper (`tangent_defect_step_bound_at_K`) which carries the
+  unsatisfiable Cauchy modulus `+ 1/(k_M+1)`. The tight wrapper uses Step 4's
+  explicit `484·K/2^(K−1)` error instead, eliminating the constraint coupling.
+
+  Structure mirrors F.1b's wrapper exactly: combines Step 4's tight increment
+  bound with Helper A (`RHS_5C_at_K_toRat_unfold`) + Helper B
+  (`tangent_defect_step_bound_explicit`) + F.1b's 8 pointwise bounds, then
+  closes via triangle inequality.
+-/
+
+set_option maxHeartbeats 1600000 in
+/-- **Path 2 Step 5a (tight F.1b wrapper)** — Per-step Gronwall increment bound
+    at .approx K with explicit super-exponential error 484·K/2^(K−1). -/
+theorem TauReal.tangent_defect_step_bound_at_K_tight
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1)
+    (hdh_nn : 0 ≤ dh.toRat) (hdh_le_half : dh.toRat ≤ 1/2)
+    (K : Nat) (hK : 2 ≤ K) (hK_dh : 2 * (K : Rat)^2 * dh.toRat ≤ 1) :
+    |((TauReal.tangent_defect (a.add dh)).approx K).toRat
+      - ((TauReal.tangent_defect a).approx K).toRat|
+      ≤ (dh.toRat / 2 + 9 * (K : Rat) * dh.toRat^2)
+          * |((TauReal.tangent_defect a).approx K).toRat|
+        + 200 * (K : Rat)^2 * dh.toRat^2
+        + 10 * dh.toRat * |a.toRat|^(4*K)
+        + 484 * (K : Rat) / 2 ^ (K - 1) := by
+  -- Step 1: Apply Step 4 (tight increment) to get the explicit error bound
+  have hK_ge_1 : 1 ≤ K := by omega
+  have h_5C := TauReal.tangent_defect_increment_simplified_at_K_tight a dh ha hah K hK_ge_1
+  -- Step 2: unfold RHS_5C via Helper A
+  rw [TauReal.RHS_5C_at_K_toRat_unfold a dh K] at h_5C
+  -- Step 3: instantiate the 8 shipped pointwise bounds (same as F.1b wrapper)
+  have h_d_K   := arctan_deriv_partial_rat_abs_le_one a ha K
+  have h_AaB   := TauReal.cis_arctan_re_plus_a_cis_arctan_im_abs_le_ten a ha K
+  have h_δ_abs := TauReal.arctan_increment_abs_le_two_dh a dh ha hdh_nn hdh_le_half K hK_dh
+  have h_R_m1  := TauReal.R_K_minus_1_abs_le_four_K_dh_sq a dh ha hah hdh_nn hdh_le_half K
+                    (by omega : 1 ≤ K) hK_dh
+  have h_I_m_δ := TauReal.I_K_minus_delta_K_abs_le_eight_K_dh_cube a dh ha hah
+                    hdh_nn hdh_le_half K hK hK_dh
+  have h_D3    := TauReal.M4_D3_linear_extraction_bound a dh ha hdh_nn hdh_le_half K
+  have h_F1a   := TauReal.tangent_defect_re_residual_bound a dh ha hah K
+  have h_a_abs : |a.toRat| ≤ 1/4 := by linarith [_root_.abs_nonneg a.toRat]
+  have h_T_def : ((TauReal.tangent_defect a).approx K).toRat
+              = ((TauReal.cis_arctan_im a).approx K).toRat
+                - a.toRat * ((TauReal.cis_arctan_re a).approx K).toRat :=
+    TauReal.tangent_defect_approx_toRat a K
+  -- Step 4: apply Helper B with the 8 Rat-level quantities (same as F.1b wrapper)
+  have h_explicit := TauReal.tangent_defect_step_bound_explicit
+      a.toRat dh.toRat
+      ((TauReal.cis_arctan_re a).approx K).toRat
+      ((TauReal.cis_arctan_im a).approx K).toRat
+      ((TauComplex.cisTauReal
+          ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+            (TauReal.arctan_of_rat_seq a))).re.approx K).toRat
+      ((TauComplex.cisTauReal
+          ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+            (TauReal.arctan_of_rat_seq a))).im.approx K).toRat
+      ((TauReal.cis_arctan_re (a.add dh)).approx K).toRat
+      ((TauReal.tangent_defect a).approx K).toRat
+      (((TauReal.arctan_of_rat_seq (a.add dh)).sub
+          (TauReal.arctan_of_rat_seq a)).approx K).toRat
+      (arctan_deriv_partial_rat a.toRat K)
+      K h_T_def h_d_K h_AaB h_δ_abs h_R_m1 h_I_m_δ h_D3 h_F1a
+      h_a_abs hdh_nn hdh_le_half hK hK_dh
+  -- Step 5: close via triangle |T_h - T_a| ≤ |T_h - T_a - RHS_form| + |RHS_form|
+  --         ≤ 484·K/2^(K-1) + Helper B bound
+  have h_tri_abs : ∀ x y : Rat, |x| ≤ |x - y| + |y| := fun x y => by
+    have := abs_add_le (x - y) y
+    have h_eq : x - y + y = x := by ring
+    rw [h_eq] at this
+    exact this
+  linarith [h_5C, h_explicit, h_tri_abs
+    (((TauReal.tangent_defect (a.add dh)).approx K).toRat
+      - ((TauReal.tangent_defect a).approx K).toRat)
+    ((((TauReal.cis_arctan_re a).approx K).toRat
+       + a.toRat * ((TauReal.cis_arctan_im a).approx K).toRat)
+        * ((TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+              (TauReal.arctan_of_rat_seq a))).im.approx K).toRat
+      + ((TauReal.tangent_defect a).approx K).toRat
+        * (((TauComplex.cisTauReal
+            ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+              (TauReal.arctan_of_rat_seq a))).re.approx K).toRat - 1)
+      - dh.toRat * ((TauReal.cis_arctan_re (a.add dh)).approx K).toRat)]
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
