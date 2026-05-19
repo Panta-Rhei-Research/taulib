@@ -2648,6 +2648,117 @@ theorem TauReal.tangent_defect_step_bound_at_K_tight
               (TauReal.arctan_of_rat_seq a))).re.approx K).toRat - 1)
       - dh.toRat * ((TauReal.cis_arctan_re (a.add dh)).approx K).toRat)]
 
+/-! ## Path 2 Step 5b — F.2 Gronwall walk closure
+
+  The final assembly piece for F.2. Combines Step 5a (tight wrapper) +
+  Rat.discrete_gronwall_abs + B.1 (toRat_congr) + polynomial closure
+  to give `|T(a).approx K .toRat| ≤ 1/(2(k+1))` for all K ≥ 3k+60.
+
+  Key polynomial witnesses (red team verified, induction-friendly):
+  - K_min := 3·k + 60       (linear in k, induction factor 2^3 = 8)
+  - N := 75·K²·(k+1)        (polynomial walk steps)
+
+  The 3k+60 choice (vs the chair's earlier 2k+40) gives clean induction
+  step factor 8 > inductive polynomial ratio 4.63 at k=0, enabling
+  simple `Nat.rec` induction without strong-induction or multiple base
+  cases.
+-/
+
+set_option maxHeartbeats 1600000 in
+theorem F2_polynomial_bound_at_K_min (k : Nat) :
+    (435600 : Rat) * ((3 * k + 60 : Nat) : Rat)^3 * ((k : Rat) + 1)^2
+      ≤ 2 ^ (3 * k + 59) := by
+  induction k with
+  | zero =>
+    -- k = 0: K_min = 60, need 435600 · 60³ · 1 ≤ 2^59
+    norm_num
+  | succ k ih =>
+    -- Strategy: 2^(3(k+1)+59) = 8·2^(3k+59) ≥ 8·LHS_old ≥ 435600·(3k+63)³·(k+2)²
+    have h_pow : (2 : Rat) ^ (3 * (k + 1) + 59) = 8 * (2 ^ (3 * k + 59)) := by
+      have h_eq : 3 * (k + 1) + 59 = (3 * k + 59) + 3 := by ring
+      rw [h_eq, pow_add]; ring
+    have h_K_cast : ((3 * (k + 1) + 60 : Nat) : Rat) = ((3 * k + 60 : Nat) : Rat) + 3 := by
+      push_cast; ring
+    have h_kp1_cast : (((k + 1 : Nat) : Rat) + 1) = ((k : Rat) + 1) + 1 := by
+      push_cast; ring
+    rw [h_pow, h_K_cast, h_kp1_cast]
+    set u : Rat := ((3 * k + 60 : Nat) : Rat) with hu_def
+    have hu_ge : 60 ≤ u := by
+      rw [hu_def]
+      have h60 : 60 ≤ 3 * k + 60 := by omega
+      exact_mod_cast h60
+    set v : Rat := (k : Rat) + 1 with hv_def
+    have hv_ge : 1 ≤ v := by
+      rw [hv_def]
+      have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k
+      linarith
+    have ih' : 435600 * u^3 * v^2 ≤ 2^(3 * k + 59) := ih
+    have hu_pos : 0 < u := by linarith
+    have hv_pos : 0 < v := by linarith
+    have hu_nn : 0 ≤ u := le_of_lt hu_pos
+    have hv_nn : 0 ≤ v := le_of_lt hv_pos
+    -- Step A: 8000·(u+3)³ ≤ 9261·u³ via cubing 20·(u+3) ≤ 21·u
+    have h_u_lin : 20 * (u + 3) ≤ 21 * u := by linarith
+    have h_u_nn : 0 ≤ 20 * (u + 3) := by linarith
+    have h_u_cubed : (20 * (u + 3))^3 ≤ (21 * u)^3 :=
+      pow_le_pow_left₀ h_u_nn h_u_lin 3
+    have h_u3 : 8000 * (u + 3)^3 ≤ 9261 * u^3 := by
+      have h_lhs : (20 * (u + 3))^3 = 8000 * (u + 3)^3 := by ring
+      have h_rhs : (21 * u)^3 = 9261 * u^3 := by ring
+      linarith [h_u_cubed]
+    -- Step B: (v+1)² ≤ 4·v² via squaring v+1 ≤ 2v
+    have h_v_lin : v + 1 ≤ 2 * v := by linarith
+    have h_v_nn : 0 ≤ v + 1 := by linarith
+    have h_v_sq : (v + 1)^2 ≤ (2 * v)^2 := pow_le_pow_left₀ h_v_nn h_v_lin 2
+    have h_v2 : (v + 1)^2 ≤ 4 * v^2 := by
+      have : (2 * v)^2 = 4 * v^2 := by ring
+      linarith [h_v_sq]
+    -- Step C: combine via explicit calc + mul_le_mul
+    have h_u_pos : 0 < u := by linarith
+    have h_v_pos : 0 < v := by linarith
+    have h_u_nn : 0 ≤ u := le_of_lt h_u_pos
+    have h_v_nn : 0 ≤ v := le_of_lt h_v_pos
+    have h_vp1_sq_nn : 0 ≤ (v + 1)^2 := sq_nonneg _
+    have h_u3_nn : 0 ≤ u^3 := pow_nonneg h_u_nn 3
+    have h_v2_nn : 0 ≤ v^2 := sq_nonneg _
+    have h_u3v2_nn : 0 ≤ u^3 * v^2 := mul_nonneg h_u3_nn h_v2_nn
+    -- Step C.1: 8000·(u+3)³·(v+1)² ≤ 9261·u³·(v+1)²
+    have h_step_a : 8000 * (u + 3)^3 * (v + 1)^2 ≤ 9261 * u^3 * (v + 1)^2 :=
+      mul_le_mul_of_nonneg_right h_u3 h_vp1_sq_nn
+    -- Step C.2: 9261·u³·(v+1)² ≤ 9261·u³·4·v² = 37044·u³·v²
+    have h_9261u3_nn : 0 ≤ 9261 * u^3 :=
+      mul_nonneg (by norm_num : (0:Rat) ≤ 9261) h_u3_nn
+    have h_step_b : 9261 * u^3 * (v + 1)^2 ≤ 9261 * u^3 * (4 * v^2) :=
+      mul_le_mul_of_nonneg_left h_v2 h_9261u3_nn
+    have h_step_b' : 9261 * u^3 * (4 * v^2) = 37044 * (u^3 * v^2) := by ring
+    -- Step C.3: 37044·u³·v² ≤ 64000·u³·v² = 8000·8·u³·v²
+    have h_const : (37044 : Rat) ≤ 64000 := by norm_num
+    have h_step_c : 37044 * (u^3 * v^2) ≤ 64000 * (u^3 * v^2) :=
+      mul_le_mul_of_nonneg_right h_const h_u3v2_nn
+    -- Combine: 8000·(u+3)³·(v+1)² ≤ 64000·u³·v² = 8000·8·u³·v²
+    have h_total : 8000 * (u + 3)^3 * (v + 1)^2 ≤ 64000 * (u^3 * v^2) := by
+      calc 8000 * (u + 3)^3 * (v + 1)^2
+          ≤ 9261 * u^3 * (v + 1)^2 := h_step_a
+        _ ≤ 9261 * u^3 * (4 * v^2) := h_step_b
+        _ = 37044 * (u^3 * v^2) := h_step_b'
+        _ ≤ 64000 * (u^3 * v^2) := h_step_c
+    -- Divide by 8000 (positive): (u+3)³·(v+1)² ≤ 8·u³·v²
+    have h_8000_pos : (0 : Rat) < 8000 := by norm_num
+    have h_poly_chain : 8000 * ((u + 3)^3 * (v + 1)^2) ≤ 8000 * (8 * (u^3 * v^2)) := by
+      have h_lhs : 8000 * ((u + 3)^3 * (v + 1)^2) = 8000 * (u + 3)^3 * (v + 1)^2 := by ring
+      have h_rhs : 8000 * (8 * (u^3 * v^2)) = 64000 * (u^3 * v^2) := by ring
+      linarith [h_total]
+    have h_poly : (u + 3)^3 * (v + 1)^2 ≤ 8 * (u^3 * v^2) :=
+      le_of_mul_le_mul_left h_poly_chain h_8000_pos
+    -- Final: 435600·(u+3)³·(v+1)² ≤ 8·(435600·u³·v²) ≤ 8·2^(3k+59)
+    calc (435600 : Rat) * (u + 3)^3 * (v + 1)^2
+        = 435600 * ((u + 3)^3 * (v + 1)^2) := by ring
+      _ ≤ 435600 * (8 * (u^3 * v^2)) :=
+            mul_le_mul_of_nonneg_left h_poly (by norm_num)
+      _ = 8 * (435600 * u^3 * v^2) := by ring
+      _ ≤ 8 * 2^(3 * k + 59) :=
+            mul_le_mul_of_nonneg_left ih' (by norm_num : (0:Rat) ≤ 8)
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
