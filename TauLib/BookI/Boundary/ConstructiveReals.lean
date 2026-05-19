@@ -298,6 +298,59 @@ theorem TauReal.equiv_of_sub_equiv_zero {x y : TauReal}
   rw [h_sub_unfold] at h_lt
   exact h_lt
 
+/-- **IsCauchy transfer along equiv**: if `a ≈ b` and `b` is IsCauchy,
+    then `a` is IsCauchy.
+
+    Standard 3-piece triangle inequality: for `m, n ≥ μ k`, decompose
+    `|a.m - a.n|` ≤ `|a.m - b.m|` + `|b.m - b.n|` + `|b.n - a.n|`, each
+    bounded by `1/(3(k+1))` via the equiv and IsCauchy moduli, totaling
+    `< 1/(k+1)`. -/
+theorem TauReal.IsCauchy_of_equiv {a b : TauReal}
+    (h_equiv : TauReal.equiv a b) (h_b : b.IsCauchy) : a.IsCauchy := by
+  obtain ⟨μ_eq, h_eq⟩ := h_equiv
+  obtain ⟨μ_b, h_b'⟩ := h_b
+  refine ⟨fun k => max (μ_eq (3*k+2)) (μ_b (3*k+2)), fun k m n hm hn => ?_⟩
+  have hm_eq : μ_eq (3*k+2) ≤ m := le_of_max_le_left hm
+  have hn_eq : μ_eq (3*k+2) ≤ n := le_of_max_le_left hn
+  have hm_b : μ_b (3*k+2) ≤ m := le_of_max_le_right hm
+  have hn_b : μ_b (3*k+2) ≤ n := le_of_max_le_right hn
+  have h_am := h_eq (3*k+2) m hm_eq
+  have h_an := h_eq (3*k+2) n hn_eq
+  have h_b_mn := h_b' (3*k+2) m n hm_b hn_b
+  unfold TauRat.lt at h_am h_an h_b_mn ⊢
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat] at h_am h_an h_b_mn
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  -- Goal: |(a.m).toRat - (a.n).toRat| < 1/(k+1)
+  have h_eq_diff : (a.approx m).toRat - (a.approx n).toRat
+      = ((a.approx m).toRat - (b.approx m).toRat)
+        + ((b.approx m).toRat - (b.approx n).toRat)
+        + ((b.approx n).toRat - (a.approx n).toRat) := by ring
+  -- Triangle inequality in two steps
+  have h_tri1 := abs_add_le
+    (((a.approx m).toRat - (b.approx m).toRat)
+      + ((b.approx m).toRat - (b.approx n).toRat))
+    ((b.approx n).toRat - (a.approx n).toRat)
+  have h_tri2 := abs_add_le
+    ((a.approx m).toRat - (b.approx m).toRat)
+    ((b.approx m).toRat - (b.approx n).toRat)
+  have h_an_swap : |((b.approx n).toRat - (a.approx n).toRat)|
+                 = |((a.approx n).toRat - (b.approx n).toRat)| := by
+    rw [show (b.approx n).toRat - (a.approx n).toRat
+        = -((a.approx n).toRat - (b.approx n).toRat) from by ring, abs_neg]
+  have h_third : 1 / (((3*k+2 : Nat) : Rat) + 1) = 1 / (3 * ((k:Rat) + 1)) := by
+    push_cast; ring
+  rw [h_third] at h_am h_an h_b_mn
+  have h_an_bound : |((b.approx n).toRat - (a.approx n).toRat)| < 1 / (3 * ((k:Rat) + 1)) := by
+    rw [h_an_swap]; exact h_an
+  have h_three : 1/(3 * ((k:Rat) + 1)) + 1/(3 * ((k:Rat) + 1)) + 1/(3 * ((k:Rat) + 1))
+               = 1/((k:Rat) + 1) := by
+    have hk1_pos : (0 : Rat) < (k:Rat) + 1 := by positivity
+    have hk1_ne : ((k:Rat) + 1) ≠ 0 := ne_of_gt hk1_pos
+    field_simp
+    ring
+  rw [h_eq_diff]
+  linarith [h_tri1, h_tri2, h_am, h_b_mn, h_an_bound, h_three]
+
 -- ============================================================
 -- [I.P39] RING AXIOMS (UP TO equiv)
 -- ============================================================
