@@ -2409,6 +2409,160 @@ theorem TauReal.cis_arctan_diff_factored_explicit_error_at_K
     rw [h_alg]
     exact h_step2_im
 
+/-! ## Path 2 Step 4 — `tangent_defect_increment_simplified_at_K_tight`
+
+  Replaces F.1b's modulus-error increment bound (which has the
+  unsatisfiable Cauchy modulus coupling) with an explicit error at
+  .approx K.
+
+  Combines:
+  - Algebraic rearrangement (tangent_defect_approx_toRat: T(a+dh).K - T(a).K
+    = im_diff.K - dh·re(a+dh).K - a·re_diff.K) — exact at .approx K.
+  - Step 3 .im (cis_arctan_im_diff_factored at .approx K): error 242·K/2^(K−1).
+  - Step 3 .re (cis_arctan_re_diff_factored at .approx K), scaled by |a| ≤ 1/4:
+    error |a|·242·K/2^(K−1).
+  - Algebraic rearrangement to RHS_5C form (matching
+    `tangent_defect_increment_simplified`) — exact at .approx K.
+
+  Triangle inequality: total error ≤ (1 + |a|)·242·K/2^(K−1) ≤ 484·K/2^(K−1).
+-/
+
+/-- **Path 2 Step 4** — Tight increment bound at depth K, no Cauchy modulus.
+
+    The RHS_5C form matches `tangent_defect_increment_simplified` exactly,
+    but the bound is explicit and decays super-exponentially in K. -/
+theorem TauReal.tangent_defect_increment_simplified_at_K_tight
+    (a dh : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add dh).toRat| ≤ 1)
+    (K : Nat) (hK : 1 ≤ K) :
+    |((TauReal.tangent_defect (a.add dh)).approx K).toRat
+        - ((TauReal.tangent_defect a).approx K).toRat
+        - ((((((TauReal.cis_arctan_re a).add
+                ((TauReal.fromTauRat a).mul (TauReal.cis_arctan_im a))).mul
+              (TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                  (TauReal.arctan_of_rat_seq a))).im).add
+            ((TauReal.tangent_defect a).mul
+              (((TauComplex.cisTauReal
+                  ((TauReal.arctan_of_rat_seq (a.add dh)).sub
+                    (TauReal.arctan_of_rat_seq a))).re).sub TauReal.one))).sub
+          ((TauReal.fromTauRat dh).mul (TauReal.cis_arctan_re (a.add dh)))).approx K).toRat|
+    ≤ 484 * (K : Rat) / 2 ^ (K - 1) := by
+  -- Step 3 gives explicit error bounds for im_diff and re_diff at .approx K
+  obtain ⟨h_step3_re, h_step3_im⟩ :=
+    TauReal.cis_arctan_diff_factored_explicit_error_at_K a dh ha hah K hK
+  -- toRat-level helpers for unfolding TauReal arithmetic
+  have h_sub_toRat : ∀ (X Y : TauReal),
+      ((X.sub Y).approx K).toRat = (X.approx K).toRat - (Y.approx K).toRat := by
+    intros X Y
+    show (TauRat.add (X.approx K) (Y.approx K).negate).toRat = _
+    rw [toRat_add, toRat_negate]; ring
+  have h_mul_toRat : ∀ (X Y : TauReal),
+      ((X.mul Y).approx K).toRat = (X.approx K).toRat * (Y.approx K).toRat := by
+    intros X Y
+    show (TauRat.mul (X.approx K) (Y.approx K)).toRat = _
+    rw [toRat_mul]
+  have h_add_toRat : ∀ (X Y : TauReal),
+      ((X.add Y).approx K).toRat = (X.approx K).toRat + (Y.approx K).toRat := by
+    intros X Y
+    show (TauRat.add (X.approx K) (Y.approx K)).toRat = _
+    rw [toRat_add]
+  have h_one_toRat : (TauReal.one.approx K).toRat = 1 := by
+    show (TauRat.one).toRat = _
+    rw [toRat_one]
+  have h_fromTauRat_toRat : ∀ (q : TauRat),
+      ((TauReal.fromTauRat q).approx K).toRat = q.toRat := fun _ => rfl
+  -- Key algebraic identity at .approx K .toRat:
+  --   T(a+dh).K - T(a).K - RHS_5C.K
+  --     = (im_diff.K - im_factored.K) - a · (re_diff.K - re_factored.K)
+  --   where the RHS uses Step 3's diff_factored expressions.
+  -- Let:
+  --   D_im := im_diff.K .toRat - im_factored.K .toRat   (Step 3 .im residual)
+  --   D_re := re_diff.K .toRat - re_factored.K .toRat   (Step 3 .re residual)
+  -- Step 3 gives |D_im| ≤ 242·K/2^(K-1), |D_re| ≤ 242·K/2^(K-1).
+  -- We show T(a+dh).K - T(a).K - RHS_5C.K = D_im - a · D_re,
+  -- so |…| ≤ |D_im| + |a| · |D_re| ≤ (1 + |a|) · 242·K/2^(K-1) ≤ 484·K/2^(K-1).
+  set δ := (TauReal.arctan_of_rat_seq (a.add dh)).sub (TauReal.arctan_of_rat_seq a) with hδ_def
+  set im_factored : TauReal :=
+    TauReal.add
+      (TauReal.mul (TauReal.cis_arctan_re a) (TauComplex.cisTauReal δ).im)
+      (TauReal.mul (TauReal.cis_arctan_im a)
+        ((TauComplex.cisTauReal δ).re.sub TauReal.one)) with him_factored_def
+  set re_factored : TauReal :=
+    TauReal.sub
+      (TauReal.mul (TauReal.cis_arctan_re a)
+        ((TauComplex.cisTauReal δ).re.sub TauReal.one))
+      (TauReal.mul (TauReal.cis_arctan_im a) (TauComplex.cisTauReal δ).im) with hre_factored_def
+  have h_step3_im_res :
+      |(((TauReal.cis_arctan_im (a.add dh)).sub (TauReal.cis_arctan_im a)).approx K).toRat
+         - (im_factored.approx K).toRat|
+        ≤ 242 * (K : Rat) / 2 ^ (K - 1) := h_step3_im
+  have h_step3_re_res :
+      |(((TauReal.cis_arctan_re (a.add dh)).sub (TauReal.cis_arctan_re a)).approx K).toRat
+         - (re_factored.approx K).toRat|
+        ≤ 242 * (K : Rat) / 2 ^ (K - 1) := h_step3_re
+  -- Algebraic identity: T(a+dh).K - T(a).K - RHS_5C.K = D_im - a · D_re
+  have h_alg :
+      ((TauReal.tangent_defect (a.add dh)).approx K).toRat
+        - ((TauReal.tangent_defect a).approx K).toRat
+        - ((((((TauReal.cis_arctan_re a).add
+                ((TauReal.fromTauRat a).mul (TauReal.cis_arctan_im a))).mul
+              (TauComplex.cisTauReal δ).im).add
+            ((TauReal.tangent_defect a).mul
+              ((TauComplex.cisTauReal δ).re.sub TauReal.one))).sub
+          ((TauReal.fromTauRat dh).mul (TauReal.cis_arctan_re (a.add dh)))).approx K).toRat
+      = ((((TauReal.cis_arctan_im (a.add dh)).sub (TauReal.cis_arctan_im a)).approx K).toRat
+         - (im_factored.approx K).toRat)
+        - a.toRat * ((((TauReal.cis_arctan_re (a.add dh)).sub (TauReal.cis_arctan_re a)).approx K).toRat
+                     - (re_factored.approx K).toRat) := by
+    rw [TauReal.tangent_defect_approx_toRat, TauReal.tangent_defect_approx_toRat]
+    simp only [h_sub_toRat, h_mul_toRat, h_add_toRat, h_one_toRat, h_fromTauRat_toRat,
+               TauReal.tangent_defect_approx_toRat,
+               him_factored_def, hre_factored_def, toRat_add]
+    ring
+  rw [h_alg]
+  -- Triangle inequality: |D_im - a · D_re| ≤ |D_im| + |a| · |D_re| ≤ 2 · 242·K/2^(K-1) (using |a| ≤ 1)
+  have h_a_abs : |a.toRat| ≤ 1 := by
+    have h_a_quarter : |a.toRat| ≤ 1/4 := by linarith [_root_.abs_nonneg a.toRat]
+    linarith
+  have h_tri :
+      |((((TauReal.cis_arctan_im (a.add dh)).sub (TauReal.cis_arctan_im a)).approx K).toRat
+        - (im_factored.approx K).toRat)
+       - a.toRat * ((((TauReal.cis_arctan_re (a.add dh)).sub (TauReal.cis_arctan_re a)).approx K).toRat
+                    - (re_factored.approx K).toRat)|
+      ≤ |(((TauReal.cis_arctan_im (a.add dh)).sub (TauReal.cis_arctan_im a)).approx K).toRat
+         - (im_factored.approx K).toRat|
+        + |a.toRat| * |(((TauReal.cis_arctan_re (a.add dh)).sub (TauReal.cis_arctan_re a)).approx K).toRat
+                      - (re_factored.approx K).toRat| := by
+    have h_sub_abs := abs_sub
+        ((((TauReal.cis_arctan_im (a.add dh)).sub (TauReal.cis_arctan_im a)).approx K).toRat
+         - (im_factored.approx K).toRat)
+        (a.toRat * ((((TauReal.cis_arctan_re (a.add dh)).sub (TauReal.cis_arctan_re a)).approx K).toRat
+                    - (re_factored.approx K).toRat))
+    -- abs_sub: |x - y| ≤ |x| + |y|
+    have h_abs_mul :
+        |a.toRat * ((((TauReal.cis_arctan_re (a.add dh)).sub (TauReal.cis_arctan_re a)).approx K).toRat
+                    - (re_factored.approx K).toRat)|
+        = |a.toRat| * |(((TauReal.cis_arctan_re (a.add dh)).sub (TauReal.cis_arctan_re a)).approx K).toRat
+                       - (re_factored.approx K).toRat| := abs_mul _ _
+    linarith [h_sub_abs, h_abs_mul]
+  have h_combine :
+      |(((TauReal.cis_arctan_im (a.add dh)).sub (TauReal.cis_arctan_im a)).approx K).toRat
+         - (im_factored.approx K).toRat|
+        + |a.toRat| * |(((TauReal.cis_arctan_re (a.add dh)).sub (TauReal.cis_arctan_re a)).approx K).toRat
+                      - (re_factored.approx K).toRat|
+      ≤ 242 * (K : Rat) / 2 ^ (K - 1) + 1 * (242 * (K : Rat) / 2 ^ (K - 1)) := by
+    have h_a_nn : 0 ≤ |a.toRat| := _root_.abs_nonneg _
+    have h_K_div_nn : 0 ≤ 242 * (K : Rat) / 2 ^ (K - 1) := by
+      apply div_nonneg
+      · positivity
+      · positivity
+    have := mul_le_mul h_a_abs h_step3_re_res (_root_.abs_nonneg _) (by linarith)
+    -- this : |a.toRat| * |re_diff - re_factored| ≤ 1 * 242·K/2^(K-1)
+    linarith [h_step3_im_res]
+  have h_final_eq : (242 : Rat) * (K : Rat) / 2 ^ (K - 1) + 1 * (242 * (K : Rat) / 2 ^ (K - 1))
+                  = 484 * (K : Rat) / 2 ^ (K - 1) := by ring
+  linarith [h_tri, h_combine, h_final_eq]
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
