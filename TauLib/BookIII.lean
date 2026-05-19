@@ -164,6 +164,7 @@ import TauLib.BookIII.Bridge.G8PrimeCharacterCoverage
 import TauLib.BookIII.Bridge.G8BookIIICharacterCoverageDischarge
 import TauLib.BookIII.Bridge.G8BookIIICharacterAcceptedRealizationLaw
 import TauLib.BookIII.Bridge.G8BookIIICharacterAcceptedRealizationProofDraft
+import TauLib.BookIII.Bridge.G8BookIIICharacterAcceptedRealizationReduction
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
