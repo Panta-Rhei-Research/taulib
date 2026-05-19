@@ -3186,6 +3186,221 @@ theorem F2_walk_defn (a : TauRat)
     intro n hn
     rw [F2_walk_seq_succ, if_neg (not_lt.mpr hn)]
 
+/-! ## F.2 walk step bound — Per-step bound for any capped walk
+
+  Generic per-step bound: given a walk sequence + dh_step + hypothesis
+  bundle, derives the per-step bound via case-split (`F2_per_step_helper`
+  for n < N; constant-walk for n ≥ N). Parametrized on the walk function
+  to keep F.2 endpoint bound's memory budget manageable. -/
+
+set_option maxHeartbeats 800000 in
+/-- **F.2 walk step bound** — Per-step bound for any capped walk sequence
+    via case-split using `F2_per_step_helper`. -/
+theorem F2_walk_step_bound
+    (a_walk : Nat → TauRat) (dh_step : TauRat) (K N : Nat) (hK_ge_2 : 2 ≤ K)
+    (a_outer : Rat) (h_a_outer_nn : 0 ≤ a_outer)
+    (h_walk_nn : ∀ n, 0 ≤ (a_walk n).toRat)
+    (h_walk_le_outer : ∀ n, (a_walk n).toRat ≤ a_outer)
+    (h_walk_bound : ∀ n, 4 * |(a_walk n).toRat| ≤ 1)
+    (h_walk_step : ∀ n, n < N → a_walk (n + 1) = (a_walk n).add dh_step)
+    (h_walk_cap : ∀ n, N ≤ n → a_walk (n + 1) = a_walk n)
+    (h_dh_nn : 0 ≤ dh_step.toRat) (h_dh_half : dh_step.toRat ≤ 1/2)
+    (h_K_dh : 2 * (K : Rat)^2 * dh_step.toRat ≤ 1) :
+    ∀ n, |((TauReal.tangent_defect (a_walk (n + 1))).approx K).toRat|
+        ≤ (1 + (dh_step.toRat / 2 + 9 * (K : Rat) * dh_step.toRat^2))
+          * |((TauReal.tangent_defect (a_walk n)).approx K).toRat|
+          + (200 * (K : Rat)^2 * dh_step.toRat^2
+             + 10 * dh_step.toRat * |a_outer|^(4 * K)
+             + 484 * (K : Rat) / 2 ^ (K - 1)) := by
+  intro n
+  by_cases hn : n < N
+  · rw [h_walk_step n hn]
+    exact F2_per_step_helper (a_walk n) dh_step (h_walk_nn n)
+      (h_walk_bound n) (by rw [← h_walk_step n hn]; exact h_walk_bound (n + 1))
+      h_dh_nn h_dh_half K hK_ge_2 h_K_dh a_outer (h_walk_le_outer n) h_a_outer_nn
+  · push_neg at hn
+    rw [h_walk_cap n hn]
+    have hK_rat_pos : (0 : Rat) < (K : Rat) :=
+      by exact_mod_cast (by omega : 0 < K)
+    have hM_nn : 0 ≤ dh_step.toRat / 2 + 9 * (K : Rat) * dh_step.toRat^2 := by
+      have h1 : 0 ≤ 9 * (K : Rat) * dh_step.toRat^2 :=
+        mul_nonneg (mul_nonneg (by norm_num) (le_of_lt hK_rat_pos)) (sq_nonneg _)
+      linarith
+    have hδ_nn : 0 ≤ 200 * (K : Rat)^2 * dh_step.toRat^2
+                   + 10 * dh_step.toRat * |a_outer|^(4 * K)
+                   + 484 * (K : Rat) / 2 ^ (K - 1) := by
+      have h_K_sq : (0 : Rat) < (K : Rat)^2 := by positivity
+      have h1 : 0 ≤ 200 * (K : Rat)^2 * dh_step.toRat^2 :=
+        mul_nonneg (mul_nonneg (by norm_num) (le_of_lt h_K_sq)) (sq_nonneg _)
+      have h2 : 0 ≤ 10 * dh_step.toRat * |a_outer|^(4 * K) :=
+        mul_nonneg (mul_nonneg (by norm_num) h_dh_nn) (pow_nonneg (_root_.abs_nonneg _) _)
+      have h3 : 0 ≤ 484 * (K : Rat) / 2 ^ (K - 1) := by
+        have : (0 : Rat) < 2 ^ (K - 1) := by positivity
+        exact div_nonneg (mul_nonneg (by norm_num) (le_of_lt hK_rat_pos)) (le_of_lt this)
+      linarith
+    have h_T_nn : 0 ≤ |((TauReal.tangent_defect (a_walk n)).approx K).toRat| :=
+      _root_.abs_nonneg _
+    nlinarith [hM_nn, h_T_nn, hδ_nn]
+
+/-! ## F.2 NM bound in K/N notation — cast wrapper for F2_NM_bound_lemma
+
+  Re-states `F2_NM_bound_lemma` in K = 3k+60, N = 100·K²·(k+1) notation
+  so F.2 endpoint bound doesn't need cast bridging in its body. -/
+
+set_option maxHeartbeats 400000 in
+/-- **F.2 NM bound (K/N form)** — `N · M ≤ 1/4` in K, N notation. -/
+theorem F2_NM_bound_K_N (a : TauRat) (k : Nat)
+    (h_a_nn : 0 ≤ a.toRat) (h_a_le : 4 * a.toRat ≤ 1)
+    (K : Nat) (hK_def : K = 3 * k + 60)
+    (N : Nat) (hN_def : N = 100 * K^2 * (k + 1)) :
+    (N : Rat) * (a.toRat / (N : Rat) / 2
+                 + 9 * (K : Rat) * (a.toRat / (N : Rat))^2) ≤ 1/4 := by
+  have h_cast_eq :
+      (N : Rat) * (a.toRat / (N : Rat) / 2
+                   + 9 * (K : Rat) * (a.toRat / (N : Rat))^2)
+      = ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+        * (a.toRat / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) / 2
+           + 9 * ((3 * k + 60 : Nat) : Rat)
+              * (a.toRat / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))^2) := by
+    rw [hN_def, hK_def]
+  rw [h_cast_eq]
+  exact F2_NM_bound_lemma a.toRat k h_a_nn h_a_le
+
+/-! ## F.2 walk apply Gronwall — Gronwall + Bernoulli combination
+
+  Given a walk + per-step bound + N·M ≤ 1/4, applies discrete Gronwall
+  + Bernoulli to get endpoint bound `|T(a_seq N).approx K| ≤ 2·N·δ`. -/
+
+set_option maxHeartbeats 1600000 in
+/-- **F.2 walk apply Gronwall** — Combine Gronwall + Bernoulli with
+    `N·M ≤ 1/4` to bound endpoint by `2·N·δ`. -/
+theorem F2_walk_apply_gronwall (a_seq : Nat → TauRat) (M δ : Rat) (K N : Nat)
+    (hN_pos : 0 < N) (hM_nn : 0 ≤ M) (hδ_nn : 0 ≤ δ)
+    (h_a_seq_zero : a_seq 0 = TauRat.zero)
+    (h_step_bound : ∀ n, |((TauReal.tangent_defect (a_seq (n + 1))).approx K).toRat|
+                       ≤ (1 + M) * |((TauReal.tangent_defect (a_seq n)).approx K).toRat| + δ)
+    (h_NM_le : (N : Rat) * M ≤ 1/4) :
+    |((TauReal.tangent_defect (a_seq N)).approx K).toRat| ≤ 2 * (N : Rat) * δ := by
+  have hN_rat_pos : (0 : Rat) < (N : Rat) := by exact_mod_cast hN_pos
+  have h_v_0 : |((TauReal.tangent_defect (a_seq 0)).approx K).toRat| ≤ 0 := by
+    rw [h_a_seq_zero, TauReal.tangent_defect_zero_approx_toRat]; simp
+  have h_gronwall := Rat.discrete_gronwall_abs
+    (fun n => ((TauReal.tangent_defect (a_seq n)).approx K).toRat)
+    M δ 0 hM_nn hδ_nn (by norm_num : (0 : Rat) ≤ 0) h_v_0 h_step_bound N
+  have h_vN : |((TauReal.tangent_defect (a_seq N)).approx K).toRat|
+            ≤ (N : Rat) * (1 + M)^N * δ := by
+    have : (1 + M)^N * 0 + (N : Rat) * (1 + M)^N * δ
+        = (N : Rat) * (1 + M)^N * δ := by ring
+    linarith [h_gronwall]
+  have h_NM_half : (N : Rat) * M ≤ 1/2 := by linarith
+  have h_bern := F2_bernoulli_upper M hM_nn N h_NM_half
+  have h_1pM_le_2 : (1 + M)^N ≤ 2 := by linarith [h_bern, h_NM_le]
+  have h_Nδ_nn : 0 ≤ (N : Rat) * δ := mul_nonneg (le_of_lt hN_rat_pos) hδ_nn
+  calc |((TauReal.tangent_defect (a_seq N)).approx K).toRat|
+      ≤ (N : Rat) * (1 + M)^N * δ := h_vN
+    _ ≤ (N : Rat) * 2 * δ := by nlinarith [h_1pM_le_2, hN_rat_pos, hδ_nn, h_Nδ_nn]
+    _ = 2 * (N : Rat) * δ := by ring
+
+/-! ## F.2 walk endpoint bound — Gronwall + Bernoulli on the walk
+
+  Given F2_walk_seq, prove the endpoint bound after Gronwall + Bernoulli.
+  Returns `walk_endpoint.toRat = a.toRat` (for B.1 bridge) plus the
+  endpoint bound `|T(walk_endpoint).approx K| ≤ 2·N·δ_step`. -/
+
+set_option maxHeartbeats 4000000 in
+/-- **F.2 walk endpoint bound** — Apply Gronwall + Bernoulli on the
+    capped walk to get endpoint bound at depth K = 3k+60. -/
+theorem F2_walk_endpoint_bound (a : TauRat)
+    (h_a_nn : 0 ≤ a.toRat) (h_a_le : 4 * a.toRat ≤ 1) (k : Nat) :
+    ∃ (walk_endpoint : TauRat),
+      walk_endpoint.toRat = a.toRat ∧
+      |((TauReal.tangent_defect walk_endpoint).approx (3 * k + 60)).toRat|
+        ≤ 2 * ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+          * (200 * ((3 * k + 60 : Nat) : Rat)^2
+                * (a.toRat / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))^2
+             + 10 * (a.toRat / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))
+                  * |a.toRat|^(4 * (3 * k + 60))
+             + 484 * ((3 * k + 60 : Nat) : Rat) / 2 ^ ((3 * k + 60) - 1)) := by
+  set K : Nat := 3 * k + 60 with hK_def
+  set N : Nat := 100 * K^2 * (k + 1) with hN_def
+  have hK_ge_2 : 2 ≤ K := by rw [hK_def]; omega
+  have hK_nat_pos : 0 < K := by omega
+  have hN_nat_pos : 0 < N := by rw [hN_def]; positivity
+  have hN_pos : (0 : Rat) < (N : Rat) := by exact_mod_cast hN_nat_pos
+  obtain ⟨_, _, hdh_nn, hdh_le_half, h_K_dh_raw⟩ :=
+    F2_hypothesis_lemma a.toRat k h_a_nn h_a_le
+  obtain ⟨h_walk_0, h_dh_toRat, h_walk_toRat, h_walk_step, h_walk_cap⟩ :=
+    F2_walk_defn a h_a_nn h_a_le k
+  set dh_step : TauRat := TauRat.gronwallWalkStep a 1 N hN_nat_pos with hdh_def
+  set a_seq : Nat → TauRat := F2_walk_seq a N hN_nat_pos with ha_seq_def
+  have h_dh_step_toRat : dh_step.toRat = a.toRat / (N : Rat) := h_dh_toRat
+  -- N is definitionally `100 * (3*k+60)^2 * (k+1)`, so h_walk_toRat (with that explicit form)
+  -- can be used at type `∀ n, (a_seq n).toRat = (Nat.min n N : Rat) * a.toRat / (N : Rat)`.
+  have h_walk_toRat' : ∀ n, (a_seq n).toRat = (Nat.min n N : Rat) * a.toRat / (N : Rat) :=
+    h_walk_toRat
+  have h_a_seq_nn : ∀ n, 0 ≤ (a_seq n).toRat := fun n => by
+    rw [h_walk_toRat' n]
+    exact div_nonneg (mul_nonneg (Nat.cast_nonneg _) h_a_nn) (le_of_lt hN_pos)
+  have h_a_seq_le_a : ∀ n, (a_seq n).toRat ≤ a.toRat := fun n => by
+    rw [h_walk_toRat' n, div_le_iff₀ hN_pos]
+    have h_min_le : (Nat.min n N : Rat) ≤ (N : Rat) := by
+      exact_mod_cast Nat.min_le_right n N
+    calc (Nat.min n N : Rat) * a.toRat
+        ≤ (N : Rat) * a.toRat := mul_le_mul_of_nonneg_right h_min_le h_a_nn
+      _ = a.toRat * (N : Rat) := by ring
+  have h_a_seq_bound : ∀ n, 4 * |(a_seq n).toRat| ≤ 1 := fun n => by
+    rw [abs_of_nonneg (h_a_seq_nn n)]
+    linarith [h_a_seq_le_a n]
+  have h_dh_nn : 0 ≤ dh_step.toRat := by rw [h_dh_step_toRat]; exact hdh_nn
+  have h_dh_half : dh_step.toRat ≤ 1/2 := by rw [h_dh_step_toRat]; exact hdh_le_half
+  have h_K_dh : 2 * (K : Rat)^2 * dh_step.toRat ≤ 1 := by
+    rw [h_dh_step_toRat]; exact h_K_dh_raw
+  have h_a_seq_N_toRat : (a_seq N).toRat = a.toRat := by
+    rw [h_walk_toRat' N]
+    rw [show (Nat.min N N : Nat) = N from Nat.min_self N]
+    field_simp
+  -- Per-step bound via F2_walk_step_bound helper
+  have h_step_bound := F2_walk_step_bound a_seq dh_step K N hK_ge_2 a.toRat h_a_nn
+    h_a_seq_nn h_a_seq_le_a h_a_seq_bound h_walk_step h_walk_cap h_dh_nn h_dh_half h_K_dh
+  set M_step : Rat := dh_step.toRat / 2 + 9 * (K : Rat) * dh_step.toRat^2 with hM_def
+  set δ_step : Rat := 200 * (K : Rat)^2 * dh_step.toRat^2
+                    + 10 * dh_step.toRat * |a.toRat|^(4 * K)
+                    + 484 * (K : Rat) / 2 ^ (K - 1) with hδ_def
+  have hK_rat_pos : (0 : Rat) < (K : Rat) := by exact_mod_cast hK_nat_pos
+  have hM_nn : 0 ≤ M_step := by
+    have : 0 ≤ 9 * (K : Rat) * dh_step.toRat^2 :=
+      mul_nonneg (mul_nonneg (by norm_num) (le_of_lt hK_rat_pos)) (sq_nonneg _)
+    rw [hM_def]; linarith
+  have hδ_nn : 0 ≤ δ_step := by
+    have h_K_sq : (0 : Rat) < (K : Rat)^2 := by positivity
+    have h1 : 0 ≤ 200 * (K : Rat)^2 * dh_step.toRat^2 :=
+      mul_nonneg (mul_nonneg (by norm_num) (le_of_lt h_K_sq)) (sq_nonneg _)
+    have h2 : 0 ≤ 10 * dh_step.toRat * |a.toRat|^(4 * K) :=
+      mul_nonneg (mul_nonneg (by norm_num) h_dh_nn) (pow_nonneg (_root_.abs_nonneg _) _)
+    have h3 : 0 ≤ 484 * (K : Rat) / 2 ^ (K - 1) := by
+      have : (0 : Rat) < 2 ^ (K - 1) := by positivity
+      exact div_nonneg (mul_nonneg (by norm_num) (le_of_lt hK_rat_pos)) (le_of_lt this)
+    rw [hδ_def]; linarith
+  have h_NM_le : (N : Rat) * M_step ≤ 1/4 := by
+    rw [hM_def, h_dh_step_toRat]
+    exact F2_NM_bound_K_N a k h_a_nn h_a_le K hK_def N hN_def
+  have h_endpoint_bound := F2_walk_apply_gronwall a_seq M_step δ_step K N hN_nat_pos
+    hM_nn hδ_nn h_walk_0 h_step_bound h_NM_le
+  refine ⟨a_seq N, h_a_seq_N_toRat, ?_⟩
+  have h_N_cast : ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) = (N : Rat) := by
+    rw [hN_def, hK_def]
+  have h_K_cast : ((3 * k + 60 : Nat) : Rat) = (K : Rat) := by rw [hK_def]
+  have h_4K_eq : 4 * (3 * k + 60) = 4 * K := by rw [hK_def]
+  have h_Km1 : (3 * k + 60) - 1 = K - 1 := by rw [hK_def]
+  rw [h_N_cast, h_K_cast, h_4K_eq, h_Km1]
+  rw [show a.toRat / (N : Rat) = dh_step.toRat from h_dh_step_toRat.symm]
+  show |((TauReal.tangent_defect (a_seq N)).approx K).toRat|
+      ≤ 2 * (N : Rat) * (200 * (K : Rat)^2 * dh_step.toRat^2
+                        + 10 * dh_step.toRat * |a.toRat|^(4 * K)
+                        + 484 * (K : Rat) / 2 ^ (K - 1))
+  rw [← hδ_def]
+  exact h_endpoint_bound
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
