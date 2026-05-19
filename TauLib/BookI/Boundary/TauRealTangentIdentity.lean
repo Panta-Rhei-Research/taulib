@@ -3401,6 +3401,364 @@ theorem F2_walk_endpoint_bound (a : TauRat)
   rw [← hδ_def]
   exact h_endpoint_bound
 
+/-! ## B.3 / cis_arctan_re IsCauchy — Cauchy modulus for the .re component
+
+  Helper: for `m ≥ 4`, `m^2 ≤ 2^m`. Lets us bound `n · 4/2^n ≤ 4/n` for
+  `n ≥ 4`, which closes the Lipschitz contribution in the Cauchy modulus.
+-/
+
+/-- **Helper**: for `m ≥ 4`, `2*m + 1 ≤ 2^m`. -/
+private theorem Nat.two_m_plus_one_le_two_pow (m : Nat) (hm : 4 ≤ m) :
+    2*m + 1 ≤ 2^m := by
+  induction m, hm using Nat.le_induction with
+  | base => decide
+  | succ m hm ih =>
+    -- 2(m+1)+1 = 2m+3 = (2m+1) + 2 ≤ 2^m + 2.
+    -- Need ≤ 2·2^m = 2^(m+1). True iff 2 ≤ 2^m, which holds since m ≥ 4.
+    have h_pow_ge : 2 ≤ 2^m := by
+      have hp : (2 : Nat)^1 ≤ 2^m := Nat.pow_le_pow_right (by norm_num) (by omega)
+      simpa using hp
+    have h_pow_succ : 2^(m+1) = 2 * 2^m := by ring
+    have : 2 * (m+1) + 1 = (2*m + 1) + 2 := by ring
+    rw [this, h_pow_succ]
+    linarith
+
+/-- **Helper**: for `m ≥ 4`, `m^2 ≤ 2^m`. Standard inductive bound used to
+    discharge the Lipschitz contribution in `cis_arctan_re_isCauchy`. -/
+private theorem Nat.sq_le_two_pow_of_four_le (m : Nat) (hm : 4 ≤ m) :
+    m^2 ≤ 2^m := by
+  induction m, hm using Nat.le_induction with
+  | base => decide
+  | succ m hm ih =>
+    have h_step : (m+1)^2 = m^2 + (2*m + 1) := by ring
+    have h_2m1_le : 2*m + 1 ≤ 2^m := Nat.two_m_plus_one_le_two_pow m hm
+    have h_pow_succ : 2^(m+1) = 2 * 2^m := by ring
+    calc (m+1)^2 = m^2 + (2*m+1) := h_step
+      _ ≤ 2^m + 2^m := by linarith
+      _ = 2 * 2^m := by ring
+      _ = 2^(m+1) := h_pow_succ.symm
+
+/-- **Helper (Rat cast)**: for `m ≥ 4`, `(m : Rat)^2 ≤ (2 : Rat)^m`. -/
+private theorem Rat.sq_le_two_pow_of_four_le (m : Nat) (hm : 4 ≤ m) :
+    ((m : Rat))^2 ≤ (2 : Rat)^m := by
+  have h_nat := Nat.sq_le_two_pow_of_four_le m hm
+  have h_cast : ((m^2 : Nat) : Rat) ≤ ((2^m : Nat) : Rat) := by exact_mod_cast h_nat
+  have h_lhs : ((m^2 : Nat) : Rat) = ((m : Rat))^2 := by push_cast; ring
+  have h_rhs : ((2^m : Nat) : Rat) = (2 : Rat)^m := by push_cast; ring
+  linarith
+
+set_option maxHeartbeats 4000000 in
+/-- **B.3 / cis_arctan_re IsCauchy** — For `a : TauRat` with `2·|a.toRat| ≤ 1`,
+    the real part `cis_arctan_re a := (cisTauReal (arctan_of_rat_seq a)).re`
+    is Cauchy. Modulus chosen to handle both Cauchy-in-depth and Lipschitz
+    contributions to the partial-sum difference.
+
+    **Modulus**: `μ k := 24*(k+1) + 32 = 24k + 56`. For `n ≥ μ k`, with
+    `N := n/4`, we have `N ≥ 6k+8 ≥ 6k+5+3`, so `4/2^N < 1/(6(k+1))` giving
+    `12/2^N < 1/(2(k+1))` (the Cauchy-in-depth contribution). Also
+    `n ≥ 8k+8` so `4/n ≤ 1/(2(k+1))`; combined with `m^2 ≤ 2^m` for `m ≥ 4`,
+    this gives `n · 4/2^n ≤ 4/n ≤ 1/(2(k+1))` (the Lipschitz contribution).
+    Triangle: total `< 1/(k+1)`.
+
+    Decomposition: WLOG `n₁ ≤ n₂`, let `α_i := arctan_partial_rat a.toRat n_i`.
+    Then `|expPartial α_{n₂} n₂ − expPartial α_{n₁} n₁|` splits as
+    `|expPartial α_{n₂} n₂ − expPartial α_{n₂} n₁|` (Cauchy-in-depth at `α_{n₂}`)
+    plus `|expPartial α_{n₂} n₁ − expPartial α_{n₁} n₁|` (Lipschitz at depth `n₁`). -/
+theorem TauReal.cis_arctan_re_isCauchy (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) :
+    (TauReal.cis_arctan_re a).IsCauchy := by
+  refine ⟨fun k => 24*(k+1) + 32, ?_⟩
+  intro k m n hm hn
+  change 24*(k+1) + 32 ≤ m at hm
+  change 24*(k+1) + 32 ≤ n at hn
+  -- Reduce to: |.approx m .toRat - .approx n .toRat| < 1/(k+1).
+  unfold TauRat.lt
+  rw [TauRat.toRat_abs, toRat_sub, TauRat.ofNatRecip_toRat]
+  show |((TauReal.cis_arctan_re a).approx m).toRat
+        - ((TauReal.cis_arctan_re a).approx n).toRat|
+      < 1 / ((k : Rat) + 1)
+  -- Unfold cis_arctan_re via cisTauReal_re_approx_toRat
+  rw [TauReal.cis_arctan_re_approx, TauReal.cis_arctan_re_approx]
+  rw [cisTauReal_re_approx_toRat, cisTauReal_re_approx_toRat]
+  rw [TauReal.arctan_of_rat_seq_approx, TauReal.arctan_of_rat_seq_approx]
+  rw [TauRat.arctan_partial_toRat, TauRat.arctan_partial_toRat]
+  -- Goal: |expPartial_pureIm_re_rat (arctan_partial_rat a.toRat m) m
+  --       - expPartial_pureIm_re_rat (arctan_partial_rat a.toRat n) n| < 1/(k+1)
+  -- Set abbreviations
+  set aR : Rat := a.toRat
+  -- WLOG handle symmetric case: split on whether n ≤ m or m < n.
+  -- The proof is symmetric; we extract the core into a `wlog_core` block.
+  suffices h_core : ∀ p q : Nat, 24*(k+1) + 32 ≤ p → 24*(k+1) + 32 ≤ q → q ≤ p →
+      |expPartial_pureIm_re_rat (arctan_partial_rat aR p) p
+        - expPartial_pureIm_re_rat (arctan_partial_rat aR q) q|
+      < 1 / ((k : Rat) + 1) by
+    by_cases h_le : n ≤ m
+    · exact h_core m n hm hn h_le
+    · push_neg at h_le
+      have h_m_le_n : m ≤ n := Nat.le_of_lt h_le
+      have h_swap :
+          |expPartial_pureIm_re_rat (arctan_partial_rat aR m) m
+            - expPartial_pureIm_re_rat (arctan_partial_rat aR n) n|
+            = |expPartial_pureIm_re_rat (arctan_partial_rat aR n) n
+              - expPartial_pureIm_re_rat (arctan_partial_rat aR m) m| := by
+        rw [show expPartial_pureIm_re_rat (arctan_partial_rat aR m) m
+              - expPartial_pureIm_re_rat (arctan_partial_rat aR n) n
+            = -(expPartial_pureIm_re_rat (arctan_partial_rat aR n) n
+              - expPartial_pureIm_re_rat (arctan_partial_rat aR m) m) from by ring,
+            abs_neg]
+      rw [h_swap]
+      exact h_core n m hn hm h_m_le_n
+  -- Core: prove the bound for q ≤ p.
+  intro p q hp hq h_qp
+  -- Set local abbreviations
+  set α_p : Rat := arctan_partial_rat aR p
+  set α_q : Rat := arctan_partial_rat aR q
+  -- |α_p|, |α_q| ≤ 1 from arctan_partial_rat_abs_le_one
+  have h_αp_abs : |α_p| ≤ 1 := arctan_partial_rat_abs_le_one aR ha p
+  have h_αq_abs : |α_q| ≤ 1 := arctan_partial_rat_abs_le_one aR ha q
+  -- Decompose:
+  -- |expPartial α_p p - expPartial α_q q|
+  -- ≤ |expPartial α_p p - expPartial α_p q|   (T1: Cauchy-in-depth at α_p)
+  -- + |expPartial α_p q - expPartial α_q q|   (T2: Lipschitz at depth q)
+  have h_rearr :
+      expPartial_pureIm_re_rat α_p p - expPartial_pureIm_re_rat α_q q
+        = (expPartial_pureIm_re_rat α_p p - expPartial_pureIm_re_rat α_p q)
+          + (expPartial_pureIm_re_rat α_p q - expPartial_pureIm_re_rat α_q q) := by ring
+  rw [h_rearr]
+  have h_tri := abs_add_le
+    (expPartial_pureIm_re_rat α_p p - expPartial_pureIm_re_rat α_p q)
+    (expPartial_pureIm_re_rat α_p q - expPartial_pureIm_re_rat α_q q)
+  -- ===========================================================
+  -- T1: Cauchy-in-depth at fixed α_p, between depths q ≤ p
+  -- ===========================================================
+  -- Decompose using cos_partial alignment at 4M_q where M_q = q/4.
+  -- |expPartial α_p p - expPartial α_p q|
+  -- ≤ |expPartial α_p p - cos α_p M_p| + |cos α_p M_p - cos α_p M_q|
+  --   + |cos α_p M_q - expPartial α_p q|
+  -- ≤ 4/2^M_p + 4/2^M_q + 4/2^M_q ≤ 12/2^M_q (since M_q ≤ M_p)
+  have hr_p_le : p % 4 ≤ 3 := by omega
+  have hr_q_le : q % 4 ≤ 3 := by omega
+  have h_p_eq : p = 4*(p/4) + p%4 := (Nat.div_add_mod p 4).symm
+  have h_q_eq : q = 4*(q/4) + q%4 := (Nat.div_add_mod q 4).symm
+  set M_p := p / 4
+  set r_p := p % 4
+  set M_q := q / 4
+  set r_q := q % 4
+  -- Bounds on M_p, M_q
+  have h_Mp_ge : 6*k + 8 ≤ M_p := by
+    have h_24_le : 24*(k+1) + 32 ≤ p := hp
+    have h_div : (24*(k+1) + 32) / 4 ≤ p / 4 := Nat.div_le_div_right h_24_le
+    have h_compute : (24*(k+1) + 32) / 4 = 6*k + 14 := by omega
+    have : 6*k + 14 ≤ M_p := by simp [M_p]; omega
+    omega
+  have h_Mq_ge : 6*k + 8 ≤ M_q := by
+    have h_24_le : 24*(k+1) + 32 ≤ q := hq
+    have h_div : (24*(k+1) + 32) / 4 ≤ q / 4 := Nat.div_le_div_right h_24_le
+    have h_compute : (24*(k+1) + 32) / 4 = 6*k + 14 := by omega
+    have : 6*k + 14 ≤ M_q := by simp [M_q]; omega
+    omega
+  -- M_q ≤ M_p (since q ≤ p)
+  have h_Mq_le_Mp : M_q ≤ M_p := Nat.div_le_div_right h_qp
+  -- Rearrange T1
+  have h_T1_rearr :
+      expPartial_pureIm_re_rat α_p p - expPartial_pureIm_re_rat α_p q
+        = (expPartial_pureIm_re_rat α_p (4*M_p + r_p) - cos_partial_rat α_p M_p)
+          + (cos_partial_rat α_p M_p - cos_partial_rat α_p M_q)
+          + (cos_partial_rat α_p M_q - expPartial_pureIm_re_rat α_p (4*M_q + r_q)) := by
+    rw [show p = 4*M_p + r_p from h_p_eq, show q = 4*M_q + r_q from h_q_eq]
+    ring
+  -- Triangle for T1
+  have h_T1_tri :
+      |expPartial_pureIm_re_rat α_p p - expPartial_pureIm_re_rat α_p q|
+        ≤ |expPartial_pureIm_re_rat α_p (4*M_p + r_p) - cos_partial_rat α_p M_p|
+          + |cos_partial_rat α_p M_p - cos_partial_rat α_p M_q|
+          + |cos_partial_rat α_p M_q - expPartial_pureIm_re_rat α_p (4*M_q + r_q)| := by
+    rw [h_T1_rearr]
+    have h_step1 := abs_add_le
+      ((expPartial_pureIm_re_rat α_p (4*M_p + r_p) - cos_partial_rat α_p M_p)
+        + (cos_partial_rat α_p M_p - cos_partial_rat α_p M_q))
+      (cos_partial_rat α_p M_q - expPartial_pureIm_re_rat α_p (4*M_q + r_q))
+    have h_step2 := abs_add_le
+      (expPartial_pureIm_re_rat α_p (4*M_p + r_p) - cos_partial_rat α_p M_p)
+      (cos_partial_rat α_p M_p - cos_partial_rat α_p M_q)
+    linarith
+  -- Three pieces ≤ 4/2^M_q
+  have h_resid_p : |expPartial_pureIm_re_rat α_p (4*M_p + r_p) - cos_partial_rat α_p M_p|
+                    ≤ (r_p : Rat) / (Nat.factorial (4*M_p) : Rat) :=
+    expPartial_pureIm_re_rat_residual_le α_p h_αp_abs M_p r_p hr_p_le
+  have h_resid_q : |cos_partial_rat α_p M_q - expPartial_pureIm_re_rat α_p (4*M_q + r_q)|
+                    ≤ (r_q : Rat) / (Nat.factorial (4*M_q) : Rat) := by
+    have h_swap : cos_partial_rat α_p M_q - expPartial_pureIm_re_rat α_p (4*M_q + r_q)
+                = -(expPartial_pureIm_re_rat α_p (4*M_q + r_q) - cos_partial_rat α_p M_q) := by ring
+    rw [h_swap, abs_neg]
+    exact expPartial_pureIm_re_rat_residual_le α_p h_αp_abs M_q r_q hr_q_le
+  have h_cos_cauchy : |cos_partial_rat α_p M_p - cos_partial_rat α_p M_q|
+                    ≤ 4 / (2 : Rat)^M_q := by
+    have h_swap : cos_partial_rat α_p M_p - cos_partial_rat α_p M_q
+                = -(cos_partial_rat α_p M_q - cos_partial_rat α_p M_p) := by ring
+    -- Need: cos_partial_rat_cauchy_bound has signature (x, hx, m, n, hnm : n ≤ m)
+    -- We have M_q ≤ M_p, so cos_partial_rat_cauchy_bound x hx M_p M_q h_Mq_le_Mp gives
+    -- |cos_partial x M_p - cos_partial x M_q| ≤ 4/2^M_q. Direct.
+    exact cos_partial_rat_cauchy_bound α_p h_αp_abs M_p M_q h_Mq_le_Mp
+  -- Convert residuals to 4/2^M bounds
+  have h_resid_p_le : (r_p : Rat) / (Nat.factorial (4*M_p) : Rat) ≤ 4 / (2 : Rat)^M_p := by
+    have h_fac_pos : (0 : Rat) < (Nat.factorial (4*M_p) : Rat) := by
+      have := Nat.factorial_pos (4*M_p); exact_mod_cast this
+    have h_two_pow_pos : (0 : Rat) < (2 : Rat)^M_p := by positivity
+    have h_fac_ge_pow : ((2 : Rat))^M_p ≤ (Nat.factorial (4*M_p) : Rat) := by
+      have hN := factorial_4m_ge_two_pow_m M_p
+      have h_cast : ((2^M_p : Nat) : Rat) = (2 : Rat)^M_p := by push_cast; ring
+      calc ((2 : Rat))^M_p
+          = ((2^M_p : Nat) : Rat) := h_cast.symm
+        _ ≤ (Nat.factorial (4*M_p) : Rat) := by exact_mod_cast hN
+    have h_r_le_4 : (r_p : Rat) ≤ 4 := by exact_mod_cast (by omega : r_p ≤ 4)
+    have h_step1 : (r_p : Rat) / (Nat.factorial (4*M_p) : Rat)
+                ≤ 4 / (Nat.factorial (4*M_p) : Rat) := by
+      rw [div_le_div_iff₀ h_fac_pos h_fac_pos]
+      nlinarith
+    have h_step2 : (4 : Rat) / (Nat.factorial (4*M_p) : Rat) ≤ 4 / (2 : Rat)^M_p := by
+      rw [div_le_div_iff₀ h_fac_pos h_two_pow_pos]
+      nlinarith
+    linarith
+  have h_resid_q_le : (r_q : Rat) / (Nat.factorial (4*M_q) : Rat) ≤ 4 / (2 : Rat)^M_q := by
+    have h_fac_pos : (0 : Rat) < (Nat.factorial (4*M_q) : Rat) := by
+      have := Nat.factorial_pos (4*M_q); exact_mod_cast this
+    have h_two_pow_pos : (0 : Rat) < (2 : Rat)^M_q := by positivity
+    have h_fac_ge_pow : ((2 : Rat))^M_q ≤ (Nat.factorial (4*M_q) : Rat) := by
+      have hN := factorial_4m_ge_two_pow_m M_q
+      have h_cast : ((2^M_q : Nat) : Rat) = (2 : Rat)^M_q := by push_cast; ring
+      calc ((2 : Rat))^M_q
+          = ((2^M_q : Nat) : Rat) := h_cast.symm
+        _ ≤ (Nat.factorial (4*M_q) : Rat) := by exact_mod_cast hN
+    have h_r_le_4 : (r_q : Rat) ≤ 4 := by exact_mod_cast (by omega : r_q ≤ 4)
+    have h_step1 : (r_q : Rat) / (Nat.factorial (4*M_q) : Rat)
+                ≤ 4 / (Nat.factorial (4*M_q) : Rat) := by
+      rw [div_le_div_iff₀ h_fac_pos h_fac_pos]
+      nlinarith
+    have h_step2 : (4 : Rat) / (Nat.factorial (4*M_q) : Rat) ≤ 4 / (2 : Rat)^M_q := by
+      rw [div_le_div_iff₀ h_fac_pos h_two_pow_pos]
+      nlinarith
+    linarith
+  -- 4/2^M_p ≤ 4/2^M_q since M_q ≤ M_p
+  have h_two_pow_Mp_pos : (0 : Rat) < (2 : Rat)^M_p := by positivity
+  have h_two_pow_Mq_pos : (0 : Rat) < (2 : Rat)^M_q := by positivity
+  have h_pow_Mq_le_Mp : (2 : Rat)^M_q ≤ (2 : Rat)^M_p :=
+    pow_le_pow_right₀ (by norm_num : (1 : Rat) ≤ 2) h_Mq_le_Mp
+  have h_4_div_Mp_le_Mq : (4 : Rat) / (2 : Rat)^M_p ≤ 4 / (2 : Rat)^M_q := by
+    rw [div_le_div_iff₀ h_two_pow_Mp_pos h_two_pow_Mq_pos]
+    nlinarith
+  -- T1 ≤ 12/2^M_q
+  have h_T1_le_12 :
+      |expPartial_pureIm_re_rat α_p p - expPartial_pureIm_re_rat α_p q|
+        ≤ 12 / (2 : Rat)^M_q := by
+    have h_part1 :
+        |expPartial_pureIm_re_rat α_p (4*M_p + r_p) - cos_partial_rat α_p M_p|
+          ≤ 4 / (2 : Rat)^M_q := by linarith
+    have h_part2 :
+        |cos_partial_rat α_p M_q - expPartial_pureIm_re_rat α_p (4*M_q + r_q)|
+          ≤ 4 / (2 : Rat)^M_q := by linarith
+    -- Total: 4/2^M_q + 4/2^M_q + 4/2^M_q = 12/2^M_q
+    have h_sum : 4 / (2 : Rat)^M_q + 4 / (2 : Rat)^M_q + 4 / (2 : Rat)^M_q
+                = 12 / (2 : Rat)^M_q := by
+      field_simp; ring
+    linarith
+  -- T1 < 1/(2(k+1)) via 12/2^M_q = 3 · 4/2^M_q < 3 · 1/(6(k+1)) = 1/(2(k+1))
+  -- four_div_two_pow_lt_recip K n hn : 4/2^n < 1/(K+1) for K + 3 ≤ n
+  -- Use K = 6k+5, then K+1 = 6k+6 = 6(k+1), and K+3 = 6k+8 ≤ M_q. ✓
+  have h_T1_strict :
+      |expPartial_pureIm_re_rat α_p p - expPartial_pureIm_re_rat α_p q|
+        < 1 / (2 * ((k : Rat) + 1)) := by
+    have h_4_div_lt : (4 : Rat) / (2 : Rat)^M_q < 1 / (((6*k+5 : Nat) : Rat) + 1) :=
+      Rat.four_div_two_pow_lt_recip (6*k+5) M_q (by omega)
+    have h_recip_eq : 1 / (((6*k+5 : Nat) : Rat) + 1) = 1 / (6 * ((k : Rat) + 1)) := by
+      push_cast; ring
+    rw [h_recip_eq] at h_4_div_lt
+    -- 12/2^M_q < 12/(6(k+1)) = 2/(k+1) — too loose. We want < 1/(2(k+1)).
+    -- 12/2^M_q = 3 · 4/2^M_q < 3 · 1/(6(k+1)) = 1/(2(k+1)). ✓
+    have h_kp1_pos : (0 : Rat) < (k : Rat) + 1 := by
+      have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k
+      linarith
+    have h_3_times : (3 : Rat) * (1 / (6 * ((k : Rat) + 1))) = 1 / (2 * ((k : Rat) + 1)) := by
+      field_simp
+      ring
+    have h_two_pow_pos_local : (0 : Rat) < (2 : Rat)^M_q := by positivity
+    have h_12_eq : (12 : Rat) / (2 : Rat)^M_q = 3 * (4 / (2 : Rat)^M_q) := by
+      rw [mul_div_assoc']; norm_num
+    have h_strict : (12 : Rat) / (2 : Rat)^M_q < 1 / (2 * ((k : Rat) + 1)) := by
+      rw [h_12_eq, ← h_3_times]
+      have h_3_pos : (0 : Rat) < 3 := by norm_num
+      exact mul_lt_mul_of_pos_left h_4_div_lt h_3_pos
+    linarith [h_T1_le_12, h_strict]
+  -- ===========================================================
+  -- T2: Lipschitz at depth q
+  -- ===========================================================
+  -- |expPartial α_p q - expPartial α_q q| ≤ q · |α_p - α_q|
+  --                                       ≤ q · 4/2^q (arctan Cauchy)
+  --                                       ≤ 4/q   (using q² ≤ 2^q)
+  --                                       ≤ 1/(2(k+1))  (q ≥ 8(k+1))
+  have h_T2_lip :
+      |expPartial_pureIm_re_rat α_p q - expPartial_pureIm_re_rat α_q q|
+        ≤ (q : Rat) * |α_p - α_q| :=
+    expPartial_pureIm_re_rat_lipschitz_bound α_p α_q h_αp_abs h_αq_abs q
+  -- |α_p - α_q| ≤ 4/2^q (arctan Cauchy, q ≤ p)
+  have h_arctan_cauchy : |α_p - α_q| ≤ 4 / (2 : Rat)^q := by
+    show |arctan_partial_rat aR p - arctan_partial_rat aR q| ≤ 4 / (2 : Rat)^q
+    exact arctan_partial_rat_cauchy_bound aR ha p q h_qp
+  -- q nonneg
+  have h_q_nn : (0 : Rat) ≤ (q : Rat) := Nat.cast_nonneg q
+  -- T2 ≤ q · 4/2^q
+  have h_T2_le_q4 :
+      |expPartial_pureIm_re_rat α_p q - expPartial_pureIm_re_rat α_q q|
+        ≤ (q : Rat) * (4 / (2 : Rat)^q) := by
+    calc |expPartial_pureIm_re_rat α_p q - expPartial_pureIm_re_rat α_q q|
+        ≤ (q : Rat) * |α_p - α_q| := h_T2_lip
+      _ ≤ (q : Rat) * (4 / (2 : Rat)^q) := by
+          exact mul_le_mul_of_nonneg_left h_arctan_cauchy h_q_nn
+  -- q ≥ 24(k+1)+32 = 24k + 56 ≥ 4
+  have h_q_ge_4 : 4 ≤ q := by omega
+  have h_q_pos : (0 : Rat) < (q : Rat) := by
+    have : (0 : Nat) < q := by omega
+    exact_mod_cast this
+  -- q^2 ≤ 2^q
+  have h_q_sq_le : ((q : Rat))^2 ≤ (2 : Rat)^q := Rat.sq_le_two_pow_of_four_le q h_q_ge_4
+  -- (q : Rat) · 4 / 2^q ≤ 4 / q
+  have h_two_pow_q_pos : (0 : Rat) < (2 : Rat)^q := by positivity
+  have h_q4_div_le : (q : Rat) * (4 / (2 : Rat)^q) ≤ 4 / (q : Rat) := by
+    rw [mul_div_assoc']
+    -- Goal: q * 4 / 2^q ≤ 4 / q
+    rw [div_le_div_iff₀ h_two_pow_q_pos h_q_pos]
+    -- Goal: q * 4 * q ≤ 4 * 2^q, i.e., 4 q^2 ≤ 4 · 2^q
+    have h_4_q_sq : (q : Rat) * 4 * (q : Rat) = 4 * (q : Rat)^2 := by ring
+    rw [h_4_q_sq]
+    have h_4_nn : (0 : Rat) ≤ 4 := by norm_num
+    have h_mul : 4 * (q : Rat)^2 ≤ 4 * (2 : Rat)^q :=
+      mul_le_mul_of_nonneg_left h_q_sq_le h_4_nn
+    linarith
+  -- q ≥ 8k+8 = 8(k+1) gives 4/q ≤ 1/(2(k+1))
+  -- 24*(k+1) + 32 ≤ q, so q ≥ 24k+56 ≥ 8k+8.
+  have h_q_ge_8kp8 : 8*(k+1) ≤ q := by omega
+  have h_kp1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k
+    linarith
+  have h_4q_le_recip : (4 : Rat) / (q : Rat) ≤ 1 / (2 * ((k : Rat) + 1)) := by
+    rw [div_le_div_iff₀ h_q_pos (by linarith : (0 : Rat) < 2 * ((k : Rat) + 1))]
+    -- Goal: 4 · 2 · (k+1) ≤ q
+    have h_q_cast : (8 : Rat) * ((k : Rat) + 1) ≤ (q : Rat) := by
+      have : ((8*(k+1) : Nat) : Rat) ≤ ((q : Nat) : Rat) := by exact_mod_cast h_q_ge_8kp8
+      push_cast at this
+      linarith
+    linarith
+  -- T2 < 1/(2(k+1))
+  -- (Actually we only need ≤, but for the final triangle to be strict we need at least one strict)
+  have h_T2_le :
+      |expPartial_pureIm_re_rat α_p q - expPartial_pureIm_re_rat α_q q|
+        ≤ 1 / (2 * ((k : Rat) + 1)) := by
+    linarith [h_T2_le_q4, h_q4_div_le, h_4q_le_recip]
+  -- Final assembly
+  have h_double : 1 / (2 * ((k : Rat) + 1)) + 1 / (2 * ((k : Rat) + 1))
+                = 1 / ((k : Rat) + 1) := by
+    field_simp; ring
+  linarith [h_tri, h_T1_strict, h_T2_le, h_double]
+
 /-! ## F.2 main — Tangent defect Gronwall instance at depth 3k+60
 
   Orchestrates F2_walk_endpoint_bound + B.1 toRat_congr + polynomial
