@@ -3002,6 +3002,61 @@ theorem F2_per_step_helper
     mul_le_mul_of_nonneg_left h_a_pow (mul_nonneg (by norm_num) hdh_nn)
   linarith [h_step5a, h_tri, h_pow_term]
 
+/-! ## F.2 hypothesis lemma — Step 5a preconditions packaged
+
+  Conjunction of all small arithmetic preconditions for Step 5a /
+  F2_per_step_helper, with K := 3k+60, N := 100·K²·(k+1), dh := a/N.
+  Encapsulated to keep F.2 final's context light. -/
+
+set_option maxHeartbeats 800000 in
+/-- **F.2 hypothesis lemma** — `2 ≤ K`, `0 < N`, `dh ∈ [0, 1/2]`,
+    `2·K²·dh ≤ 1`, with canonical witnesses K = 3k+60, N = 100·K²·(k+1). -/
+theorem F2_hypothesis_lemma (a_val : Rat) (k : Nat)
+    (h_a_nn : 0 ≤ a_val) (h_a_le : 4 * a_val ≤ 1) :
+    2 ≤ (3 * k + 60 : Nat) ∧
+    0 < (100 * (3 * k + 60)^2 * (k + 1) : Nat) ∧
+    0 ≤ a_val / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) ∧
+    a_val / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) ≤ 1/2 ∧
+    2 * ((3 * k + 60 : Nat) : Rat)^2
+      * (a_val / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)) ≤ 1 := by
+  have hK_nat_pos : 0 < 3 * k + 60 := by omega
+  have hN_nat : 0 < 100 * (3 * k + 60)^2 * (k + 1) := by positivity
+  have hN_pos : (0 : Rat) < ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) := by
+    exact_mod_cast hN_nat
+  have hN_ge_1 : (1 : Rat) ≤ ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) := by
+    have : 1 ≤ 100 * (3 * k + 60)^2 * (k + 1) := hN_nat
+    exact_mod_cast this
+  have h_a_quarter : a_val ≤ 1/4 := by linarith
+  refine ⟨?_, hN_nat, ?_, ?_, ?_⟩
+  · omega
+  · exact div_nonneg h_a_nn (le_of_lt hN_pos)
+  · calc a_val / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+        ≤ a_val / 1 := div_le_div_of_nonneg_left h_a_nn (by norm_num) hN_ge_1
+      _ = a_val := by ring
+      _ ≤ 1/2 := by linarith
+  · set Kr : Rat := ((3 * k + 60 : Nat) : Rat) with hKr
+    have hKr_pos : 0 < Kr := by rw [hKr]; exact_mod_cast hK_nat_pos
+    have hKr_sq_pos : 0 < Kr^2 := by positivity
+    have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+      have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k; linarith
+    have hk1_ge_1 : (1 : Rat) ≤ (k : Rat) + 1 := by
+      have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k; linarith
+    have hN_val : ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+                = 100 * Kr^2 * ((k : Rat) + 1) := by
+      rw [hKr]; push_cast; ring
+    rw [hN_val]
+    have h_simp : 2 * Kr^2 * (a_val / (100 * Kr^2 * ((k : Rat) + 1)))
+                = a_val / (50 * ((k : Rat) + 1)) := by
+      field_simp; ring
+    rw [h_simp]
+    have h_50k1_pos : (0 : Rat) < 50 * ((k : Rat) + 1) := by linarith
+    rw [div_le_iff₀ h_50k1_pos]
+    calc a_val ≤ 1/4 := h_a_quarter
+      _ ≤ 50 := by norm_num
+      _ = 50 * 1 := by ring
+      _ ≤ 50 * ((k : Rat) + 1) := mul_le_mul_of_nonneg_left hk1_ge_1 (by norm_num)
+      _ = 1 * (50 * ((k : Rat) + 1)) := by ring
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
