@@ -615,4 +615,450 @@ theorem TauReal.cisTauReal_arctan_four_at_one_two_three_nine :
   product structure, and is the cleanest next concrete step.
 -/
 
+-- ============================================================
+-- PART 8: SCOPE A.5 — PARITY-SUBSTITUTED PRODUCT FORM
+-- ============================================================
+
+/-! ## Scope A.5 — Parity-substituted Machin product
+
+  Combining the quadruple-arctan product identity (Part 4) with
+  Phase D's parity identity `cisTauReal_arctan_negate_equiv_conj`,
+  we obtain the **parity-substituted Machin product** at TauComplex
+  level: the product
+  `cisTauReal(arctan a)⁴ · cisTauReal(arctan(negate b))`
+  is equivalent to the structurally-conjugated form
+  `cisTauReal(arctan a)⁴ · ⟨cisTauReal(arctan b).re,
+                            -cisTauReal(arctan b).im⟩`.
+
+  This is the RHS of the Machin chain at the TauComplex product
+  level — the form that subsequent Phase E synthesis steps will
+  target on the product side. -/
+
+/-- **Pointwise re/im bound on `cisTauReal(arctan a)⁴`** —
+    each component of the quadruple cisTauReal product is bounded
+    by 32768 at every depth. Used as the M bound for
+    `TauComplex.equiv_mul_congr` in Scope A.5. -/
+private theorem TauReal.cisTauReal_arctan_quad_re_bd
+    (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) : ∀ n,
+    ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).mul
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)))).re.approx n).abs.toRat
+      ≤ 32768 := by
+  intro n
+  -- (P · Q).re = P.re·Q.re - P.im·Q.im, where P = Q = cisA·cisA bound 128.
+  -- |P.re·Q.re| ≤ 128·128 = 16384, same for |P.im·Q.im|.
+  -- |.re| ≤ 16384 + 16384 = 32768.
+  -- The cisA·cisA product is bounded by 128 per cisTauReal_arctan_four_product proof.
+  -- We re-derive that bound here for the .re and .im of cisA·cisA.
+  have h_re_bd : ∀ n,
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).abs.toRat ≤ 8 := by
+    intro n
+    show ((TauReal.cis_arctan_re a).approx n).abs.toRat ≤ 8
+    exact TauReal.cis_arctan_re_approx_abs_le_8 a ha n
+  have h_im_bd : ∀ n,
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).abs.toRat ≤ 8 := by
+    intro n
+    show ((TauReal.cis_arctan_im a).approx n).abs.toRat ≤ 8
+    exact TauReal.cis_arctan_im_approx_abs_le_8 a ha n
+  -- Bound on (cisA · cisA).re and .im pointwise by 128 (same as in Part 4).
+  have h_dbl_re_bd : ∀ n,
+      (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).abs.toRat
+        ≤ 128 := by
+    intro n
+    show (TauRat.add
+            (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n)
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n))
+            (TauRat.negate
+              (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n)
+                ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n)))).abs.toRat
+          ≤ 128
+    rw [TauRat.toRat_abs, toRat_add, toRat_negate, toRat_mul, toRat_mul]
+    have h_re_n := h_re_bd n
+    have h_im_n := h_im_bd n
+    rw [TauRat.toRat_abs] at h_re_n h_im_n
+    have h_re_n_nn : 0 ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+      := _root_.abs_nonneg _
+    have h_im_n_nn : 0 ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat|
+      := _root_.abs_nonneg _
+    have h_xy_sum :
+        |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+            ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat +
+          -(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat)|
+            ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+              + |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+                ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat| := by
+      have := abs_add_le
+        (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+            ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat)
+        (-(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat))
+      rw [abs_neg] at this
+      exact this
+    have h_re_sq : |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat
+                    * ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+                    ≤ 64 := by
+      rw [abs_mul]; nlinarith [h_re_n, h_re_n_nn]
+    have h_im_sq : |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat
+                    * ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat|
+                    ≤ 64 := by
+      rw [abs_mul]; nlinarith [h_im_n, h_im_n_nn]
+    linarith
+  have h_dbl_im_bd : ∀ n,
+      (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).abs.toRat
+        ≤ 128 := by
+    intro n
+    show (TauRat.add
+            (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n)
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n))
+            (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n)
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n))).abs.toRat
+          ≤ 128
+    rw [TauRat.toRat_abs, toRat_add, toRat_mul, toRat_mul]
+    have h_re_n := h_re_bd n
+    have h_im_n := h_im_bd n
+    rw [TauRat.toRat_abs] at h_re_n h_im_n
+    have h_re_n_nn : 0 ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+      := _root_.abs_nonneg _
+    have h_im_n_nn : 0 ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat|
+      := _root_.abs_nonneg _
+    have h_sum_le : |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+            ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat +
+          ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+            ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+          ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat|
+            + |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+                ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat| :=
+      abs_add_le _ _
+    have h_re_im : |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+                    ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat|
+                    ≤ 64 := by
+      rw [abs_mul]; nlinarith [h_re_n, h_im_n, h_re_n_nn, h_im_n_nn]
+    have h_im_re : |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+                    ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+                    ≤ 64 := by
+      rw [abs_mul]; nlinarith [h_re_n, h_im_n, h_re_n_nn, h_im_n_nn]
+    linarith
+  -- Now bound (Q · Q).re where Q = cisA·cisA, each component ≤ 128. So (Q·Q).re ≤ 128² + 128² = 32768.
+  show (TauRat.add
+          (TauRat.mul (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n)
+            (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n))
+          (TauRat.negate
+            (TauRat.mul (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                  (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n)
+              (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                  (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n)))).abs.toRat
+        ≤ 32768
+  rw [TauRat.toRat_abs, toRat_add, toRat_negate, toRat_mul, toRat_mul]
+  have h_dbl_re_n := h_dbl_re_bd n
+  have h_dbl_im_n := h_dbl_im_bd n
+  rw [TauRat.toRat_abs] at h_dbl_re_n h_dbl_im_n
+  have h_dbl_re_nn : 0 ≤ |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                            (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat|
+    := _root_.abs_nonneg _
+  have h_dbl_im_nn : 0 ≤ |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                            (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat|
+    := _root_.abs_nonneg _
+  have h_split :
+      |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+            (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat *
+            (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat +
+          -((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat *
+              (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                  (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat)|
+          ≤ |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat *
+              (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                  (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat|
+            + |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                  (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat *
+                (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                    (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat| := by
+    have := abs_add_le
+      ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+            (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat *
+          (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+              (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat)
+      (-((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+              (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat *
+            (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat))
+    rw [abs_neg] at this
+    exact this
+  have h_re_sq : |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                    (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat *
+                  (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                    (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat|
+                  ≤ 16384 := by
+    rw [abs_mul]; nlinarith [h_dbl_re_n, h_dbl_re_nn]
+  have h_im_sq : |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                    (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat *
+                  (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                    (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat|
+                  ≤ 16384 := by
+    rw [abs_mul]; nlinarith [h_dbl_im_n, h_dbl_im_nn]
+  linarith
+
+/-- **Pointwise re/im bound on `cisTauReal(arctan a)⁴`** — im version.
+    Same structure as the re version. -/
+private theorem TauReal.cisTauReal_arctan_quad_im_bd
+    (a : TauRat) (ha : 2 * |a.toRat| ≤ 1) : ∀ n,
+    ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).mul
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)))).im.approx n).abs.toRat
+      ≤ 32768 := by
+  intro n
+  have h_re_bd : ∀ n,
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).abs.toRat ≤ 8 := by
+    intro n
+    show ((TauReal.cis_arctan_re a).approx n).abs.toRat ≤ 8
+    exact TauReal.cis_arctan_re_approx_abs_le_8 a ha n
+  have h_im_bd : ∀ n,
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).abs.toRat ≤ 8 := by
+    intro n
+    show ((TauReal.cis_arctan_im a).approx n).abs.toRat ≤ 8
+    exact TauReal.cis_arctan_im_approx_abs_le_8 a ha n
+  have h_dbl_re_bd : ∀ n,
+      (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).abs.toRat
+        ≤ 128 := by
+    intro n
+    show (TauRat.add
+            (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n)
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n))
+            (TauRat.negate
+              (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n)
+                ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n)))).abs.toRat
+          ≤ 128
+    rw [TauRat.toRat_abs, toRat_add, toRat_negate, toRat_mul, toRat_mul]
+    have h_re_n := h_re_bd n
+    have h_im_n := h_im_bd n
+    rw [TauRat.toRat_abs] at h_re_n h_im_n
+    have h_re_n_nn : 0 ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+      := _root_.abs_nonneg _
+    have h_im_n_nn : 0 ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat|
+      := _root_.abs_nonneg _
+    have h_xy_sum :
+        |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+            ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat +
+          -(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat)|
+            ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+              + |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+                ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat| := by
+      have := abs_add_le
+        (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+            ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat)
+        (-(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat))
+      rw [abs_neg] at this
+      exact this
+    have h_re_sq : |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat
+                    * ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+                    ≤ 64 := by
+      rw [abs_mul]; nlinarith [h_re_n, h_re_n_nn]
+    have h_im_sq : |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat
+                    * ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat|
+                    ≤ 64 := by
+      rw [abs_mul]; nlinarith [h_im_n, h_im_n_nn]
+    linarith
+  have h_dbl_im_bd : ∀ n,
+      (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).abs.toRat
+        ≤ 128 := by
+    intro n
+    show (TauRat.add
+            (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n)
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n))
+            (TauRat.mul ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n)
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n))).abs.toRat
+          ≤ 128
+    rw [TauRat.toRat_abs, toRat_add, toRat_mul, toRat_mul]
+    have h_re_n := h_re_bd n
+    have h_im_n := h_im_bd n
+    rw [TauRat.toRat_abs] at h_re_n h_im_n
+    have h_re_n_nn : 0 ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+      := _root_.abs_nonneg _
+    have h_im_n_nn : 0 ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat|
+      := _root_.abs_nonneg _
+    have h_sum_le : |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+            ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat +
+          ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+            ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+          ≤ |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat|
+            + |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+                ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat| :=
+      abs_add_le _ _
+    have h_re_im : |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat *
+                    ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat|
+                    ≤ 64 := by
+      rw [abs_mul]; nlinarith [h_re_n, h_im_n, h_re_n_nn, h_im_n_nn]
+    have h_im_re : |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat *
+                    ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+                    ≤ 64 := by
+      rw [abs_mul]; nlinarith [h_re_n, h_im_n, h_re_n_nn, h_im_n_nn]
+    linarith
+  -- (Q · Q).im = Q.re · Q.im + Q.im · Q.re where Q = cisA·cisA.
+  show (TauRat.add
+          (TauRat.mul (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n)
+            (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n))
+          (TauRat.mul (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n)
+            (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n))).abs.toRat
+        ≤ 32768
+  rw [TauRat.toRat_abs, toRat_add, toRat_mul, toRat_mul]
+  have h_dbl_re_n := h_dbl_re_bd n
+  have h_dbl_im_n := h_dbl_im_bd n
+  rw [TauRat.toRat_abs] at h_dbl_re_n h_dbl_im_n
+  have h_dbl_re_nn : 0 ≤ |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                            (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat|
+    := _root_.abs_nonneg _
+  have h_dbl_im_nn : 0 ≤ |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                            (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat|
+    := _root_.abs_nonneg _
+  have h_sum_le : |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+            (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat *
+            (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat +
+          (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+              (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat *
+            (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat|
+          ≤ |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat *
+              (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                  (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat|
+            + |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                  (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat *
+                (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                    (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat| :=
+    abs_add_le _ _
+  have h_re_im : |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                  (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat *
+                  (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                    (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat|
+                  ≤ 16384 := by
+    rw [abs_mul]; nlinarith [h_dbl_re_n, h_dbl_im_n, h_dbl_re_nn, h_dbl_im_nn]
+  have h_im_re : |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                  (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat *
+                  (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+                    (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat|
+                  ≤ 16384 := by
+    rw [abs_mul]; nlinarith [h_dbl_re_n, h_dbl_im_n, h_dbl_re_nn, h_dbl_im_nn]
+  linarith
+
+/-- **🎯 Scope A.5 — The parity-substituted Machin product identity** —
+    for `2·|a.toRat| ≤ 1` and `2·|b.toRat| ≤ 1`:
+
+      `cisTauReal(arctan a)⁴ · cisTauReal(arctan(negate b))
+        ≈ cisTauReal(arctan a)⁴ · ⟨cisTauReal(arctan b).re,
+                                    negate (cisTauReal(arctan b).im)⟩`.
+
+    This is the **RHS of the Machin chain** at the TauComplex product
+    level — the form that subsequent Phase E synthesis steps will
+    target on the product side.
+
+    Strategy: apply `TauComplex.equiv_mul_congr` with the shared
+    cisTauReal(arctan a)⁴ factor on the left and Phase D's
+    `cisTauReal_arctan_negate_equiv_conj` providing the parity
+    substitution on the right.
+
+    The bound M = 32768 covers both factors: the quadruple cisTauReal
+    has each component ≤ 128² + 128² = 32768, while cisTauReal(arctan(-b))
+    has each component ≤ 8 ≤ 32768 (via `cis_arctan_re/im_approx_abs_le_8`
+    applied at the negated input). -/
+theorem TauReal.cisTauReal_machin_product_parity_substituted (a b : TauRat)
+    (ha : 2 * |a.toRat| ≤ 1) (hb : 2 * |b.toRat| ≤ 1) :
+    TauComplex.equiv
+      ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).mul
+        ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)))).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq (TauRat.negate b))))
+      ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).mul
+        ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)))).mul
+        ⟨(TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re,
+         TauReal.negate (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).im⟩) := by
+  -- |negate b .toRat| = |b.toRat|, so the bound is preserved.
+  have hb_neg : 2 * |(TauRat.negate b).toRat| ≤ 1 := by
+    rw [toRat_negate, abs_neg]; exact hb
+  -- Phase D parity identity for cisTauReal(arctan(negate b))
+  have h_parity : TauComplex.equiv
+      (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq (TauRat.negate b)))
+      ⟨(TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re,
+       TauReal.negate (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).im⟩ :=
+    TauReal.cisTauReal_arctan_negate_equiv_conj b
+  -- Bounds on the shared quadruple cofactor (≤ 32768).
+  have h_quad_re_bd := TauReal.cisTauReal_arctan_quad_re_bd a ha
+  have h_quad_im_bd := TauReal.cisTauReal_arctan_quad_im_bd a ha
+  -- Bounds on cisTauReal(arctan(negate b)) re/im (≤ 8 ≤ 32768).
+  have h_cis_neg_re_bd : ∀ n,
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq (TauRat.negate b))).re.approx n).abs.toRat
+        ≤ 32768 := by
+    intro n
+    have h := TauReal.cis_arctan_re_approx_abs_le_8 (TauRat.negate b) hb_neg n
+    show ((TauReal.cis_arctan_re (TauRat.negate b)).approx n).abs.toRat ≤ 32768
+    have : ((TauReal.cis_arctan_re (TauRat.negate b)).approx n).abs.toRat ≤ 8 := h
+    linarith
+  have h_cis_neg_im_bd : ∀ n,
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq (TauRat.negate b))).im.approx n).abs.toRat
+        ≤ 32768 := by
+    intro n
+    have h := TauReal.cis_arctan_im_approx_abs_le_8 (TauRat.negate b) hb_neg n
+    show ((TauReal.cis_arctan_im (TauRat.negate b)).approx n).abs.toRat ≤ 32768
+    have : ((TauReal.cis_arctan_im (TauRat.negate b)).approx n).abs.toRat ≤ 8 := h
+    linarith
+  -- Apply equiv_mul_congr.
+  -- z = z' = (cisA·cisA)·(cisA·cisA), so we need equiv_refl on the left.
+  -- w = cisTauReal(arctan(-b)), w' = ⟨cisB.re, -cisB.im⟩.
+  -- equiv_mul_congr requires bounds on z' and w.
+  apply TauComplex.equiv_mul_congr (Mre := 32768) (Mim := 32768)
+    (by norm_num : 1 ≤ 32768) (by norm_num : 1 ≤ 32768)
+  · exact h_quad_re_bd
+  · exact h_quad_im_bd
+  · exact h_cis_neg_re_bd
+  · exact h_cis_neg_im_bd
+  · exact TauComplex.equiv_refl _
+  · exact h_parity
+
+/-- **🎯 Scope A.5 specialization — Machin parity product at 1/5, 1/239** —
+    The parity-substituted Machin product identity specialized to the
+    classical Machin constants. -/
+theorem TauReal.cisTauReal_machin_product_parity_one_fifth_one_two_three_nine :
+    TauComplex.equiv
+      ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth))).mul
+        ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)))).mul
+        (TauComplex.cisTauReal
+          (TauReal.arctan_of_rat_seq (TauRat.negate TauRat.one_two_three_nine))))
+      ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth))).mul
+        ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)))).mul
+        ⟨(TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_two_three_nine)).re,
+         TauReal.negate
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_two_three_nine)).im⟩) :=
+  TauReal.cisTauReal_machin_product_parity_substituted
+    TauRat.one_fifth TauRat.one_two_three_nine
+    TauRat.one_fifth_in_arctan_add_domain
+    TauRat.one_two_three_nine_in_arctan_add_domain
+
 end Tau.Boundary
