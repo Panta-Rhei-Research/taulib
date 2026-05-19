@@ -3057,6 +3057,72 @@ theorem F2_hypothesis_lemma (a_val : Rat) (k : Nat)
       _ ≤ 50 * ((k : Rat) + 1) := mul_le_mul_of_nonneg_left hk1_ge_1 (by norm_num)
       _ = 1 * (50 * ((k : Rat) + 1)) := by ring
 
+/-! ## F.2 N·M bound lemma — Bernoulli hypothesis
+
+  `N · M_step ≤ 1/4` where `M_step = dh/2 + 9·K·dh²` and `dh = a/N`. -/
+
+set_option maxHeartbeats 800000 in
+/-- **F.2 N·M bound** — `N · M_step ≤ 1/4`, used to apply Bernoulli. -/
+theorem F2_NM_bound_lemma (a_val : Rat) (k : Nat)
+    (h_a_nn : 0 ≤ a_val) (h_a_le : 4 * a_val ≤ 1) :
+    ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+      * (a_val / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) / 2
+         + 9 * ((3 * k + 60 : Nat) : Rat)
+           * (a_val / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))^2)
+    ≤ 1/4 := by
+  set Kr : Rat := ((3 * k + 60 : Nat) : Rat) with hKr
+  set Nr : Rat := ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) with hNr
+  have hK_nat_pos : 0 < 3 * k + 60 := by omega
+  have hKr_pos : 0 < Kr := by rw [hKr]; exact_mod_cast hK_nat_pos
+  have hKr_ge_60 : (60 : Rat) ≤ Kr := by
+    rw [hKr]; have : (60 : Nat) ≤ 3 * k + 60 := by omega
+    exact_mod_cast this
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k; linarith
+  have hk1_ge_1 : (1 : Rat) ≤ (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k; linarith
+  have hNr_val : Nr = 100 * Kr^2 * ((k : Rat) + 1) := by
+    rw [hNr, hKr]; push_cast; ring
+  have hNr_pos : 0 < Nr := by rw [hNr_val]; positivity
+  have h_a_quarter : a_val ≤ 1/4 := by linarith
+  have h_Nr_ne : Nr ≠ 0 := ne_of_gt hNr_pos
+  have h_N_dh_half : Nr * (a_val / Nr / 2) = a_val / 2 := by field_simp
+  have h_N_9Kdh2 : Nr * (9 * Kr * (a_val / Nr)^2) = 9 * Kr * a_val^2 / Nr := by
+    field_simp
+  have h_a_sq_le : a_val^2 ≤ 1/16 := by
+    have : a_val * a_val ≤ (1/4) * (1/4) :=
+      mul_le_mul h_a_quarter h_a_quarter h_a_nn (by linarith)
+    have h_sq : a_val^2 = a_val * a_val := sq a_val
+    linarith
+  have h_term2_bound : 9 * Kr * a_val^2 / Nr ≤ 1/8 := by
+    rw [hNr_val]
+    rw [div_le_iff₀ (by positivity : (0 : Rat) < 100 * Kr^2 * ((k : Rat) + 1))]
+    -- 9·K·a²·8 ≤ 100·K²·(k+1) ⟺ 72·K·a² ≤ 100·K²·(k+1)
+    -- With a² ≤ 1/16: 72·K/16 = 4.5·K. RHS ≥ 100·K²·1 = 100·K². 4.5·K ≤ 100·K² iff K ≥ 0.045, trivial.
+    have h_step : 9 * Kr * a_val^2 * 8 ≤ 100 * Kr^2 * ((k : Rat) + 1) := by
+      have h1 : 9 * Kr * a_val^2 * 8 ≤ 9 * Kr * (1/16) * 8 := by
+        have : 9 * Kr * a_val^2 ≤ 9 * Kr * (1/16) :=
+          mul_le_mul_of_nonneg_left h_a_sq_le (by positivity)
+        linarith
+      have h2 : 9 * Kr * (1/16) * 8 = (9/2 : Rat) * Kr := by ring
+      have h3 : (9/2 : Rat) * Kr ≤ Kr^2 := by
+        -- (9/2)·K ≤ K² ⟺ 9/2 ≤ K (for K > 0). K ≥ 60 > 4.5 ✓
+        have h_sq : Kr^2 = Kr * Kr := sq _
+        have : (9/2 : Rat) * Kr ≤ Kr * Kr := by nlinarith [hKr_pos, hKr_ge_60]
+        linarith
+      have h4 : Kr^2 ≤ 100 * Kr^2 * ((k : Rat) + 1) := by
+        have h_a' : Kr^2 ≤ 100 * Kr^2 := by nlinarith [sq_nonneg Kr]
+        have h_b' : 100 * Kr^2 * 1 ≤ 100 * Kr^2 * ((k : Rat) + 1) :=
+          mul_le_mul_of_nonneg_left hk1_ge_1 (by positivity)
+        linarith
+      linarith [h1, h2, h3, h4]
+    linarith [h_step]
+  have h_M_def : Nr * (a_val / Nr / 2 + 9 * Kr * (a_val / Nr)^2)
+              = Nr * (a_val / Nr / 2) + Nr * (9 * Kr * (a_val / Nr)^2) := by ring
+  rw [h_M_def, h_N_dh_half, h_N_9Kdh2]
+  have h_a_half : a_val / 2 ≤ 1/8 := by linarith
+  linarith [h_a_half, h_term2_bound]
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
