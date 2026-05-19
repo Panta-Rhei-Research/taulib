@@ -2957,6 +2957,51 @@ theorem F2_term2_bound (a_val : Rat) (k : Nat)
     linarith [h_360_8K]
   linarith [h_chain, h_simp, h_final]
 
+/-! ## F.2 per-step helper — extracts Step 5a + triangle + uniform power bound
+
+  Factored out of F.2 main to isolate the big linarith. Given Step 5a's
+  output at walk position `a_walk` with step `dh`, and a uniform bound
+  `a_walk.toRat ≤ a_outer`, produces the Gronwall step bound. -/
+
+set_option maxHeartbeats 1600000 in
+/-- **F.2 per-step helper** — Apply Step 5a + triangle + uniform power
+    substitution to derive a Gronwall step bound. -/
+theorem F2_per_step_helper
+    (a_walk dh : TauRat) (h_a_walk_nn : 0 ≤ a_walk.toRat)
+    (ha : 4 * |a_walk.toRat| ≤ 1) (hah : 4 * |(a_walk.add dh).toRat| ≤ 1)
+    (hdh_nn : 0 ≤ dh.toRat) (hdh_le_half : dh.toRat ≤ 1/2)
+    (K : Nat) (hK : 2 ≤ K) (hK_dh : 2 * (K : Rat)^2 * dh.toRat ≤ 1)
+    (a_outer : Rat) (h_a_walk_le_outer : a_walk.toRat ≤ a_outer)
+    (h_a_outer_nn : 0 ≤ a_outer) :
+    |((TauReal.tangent_defect (a_walk.add dh)).approx K).toRat|
+      ≤ (1 + (dh.toRat / 2 + 9 * (K : Rat) * dh.toRat^2))
+          * |((TauReal.tangent_defect a_walk).approx K).toRat|
+        + (200 * (K : Rat)^2 * dh.toRat^2
+           + 10 * dh.toRat * |a_outer|^(4 * K)
+           + 484 * (K : Rat) / 2 ^ (K - 1)) := by
+  have h_step5a := TauReal.tangent_defect_step_bound_at_K_tight
+                    a_walk dh ha hah hdh_nn hdh_le_half K hK hK_dh
+  have h_tri : |((TauReal.tangent_defect (a_walk.add dh)).approx K).toRat|
+             ≤ |((TauReal.tangent_defect (a_walk.add dh)).approx K).toRat
+                - ((TauReal.tangent_defect a_walk).approx K).toRat|
+              + |((TauReal.tangent_defect a_walk).approx K).toRat| := by
+    have := abs_add_le
+      (((TauReal.tangent_defect (a_walk.add dh)).approx K).toRat
+        - ((TauReal.tangent_defect a_walk).approx K).toRat)
+      (((TauReal.tangent_defect a_walk).approx K).toRat)
+    have h_eq : ((TauReal.tangent_defect (a_walk.add dh)).approx K).toRat
+              - ((TauReal.tangent_defect a_walk).approx K).toRat
+              + ((TauReal.tangent_defect a_walk).approx K).toRat
+              = ((TauReal.tangent_defect (a_walk.add dh)).approx K).toRat := by ring
+    rw [h_eq] at this; exact this
+  have h_a_pow : |a_walk.toRat|^(4*K) ≤ |a_outer|^(4*K) := by
+    rw [abs_of_nonneg h_a_walk_nn, abs_of_nonneg h_a_outer_nn]
+    exact pow_le_pow_left₀ h_a_walk_nn h_a_walk_le_outer _
+  have h_pow_term : 10 * dh.toRat * |a_walk.toRat|^(4*K)
+                  ≤ 10 * dh.toRat * |a_outer|^(4*K) :=
+    mul_le_mul_of_nonneg_left h_a_pow (mul_nonneg (by norm_num) hdh_nn)
+  linarith [h_step5a, h_tri, h_pow_term]
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
