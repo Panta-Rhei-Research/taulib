@@ -2286,6 +2286,129 @@ theorem TauReal.cis_arctan_add_factored_explicit_error_at_K
     rw [h_rhs_im] at h_step1_im
     exact h_step1_im
 
+/-! ## Path 2 Step 3 — `cis_arctan_re/im_diff_factored` explicit error at depth K
+
+  Derives the "diff_factored" tight error form from Step 2's "add_factored"
+  form via algebraic rearrangement at .approx K .toRat. The diff form is
+  what `tangent_defect_increment_simplified` ultimately uses (the increment
+  of cis_arctan_re/im across a → a+h).
+
+  Algebraic identity: `diff_RHS.approx K .toRat = add_RHS.approx K .toRat
+  - cis_arctan_re/im(a).approx K .toRat`, so subtracting `cis_arctan_re/im(a)`
+  from both sides of Step 2's bound preserves the inequality.
+-/
+
+/-- **Path 2 Step 3** — Explicit error bound for `cis_arctan_re/im` diff-factored
+    form at depth K.
+
+    Form (.re): `cos(α+β) − cos α = cos α·(cos β − 1) − sin α · sin β`
+    Form (.im): `sin(α+β) − sin α = cos α·sin β + sin α·(cos β − 1)`
+    (truncated at depth K with explicit error 242·K/2^(K−1)). -/
+theorem TauReal.cis_arctan_diff_factored_explicit_error_at_K
+    (a h : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hah : 4 * |(a.add h).toRat| ≤ 1)
+    (K : Nat) (hK : 1 ≤ K) :
+    |(((TauReal.cis_arctan_re (a.add h)).sub (TauReal.cis_arctan_re a)).approx K).toRat
+      - ((TauReal.sub
+            (TauReal.mul (TauReal.cis_arctan_re a)
+              ((TauComplex.cisTauReal
+                  ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                    (TauReal.arctan_of_rat_seq a))).re.sub TauReal.one))
+            (TauReal.mul (TauReal.cis_arctan_im a)
+              (TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                  (TauReal.arctan_of_rat_seq a))).im)).approx K).toRat|
+    ≤ 242 * (K : Rat) / 2 ^ (K - 1)
+    ∧
+    |(((TauReal.cis_arctan_im (a.add h)).sub (TauReal.cis_arctan_im a)).approx K).toRat
+      - ((TauReal.add
+            (TauReal.mul (TauReal.cis_arctan_re a)
+              (TauComplex.cisTauReal
+                ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                  (TauReal.arctan_of_rat_seq a))).im)
+            (TauReal.mul (TauReal.cis_arctan_im a)
+              ((TauComplex.cisTauReal
+                  ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                    (TauReal.arctan_of_rat_seq a))).re.sub TauReal.one))).approx K).toRat|
+    ≤ 242 * (K : Rat) / 2 ^ (K - 1) := by
+  -- Step 2 gives the add-factored bound
+  obtain ⟨h_step2_re, h_step2_im⟩ :=
+    TauReal.cis_arctan_add_factored_explicit_error_at_K a h ha hah K hK
+  -- Helper: unfold (X.sub Y).approx K .toRat = X.approx K .toRat - Y.approx K .toRat
+  have h_sub_toRat : ∀ (X Y : TauReal),
+      ((X.sub Y).approx K).toRat = (X.approx K).toRat - (Y.approx K).toRat := by
+    intros X Y
+    show (TauRat.add (X.approx K) (Y.approx K).negate).toRat = _
+    rw [toRat_add, toRat_negate]; ring
+  -- Helper: unfold (X.mul Y).approx K .toRat = X.approx K .toRat * Y.approx K .toRat
+  have h_mul_toRat : ∀ (X Y : TauReal),
+      ((X.mul Y).approx K).toRat = (X.approx K).toRat * (Y.approx K).toRat := by
+    intros X Y
+    show (TauRat.mul (X.approx K) (Y.approx K)).toRat = _
+    rw [toRat_mul]
+  -- Helper: unfold (X.add Y).approx K .toRat = X.approx K .toRat + Y.approx K .toRat
+  have h_add_toRat : ∀ (X Y : TauReal),
+      ((X.add Y).approx K).toRat = (X.approx K).toRat + (Y.approx K).toRat := by
+    intros X Y
+    show (TauRat.add (X.approx K) (Y.approx K)).toRat = _
+    rw [toRat_add]
+  -- Helper: TauReal.one.approx K .toRat = 1
+  have h_one_toRat : (TauReal.one.approx K).toRat = 1 := by
+    show (TauRat.one).toRat = _
+    rw [toRat_one]
+  refine ⟨?_, ?_⟩
+  · -- .re: identity diff_LHS - diff_RHS = add_LHS - add_RHS
+    have h_alg :
+        (((TauReal.cis_arctan_re (a.add h)).sub (TauReal.cis_arctan_re a)).approx K).toRat
+          - ((TauReal.sub
+                (TauReal.mul (TauReal.cis_arctan_re a)
+                  ((TauComplex.cisTauReal
+                      ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                        (TauReal.arctan_of_rat_seq a))).re.sub TauReal.one))
+                (TauReal.mul (TauReal.cis_arctan_im a)
+                  (TauComplex.cisTauReal
+                    ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                      (TauReal.arctan_of_rat_seq a))).im)).approx K).toRat
+        = ((TauReal.cis_arctan_re (a.add h)).approx K).toRat
+          - ((TauReal.sub
+                (TauReal.mul (TauReal.cis_arctan_re a)
+                  (TauComplex.cisTauReal
+                    ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                      (TauReal.arctan_of_rat_seq a))).re)
+                (TauReal.mul (TauReal.cis_arctan_im a)
+                  (TauComplex.cisTauReal
+                    ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                      (TauReal.arctan_of_rat_seq a))).im)).approx K).toRat := by
+      simp only [h_sub_toRat, h_mul_toRat, h_add_toRat, h_one_toRat]
+      ring
+    rw [h_alg]
+    exact h_step2_re
+  · -- .im: analogous
+    have h_alg :
+        (((TauReal.cis_arctan_im (a.add h)).sub (TauReal.cis_arctan_im a)).approx K).toRat
+          - ((TauReal.add
+                (TauReal.mul (TauReal.cis_arctan_re a)
+                  (TauComplex.cisTauReal
+                    ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                      (TauReal.arctan_of_rat_seq a))).im)
+                (TauReal.mul (TauReal.cis_arctan_im a)
+                  ((TauComplex.cisTauReal
+                      ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                        (TauReal.arctan_of_rat_seq a))).re.sub TauReal.one))).approx K).toRat
+        = ((TauReal.cis_arctan_im (a.add h)).approx K).toRat
+          - ((TauReal.add
+                (TauReal.mul (TauReal.cis_arctan_re a)
+                  (TauComplex.cisTauReal
+                    ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                      (TauReal.arctan_of_rat_seq a))).im)
+                (TauReal.mul (TauReal.cis_arctan_im a)
+                  (TauComplex.cisTauReal
+                    ((TauReal.arctan_of_rat_seq (a.add h)).sub
+                      (TauReal.arctan_of_rat_seq a))).re)).approx K).toRat := by
+      simp only [h_sub_toRat, h_mul_toRat, h_add_toRat, h_one_toRat]
+      ring
+    rw [h_alg]
+    exact h_step2_im
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
