@@ -4322,6 +4322,62 @@ theorem TauReal.tangent_defect_equiv_zero (a : TauRat)
     nlinarith
   linarith [h_tri, h_F2, h_F2_loose, h_C_lt, h_sum_lt]
 
+/-- **F.6 / target_A path-β** — Phase B FINAL: discharges `cisTauReal_tangent_target_A`
+    under the path-β restriction `4·|a.toRat| ≤ 1`. Handles both signs of `a.toRat`
+    (parity for negative case). -/
+theorem TauReal.cisTauReal_tangent_target_A_path_beta (a : TauRat)
+    (ha : 4 * |a.toRat| ≤ 1) :
+    TauReal.equiv
+      (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im
+      ((TauReal.fromTauRat a).mul (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re) := by
+  -- Reduce to: tangent_defect a ≈ 0 via the subtract-to-zero bridge.
+  apply TauReal.equiv_of_sub_equiv_zero
+  show TauReal.equiv (TauReal.tangent_defect a) TauReal.zero
+  -- Case split on sign of a.toRat
+  by_cases ha_sign : 0 ≤ a.toRat
+  · -- Nonneg branch: direct application of F.5.
+    have ha_le : 4 * a.toRat ≤ 1 := by rwa [abs_of_nonneg ha_sign] at ha
+    exact TauReal.tangent_defect_equiv_zero a ha_sign ha_le
+  · -- Negative branch: transfer via parity to b = TauRat.negate a.
+    push_neg at ha_sign
+    set b := TauRat.negate a with hb_def
+    have hb_toRat : b.toRat = -a.toRat := toRat_negate a
+    have hb_nn : 0 ≤ b.toRat := by rw [hb_toRat]; linarith
+    have hb_abs : 4 * |b.toRat| ≤ 1 := by rw [hb_toRat, abs_neg]; exact ha
+    have hb_le : 4 * b.toRat ≤ 1 := by rwa [abs_of_nonneg hb_nn] at hb_abs
+    have h_td_b_zero : TauReal.equiv (TauReal.tangent_defect b) TauReal.zero :=
+      TauReal.tangent_defect_equiv_zero b hb_nn hb_le
+    -- Pointwise toRat parity: tangent_defect at a is negation of tangent_defect at b at every depth.
+    have h_parity : ∀ n,
+        ((TauReal.tangent_defect a).approx n).toRat
+          = -((TauReal.tangent_defect b).approx n).toRat := by
+      intro n
+      rw [TauReal.tangent_defect_approx_toRat, TauReal.tangent_defect_approx_toRat]
+      show ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat
+            - a.toRat * ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat
+          = -(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).im.approx n).toRat
+              - b.toRat * ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re.approx n).toRat)
+      rw [cisTauReal_re_approx_toRat, cisTauReal_re_approx_toRat,
+          cisTauReal_im_approx_toRat, cisTauReal_im_approx_toRat,
+          TauReal.arctan_of_rat_seq_approx, TauReal.arctan_of_rat_seq_approx,
+          TauRat.arctan_partial_toRat, TauRat.arctan_partial_toRat, hb_toRat,
+          arctan_partial_rat_neg,
+          expPartial_pureIm_im_rat_neg, expPartial_pureIm_re_rat_neg]
+      ring
+    -- Transfer the equiv: same modulus, same bound since |x| = |-x|.
+    obtain ⟨μ_b, h_b⟩ := h_td_b_zero
+    refine ⟨μ_b, fun k n hn => ?_⟩
+    have h_b_lt := h_b k n hn
+    unfold TauRat.lt at h_b_lt ⊢
+    rw [TauRat.toRat_abs, toRat_sub] at h_b_lt
+    rw [TauRat.toRat_abs, toRat_sub]
+    have h_zero : (TauReal.zero.approx n).toRat = 0 := by
+      show (TauRat.zero).toRat = 0; rw [toRat_zero]
+    rw [h_zero, sub_zero] at h_b_lt
+    rw [h_zero, sub_zero]
+    rw [h_parity n, abs_neg]
+    exact h_b_lt
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
