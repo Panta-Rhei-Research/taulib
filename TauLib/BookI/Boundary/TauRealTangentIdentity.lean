@@ -1997,6 +1997,139 @@ Proof structure:
 6. Final linarith with all hypotheses
 -/
 
+/-! ## Path 2 Step 1 — `cisTauReal_add` explicit error at depth K
+
+  Foundation for Path 2 (replacing F.1b's equiv-level Cauchy modulus with
+  explicit pointwise bounds; see atlas memo
+  `2026-05-19-F2-impossibility-from-F1b.md` for the architectural
+  motivation).
+
+  Derived from `cauchy_product_bound_re/im` with the standard geometric
+  bound `C = 11` (from `exp_term_re_im_geom_bound` for
+  pureIm_of_real-bounded-by-1 TauComplex).
+
+  The bound `242·K / 2^(K−1)` decays super-exponentially in K, so the
+  resulting Gronwall walk can close with K = O(k) and N = O(k³) — versus
+  the F.1b path which is jointly unsatisfiable for any K.
+-/
+
+/-- **Explicit error bound at depth K for `cisTauReal_add`**.
+
+    For TauReals `x, y` with `|x.approx _| ≤ 1` and similarly for `y`,
+    and any depth `K ≥ 1`:
+
+    `|cisTauReal(x+y).re.approx K .toRat - (cisTauReal x · cisTauReal y).re.approx K .toRat|
+       ≤ 242·K / 2^(K−1)`
+
+    and similarly for `.im`. The constant `242 = 2·11²` comes from the
+    M3 endpoint's geometric exp_term bound; the bound decays
+    super-exponentially in K. -/
+theorem TauComplex.cisTauReal_add_explicit_error_at_K
+    (x y : TauReal)
+    (hx : ∀ n, (x.approx n).abs.toRat ≤ 1)
+    (hy : ∀ n, (y.approx n).abs.toRat ≤ 1)
+    (K : Nat) (hK : 1 ≤ K) :
+    |((TauComplex.cisTauReal (TauReal.add x y)).re.approx K).toRat
+      - (((TauComplex.cisTauReal x).mul (TauComplex.cisTauReal y)).re.approx K).toRat|
+    ≤ 242 * (K : Rat) / 2 ^ (K - 1)
+    ∧
+    |((TauComplex.cisTauReal (TauReal.add x y)).im.approx K).toRat
+      - (((TauComplex.cisTauReal x).mul (TauComplex.cisTauReal y)).im.approx K).toRat|
+    ≤ 242 * (K : Rat) / 2 ^ (K - 1) := by
+  -- Unfold cisTauReal := exp ∘ pureIm_of_real
+  set z1 := TauComplex.pureIm_of_real x with hz1_def
+  set z2 := TauComplex.pureIm_of_real y with hz2_def
+  set z_sum := TauComplex.pureIm_of_real (TauReal.add x y) with hzsum_def
+  -- BoundedBy bounds for z1, z2 from BoundedBy of x, y
+  have h_bound_z1 : TauComplex.BoundedBy z1 1 :=
+    TauComplex.pureIm_of_real_BoundedBy x 1 (by omega) hx
+  have h_bound_z2 : TauComplex.BoundedBy z2 1 :=
+    TauComplex.pureIm_of_real_BoundedBy y 1 (by omega) hy
+  -- exp_term geometric bounds for z1, z2 at any depth m
+  have h_bound_z1_re := fun i m =>
+    (TauComplex.exp_term_re_im_geom_bound z1 h_bound_z1 i m).1
+  have h_bound_z1_im := fun i m =>
+    (TauComplex.exp_term_re_im_geom_bound z1 h_bound_z1 i m).2
+  have h_bound_z2_re := fun j m =>
+    (TauComplex.exp_term_re_im_geom_bound z2 h_bound_z2 j m).1
+  have h_bound_z2_im := fun j m =>
+    (TauComplex.exp_term_re_im_geom_bound z2 h_bound_z2 j m).2
+  -- z_sum and z1.add z2 have componentwise equal toRats at every .approx n
+  have h_zre : ∀ n, (z_sum.re.approx n).toRat = ((z1.add z2).re.approx n).toRat := by
+    intro n
+    show (TauRat.zero).toRat = (TauRat.add TauRat.zero TauRat.zero).toRat
+    rw [toRat_add, toRat_zero]; ring
+  have h_zim : ∀ n, (z_sum.im.approx n).toRat = ((z1.add z2).im.approx n).toRat := fun _ => rfl
+  -- Apply cauchy_product_bound at depth K for re and im
+  have h_cpb_re := TauComplex.cauchy_product_bound_re
+                    (TauComplex.exp_term z1) (TauComplex.exp_term z2)
+                    11 (by norm_num)
+                    h_bound_z1_re h_bound_z1_im
+                    h_bound_z2_re h_bound_z2_im
+                    K hK K
+  have h_cpb_im := TauComplex.cauchy_product_bound_im
+                    (TauComplex.exp_term z1) (TauComplex.exp_term z2)
+                    11 (by norm_num)
+                    h_bound_z1_re h_bound_z1_im
+                    h_bound_z2_re h_bound_z2_im
+                    K hK K
+  -- Convert 2·K·11²/2^(K-1) form to 242·K/2^(K-1)
+  have h_const_eq : (2 : Rat) * (K : Rat) * 11^2 / 2 ^ (K - 1)
+                  = 242 * (K : Rat) / 2 ^ (K - 1) := by
+    rw [show (2 * (K : Rat) * 11 ^ 2 : Rat) = 242 * (K : Rat) from by ring]
+  rw [h_const_eq] at h_cpb_re h_cpb_im
+  -- Partial-sum identity: exp_partial (z1.add z2) K's .re/.im.approx K
+  -- = cauchyPStar (exp_term z1) (exp_term z2) K's .re/.im.approx K
+  obtain ⟨h_re_part, h_im_part⟩ :=
+    TauComplex.exp_partial_add_re_im_approx_toRat z1 z2 K K
+  refine ⟨?_, ?_⟩
+  · -- .re component
+    -- Rewrite LHS: cisTauReal(x+y).re.approx K .toRat
+    --   = exp z_sum .re.approx K .toRat
+    --   = exp_partial z_sum K .re.approx K .toRat        (via exp_re_approx)
+    --   = exp_partial (z1.add z2) K .re.approx K .toRat  (via exp_partial_re_im_toRat_eq_of_componentwise)
+    --   = cauchyPStar(exp_term z1, exp_term z2) K .re.approx K .toRat  (via h_re_part)
+    have h_lhs : ((TauComplex.cisTauReal (TauReal.add x y)).re.approx K).toRat
+              = ((TauComplex.cauchyPStar (TauComplex.exp_term z1)
+                                          (TauComplex.exp_term z2) K).re.approx K).toRat := by
+      show ((TauComplex.exp z_sum).re.approx K).toRat = _
+      rw [TauComplex.exp_re_approx,
+          (TauComplex.exp_partial_re_im_toRat_eq_of_componentwise
+              z_sum (z1.add z2) h_zre h_zim K K).1]
+      exact h_re_part
+    -- Rewrite RHS: (cisTauReal x · cisTauReal y).re.approx K .toRat
+    --   = ((exp z1) · (exp z2)).re.approx K .toRat
+    --   = ((exp_partial z1 K) · (exp_partial z2 K)).re.approx K .toRat
+    have h_rhs : (((TauComplex.cisTauReal x).mul (TauComplex.cisTauReal y)).re.approx K).toRat
+              = (((TauComplex.exp_partial z1 K).mul
+                  (TauComplex.exp_partial z2 K)).re.approx K).toRat := by
+      show (((TauComplex.exp z1).mul (TauComplex.exp z2)).re.approx K).toRat = _
+      rw [TauComplex.mul_re_approx, TauComplex.mul_re_approx]
+      simp only [TauComplex.exp_re_approx, TauComplex.exp_im_approx]
+    rw [h_lhs, h_rhs]
+    -- Flip abs sub to match h_cpb_re
+    rw [abs_sub_comm]
+    -- h_cpb_re uses `sum (exp_term z) K` which is defeq to `exp_partial z K`.
+    exact h_cpb_re
+  · -- .im component (parallel to .re)
+    have h_lhs : ((TauComplex.cisTauReal (TauReal.add x y)).im.approx K).toRat
+              = ((TauComplex.cauchyPStar (TauComplex.exp_term z1)
+                                          (TauComplex.exp_term z2) K).im.approx K).toRat := by
+      show ((TauComplex.exp z_sum).im.approx K).toRat = _
+      rw [TauComplex.exp_im_approx,
+          (TauComplex.exp_partial_re_im_toRat_eq_of_componentwise
+              z_sum (z1.add z2) h_zre h_zim K K).2]
+      exact h_im_part
+    have h_rhs : (((TauComplex.cisTauReal x).mul (TauComplex.cisTauReal y)).im.approx K).toRat
+              = (((TauComplex.exp_partial z1 K).mul
+                  (TauComplex.exp_partial z2 K)).im.approx K).toRat := by
+      show (((TauComplex.exp z1).mul (TauComplex.exp z2)).im.approx K).toRat = _
+      rw [TauComplex.mul_im_approx, TauComplex.mul_im_approx]
+      simp only [TauComplex.exp_re_approx, TauComplex.exp_im_approx]
+    rw [h_lhs, h_rhs]
+    rw [abs_sub_comm]
+    exact h_cpb_im
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
