@@ -3401,6 +3401,79 @@ theorem F2_walk_endpoint_bound (a : TauRat)
   rw [← hδ_def]
   exact h_endpoint_bound
 
+/-! ## F.2 main — Tangent defect Gronwall instance at depth 3k+60
+
+  Orchestrates F2_walk_endpoint_bound + B.1 toRat_congr + polynomial
+  closure helpers (term1/2/3) to conclude
+  `|((tangent_defect a).approx (3k+60)).toRat| ≤ 1/(2(k+1))`
+  for `0 ≤ a.toRat`, `4·a.toRat ≤ 1`.
+
+  Polynomial budget:
+  - 2·(200·K²·a²/N)  ≤ 2/(8(k+1))  = 1/(4(k+1))
+  - 2·(10·a·|a|^(4K)) ≤ 2/(72(k+1)) = 1/(36(k+1))
+  - 2·(484·N·K/2^(K-1)) ≤ 2/(9(k+1)) = 2/(9(k+1))
+  Sum = (9 + 1 + 8)/(36(k+1)) = 18/(36(k+1)) = 1/(2(k+1))  ✓ -/
+
+set_option maxHeartbeats 800000 in
+/-- **F.2 main** — Gronwall instance at depth `3k+60`:
+    `|((tangent_defect a).approx (3k+60)).toRat| ≤ 1/(2(k+1))`. -/
+theorem TauReal.tangent_defect_gronwall_instance (a : TauRat)
+    (h_a_nn : 0 ≤ a.toRat) (h_a_le : 4 * a.toRat ≤ 1) (k : Nat) :
+    |((TauReal.tangent_defect a).approx (3 * k + 60)).toRat|
+      ≤ 1 / (2 * ((k : Rat) + 1)) := by
+  obtain ⟨walk_endpoint, h_eq_toRat, h_bound⟩ :=
+    F2_walk_endpoint_bound a h_a_nn h_a_le k
+  have h_bridge := TauReal.tangent_defect_toRat_congr walk_endpoint a (3 * k + 60) h_eq_toRat
+  rw [← h_bridge]
+  have h_t1 := F2_term1_bound a.toRat k h_a_nn h_a_le
+  have h_t2 := F2_term2_bound a.toRat k h_a_nn h_a_le
+  have h_t3 := F2_term3_bound k
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k
+    linarith
+  have hN_nat_pos : (0 : Nat) < 100 * (3 * k + 60)^2 * (k + 1) := by positivity
+  have hN_pos : (0 : Rat) < ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) := by
+    exact_mod_cast hN_nat_pos
+  have hN_ne : ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) ≠ 0 := ne_of_gt hN_pos
+  -- Expand 2N·(...) into sum of 2·(term1) + 2·(term2) + 2·(term3)
+  have h_expand : 2 * ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+        * (200 * ((3 * k + 60 : Nat) : Rat)^2
+              * (a.toRat / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))^2
+           + 10 * (a.toRat / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))
+                * |a.toRat|^(4 * (3 * k + 60))
+           + 484 * ((3 * k + 60 : Nat) : Rat) / 2 ^ ((3 * k + 60) - 1))
+      = 2 * (200 * ((3 * k + 60 : Nat) : Rat)^2 * a.toRat^2
+            / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))
+        + 2 * (10 * a.toRat * |a.toRat|^(4 * (3 * k + 60)))
+        + 2 * (484 * ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+                 * ((3 * k + 60 : Nat) : Rat) / 2 ^ ((3 * k + 60) - 1)) := by
+    field_simp
+  rw [h_expand] at h_bound
+  -- 2·term_i ≤ 2·(1/c_i(k+1)) for c_1=8, c_2=72, c_3=9, by scalar mul
+  have h2_nn : (0 : Rat) ≤ 2 := by norm_num
+  have hT1 : 2 * (200 * ((3 * k + 60 : Nat) : Rat)^2 * a.toRat^2
+            / ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))
+           ≤ 2 / (8 * ((k:Rat) + 1)) := by
+    have h := mul_le_mul_of_nonneg_left h_t1 h2_nn
+    rw [mul_one_div] at h
+    exact h
+  have hT2 : 2 * (10 * a.toRat * |a.toRat|^(4 * (3 * k + 60)))
+           ≤ 2 / (72 * ((k:Rat) + 1)) := by
+    have h := mul_le_mul_of_nonneg_left h_t2 h2_nn
+    rw [mul_one_div] at h
+    exact h
+  have hT3 : 2 * (484 * ((100 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+                  * ((3 * k + 60 : Nat) : Rat) / 2 ^ ((3 * k + 60) - 1))
+           ≤ 2 / (9 * ((k:Rat) + 1)) := by
+    have h := mul_le_mul_of_nonneg_left h_t3 h2_nn
+    rw [mul_one_div] at h
+    exact h
+  -- Sum: 1/(4(k+1)) + 1/(36(k+1)) + 2/(9(k+1)) = 1/(2(k+1))
+  have h_sum_le : 2 / (8 * ((k:Rat) + 1)) + 2 / (72 * ((k:Rat) + 1))
+                + 2 / (9 * ((k:Rat) + 1)) = 1 / (2 * ((k:Rat) + 1)) := by
+    field_simp; ring
+  linarith [h_bound, hT1, hT2, hT3, h_sum_le]
+
 /-! ## Sub-Wave 6.M5.E (base case) — target_A at a = 0
 
   The Module 6 target proposition `cisTauReal_tangent_target_A`, instantiated
