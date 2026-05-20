@@ -570,4 +570,165 @@ def refinementGrowingTorusSystem_lobeInvariance (n : Nat) :
   fuse_assoc := refinementGrowingTorusSystem_trivialFuse_assoc n
   anchor_rigid := refinementGrowingTorusSystem_anchorRigidity n
 
+-- ============================================================
+-- PART 11: §7.5 OQ5 boundary–interior identification —
+--          refinement witnesses (paper Theorem 7.16 + Lemma 7.15)
+-- ============================================================
+
+/-
+Mirrors PART 10 of `TorusDefectSystem.lean`, but on the
+refinement-growing carrier `RefinedTorusDefect n` whose
+underlying type *depends on the depth `n`*.
+
+Each depth `n` gives a separate instance of the OQ5 closure on
+the corresponding `RefinedTorusDefect n` carrier.  The
+identification is the identity bijection at each depth, and
+the minimal witness is the depth-`n` crossing element.
+
+This confirms the abstract boundary–interior scaffold accepts
+geometrically-growing instances, not just static carriers.
+-/
+
+/-- **The trivial tower-coherence classifier on `RefinedTorusDefect n`**. -/
+def RefinedTorusDefect.alwaysTowerCoherent {n : Nat} :
+    RefinedTorusDefect n → Prop :=
+  fun _ => True
+
+/-- **The trivial spectral-support classifier on `RefinedTorusDefect n`**. -/
+def RefinedTorusDefect.alwaysSpecOne {n : Nat} :
+    RefinedTorusDefect n → Nat → Bool :=
+  fun _ _ => true
+
+/-- **The σ-fixedness classifier on `RefinedTorusDefect n`** —
+    matches `sigma_fixed_iff_crossing`. -/
+def RefinedTorusDefect.isSigmaFixed {n : Nat} :
+    RefinedTorusDefect n → Prop :=
+  fun x => x = RefinedTorusDefect.crossing
+
+/-- **The unit-normalised scalar classifier on `RefinedTorusDefect n`** —
+    canonical unit `1`. -/
+def RefinedTorusDefect.unitScalar {n : Nat} :
+    RefinedTorusDefect n → TauRat :=
+  fun _ => TauRat.one
+
+/-- **The non-triviality classifier on `RefinedTorusDefect n`**. -/
+def RefinedTorusDefect.alwaysNontrivial {n : Nat} :
+    RefinedTorusDefect n → Prop :=
+  fun _ => True
+
+/-- **The identity bipolar-preserving bijection on
+    `RefinedTorusDefect n`** — depth-`n` toy instance of II.T27. -/
+def RefinedTorusDefect.bipolarBijection (n : Nat) :
+    BipolarPreservingBijection (RefinedTorusDefect n) (RefinedTorusDefect n)
+      RefinedTorusDefect.alwaysTowerCoherent RefinedTorusDefect.alwaysTowerCoherent
+      RefinedTorusDefect.alwaysSpecOne RefinedTorusDefect.alwaysSpecOne
+      RefinedTorusDefect.isSigmaFixed RefinedTorusDefect.isSigmaFixed
+      RefinedTorusDefect.unitScalar RefinedTorusDefect.unitScalar :=
+  identityBipolarPreservingBijection
+    (RefinedTorusDefect.alwaysTowerCoherent (n := n))
+    (RefinedTorusDefect.alwaysSpecOne (n := n))
+    (RefinedTorusDefect.isSigmaFixed (n := n))
+    (RefinedTorusDefect.unitScalar (n := n))
+
+/-- **The G-side minimal witness on `RefinedTorusDefect n`** —
+    depth-`n` crossing element. -/
+def RefinedTorusDefect.gSideMinimalCrossing (n : Nat) :
+    IsGSideMinimal (RefinedTorusDefect n)
+      RefinedTorusDefect.alwaysNontrivial RefinedTorusDefect.alwaysTowerCoherent
+      RefinedTorusDefect.isSigmaFixed RefinedTorusDefect.alwaysSpecOne
+      RefinedTorusDefect.unitScalar TauRat.one
+      (RefinedTorusDefect.crossing : RefinedTorusDefect n) where
+  nontrivial := trivial
+  tower := trivial
+  sigma_fixed := rfl
+  spec_support_one := fun _ => rfl
+  scalar_unit := rfl
+
+/-- **The R-side minimal witness on `RefinedTorusDefect n`** —
+    same as the G-side witness (G = R at this depth). -/
+def RefinedTorusDefect.rSideMinimalCrossing (n : Nat) :
+    IsRSideMinimal (RefinedTorusDefect n)
+      RefinedTorusDefect.alwaysNontrivial RefinedTorusDefect.alwaysTowerCoherent
+      RefinedTorusDefect.isSigmaFixed RefinedTorusDefect.alwaysSpecOne
+      RefinedTorusDefect.unitScalar TauRat.one
+      (RefinedTorusDefect.crossing : RefinedTorusDefect n) where
+  nontrivial := trivial
+  tower := trivial
+  sigma_fixed := rfl
+  spec_support_one := fun _ => rfl
+  scalar_unit := rfl
+
+/-- **R-side uniqueness of minimal witnesses on
+    `RefinedTorusDefect n`** — discharges the uniqueness
+    hypothesis at each depth via
+    `RefinedTorusDefect.sigma_fixed_iff_crossing`. -/
+theorem RefinedTorusDefect.rSide_uniqueness (n : Nat) :
+    ∀ r₁ r₂ : RefinedTorusDefect n,
+      IsRSideMinimal (RefinedTorusDefect n)
+        RefinedTorusDefect.alwaysNontrivial RefinedTorusDefect.alwaysTowerCoherent
+        RefinedTorusDefect.isSigmaFixed RefinedTorusDefect.alwaysSpecOne
+        RefinedTorusDefect.unitScalar TauRat.one r₁ →
+      IsRSideMinimal (RefinedTorusDefect n)
+        RefinedTorusDefect.alwaysNontrivial RefinedTorusDefect.alwaysTowerCoherent
+        RefinedTorusDefect.isSigmaFixed RefinedTorusDefect.alwaysSpecOne
+        RefinedTorusDefect.unitScalar TauRat.one r₂ →
+      r₁ = r₂ := by
+  intro r₁ r₂ h₁ h₂
+  have e₁ : r₁ = RefinedTorusDefect.crossing := h₁.sigma_fixed
+  have e₂ : r₂ = RefinedTorusDefect.crossing := h₂.sigma_fixed
+  rw [e₁, e₂]
+
+/-- **Paper Lemma 7.15 discharged on `refinementGrowingTorusSystem`** —
+    at each depth `n`, the identity bijection sends the crossing
+    to itself. -/
+theorem refinementGrowingTorusSystem_minimality_transport_unconditional
+    (n : Nat) :
+    (RefinedTorusDefect.bipolarBijection n).toEquiv
+      (RefinedTorusDefect.crossing : RefinedTorusDefect n) =
+      RefinedTorusDefect.crossing :=
+  minimality_transport_lemma
+    (RefinedTorusDefect.bipolarBijection n)
+    (fun _ h => h)
+    RefinedTorusDefect.crossing
+    RefinedTorusDefect.crossing
+    (RefinedTorusDefect.gSideMinimalCrossing n)
+    (RefinedTorusDefect.rSideMinimalCrossing n)
+    (RefinedTorusDefect.rSide_uniqueness n)
+
+/-- **Paper Theorem 7.16 discharged on `refinementGrowingTorusSystem`** —
+    at each depth `n`, the structural boundary–interior identification
+    holds unconditionally. -/
+theorem refinementGrowingTorusSystem_boundary_interior_identification_unconditional
+    (n : Nat) :
+    (RefinedTorusDefect.bipolarBijection n).toEquiv
+      (RefinedTorusDefect.crossing : RefinedTorusDefect n) =
+      RefinedTorusDefect.crossing :=
+  boundary_interior_identification
+    (RefinedTorusDefect.bipolarBijection n)
+    (fun _ h => h)
+    RefinedTorusDefect.crossing
+    RefinedTorusDefect.crossing
+    (RefinedTorusDefect.gSideMinimalCrossing n)
+    (RefinedTorusDefect.rSideMinimalCrossing n)
+    (RefinedTorusDefect.rSide_uniqueness n)
+
+/-- **Paper Theorem 7.16 scalar form discharged on
+    `refinementGrowingTorusSystem`** — at each depth `n`, the
+    boundary scalar readout coincides with the interior scalar
+    readout. -/
+theorem refinementGrowingTorusSystem_boundary_interior_scalar_unconditional
+    (n : Nat) :
+    RefinedTorusDefect.unitScalar
+      (RefinedTorusDefect.crossing : RefinedTorusDefect n) =
+    RefinedTorusDefect.unitScalar
+      (RefinedTorusDefect.crossing : RefinedTorusDefect n) :=
+  boundary_interior_scalar_identification
+    (RefinedTorusDefect.bipolarBijection n)
+    (fun _ h => h)
+    RefinedTorusDefect.crossing
+    RefinedTorusDefect.crossing
+    (RefinedTorusDefect.gSideMinimalCrossing n)
+    (RefinedTorusDefect.rSideMinimalCrossing n)
+    (RefinedTorusDefect.rSide_uniqueness n)
+
 end Tau.Boundary

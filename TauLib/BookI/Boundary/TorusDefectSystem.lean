@@ -1,5 +1,6 @@
 import TauLib.BookI.Boundary.UniversalFixedScalar
 import TauLib.BookI.Boundary.LobeInvariance
+import TauLib.BookI.Boundary.BoundaryInteriorIdentification
 
 /-!
 # TauLib.BookI.Boundary.TorusDefectSystem
@@ -594,5 +595,212 @@ def TorusDefectSystem.lobeInvariance (n : Nat) :
   fuse_sigma_swap := TorusDefectSystem.trivialFuse_lobeL2 n
   fuse_assoc := TorusDefectSystem.trivialFuse_assoc n
   anchor_rigid := TorusDefectSystem.anchorRigidity n
+
+-- ============================================================
+-- PART 10: §7.5 OQ5 boundary–interior identification — concrete
+--          witness (paper Theorem 7.16 + Lemma 7.15)
+-- ============================================================
+
+/-
+The pattern (mirroring PART 9 for L1–L4): we exhibit a concrete
+G-side and R-side type (here both `TorusDefect`), define the five
+classifier functions, construct a `BipolarPreservingBijection`
+(the identity bijection serves as the toy witness), supply the
+G-side and R-side minimality witnesses, and discharge the
+abstract `boundary_interior_identification` theorem.
+
+The concrete carrier `TorusDefect` is too small to host the
+boundary lemniscate's actual ω-germ structure or the
+ν-iterator's actual primorial-stage data, but it suffices to
+demonstrate the abstract scaffold compiles end-to-end on a
+non-trivial concrete instance.  The canonical G/R = TorusDefect
+identification is the trivial case where boundary and interior
+share the same carrier — exactly the case where II.T27's bijection
+is the identity, and the minimality data is the same on both
+sides.
+
+Future waves implementing the real boundary lemniscate carrier
+and the real ν-iterator primorial-stage carrier will substitute
+those for `TorusDefect`, recovering the paper's full geometric
+content.
+-/
+
+/-- **The trivial tower-coherence classifier on `TorusDefect`** —
+    every element is tower-coherent (the static instance has no
+    refinement to fail). -/
+def TorusDefect.alwaysTowerCoherent : TorusDefect → Prop :=
+  fun _ => True
+
+/-- **The trivial spectral-support classifier on `TorusDefect`** —
+    every element has `|S_n| = 1` at every depth. -/
+def TorusDefect.alwaysSpecOne : TorusDefect → Nat → Bool :=
+  fun _ _ => true
+
+/-- **The σ-fixedness classifier on `TorusDefect`** — `x` is
+    σ-fixed iff it equals the crossing.
+
+    Matches `sigma_fixed_iff_crossing`. -/
+def TorusDefect.isSigmaFixed : TorusDefect → Prop :=
+  fun x => x = TorusDefect.crossing
+
+/-- **The unit-normalised scalar classifier on `TorusDefect`** —
+    canonical unit value `1`. -/
+def TorusDefect.unitScalar : TorusDefect → TauRat :=
+  fun _ => TauRat.one
+
+/-- **The non-triviality classifier on `TorusDefect`** — for the
+    toy identification we use the trivial "always non-trivial"
+    classifier (paper's "E_cl is non-trivial" reduces to a
+    structural distinguishedness condition; the abstract scaffold
+    consumes any non-triviality predicate).
+
+    On the abstract bijection-transport, paper's "Π preserves
+    non-triviality" is automatic when Π is the identity. -/
+def TorusDefect.alwaysNontrivial : TorusDefect → Prop :=
+  fun _ => True
+
+/-- **The identity bipolar-preserving bijection on
+    `TorusDefect`** — concrete instance of II.T27 in the toy
+    setting where boundary and interior carriers coincide.
+
+    The five preservation clauses (tower coherence, spectral
+    support, σ-fixedness, scalar value) are all reflexively true
+    because the bijection is the identity. -/
+def TorusDefect.bipolarBijection :
+    BipolarPreservingBijection TorusDefect TorusDefect
+      TorusDefect.alwaysTowerCoherent TorusDefect.alwaysTowerCoherent
+      TorusDefect.alwaysSpecOne TorusDefect.alwaysSpecOne
+      TorusDefect.isSigmaFixed TorusDefect.isSigmaFixed
+      TorusDefect.unitScalar TorusDefect.unitScalar :=
+  identityBipolarPreservingBijection
+    TorusDefect.alwaysTowerCoherent
+    TorusDefect.alwaysSpecOne
+    TorusDefect.isSigmaFixed
+    TorusDefect.unitScalar
+
+/-- **The G-side minimal witness on `TorusDefect`** — the
+    crossing is the canonical G-side minimal element.
+
+    All five clauses of `IsGSideMinimal` hold:
+    - Non-trivial: by trivial classifier.
+    - Tower-coherent: by trivial classifier.
+    - σ-fixed: `crossing = crossing` by `rfl`.
+    - `|S_n| = 1` at every depth: by trivial classifier.
+    - Scalar = unit: by definition of `unitScalar`. -/
+def TorusDefect.gSideMinimalCrossing :
+    IsGSideMinimal TorusDefect
+      TorusDefect.alwaysNontrivial TorusDefect.alwaysTowerCoherent
+      TorusDefect.isSigmaFixed TorusDefect.alwaysSpecOne
+      TorusDefect.unitScalar TauRat.one TorusDefect.crossing where
+  nontrivial := trivial
+  tower := trivial
+  sigma_fixed := rfl
+  spec_support_one := fun _ => rfl
+  scalar_unit := rfl
+
+/-- **The R-side minimal witness on `TorusDefect`** — same as the
+    G-side witness, since the carrier is shared.
+
+    Structurally identical to `gSideMinimalCrossing`; both fields
+    are reflexively dischargeable because the classifiers are
+    constant. -/
+def TorusDefect.rSideMinimalCrossing :
+    IsRSideMinimal TorusDefect
+      TorusDefect.alwaysNontrivial TorusDefect.alwaysTowerCoherent
+      TorusDefect.isSigmaFixed TorusDefect.alwaysSpecOne
+      TorusDefect.unitScalar TauRat.one TorusDefect.crossing where
+  nontrivial := trivial
+  tower := trivial
+  sigma_fixed := rfl
+  spec_support_one := fun _ => rfl
+  scalar_unit := rfl
+
+/-- **R-side uniqueness of minimal witnesses on `TorusDefect`** —
+    discharges the uniqueness hypothesis of paper Lemma 7.15.
+
+    On `TorusDefect`, σ-fixedness pins down the element to be
+    `crossing` (via `sigma_fixed_iff_crossing`).  Hence any two
+    R-side minimal witnesses (both σ-fixed) must equal
+    `crossing`, hence equal each other. -/
+theorem TorusDefect.rSide_uniqueness :
+    ∀ r₁ r₂ : TorusDefect,
+      IsRSideMinimal TorusDefect
+        TorusDefect.alwaysNontrivial TorusDefect.alwaysTowerCoherent
+        TorusDefect.isSigmaFixed TorusDefect.alwaysSpecOne
+        TorusDefect.unitScalar TauRat.one r₁ →
+      IsRSideMinimal TorusDefect
+        TorusDefect.alwaysNontrivial TorusDefect.alwaysTowerCoherent
+        TorusDefect.isSigmaFixed TorusDefect.alwaysSpecOne
+        TorusDefect.unitScalar TauRat.one r₂ →
+      r₁ = r₂ := by
+  intro r₁ r₂ h₁ h₂
+  have e₁ : r₁ = TorusDefect.crossing := h₁.sigma_fixed
+  have e₂ : r₂ = TorusDefect.crossing := h₂.sigma_fixed
+  rw [e₁, e₂]
+
+/-- **Paper Lemma 7.15 (`lem:minimality-transport`) discharged on
+    `TorusDefect`** — concrete instance of `minimality_transport_lemma`
+    with all five clauses provable by case analysis on the
+    3-element carrier plus the identity bijection.
+
+    This realises paper's `Π(E_cl) = ν-iterator's refinement
+    tail` on the toy carrier where G = R = `TorusDefect`,
+    Π = identity, and both sides' minimal witness is the
+    crossing element. -/
+theorem TorusDefectSystem.minimality_transport_unconditional :
+    TorusDefect.bipolarBijection.toEquiv TorusDefect.crossing =
+      TorusDefect.crossing :=
+  minimality_transport_lemma
+    TorusDefect.bipolarBijection
+    (fun _ h => h)
+    TorusDefect.crossing
+    TorusDefect.crossing
+    TorusDefect.gSideMinimalCrossing
+    TorusDefect.rSideMinimalCrossing
+    TorusDefect.rSide_uniqueness
+
+/-- **Paper Theorem 7.16 (`thm:oq5-unconditional`) discharged on
+    `TorusDefect`** — concrete instance of
+    `boundary_interior_identification`.
+
+    Structurally identical to `minimality_transport_unconditional`
+    (the structural identification *is* the minimality-transport
+    on this toy carrier); recorded under the headline name to
+    match paper §7.5. -/
+theorem TorusDefectSystem.boundary_interior_identification_unconditional :
+    TorusDefect.bipolarBijection.toEquiv TorusDefect.crossing =
+      TorusDefect.crossing :=
+  boundary_interior_identification
+    TorusDefect.bipolarBijection
+    (fun _ h => h)
+    TorusDefect.crossing
+    TorusDefect.crossing
+    TorusDefect.gSideMinimalCrossing
+    TorusDefect.rSideMinimalCrossing
+    TorusDefect.rSide_uniqueness
+
+/-- **Paper Theorem 7.16 scalar form discharged on
+    `TorusDefect`** — concrete instance of
+    `boundary_interior_scalar_identification`.
+
+    The boundary scalar readout `unitScalar crossing = 1` coincides
+    with the interior scalar readout `unitScalar crossing = 1` —
+    paper's `GerE = e_ν` rendered at the toy-carrier unit-value
+    level.
+
+    On the real boundary lemniscate / ν-iterator carriers,
+    `unitScalar` would be replaced by the actual readout functor
+    `Read_F`, and the canonical unit would be `e ≈ 2.71828`. -/
+theorem TorusDefectSystem.boundary_interior_scalar_unconditional :
+    TorusDefect.unitScalar TorusDefect.crossing =
+      TorusDefect.unitScalar TorusDefect.crossing :=
+  boundary_interior_scalar_identification
+    TorusDefect.bipolarBijection
+    (fun _ h => h)
+    TorusDefect.crossing
+    TorusDefect.crossing
+    TorusDefect.gSideMinimalCrossing
+    TorusDefect.rSideMinimalCrossing
+    TorusDefect.rSide_uniqueness
 
 end Tau.Boundary
