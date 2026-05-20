@@ -716,4 +716,806 @@ def MachinFortyFiveDegreeIdentity : Prop :=
         (TauComplex.cisTauReal
           (TauReal.arctan_of_rat_seq TauRat.one_two_three_nine)).im⟩).im
 
+-- ============================================================
+-- PART 10: SCOPE 2A-LIFT — BOUND LEMMAS FOR cisA, cisA², cisA⁴
+-- ============================================================
+
+/-! ## Pointwise bounds on the intermediate complex products
+
+  The bilateral congruence chain `cA · cA · cA · cA · W ≈ cA' · cA' · cA' · cA' · W'`
+  is built via `TauComplex.equiv_mul_congr`, which requires pointwise
+  bounds on both factors. We establish:
+
+  * `|cA.re|, |cA.im| ≤ 8` (uniform `cis_arctan_re/im_approx_abs_le_8`)
+  * `|(cA·cA).re|, |(cA·cA).im| ≤ 128` (from componentwise products)
+  * `|((cA·cA)·(cA·cA)).re|, |.im| ≤ 32768` (compounded)
+
+  These same bounds hold for the F.6-substituted complex `cA' := ⟨cA.re, fA·cA.re⟩`
+  since `|fA·cA.re| ≤ 8` (using `|a.toRat| ≤ 1` under path-β).
+-/
+
+/-- **Pointwise abs bound on cisA².re** under path-β.
+
+    `|R² - I²| ≤ |R|² + |I|² ≤ 64 + 64 = 128`. -/
+private theorem cisA_sq_re_approx_abs_le_128
+    (a : TauRat) (ha2 : 2 * |a.toRat| ≤ 1) (n : Nat) :
+    (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).abs.toRat
+      ≤ 128 := by
+  rw [TauRat.toRat_abs]
+  show |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+            (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).re.approx n).toRat| ≤ 128
+  rw [cisA_sq_re_approx a n]
+  -- Goal: |R² - I²| ≤ 128 where R := cisR a n, I := cisI a n
+  have h_R := TauReal.cis_arctan_re_approx_abs_le_8 a ha2 n
+  have h_I := TauReal.cis_arctan_im_approx_abs_le_8 a ha2 n
+  rw [TauRat.toRat_abs] at h_R h_I
+  show |cisR a n * cisR a n - cisI a n * cisI a n| ≤ 128
+  unfold cisR cisI at *
+  set R := ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat
+  set I := ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat
+  have h_abs : |R * R - I * I| ≤ |R * R| + |I * I| := by
+    have h := abs_add_le (R * R) (-(I * I))
+    rw [abs_neg] at h
+    have h_eq : R * R + -(I * I) = R * R - I * I := by ring
+    rw [h_eq] at h
+    exact h
+  have hRR : |R * R| ≤ (64 : Rat) := by
+    rw [abs_mul]
+    have h1 : |R| * |R| ≤ 8 * 8 := mul_le_mul h_R h_R (abs_nonneg _) (by norm_num)
+    linarith
+  have hII : |I * I| ≤ (64 : Rat) := by
+    rw [abs_mul]
+    have h1 : |I| * |I| ≤ 8 * 8 := mul_le_mul h_I h_I (abs_nonneg _) (by norm_num)
+    linarith
+  linarith
+
+/-- **Pointwise abs bound on cisA².im** under path-β.
+
+    `|2RI| ≤ 2·|R|·|I| ≤ 2·8·8 = 128`. -/
+private theorem cisA_sq_im_approx_abs_le_128
+    (a : TauRat) (ha2 : 2 * |a.toRat| ≤ 1) (n : Nat) :
+    (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).abs.toRat
+      ≤ 128 := by
+  rw [TauRat.toRat_abs]
+  show |(((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+            (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).im.approx n).toRat| ≤ 128
+  rw [cisA_sq_im_approx a n]
+  have h_R := TauReal.cis_arctan_re_approx_abs_le_8 a ha2 n
+  have h_I := TauReal.cis_arctan_im_approx_abs_le_8 a ha2 n
+  rw [TauRat.toRat_abs] at h_R h_I
+  show |cisR a n * cisI a n + cisI a n * cisR a n| ≤ 128
+  unfold cisR cisI at *
+  set R := ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat
+  set I := ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat
+  have h_eq : R * I + I * R = 2 * (R * I) := by ring
+  rw [h_eq]
+  rw [show |2 * (R * I)| = 2 * |R * I| from by rw [abs_mul]; simp]
+  rw [abs_mul]
+  have h_RI : |R| * |I| ≤ (64 : Rat) := by
+    have h1 : |R| * |I| ≤ 8 * 8 := mul_le_mul h_R h_I (abs_nonneg _) (by norm_num)
+    linarith
+  linarith
+
+/-- **Pointwise abs bound on (cisA·cisA·cisA·cisA).re** under path-β.
+
+    `|R⁴_re part| ≤ |cA²_re|² + |cA²_im|² ≤ 128² + 128² = 32768`. -/
+private theorem cisA_quad_re_approx_abs_le_32768
+    (a : TauRat) (ha2 : 2 * |a.toRat| ≤ 1) (n : Nat) :
+    ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).mul
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)))).re.approx n).abs.toRat
+      ≤ 32768 := by
+  rw [TauRat.toRat_abs]
+  rw [cisA_quad_re_approx a n]
+  have h_R := TauReal.cis_arctan_re_approx_abs_le_8 a ha2 n
+  have h_I := TauReal.cis_arctan_im_approx_abs_le_8 a ha2 n
+  rw [TauRat.toRat_abs] at h_R h_I
+  unfold cisR cisI at *
+  set R := ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat
+  set I := ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat
+  set U := R * R - I * I with hU_def
+  set V := R * I + I * R with hV_def
+  -- Goal: |U·U - V·V| ≤ 32768
+  -- Bounds: |U| ≤ 128, |V| ≤ 128.
+  have hU : |U| ≤ (128 : Rat) := by
+    rw [hU_def]
+    have h_abs : |R * R - I * I| ≤ |R * R| + |I * I| := by
+      have h := abs_add_le (R * R) (-(I * I))
+      rw [abs_neg] at h
+      have h_eq : R * R + -(I * I) = R * R - I * I := by ring
+      rw [h_eq] at h
+      exact h
+    have hRR : |R * R| ≤ (64 : Rat) := by
+      rw [abs_mul]
+      have h1 : |R| * |R| ≤ 8 * 8 := mul_le_mul h_R h_R (abs_nonneg _) (by norm_num)
+      linarith
+    have hII : |I * I| ≤ (64 : Rat) := by
+      rw [abs_mul]
+      have h1 : |I| * |I| ≤ 8 * 8 := mul_le_mul h_I h_I (abs_nonneg _) (by norm_num)
+      linarith
+    linarith
+  have hV : |V| ≤ (128 : Rat) := by
+    rw [hV_def]
+    have h_eq : R * I + I * R = 2 * (R * I) := by ring
+    rw [h_eq]
+    rw [show |2 * (R * I)| = 2 * |R * I| from by rw [abs_mul]; simp]
+    rw [abs_mul]
+    have h_RI : |R| * |I| ≤ (64 : Rat) := by
+      have h1 : |R| * |I| ≤ 8 * 8 := mul_le_mul h_R h_I (abs_nonneg _) (by norm_num)
+      linarith
+    linarith
+  -- Goal: |U·U - V·V| ≤ 32768
+  have h_abs : |U * U - V * V| ≤ |U * U| + |V * V| := by
+    have h := abs_add_le (U * U) (-(V * V))
+    rw [abs_neg] at h
+    have h_eq : U * U + -(V * V) = U * U - V * V := by ring
+    rw [h_eq] at h
+    exact h
+  have hUU : |U * U| ≤ (128 : Rat) * 128 := by
+    rw [abs_mul]
+    exact mul_le_mul hU hU (abs_nonneg _) (by norm_num)
+  have hVV : |V * V| ≤ (128 : Rat) * 128 := by
+    rw [abs_mul]
+    exact mul_le_mul hV hV (abs_nonneg _) (by norm_num)
+  have h128 : (128 : Rat) * 128 = 16384 := by norm_num
+  rw [h128] at hUU hVV
+  linarith
+
+/-- **Pointwise abs bound on (cisA·cisA·cisA·cisA).im** under path-β.
+
+    `|R⁴_im part| ≤ 2·|cA²_re|·|cA²_im| ≤ 2·128·128 = 32768`. -/
+private theorem cisA_quad_im_approx_abs_le_32768
+    (a : TauRat) (ha2 : 2 * |a.toRat| ≤ 1) (n : Nat) :
+    ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).mul
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)))).im.approx n).abs.toRat
+      ≤ 32768 := by
+  rw [TauRat.toRat_abs]
+  rw [cisA_quad_im_approx a n]
+  have h_R := TauReal.cis_arctan_re_approx_abs_le_8 a ha2 n
+  have h_I := TauReal.cis_arctan_im_approx_abs_le_8 a ha2 n
+  rw [TauRat.toRat_abs] at h_R h_I
+  unfold cisR cisI at *
+  set R := ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat
+  set I := ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).toRat
+  set U := R * R - I * I with hU_def
+  set V := R * I + I * R with hV_def
+  -- Goal: |U·V + V·U| ≤ 32768
+  have h_eq : U * V + V * U = 2 * (U * V) := by ring
+  rw [h_eq]
+  rw [show |2 * (U * V)| = 2 * |U * V| from by rw [abs_mul]; simp]
+  rw [abs_mul]
+  have hU : |U| ≤ (128 : Rat) := by
+    rw [hU_def]
+    have h_abs : |R * R - I * I| ≤ |R * R| + |I * I| := by
+      have h := abs_add_le (R * R) (-(I * I))
+      rw [abs_neg] at h
+      have h_eq : R * R + -(I * I) = R * R - I * I := by ring
+      rw [h_eq] at h
+      exact h
+    have hRR : |R * R| ≤ (64 : Rat) := by
+      rw [abs_mul]
+      have h1 : |R| * |R| ≤ 8 * 8 := mul_le_mul h_R h_R (abs_nonneg _) (by norm_num)
+      linarith
+    have hII : |I * I| ≤ (64 : Rat) := by
+      rw [abs_mul]
+      have h1 : |I| * |I| ≤ 8 * 8 := mul_le_mul h_I h_I (abs_nonneg _) (by norm_num)
+      linarith
+    linarith
+  have hV : |V| ≤ (128 : Rat) := by
+    rw [hV_def]
+    have h_eq : R * I + I * R = 2 * (R * I) := by ring
+    rw [h_eq]
+    rw [show |2 * (R * I)| = 2 * |R * I| from by rw [abs_mul]; simp]
+    rw [abs_mul]
+    have h_RI : |R| * |I| ≤ (64 : Rat) := by
+      have h1 : |R| * |I| ≤ 8 * 8 := mul_le_mul h_R h_I (abs_nonneg _) (by norm_num)
+      linarith
+    linarith
+  have h_UV : |U| * |V| ≤ (128 : Rat) * 128 :=
+    mul_le_mul hU hV (abs_nonneg _) (by norm_num)
+  have h128 : (128 : Rat) * 128 = 16384 := by norm_num
+  rw [h128] at h_UV
+  linarith
+
+-- ============================================================
+-- PART 11: SCOPE 2A-LIFT — SUBSTITUTED COMPLEX (cA') AND ITS BOUNDS
+-- ============================================================
+
+/-! ## The F.6-substituted complex `cA'`
+
+  Define `cA' := ⟨cA.re, fA · cA.re⟩` where `fA := fromTauRat a`.
+  Under F.6, `cA.equiv cA' := ⟨refl, F.6 for a⟩`.
+
+  We establish identical bounds for `cA'²` and `cA'⁴` since `|fA · cA.re| ≤ 8`
+  (uses `fromTauRat_mul_bounded_by_eight`).
+-/
+
+/-- Substituted cisA: `⟨cA.re, fA · cA.re⟩`. -/
+private noncomputable def cA_subst (a : TauRat) : TauComplex :=
+  ⟨(TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re,
+   (TauReal.fromTauRat a).mul (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re⟩
+
+/-- Bound on (cA_subst a).re.approx n .toRat by 8. -/
+private theorem cA_subst_re_approx_abs_le_8
+    (a : TauRat) (ha2 : 2 * |a.toRat| ≤ 1) (n : Nat) :
+    ((cA_subst a).re.approx n).abs.toRat ≤ 8 := by
+  show ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).abs.toRat ≤ 8
+  exact TauComplex.cisTauReal_re_approx_abs_le_8 _ n (by
+    have h_bound := TauReal.arctan_of_rat_seq_bounded a ha2 n
+    rw [TauRat.toRat_abs] at h_bound
+    exact h_bound)
+
+/-- Bound on (cA_subst a).im.approx n .toRat by 8. Uses `|a.toRat| ≤ 1` (from path-β). -/
+private theorem cA_subst_im_approx_abs_le_8
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) (n : Nat) :
+    ((cA_subst a).im.approx n).abs.toRat ≤ 8 := by
+  have ha2 : 2 * |a.toRat| ≤ 1 := by
+    have := _root_.abs_nonneg a.toRat; linarith
+  have ha1 : |a.toRat| ≤ 1 := by
+    have := _root_.abs_nonneg a.toRat; linarith
+  -- (cA_subst a).im = fromTauRat a · cisA.re
+  show (((TauReal.fromTauRat a).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re).approx n).abs.toRat ≤ 8
+  show ((TauRat.mul ((TauReal.fromTauRat a).approx n)
+          ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n)).abs).toRat ≤ 8
+  rw [TauRat.toRat_abs, toRat_mul]
+  show |a.toRat * ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat| ≤ 8
+  rw [abs_mul]
+  have h_R := TauComplex.cisTauReal_re_approx_abs_le_8 (TauReal.arctan_of_rat_seq a) n (by
+    have h_bound := TauReal.arctan_of_rat_seq_bounded a ha2 n
+    rw [TauRat.toRat_abs] at h_bound
+    exact h_bound)
+  rw [TauRat.toRat_abs] at h_R
+  calc |a.toRat| * |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).toRat|
+      ≤ 1 * 8 := by
+        apply mul_le_mul ha1 h_R (abs_nonneg _) (by norm_num)
+    _ = 8 := by ring
+
+/-- The TauComplex equiv `cA ≈ cA_subst a` via F.6. -/
+private theorem cisA_equiv_cA_subst
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) :
+    TauComplex.equiv
+      (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))
+      (cA_subst a) := by
+  refine ⟨TauReal.equiv_refl _, ?_⟩
+  exact TauReal.cisTauReal_tangent_target_A_path_beta a ha
+
+-- ============================================================
+-- PART 12: SCOPE 2A-LIFT — cA² ≈ cA_subst² AND cA⁴ ≈ cA_subst⁴
+-- ============================================================
+
+/-- The TauComplex equiv `cA · cA ≈ cA_subst · cA_subst`. -/
+private theorem cisA_sq_equiv_cA_subst_sq
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) :
+    TauComplex.equiv
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)))
+      ((cA_subst a).mul (cA_subst a)) := by
+  have ha2 : 2 * |a.toRat| ≤ 1 := by
+    have := _root_.abs_nonneg a.toRat; linarith
+  have h_eq := cisA_equiv_cA_subst a ha
+  -- Apply TauComplex.equiv_mul_congr with Mre = Mim = 8.
+  -- z = cA, z' = cA_subst, w = cA, w' = cA_subst.
+  apply TauComplex.equiv_mul_congr (Mre := 8) (Mim := 8) (by norm_num) (by norm_num)
+  · -- bound on z'.re = (cA_subst a).re ≤ 8
+    intro n; exact cA_subst_re_approx_abs_le_8 a ha2 n
+  · -- bound on z'.im = (cA_subst a).im ≤ 8
+    intro n; exact cA_subst_im_approx_abs_le_8 a ha n
+  · -- bound on w.re = cA.re ≤ 8
+    intro n
+    show ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n).abs.toRat ≤ 8
+    exact TauComplex.cisTauReal_re_approx_abs_le_8 _ n (by
+      have h_bound := TauReal.arctan_of_rat_seq_bounded a ha2 n
+      rw [TauRat.toRat_abs] at h_bound
+      exact h_bound)
+  · -- bound on w.im = cA.im ≤ 8
+    intro n
+    show ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).im.approx n).abs.toRat ≤ 8
+    exact TauComplex.cisTauReal_im_approx_abs_le_8 _ n (by
+      have h_bound := TauReal.arctan_of_rat_seq_bounded a ha2 n
+      rw [TauRat.toRat_abs] at h_bound
+      exact h_bound)
+  · exact h_eq
+  · exact h_eq
+
+/-- Bound on (cA_subst a · cA_subst a).re.approx n .toRat by 128. -/
+private theorem cA_subst_sq_re_approx_abs_le_128
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) (n : Nat) :
+    (((cA_subst a).mul (cA_subst a)).re.approx n).abs.toRat ≤ 128 := by
+  -- (cA_subst a · cA_subst a).re = (cA_subst a).re · (cA_subst a).re - (cA_subst a).im · (cA_subst a).im
+  rw [TauRat.toRat_abs]
+  show |(((cA_subst a).mul (cA_subst a)).re.approx n).toRat| ≤ 128
+  show |(TauRat.add
+            (TauRat.mul ((cA_subst a).re.approx n) ((cA_subst a).re.approx n))
+            (TauRat.negate (TauRat.mul ((cA_subst a).im.approx n) ((cA_subst a).im.approx n)))).toRat|
+        ≤ 128
+  rw [toRat_add, toRat_negate, toRat_mul, toRat_mul]
+  have ha2 : 2 * |a.toRat| ≤ 1 := by
+    have := _root_.abs_nonneg a.toRat; linarith
+  have h_R := cA_subst_re_approx_abs_le_8 a ha2 n
+  have h_I := cA_subst_im_approx_abs_le_8 a ha n
+  rw [TauRat.toRat_abs] at h_R h_I
+  set R := ((cA_subst a).re.approx n).toRat
+  set I := ((cA_subst a).im.approx n).toRat
+  show |R * R + -(I * I)| ≤ 128
+  have h_abs : |R * R + -(I * I)| ≤ |R * R| + |I * I| := by
+    have h := abs_add_le (R * R) (-(I * I))
+    rw [abs_neg] at h
+    exact h
+  have hRR : |R * R| ≤ (64 : Rat) := by
+    rw [abs_mul]
+    have h1 : |R| * |R| ≤ 8 * 8 := mul_le_mul h_R h_R (abs_nonneg _) (by norm_num)
+    linarith
+  have hII : |I * I| ≤ (64 : Rat) := by
+    rw [abs_mul]
+    have h1 : |I| * |I| ≤ 8 * 8 := mul_le_mul h_I h_I (abs_nonneg _) (by norm_num)
+    linarith
+  linarith
+
+/-- Bound on (cA_subst a · cA_subst a).im.approx n .toRat by 128. -/
+private theorem cA_subst_sq_im_approx_abs_le_128
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) (n : Nat) :
+    (((cA_subst a).mul (cA_subst a)).im.approx n).abs.toRat ≤ 128 := by
+  rw [TauRat.toRat_abs]
+  show |(TauRat.add
+            (TauRat.mul ((cA_subst a).re.approx n) ((cA_subst a).im.approx n))
+            (TauRat.mul ((cA_subst a).im.approx n) ((cA_subst a).re.approx n))).toRat|
+        ≤ 128
+  rw [toRat_add, toRat_mul, toRat_mul]
+  have ha2 : 2 * |a.toRat| ≤ 1 := by
+    have := _root_.abs_nonneg a.toRat; linarith
+  have h_R := cA_subst_re_approx_abs_le_8 a ha2 n
+  have h_I := cA_subst_im_approx_abs_le_8 a ha n
+  rw [TauRat.toRat_abs] at h_R h_I
+  set R := ((cA_subst a).re.approx n).toRat
+  set I := ((cA_subst a).im.approx n).toRat
+  show |R * I + I * R| ≤ 128
+  have h_eq : R * I + I * R = 2 * (R * I) := by ring
+  rw [h_eq]
+  rw [show |2 * (R * I)| = 2 * |R * I| from by rw [abs_mul]; simp]
+  rw [abs_mul]
+  have h_RI : |R| * |I| ≤ (64 : Rat) := by
+    have h1 : |R| * |I| ≤ 8 * 8 := mul_le_mul h_R h_I (abs_nonneg _) (by norm_num)
+    linarith
+  linarith
+
+/-- The TauComplex equiv `(cA·cA)·(cA·cA) ≈ (cA_subst·cA_subst)·(cA_subst·cA_subst)`. -/
+private theorem cisA_quad_equiv_cA_subst_quad
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) :
+    TauComplex.equiv
+      (((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).mul
+       ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))))
+      (((cA_subst a).mul (cA_subst a)).mul ((cA_subst a).mul (cA_subst a))) := by
+  have ha2 : 2 * |a.toRat| ≤ 1 := by
+    have := _root_.abs_nonneg a.toRat; linarith
+  have h_sq_eq := cisA_sq_equiv_cA_subst_sq a ha
+  -- Apply TauComplex.equiv_mul_congr with Mre = Mim = 128.
+  apply TauComplex.equiv_mul_congr (Mre := 128) (Mim := 128) (by norm_num) (by norm_num)
+  · -- bound on z'.re = (cA_subst²).re ≤ 128
+    intro n; exact cA_subst_sq_re_approx_abs_le_128 a ha n
+  · -- bound on z'.im = (cA_subst²).im ≤ 128
+    intro n; exact cA_subst_sq_im_approx_abs_le_128 a ha n
+  · -- bound on w.re = (cA²).re ≤ 128
+    intro n; exact cisA_sq_re_approx_abs_le_128 a ha2 n
+  · -- bound on w.im = (cA²).im ≤ 128
+    intro n; exact cisA_sq_im_approx_abs_le_128 a ha2 n
+  · exact h_sq_eq
+  · exact h_sq_eq
+
+/-- Bound on ((cA_subst a · cA_subst a) · (cA_subst a · cA_subst a)).re.approx n .toRat by 32768. -/
+private theorem cA_subst_quad_re_approx_abs_le_32768
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) (n : Nat) :
+    ((((cA_subst a).mul (cA_subst a)).mul
+        ((cA_subst a).mul (cA_subst a))).re.approx n).abs.toRat ≤ 32768 := by
+  rw [TauRat.toRat_abs]
+  show |(TauRat.add
+            (TauRat.mul (((cA_subst a).mul (cA_subst a)).re.approx n)
+                       (((cA_subst a).mul (cA_subst a)).re.approx n))
+            (TauRat.negate
+              (TauRat.mul (((cA_subst a).mul (cA_subst a)).im.approx n)
+                         (((cA_subst a).mul (cA_subst a)).im.approx n)))).toRat|
+        ≤ 32768
+  rw [toRat_add, toRat_negate, toRat_mul, toRat_mul]
+  have h_U := cA_subst_sq_re_approx_abs_le_128 a ha n
+  have h_V := cA_subst_sq_im_approx_abs_le_128 a ha n
+  rw [TauRat.toRat_abs] at h_U h_V
+  set U := (((cA_subst a).mul (cA_subst a)).re.approx n).toRat
+  set V := (((cA_subst a).mul (cA_subst a)).im.approx n).toRat
+  show |U * U + -(V * V)| ≤ 32768
+  have h_abs : |U * U + -(V * V)| ≤ |U * U| + |V * V| := by
+    have h := abs_add_le (U * U) (-(V * V))
+    rw [abs_neg] at h
+    exact h
+  have hUU : |U * U| ≤ (128 : Rat) * 128 := by
+    rw [abs_mul]
+    exact mul_le_mul h_U h_U (abs_nonneg _) (by norm_num)
+  have hVV : |V * V| ≤ (128 : Rat) * 128 := by
+    rw [abs_mul]
+    exact mul_le_mul h_V h_V (abs_nonneg _) (by norm_num)
+  have h_total : |U * U| + |V * V| ≤ (32768 : Rat) := by
+    have h128 : (128 : Rat) * 128 = 16384 := by norm_num
+    rw [h128] at hUU hVV
+    linarith
+  linarith
+
+/-- Bound on ((cA_subst a · cA_subst a) · (cA_subst a · cA_subst a)).im.approx n .toRat by 32768. -/
+private theorem cA_subst_quad_im_approx_abs_le_32768
+    (a : TauRat) (ha : 4 * |a.toRat| ≤ 1) (n : Nat) :
+    ((((cA_subst a).mul (cA_subst a)).mul
+        ((cA_subst a).mul (cA_subst a))).im.approx n).abs.toRat ≤ 32768 := by
+  rw [TauRat.toRat_abs]
+  show |(TauRat.add
+            (TauRat.mul (((cA_subst a).mul (cA_subst a)).re.approx n)
+                       (((cA_subst a).mul (cA_subst a)).im.approx n))
+            (TauRat.mul (((cA_subst a).mul (cA_subst a)).im.approx n)
+                       (((cA_subst a).mul (cA_subst a)).re.approx n))).toRat|
+        ≤ 32768
+  rw [toRat_add, toRat_mul, toRat_mul]
+  have h_U := cA_subst_sq_re_approx_abs_le_128 a ha n
+  have h_V := cA_subst_sq_im_approx_abs_le_128 a ha n
+  rw [TauRat.toRat_abs] at h_U h_V
+  set U := (((cA_subst a).mul (cA_subst a)).re.approx n).toRat
+  set V := (((cA_subst a).mul (cA_subst a)).im.approx n).toRat
+  show |U * V + V * U| ≤ 32768
+  have h_eq : U * V + V * U = 2 * (U * V) := by ring
+  rw [h_eq]
+  rw [show |2 * (U * V)| = 2 * |U * V| from by rw [abs_mul]; simp]
+  rw [abs_mul]
+  have h_UV : |U| * |V| ≤ (128 : Rat) * 128 :=
+    mul_le_mul h_U h_V (abs_nonneg _) (by norm_num)
+  have h128 : (128 : Rat) * 128 = 16384 := by norm_num
+  rw [h128] at h_UV
+  linarith
+
+-- ============================================================
+-- PART 13: SCOPE 2A-LIFT — THE W ≈ W' SUBSTITUTION
+-- ============================================================
+
+/-! ## The substituted W complex.
+
+  `W := ⟨cB.re, negate cB.im⟩` and `W' := ⟨cB.re, negate (fB · cB.re)⟩`.
+  `W ≈ W'` via componentwise: `refl` on .re, `equiv_negate_congr (F.6 for b)` on .im. -/
+
+/-- The F.6-substituted W complex: `⟨cB.re, negate (fB · cB.re)⟩`. -/
+private noncomputable def W_subst (b : TauRat) : TauComplex :=
+  ⟨(TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re,
+   TauReal.negate ((TauReal.fromTauRat b).mul
+     (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re)⟩
+
+/-- The original W complex: `⟨cB.re, negate cB.im⟩`. -/
+private noncomputable def W_orig (b : TauRat) : TauComplex :=
+  ⟨(TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re,
+   TauReal.negate (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).im⟩
+
+/-- Bound on (W_orig b).re.approx n .toRat by 8. -/
+private theorem W_orig_re_approx_abs_le_8
+    (b : TauRat) (hb : 4 * |b.toRat| ≤ 1) (n : Nat) :
+    ((W_orig b).re.approx n).abs.toRat ≤ 8 := by
+  have hb2 : 2 * |b.toRat| ≤ 1 := by
+    have := _root_.abs_nonneg b.toRat; linarith
+  show ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re.approx n).abs.toRat ≤ 8
+  exact TauComplex.cisTauReal_re_approx_abs_le_8 _ n (by
+    have h_bound := TauReal.arctan_of_rat_seq_bounded b hb2 n
+    rw [TauRat.toRat_abs] at h_bound
+    exact h_bound)
+
+/-- Bound on (W_orig b).im.approx n .toRat by 8. -/
+private theorem W_orig_im_approx_abs_le_8
+    (b : TauRat) (hb : 4 * |b.toRat| ≤ 1) (n : Nat) :
+    ((W_orig b).im.approx n).abs.toRat ≤ 8 := by
+  have hb2 : 2 * |b.toRat| ≤ 1 := by
+    have := _root_.abs_nonneg b.toRat; linarith
+  show ((TauReal.negate (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).im).approx n).abs.toRat ≤ 8
+  show ((TauRat.negate ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).im.approx n)).abs).toRat ≤ 8
+  rw [TauRat.abs_negate]
+  exact TauComplex.cisTauReal_im_approx_abs_le_8 _ n (by
+    have h_bound := TauReal.arctan_of_rat_seq_bounded b hb2 n
+    rw [TauRat.toRat_abs] at h_bound
+    exact h_bound)
+
+/-- Bound on (W_subst b).re.approx n .toRat by 8. -/
+private theorem W_subst_re_approx_abs_le_8
+    (b : TauRat) (hb : 4 * |b.toRat| ≤ 1) (n : Nat) :
+    ((W_subst b).re.approx n).abs.toRat ≤ 8 :=
+  W_orig_re_approx_abs_le_8 b hb n
+
+/-- Bound on (W_subst b).im.approx n .toRat by 8. -/
+private theorem W_subst_im_approx_abs_le_8
+    (b : TauRat) (hb : 4 * |b.toRat| ≤ 1) (n : Nat) :
+    ((W_subst b).im.approx n).abs.toRat ≤ 8 := by
+  have hb2 : 2 * |b.toRat| ≤ 1 := by
+    have := _root_.abs_nonneg b.toRat; linarith
+  have hb1 : |b.toRat| ≤ 1 := by
+    have := _root_.abs_nonneg b.toRat; linarith
+  show ((TauReal.negate ((TauReal.fromTauRat b).mul
+            (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re)).approx n).abs.toRat ≤ 8
+  show ((TauRat.negate
+            (TauRat.mul ((TauReal.fromTauRat b).approx n)
+              ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re.approx n))).abs).toRat ≤ 8
+  rw [TauRat.abs_negate]
+  rw [TauRat.toRat_abs, toRat_mul]
+  show |b.toRat * ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re.approx n).toRat| ≤ 8
+  rw [abs_mul]
+  have h_R := TauComplex.cisTauReal_re_approx_abs_le_8 (TauReal.arctan_of_rat_seq b) n (by
+    have h_bound := TauReal.arctan_of_rat_seq_bounded b hb2 n
+    rw [TauRat.toRat_abs] at h_bound
+    exact h_bound)
+  rw [TauRat.toRat_abs] at h_R
+  calc |b.toRat| * |((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re.approx n).toRat|
+      ≤ 1 * 8 := by
+        apply mul_le_mul hb1 h_R (abs_nonneg _) (by norm_num)
+    _ = 8 := by ring
+
+/-- The TauComplex equiv `W_orig ≈ W_subst` via F.6 for b. -/
+private theorem W_orig_equiv_W_subst
+    (b : TauRat) (hb : 4 * |b.toRat| ≤ 1) :
+    TauComplex.equiv (W_orig b) (W_subst b) := by
+  refine ⟨TauReal.equiv_refl _, ?_⟩
+  -- W_orig.im = negate cB.im, W_subst.im = negate (fB · cB.re)
+  -- Want: negate cB.im ≈ negate (fB · cB.re)
+  -- By F.6: cB.im ≈ fB · cB.re. By equiv_negate_congr.
+  apply TauReal.equiv_negate_congr
+  exact TauReal.cisTauReal_tangent_target_A_path_beta b hb
+
+-- ============================================================
+-- PART 14: SCOPE 2A-LIFT — THE FULL EQUIV (cA⁴·W) ≈ (cA_subst⁴·W_subst)
+-- ============================================================
+
+/-- The TauComplex equiv `cA⁴ · W ≈ cA_subst⁴ · W_subst`. -/
+private theorem cisA_quad_W_equiv_cA_subst_quad_W_subst
+    (a b : TauRat) (ha : 4 * |a.toRat| ≤ 1) (hb : 4 * |b.toRat| ≤ 1) :
+    TauComplex.equiv
+      ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a))).mul
+        ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).mul
+          (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)))).mul
+        (W_orig b))
+      ((((cA_subst a).mul (cA_subst a)).mul ((cA_subst a).mul (cA_subst a))).mul
+        (W_subst b)) := by
+  have ha2 : 2 * |a.toRat| ≤ 1 := by
+    have := _root_.abs_nonneg a.toRat; linarith
+  -- Apply TauComplex.equiv_mul_congr with Mre = Mim = 32768.
+  apply TauComplex.equiv_mul_congr (Mre := 32768) (Mim := 32768) (by norm_num) (by norm_num)
+  · -- bound on z'.re = (cA_subst⁴).re ≤ 32768
+    intro n; exact cA_subst_quad_re_approx_abs_le_32768 a ha n
+  · -- bound on z'.im = (cA_subst⁴).im ≤ 32768
+    intro n; exact cA_subst_quad_im_approx_abs_le_32768 a ha n
+  · -- bound on w.re = W_orig.re ≤ 8 ≤ 32768
+    intro n
+    have h := W_orig_re_approx_abs_le_8 b hb n
+    have h_le : (8 : Rat) ≤ (32768 : Nat) := by norm_num
+    linarith
+  · -- bound on w.im = W_orig.im ≤ 8 ≤ 32768
+    intro n
+    have h := W_orig_im_approx_abs_le_8 b hb n
+    have h_le : (8 : Rat) ≤ (32768 : Nat) := by norm_num
+    linarith
+  · exact cisA_quad_equiv_cA_subst_quad a ha
+  · exact W_orig_equiv_W_subst b hb
+
+-- ============================================================
+-- PART 15: SCOPE 2A-LIFT — THE POINTWISE IDENTITY (cA_subst⁴·W_subst).re ≈ (...).im AT MACHIN
+-- ============================================================
+
+/-! ## The pointwise identity at Machin constants
+
+  At `a = 1/5, b = 1/239`, the substituted product
+  `(cA_subst a)⁴ · W_subst b` has `.re ≈ .im` pointwise (via toRat),
+  because the polynomial form gives `R⁴·B_R·K(α,β) = 0`. -/
+
+/-- **Toolkit toRat lemma**: `((cA_subst a).re.approx n).toRat = cisR a n`. -/
+private theorem cA_subst_re_approx_toRat (a : TauRat) (n : Nat) :
+    ((cA_subst a).re.approx n).toRat = cisR a n := rfl
+
+/-- **Toolkit toRat lemma**: `((cA_subst a).im.approx n).toRat = a.toRat · cisR a n`. -/
+private theorem cA_subst_im_approx_toRat (a : TauRat) (n : Nat) :
+    ((cA_subst a).im.approx n).toRat = a.toRat * cisR a n := by
+  show (TauRat.mul ((TauReal.fromTauRat a).approx n)
+          ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq a)).re.approx n)).toRat = _
+  rw [toRat_mul]
+  rfl
+
+/-- **Toolkit toRat lemma**: `((W_subst b).re.approx n).toRat = cisR b n`. -/
+private theorem W_subst_re_approx_toRat (b : TauRat) (n : Nat) :
+    ((W_subst b).re.approx n).toRat = cisR b n := rfl
+
+/-- **Toolkit toRat lemma**: `((W_subst b).im.approx n).toRat = - (b.toRat · cisR b n)`. -/
+private theorem W_subst_im_approx_toRat (b : TauRat) (n : Nat) :
+    ((W_subst b).im.approx n).toRat = -(b.toRat * cisR b n) := by
+  show (TauRat.negate
+          (TauRat.mul ((TauReal.fromTauRat b).approx n)
+            ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq b)).re.approx n))).toRat = _
+  rw [toRat_negate, toRat_mul]
+  rfl
+
+/-- **Toolkit toRat lemma**: `((cA_subst a · cA_subst a).re.approx n).toRat
+      = cisR a n^2 - (a.toRat · cisR a n)^2`. -/
+private theorem cA_subst_sq_re_approx_toRat (a : TauRat) (n : Nat) :
+    (((cA_subst a).mul (cA_subst a)).re.approx n).toRat
+      = cisR a n ^ 2 - (a.toRat * cisR a n) ^ 2 := by
+  show (TauRat.add
+          (TauRat.mul ((cA_subst a).re.approx n) ((cA_subst a).re.approx n))
+          (TauRat.negate
+            (TauRat.mul ((cA_subst a).im.approx n) ((cA_subst a).im.approx n)))).toRat = _
+  rw [toRat_add, toRat_negate, toRat_mul, toRat_mul]
+  rw [cA_subst_re_approx_toRat, cA_subst_im_approx_toRat]
+  ring
+
+/-- **Toolkit toRat lemma**: `((cA_subst a · cA_subst a).im.approx n).toRat
+      = 2 · cisR a n · (a.toRat · cisR a n)`. -/
+private theorem cA_subst_sq_im_approx_toRat (a : TauRat) (n : Nat) :
+    (((cA_subst a).mul (cA_subst a)).im.approx n).toRat
+      = 2 * cisR a n * (a.toRat * cisR a n) := by
+  show (TauRat.add
+          (TauRat.mul ((cA_subst a).re.approx n) ((cA_subst a).im.approx n))
+          (TauRat.mul ((cA_subst a).im.approx n) ((cA_subst a).re.approx n))).toRat = _
+  rw [toRat_add, toRat_mul, toRat_mul]
+  rw [cA_subst_re_approx_toRat, cA_subst_im_approx_toRat]
+  ring
+
+/-- **Toolkit toRat lemma**: cisA⁴ at toRat level (the .re component). -/
+private theorem cA_subst_quad_re_approx_toRat (a : TauRat) (n : Nat) :
+    ((((cA_subst a).mul (cA_subst a)).mul
+        ((cA_subst a).mul (cA_subst a))).re.approx n).toRat
+      = (cisR a n ^ 2 - (a.toRat * cisR a n) ^ 2) ^ 2
+        - (2 * cisR a n * (a.toRat * cisR a n)) ^ 2 := by
+  show (TauRat.add
+          (TauRat.mul (((cA_subst a).mul (cA_subst a)).re.approx n)
+                     (((cA_subst a).mul (cA_subst a)).re.approx n))
+          (TauRat.negate
+            (TauRat.mul (((cA_subst a).mul (cA_subst a)).im.approx n)
+                       (((cA_subst a).mul (cA_subst a)).im.approx n)))).toRat = _
+  rw [toRat_add, toRat_negate, toRat_mul, toRat_mul]
+  rw [cA_subst_sq_re_approx_toRat, cA_subst_sq_im_approx_toRat]
+  ring
+
+/-- **Toolkit toRat lemma**: cisA⁴ at toRat level (the .im component). -/
+private theorem cA_subst_quad_im_approx_toRat (a : TauRat) (n : Nat) :
+    ((((cA_subst a).mul (cA_subst a)).mul
+        ((cA_subst a).mul (cA_subst a))).im.approx n).toRat
+      = 2 * (cisR a n ^ 2 - (a.toRat * cisR a n) ^ 2)
+            * (2 * cisR a n * (a.toRat * cisR a n)) := by
+  show (TauRat.add
+          (TauRat.mul (((cA_subst a).mul (cA_subst a)).re.approx n)
+                     (((cA_subst a).mul (cA_subst a)).im.approx n))
+          (TauRat.mul (((cA_subst a).mul (cA_subst a)).im.approx n)
+                     (((cA_subst a).mul (cA_subst a)).re.approx n))).toRat = _
+  rw [toRat_add, toRat_mul, toRat_mul]
+  rw [cA_subst_sq_re_approx_toRat, cA_subst_sq_im_approx_toRat]
+  ring
+
+/-- The polynomial form of `(cA_subst a · cA_subst a · cA_subst a · cA_subst a · W_subst b).re.approx n .toRat` —
+    a polynomial in `cisR a n, cisR b n, a.toRat, b.toRat`. -/
+private theorem cA_subst_quad_W_subst_re_approx (a b : TauRat) (n : Nat) :
+    (((((cA_subst a).mul (cA_subst a)).mul
+        ((cA_subst a).mul (cA_subst a))).mul (W_subst b)).re.approx n).toRat
+      = ((cisR a n ^ 2 - (a.toRat * cisR a n) ^ 2) ^ 2
+          - (2 * cisR a n * (a.toRat * cisR a n)) ^ 2) * cisR b n
+        + (2 * (cisR a n ^ 2 - (a.toRat * cisR a n) ^ 2)
+              * (2 * cisR a n * (a.toRat * cisR a n))) * (b.toRat * cisR b n) := by
+  show (TauRat.add
+          (TauRat.mul ((((cA_subst a).mul (cA_subst a)).mul
+              ((cA_subst a).mul (cA_subst a))).re.approx n)
+            ((W_subst b).re.approx n))
+          (TauRat.negate
+            (TauRat.mul ((((cA_subst a).mul (cA_subst a)).mul
+                ((cA_subst a).mul (cA_subst a))).im.approx n)
+              ((W_subst b).im.approx n)))).toRat = _
+  rw [toRat_add, toRat_negate, toRat_mul, toRat_mul]
+  rw [cA_subst_quad_re_approx_toRat, cA_subst_quad_im_approx_toRat]
+  rw [W_subst_re_approx_toRat, W_subst_im_approx_toRat]
+  ring
+
+/-- The polynomial form of `(cA_subst a · cA_subst a · cA_subst a · cA_subst a · W_subst b).im.approx n .toRat`. -/
+private theorem cA_subst_quad_W_subst_im_approx (a b : TauRat) (n : Nat) :
+    (((((cA_subst a).mul (cA_subst a)).mul
+        ((cA_subst a).mul (cA_subst a))).mul (W_subst b)).im.approx n).toRat
+      = ((cisR a n ^ 2 - (a.toRat * cisR a n) ^ 2) ^ 2
+          - (2 * cisR a n * (a.toRat * cisR a n)) ^ 2) * (-(b.toRat * cisR b n))
+        + (2 * (cisR a n ^ 2 - (a.toRat * cisR a n) ^ 2)
+              * (2 * cisR a n * (a.toRat * cisR a n))) * cisR b n := by
+  show (TauRat.add
+          (TauRat.mul ((((cA_subst a).mul (cA_subst a)).mul
+              ((cA_subst a).mul (cA_subst a))).re.approx n)
+            ((W_subst b).im.approx n))
+          (TauRat.mul ((((cA_subst a).mul (cA_subst a)).mul
+              ((cA_subst a).mul (cA_subst a))).im.approx n)
+            ((W_subst b).re.approx n))).toRat = _
+  rw [toRat_add, toRat_mul, toRat_mul]
+  rw [cA_subst_quad_re_approx_toRat, cA_subst_quad_im_approx_toRat]
+  rw [W_subst_re_approx_toRat, W_subst_im_approx_toRat]
+
+/-- The pointwise toRat identity at Machin constants:
+    `(cA_subst (1/5)⁴ · W_subst (1/239)).re.approx n .toRat
+      = (cA_subst (1/5)⁴ · W_subst (1/239)).im.approx n .toRat`. -/
+private theorem cA_subst_quad_W_subst_re_eq_im_at_machin (n : Nat) :
+    (((((cA_subst TauRat.one_fifth).mul (cA_subst TauRat.one_fifth)).mul
+        ((cA_subst TauRat.one_fifth).mul (cA_subst TauRat.one_fifth))).mul
+        (W_subst TauRat.one_two_three_nine)).re.approx n).toRat
+      = (((((cA_subst TauRat.one_fifth).mul (cA_subst TauRat.one_fifth)).mul
+            ((cA_subst TauRat.one_fifth).mul (cA_subst TauRat.one_fifth))).mul
+            (W_subst TauRat.one_two_three_nine)).im.approx n).toRat := by
+  rw [cA_subst_quad_W_subst_re_approx, cA_subst_quad_W_subst_im_approx]
+  rw [TauRat.one_fifth_toRat, TauRat.one_two_three_nine_toRat]
+  -- Both sides reduce to (R⁴·B_R·K(α, β)) form. K(1/5, 1/239) = 0.
+  -- LHS coefficient: (R² - α²R²)² - (2αR²)² then multiplied with various... let's just ring it.
+  -- The difference of LHS - RHS = R⁴·B_R·K(α,β); ring_nf + norm_num should close.
+  ring
+
+/-- The TauReal-equiv form: `(cA_subst (1/5)⁴ · W_subst (1/239)).re ≈ (...).im` via pointwise toRat. -/
+private theorem cA_subst_quad_W_subst_re_equiv_im_at_machin :
+    TauReal.equiv
+      (((((cA_subst TauRat.one_fifth).mul (cA_subst TauRat.one_fifth)).mul
+          ((cA_subst TauRat.one_fifth).mul (cA_subst TauRat.one_fifth))).mul
+          (W_subst TauRat.one_two_three_nine)).re)
+      (((((cA_subst TauRat.one_fifth).mul (cA_subst TauRat.one_fifth)).mul
+          ((cA_subst TauRat.one_fifth).mul (cA_subst TauRat.one_fifth))).mul
+          (W_subst TauRat.one_two_three_nine)).im) := by
+  apply TauReal.equiv_of_pointwise
+  intro n
+  rw [equiv_iff_toRat_eq]
+  exact cA_subst_quad_W_subst_re_eq_im_at_machin n
+
+-- ============================================================
+-- PART 16: SCOPE 2A-LIFT — THE FINAL THEOREM
+-- ============================================================
+
+/-- **The 45°-line identity discharged as a theorem** (Scope 2A-lift).
+
+    The parity-substituted Machin product at constants `a = 1/5, b = 1/239`
+    lies on the 45° line in the τ-native complex plane:
+
+        `(cisTauReal(arctan(1/5))⁴ · ⟨cisB.re, negate cisB.im⟩).re
+          ≈ (cisTauReal(arctan(1/5))⁴ · ⟨cisB.re, negate cisB.im⟩).im`
+
+    where `cisB := cisTauReal(arctan(1/239))`.
+
+    Proof strategy:
+    1. Build `cA_subst a := ⟨cA.re, fromTauRat a · cA.re⟩`,
+       the F.6-substituted cisA. By F.6 (path-β), `cA ≈ cA_subst a`.
+    2. Via iterated `TauComplex.equiv_mul_congr`, lift to
+       `cA⁴ · W ≈ cA_subst a⁴ · W_subst b`.
+    3. Extract `.re` and `.im` components — both equivalences are TauReal-equiv.
+    4. Show `cA_subst (1/5)⁴ · W_subst (1/239)` has `.re ≈ .im` pointwise,
+       via the polynomial identity `R⁴·B_R·K(α,β) = 0` at Machin.
+    5. Combine: `(P·W).re ≈ (P'·W').re = (P'·W').im ≈ (P·W).im`. -/
+theorem TauReal.machin_forty_five_degree_identity : MachinFortyFiveDegreeIdentity := by
+  -- The TauComplex equiv: cA⁴·W ≈ cA_subst⁴·W_subst
+  have h_equiv : TauComplex.equiv
+    ((((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth))).mul
+      ((TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)).mul
+        (TauComplex.cisTauReal (TauReal.arctan_of_rat_seq TauRat.one_fifth)))).mul
+      (W_orig TauRat.one_two_three_nine))
+    ((((cA_subst TauRat.one_fifth).mul (cA_subst TauRat.one_fifth)).mul
+        ((cA_subst TauRat.one_fifth).mul (cA_subst TauRat.one_fifth))).mul
+      (W_subst TauRat.one_two_three_nine)) :=
+    cisA_quad_W_equiv_cA_subst_quad_W_subst
+      TauRat.one_fifth TauRat.one_two_three_nine
+      TauRat.one_fifth_in_path_beta TauRat.one_two_three_nine_in_path_beta
+  -- Extract .re and .im components
+  have h_re_equiv := h_equiv.1
+  have h_im_equiv := h_equiv.2
+  -- The substituted target: .re ≈ .im at Machin constants
+  have h_subst_eq := cA_subst_quad_W_subst_re_equiv_im_at_machin
+  -- Combine: P.re ≈ T.re = T.im ≈ P.im
+  show TauReal.equiv _ _
+  -- The goal is (...orig.re) ≈ (...orig.im).
+  -- We have:
+  -- h_re_equiv: (orig.re) ≈ (subst.re)
+  -- h_subst_eq: (subst.re) ≈ (subst.im)
+  -- h_im_equiv: (orig.im) ≈ (subst.im)
+  -- So: orig.re ≈ subst.re ≈ subst.im ≈ orig.im.
+  -- Use trans h_re_equiv h_subst_eq trans symm h_im_equiv.
+  exact TauReal.equiv_trans
+    (TauReal.equiv_trans h_re_equiv h_subst_eq)
+    (TauReal.equiv_symm h_im_equiv)
+
 end Tau.Boundary
