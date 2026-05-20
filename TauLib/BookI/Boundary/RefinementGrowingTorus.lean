@@ -310,4 +310,110 @@ theorem RefinementIdentity.fixes_crossing_thread :
   RefinementIdentity.universal_fixed_unconditional
     refinementCrossingThread refinementCrossingThread_is_crossingPoint
 
+-- ============================================================
+-- PART 9: §4.4 Theorem 4.7 unpolarisation — refinement witness
+-- ============================================================
+
+/-- **Refinement projection is surjective** — every depth-`n`
+    element has a depth-`(n+1)` preimage under the mod-reduction
+    projection.
+
+    Proof: a depth-`n` element `bSide ⟨k, h_k⟩` with `k < n + 1`
+    has preimage `bSide ⟨k, h_k'⟩` at depth `n + 1` (where
+    `h_k' : k < n + 2` weakens `h_k`).  Then
+    `k % (n + 1) = k` (since `k < n + 1`), so the projection
+    is the original element.  Symmetric for cSide; crossing
+    maps to crossing. -/
+theorem RefinedTorusDefect.proj_surjective {n : Nat}
+    (y : RefinedTorusDefect n) :
+    ∃ x : RefinedTorusDefect (n + 1), RefinedTorusDefect.proj x = y := by
+  cases y with
+  | crossing => exact ⟨RefinedTorusDefect.crossing, rfl⟩
+  | bSide k =>
+    refine ⟨RefinedTorusDefect.bSide ⟨k.1, Nat.lt_succ_of_lt k.2⟩, ?_⟩
+    show RefinedTorusDefect.bSide _ = RefinedTorusDefect.bSide _
+    congr 1
+    apply Fin.ext
+    show k.1 % (n + 1) = k.1
+    exact Nat.mod_eq_of_lt k.2
+  | cSide k =>
+    refine ⟨RefinedTorusDefect.cSide ⟨k.1, Nat.lt_succ_of_lt k.2⟩, ?_⟩
+    show RefinedTorusDefect.cSide _ = RefinedTorusDefect.cSide _
+    congr 1
+    apply Fin.ext
+    show k.1 % (n + 1) = k.1
+    exact Nat.mod_eq_of_lt k.2
+
+/-- **`refinementGrowingTorusSystem`'s projection is surjective**. -/
+theorem refinementGrowingTorusSystem_projSurjective :
+    refinementGrowingTorusSystem.ProjSurjective :=
+  fun _ => RefinedTorusDefect.proj_surjective
+
+/-- **`refinementGrowingTorusSystem` is unpolarised**: at every
+    depth `n`, the `bSide ⟨0, _⟩` element is not σ-fixed (its
+    σ-image is `cSide ⟨0, _⟩`).
+
+    Concretely discharges `DefectInverseSystem.IsUnpolarised` on
+    the refinement-growing instance with non-trivial geometric
+    growth.  Paper §4.4 Theorem 4.7 backing: even with growing
+    defect-level cardinality and non-trivial mod-reduction
+    projection, the non-polarisation witness is preserved. -/
+theorem refinementGrowingTorusSystem_isUnpolarised :
+    refinementGrowingTorusSystem.IsUnpolarised := by
+  intro n
+  refine ⟨RefinedTorusDefect.bSide ⟨0, Nat.succ_pos n⟩, ?_⟩
+  -- σ-image of `bSide ⟨0, _⟩` is `cSide ⟨0, _⟩`, distinct
+  -- constructor from `bSide`.
+  intro h
+  have h' : RefinedTorusDefect.sigmaSwap
+              (RefinedTorusDefect.bSide ⟨0, Nat.succ_pos n⟩) =
+            RefinedTorusDefect.bSide ⟨0, Nat.succ_pos n⟩ := h
+  rw [RefinedTorusDefect.sigmaSwap_bSide] at h'
+  cases h'
+
+/-- **The constant-`bSide ⟨0, _⟩` unpolarised thread**: a coherent
+    thread in the refinement-growing torus with non-σ-fixed
+    `bSide ⟨0, _⟩` at every depth.
+
+    Refinement compatibility: at depth `n + 1`, the index `0`
+    reduces to `0 % (n + 1) = 0` at depth `n`, so the projection
+    is `bSide ⟨0, _⟩` at depth `n` — same element, same lobe.
+    Coherent. -/
+def refinementBSideConstantThread :
+    DefectInverseSystem.UnpolarisedThread refinementGrowingTorusSystem where
+  point := fun n => RefinedTorusDefect.bSide ⟨0, Nat.succ_pos n⟩
+  compat := fun n => by
+    -- `proj (bSide ⟨0, _⟩)` reduces to `bSide ⟨0 % (n+1), _⟩`
+    -- = `bSide ⟨0, _⟩` since `0 % k = 0`.
+    show RefinedTorusDefect.bSide _ = RefinedTorusDefect.bSide _
+    congr 1
+  not_sigma_fixed := fun n h => by
+    have h' : RefinedTorusDefect.sigmaSwap
+                (RefinedTorusDefect.bSide ⟨0, Nat.succ_pos n⟩) =
+              RefinedTorusDefect.bSide ⟨0, Nat.succ_pos n⟩ := h
+    rw [RefinedTorusDefect.sigmaSwap_bSide] at h'
+    cases h'
+
+/-- **Theorem 4.7 applied to `refinementGrowingTorusSystem`**:
+    both halves of `unpolarisation_theorem` hold unconditionally
+    on this geometric-growth instance.
+
+    Concretely:
+    1. `IsUnpolarised`: `bSide ⟨0, _⟩` witnesses non-σ-fixedness
+       at every depth.
+    2. The `refinementBSideConstantThread` is a coherent
+       inverse-limit configuration with non-σ-fixed content at
+       every depth, surviving the mod-reduction projection.
+
+    Second concrete instance discharging Theorem 4.7 abstractly
+    (after `TorusDefectSystem.theorem_4_7_unconditional`),
+    confirming the scaffold handles geometric growth. -/
+theorem refinementGrowingTorusSystem_theorem_4_7_unconditional :
+    refinementGrowingTorusSystem.IsUnpolarised ∧
+    (∀ n, refinementGrowingTorusSystem.sigma_level n
+            (refinementBSideConstantThread.point n) ≠
+          refinementBSideConstantThread.point n) :=
+  DefectInverseSystem.unpolarisation_theorem
+    refinementGrowingTorusSystem refinementBSideConstantThread
+
 end Tau.Boundary

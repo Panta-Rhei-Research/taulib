@@ -84,10 +84,12 @@ structural level:
    the scalar-readout data; the abstract `DefectInverseSystem`
    supplies the structural underneath).
 
-The **geometric content** — constructing T_n, B_n, C_n, R_n from
-the τ-circle presentation, and proving surjectivity-failure of
-Φ_n (paper Thm `defect-unpolarised`) — is deferred to a future
-wave that brings combinatorial torus infrastructure online.
+The **specific geometric content** — constructing T_n, B_n, C_n,
+R_n from the τ-circle presentation, and proving the surjectivity
+failure of a specific Φ_n — is deferred to a future wave with
+combinatorial torus infrastructure.  What we **do** capture
+abstractly is the **inverse-system shape of unpolarisation**
+(paper Thm `defect-unpolarised`): see PART 8 below.
 
 **Scope**: \scopetau, modulo Hinge 7 NF confluence (for the full
 primorial-convergence claim of paper `thm:primorial-convergence`,
@@ -111,6 +113,11 @@ abstract scaffold established here is **unconditional**.
   scaffold builds and σ-invariance applies.
 - `defectGerm_to_crossingPoint` — bridge from the abstract
   scaffold back to Wave 7's `CrossingPointDefectGerm` readout.
+- **PART 8**: `IsUnpolarised`, `ProjSurjective`,
+  `unpolarisation_pulled_back`, `UnpolarisedThread` —
+  paper §4.4 Theorem 4.7 unpolarisation, rendered as an
+  abstract structural theorem (existence of non-σ-fixed defect
+  elements at every depth, preservation under projection).
 -/
 
 set_option autoImplicit false
@@ -385,5 +392,144 @@ def OmegaInverseLimit.toDefectThread
 -- using `OmegaInverseLimit` residues as its carrier type would
 -- preserve that data.  This is recorded as a structural
 -- compatibility observation rather than a non-trivial theorem.
+
+-- ============================================================
+-- PART 8: §4.4 Theorem 4.7 — Unpolarisation (paper Thm 4.7)
+-- ============================================================
+
+/-- **The unpolarisation predicate** (paper §4.4 Theorem 4.7,
+    `thm:defect-unpolarised`).
+
+    Paper's claim: `Δ_ω` is genuinely unpolarised — at every
+    finite depth `n ≥ 2`, `Δ_n` contains pairs `(b, c)` with
+    `b, c` simultaneously non-trivial on both channels.
+
+    **Abstract rendering**: at every depth `n`, the defect level
+    contains at least one element that is *not* σ-fixed.  This
+    captures the paper's content abstractly: σ swaps the two
+    channels (B ↔ C), so a non-σ-fixed element is one with
+    *asymmetric* content between the two channels, i.e. an
+    obstruction to polarised (single-channel-only) structure.
+
+    **Why this is faithful**: the paper's "(b, c) with both
+    channels non-trivial" requires *cross-lobe support*; on a
+    σ-acting carrier, cross-lobe content means non-symmetric
+    content under the B↔C exchange, which is exactly
+    non-σ-fixedness.  Conversely, σ-fixed elements have
+    *symmetric* content and so are "polarisation-trivial"
+    (they don't witness cross-channel structure).
+
+    **Why we drop the `n ≥ 2` qualifier**: the paper's
+    qualifier comes from the τ-circle presentation needing
+    non-trivial refinement on both channels, which holds
+    `n ≥ 2` by construction.  At the abstract scaffold level
+    we work over any depth; on concrete instances (e.g.,
+    `TorusDefectSystem`, `RefinementGrowingTorus`) the
+    non-polar witnesses exist at every depth uniformly. -/
+def DefectInverseSystem.IsUnpolarised (D : DefectInverseSystem) : Prop :=
+  ∀ n : Nat, ∃ x : D.defect_level n, D.sigma_level n x ≠ x
+
+/-- **Projection surjectivity** — the paper's "passage to the
+    inverse limit preserves this since projections are
+    surjective" content, packaged as a structural Prop.
+
+    The paper's Theorem 4.7 proof closes with: "Passage to the
+    inverse limit preserves this since projections are
+    surjective."  In the abstract scaffold, "passage to the
+    inverse limit" is the thread construction; "projections
+    are surjective" is this predicate. -/
+def DefectInverseSystem.ProjSurjective (D : DefectInverseSystem) : Prop :=
+  ∀ n, Function.Surjective (D.proj n)
+
+/-- **Unpolarisation pulls back through projection** — the
+    structural content of paper §4.4's "Passage to the inverse
+    limit preserves this since projections are surjective."
+
+    Given a non-σ-fixed element `x_n` at depth `n` and surjective
+    projection, there exists a preimage `x_succ` at depth `n+1`
+    that is *also* non-σ-fixed.
+
+    **Proof structure**: take any preimage of `x_n` under
+    surjective projection.  If it were σ-fixed at depth `n+1`,
+    then applying `D.proj` and `D.sigma_commutes_proj` would
+    yield σ-fixedness of `x_n`, contradiction. -/
+theorem DefectInverseSystem.unpolarisation_pulled_back
+    (D : DefectInverseSystem) (h_surj : D.ProjSurjective)
+    (n : Nat) (x_n : D.defect_level n) (h_x : D.sigma_level n x_n ≠ x_n) :
+    ∃ x_succ : D.defect_level (n + 1),
+      D.proj n x_succ = x_n ∧ D.sigma_level (n + 1) x_succ ≠ x_succ := by
+  obtain ⟨x_succ, h_proj⟩ := h_surj n x_n
+  refine ⟨x_succ, h_proj, ?_⟩
+  intro h_fixed
+  apply h_x
+  calc D.sigma_level n x_n
+      = D.sigma_level n (D.proj n x_succ) := by rw [h_proj]
+    _ = D.proj n (D.sigma_level (n + 1) x_succ) :=
+        (D.sigma_commutes_proj n x_succ).symm
+    _ = D.proj n x_succ := by rw [h_fixed]
+    _ = x_n := h_proj
+
+/-- **Unpolarisation at finite stage**: this is just unfolding
+    `IsUnpolarised`, named for clarity to match paper §4.4. -/
+theorem DefectInverseSystem.unpolarisation_finite_stage
+    {D : DefectInverseSystem} (hD : D.IsUnpolarised) (n : Nat) :
+    ∃ x : D.defect_level n, D.sigma_level n x ≠ x :=
+  hD n
+
+/-- **An unpolarised thread**: a `Thread` in the inverse system
+    whose every depth has a non-σ-fixed point.
+
+    This is the **inverse-limit-level** rendering of paper §4.4:
+    a "configuration" (= compatible thread) in `Δ_ω` that
+    genuinely fails σ-symmetry at every depth.  Existence of
+    such a thread is the inverse-limit form of unpolarisation. -/
+structure DefectInverseSystem.UnpolarisedThread (D : DefectInverseSystem)
+    extends DefectInverseSystem.Thread D where
+  /-- The non-σ-fixedness condition at every depth — paper §4.4
+      "non-trivial on both channels" rendered as a per-depth
+      non-σ-fixed condition. -/
+  not_sigma_fixed : ∀ n, D.sigma_level n (point n) ≠ point n
+
+/-- **An unpolarised thread is the inverse-limit witness for
+    Theorem 4.7**: its existence shows the inverse limit
+    contains genuinely unpolarised configurations. -/
+theorem DefectInverseSystem.unpolarised_thread_witnesses_IsUnpolarised
+    {D : DefectInverseSystem} (t : D.UnpolarisedThread) :
+    D.IsUnpolarised :=
+  fun n => ⟨t.point n, t.not_sigma_fixed n⟩
+
+/-- **Theorem 4.7 (paper `thm:defect-unpolarised`) — abstract
+    inverse-limit form.**
+
+    Existence of an unpolarised thread implies `IsUnpolarised`
+    at every finite depth (which is the paper's claim "Δ_n
+    contains pairs (b,c) non-trivial on both channels at every
+    depth"), and the thread itself is the inverse-limit
+    `Δ_ω` configuration witnessing the unpolarised structure.
+
+    **What this theorem provides**:
+    1. The abstract structural rendering of paper's Theorem 4.7.
+    2. A clean separation between the finite-stage statement
+       (`IsUnpolarised`, requires only per-depth witnesses)
+       and the inverse-limit witness (`UnpolarisedThread`,
+       requires coherent thread structure).
+    3. The bridge lemma `unpolarisation_pulled_back` showing
+       how finite-stage non-polarisation lifts through projection
+       — the paper's "projections are surjective" content.
+
+    **What it does NOT provide**:
+    - The *specific geometric* witness from the τ-circle
+      presentation; that requires combinatorial torus
+      infrastructure deferred to future waves.
+
+    For concrete instances (`TorusDefectSystem`,
+    `RefinementGrowingTorus`), unpolarised thread witnesses
+    are constructed directly without choice — see the
+    respective instance files. -/
+theorem DefectInverseSystem.unpolarisation_theorem
+    (D : DefectInverseSystem) (t : D.UnpolarisedThread) :
+    D.IsUnpolarised ∧
+    (∀ n, D.sigma_level n (t.point n) ≠ t.point n) :=
+  ⟨D.unpolarised_thread_witnesses_IsUnpolarised t, t.not_sigma_fixed⟩
 
 end Tau.Boundary

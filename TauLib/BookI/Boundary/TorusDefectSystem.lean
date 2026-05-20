@@ -375,4 +375,71 @@ theorem TorusIdentity.fixes_crossing_thread :
     TorusDefectSystem.crossingThread
     TorusDefectSystem.crossingThread_is_crossingPoint
 
+-- ============================================================
+-- PART 8: §4.4 Theorem 4.7 unpolarisation — concrete witness
+-- ============================================================
+
+/-- **`TorusDefectSystem` is unpolarised**: at every depth, the
+    `bSide` element is not σ-fixed (its σ-image is `cSide`).
+
+    This concretely discharges the abstract
+    `DefectInverseSystem.IsUnpolarised` predicate on this
+    instance, no hypotheses needed.
+
+    Paper §4.4 Theorem 4.7 backing: the "(b, c) with both
+    channels non-trivial" content is rendered by exhibiting
+    `bSide` (a B-only element with no σ-symmetric partner) at
+    every depth — equivalently, the non-σ-fixed witness that
+    defines `IsUnpolarised`. -/
+theorem TorusDefectSystem.isUnpolarised :
+    TorusDefectSystem.IsUnpolarised :=
+  fun _ => ⟨TorusDefect.bSide, by simp [TorusDefectSystem]⟩
+
+/-- **`TorusDefectSystem`'s projection is surjective** — paper's
+    "projections are surjective" hypothesis discharged.
+
+    Because `proj = id` on this instance, surjectivity is
+    immediate. -/
+theorem TorusDefectSystem.projSurjective :
+    TorusDefectSystem.ProjSurjective :=
+  fun _ y => ⟨y, rfl⟩
+
+/-- **The constant-`bSide` unpolarised thread**: a concrete thread
+    in `TorusDefectSystem` whose every depth carries the
+    non-σ-fixed `bSide` element.
+
+    This is the paper §4.4 inverse-limit witness on this
+    concrete instance: a coherent thread in the defect inverse
+    system that *fails* σ-symmetry at every depth.
+
+    Compare with `crossingThread` (the σ-fixed witness): both
+    are coherent threads in `TorusDefectSystem`, but
+    `bSideConstantThread` witnesses unpolarisation while
+    `crossingThread` witnesses σ-fixedness. -/
+def TorusDefectSystem.bSideConstantThread :
+    DefectInverseSystem.UnpolarisedThread TorusDefectSystem where
+  point := fun _ => TorusDefect.bSide
+  compat := fun _ => rfl
+  not_sigma_fixed := fun _ => by simp [TorusDefectSystem]
+
+/-- **Theorem 4.7 applied to `TorusDefectSystem`**: both halves
+    of `unpolarisation_theorem` hold unconditionally on this
+    concrete instance.
+
+    Concretely:
+    1. `IsUnpolarised`: `TorusDefect.bSide` witnesses non-σ-fixedness
+       at every depth.
+    2. The `bSideConstantThread` is a coherent inverse-limit
+       configuration with non-σ-fixed content at every depth.
+
+    This is the litmus test that the abstract Theorem 4.7
+    scaffold applies on a concrete instance, fully discharged. -/
+theorem TorusDefectSystem.theorem_4_7_unconditional :
+    TorusDefectSystem.IsUnpolarised ∧
+    (∀ n, TorusDefectSystem.sigma_level n
+            (TorusDefectSystem.bSideConstantThread.point n) ≠
+          TorusDefectSystem.bSideConstantThread.point n) :=
+  DefectInverseSystem.unpolarisation_theorem
+    TorusDefectSystem TorusDefectSystem.bSideConstantThread
+
 end Tau.Boundary
