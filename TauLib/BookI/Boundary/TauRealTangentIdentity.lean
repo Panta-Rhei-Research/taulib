@@ -2957,6 +2957,353 @@ theorem F2_term2_bound (a_val : Rat) (k : Nat)
     linarith [h_360_8K]
   linarith [h_chain, h_simp, h_final]
 
+/-! ## F.2 polynomial closure helpers — Path-α (wider |a| ≤ 1/2 domain)
+
+  Path-α extends F.2's polynomial budget to the wider domain `2·|a.toRat| ≤ 1`
+  (i.e. `|a| ≤ 1/2`). The walk constants change to N_α = 400·K²·(k+1) (factor
+  4 vs the existing path-β `N_β = 100·K²·(k+1)`), with K = 3k+60 unchanged.
+
+  Why Path-α (and not Path-γ at `|a| ≤ 1`): the `term2 = 10·a·|a|^(4K)` term
+  in F.2's δ_step decomposition contains the geometric-tail residual factor
+  `|a|^(4K)`. At `|a| = 1`, this factor does NOT decay with K, so term2 is
+  uniformly bounded below by ~10 regardless of how large K, N grow. Path-γ
+  is therefore analytically INFEASIBLE under the current F.2 architecture.
+  Path-α at `|a| ≤ 1/2` preserves the `(1/2)^(4K) = 1/16^K` decay, so
+  term2's contribution to the budget is dominated by the polynomial growth
+  of K, and the closure still holds at K_min = 3k+60.
+
+  Note: these are the **polynomial budget pieces only**. Lifting them into
+  a Path-α F.2 main requires reworking the entire F.2 stack (Step 5a, the
+  per-step helper, the walk endpoint bound, the gronwall instance) with
+  weakened `2·|a|≤1` hypotheses replacing `4·|a|≤1`. That is multi-session
+  follow-up work; see `atlas/planning/2026-05-20-F2-path-alpha-extension.md`
+  for the full sequencing plan. -/
+
+set_option maxHeartbeats 1600000 in
+/-- **F.2 polynomial bound at K_min — Path-α** — `1742400·K³·(k+1)² ≤ 2^(K-1)`
+    at K = 3k+60. Sharpened from the existing path-β bound by factor 4 to
+    accommodate the larger walk `N_α = 400·K²·(k+1)` needed at Path-α.
+
+    Same induction structure as `F2_polynomial_bound_at_K_min` (linear K_min,
+    ratio-8 induction step). Only the leading constant changes. -/
+theorem F2_polynomial_bound_at_K_min_path_alpha (k : Nat) :
+    (1742400 : Rat) * ((3 * k + 60 : Nat) : Rat)^3 * ((k : Rat) + 1)^2
+      ≤ 2 ^ (3 * k + 59) := by
+  induction k with
+  | zero =>
+    -- k = 0: K_min = 60, need 1742400 · 60³ · 1 ≤ 2^59
+    -- 1742400 · 216000 = 3.76 × 10¹¹; 2^59 = 5.76 × 10¹⁷; ratio ≈ 1.5 × 10⁶
+    norm_num
+  | succ k ih =>
+    -- Strategy mirrors F2_polynomial_bound_at_K_min: induction step ratio 8.
+    have h_pow : (2 : Rat) ^ (3 * (k + 1) + 59) = 8 * (2 ^ (3 * k + 59)) := by
+      have h_eq : 3 * (k + 1) + 59 = (3 * k + 59) + 3 := by ring
+      rw [h_eq, pow_add]; ring
+    have h_K_cast : ((3 * (k + 1) + 60 : Nat) : Rat) = ((3 * k + 60 : Nat) : Rat) + 3 := by
+      push_cast; ring
+    have h_kp1_cast : (((k + 1 : Nat) : Rat) + 1) = ((k : Rat) + 1) + 1 := by
+      push_cast; ring
+    rw [h_pow, h_K_cast, h_kp1_cast]
+    set u : Rat := ((3 * k + 60 : Nat) : Rat) with hu_def
+    have hu_ge : 60 ≤ u := by
+      rw [hu_def]
+      have h60 : 60 ≤ 3 * k + 60 := by omega
+      exact_mod_cast h60
+    set v : Rat := (k : Rat) + 1 with hv_def
+    have hv_ge : 1 ≤ v := by
+      rw [hv_def]
+      have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k
+      linarith
+    have ih' : 1742400 * u^3 * v^2 ≤ 2^(3 * k + 59) := ih
+    have hu_pos : 0 < u := by linarith
+    have hv_pos : 0 < v := by linarith
+    have hu_nn : 0 ≤ u := le_of_lt hu_pos
+    have hv_nn : 0 ≤ v := le_of_lt hv_pos
+    -- Step A: 8000·(u+3)³ ≤ 9261·u³ via cubing 20·(u+3) ≤ 21·u
+    have h_u_lin : 20 * (u + 3) ≤ 21 * u := by linarith
+    have h_u_nn : 0 ≤ 20 * (u + 3) := by linarith
+    have h_u_cubed : (20 * (u + 3))^3 ≤ (21 * u)^3 :=
+      pow_le_pow_left₀ h_u_nn h_u_lin 3
+    have h_u3 : 8000 * (u + 3)^3 ≤ 9261 * u^3 := by
+      have h_lhs : (20 * (u + 3))^3 = 8000 * (u + 3)^3 := by ring
+      have h_rhs : (21 * u)^3 = 9261 * u^3 := by ring
+      linarith [h_u_cubed]
+    -- Step B: (v+1)² ≤ 4·v² via squaring v+1 ≤ 2v
+    have h_v_lin : v + 1 ≤ 2 * v := by linarith
+    have h_v_nn : 0 ≤ v + 1 := by linarith
+    have h_v_sq : (v + 1)^2 ≤ (2 * v)^2 := pow_le_pow_left₀ h_v_nn h_v_lin 2
+    have h_v2 : (v + 1)^2 ≤ 4 * v^2 := by
+      have : (2 * v)^2 = 4 * v^2 := by ring
+      linarith [h_v_sq]
+    -- Step C: combine via explicit calc + mul_le_mul
+    have h_u_pos : 0 < u := by linarith
+    have h_v_pos : 0 < v := by linarith
+    have h_u_nn : 0 ≤ u := le_of_lt h_u_pos
+    have h_v_nn : 0 ≤ v := le_of_lt h_v_pos
+    have h_vp1_sq_nn : 0 ≤ (v + 1)^2 := sq_nonneg _
+    have h_u3_nn : 0 ≤ u^3 := pow_nonneg h_u_nn 3
+    have h_v2_nn : 0 ≤ v^2 := sq_nonneg _
+    have h_u3v2_nn : 0 ≤ u^3 * v^2 := mul_nonneg h_u3_nn h_v2_nn
+    -- 8000·(u+3)³·(v+1)² ≤ 9261·u³·(v+1)²
+    have h_step_a : 8000 * (u + 3)^3 * (v + 1)^2 ≤ 9261 * u^3 * (v + 1)^2 :=
+      mul_le_mul_of_nonneg_right h_u3 h_vp1_sq_nn
+    -- 9261·u³·(v+1)² ≤ 9261·u³·4·v² = 37044·u³·v²
+    have h_9261u3_nn : 0 ≤ 9261 * u^3 :=
+      mul_nonneg (by norm_num : (0:Rat) ≤ 9261) h_u3_nn
+    have h_step_b : 9261 * u^3 * (v + 1)^2 ≤ 9261 * u^3 * (4 * v^2) :=
+      mul_le_mul_of_nonneg_left h_v2 h_9261u3_nn
+    have h_step_b' : 9261 * u^3 * (4 * v^2) = 37044 * (u^3 * v^2) := by ring
+    -- 37044·u³·v² ≤ 64000·u³·v² = 8000·8·u³·v²
+    have h_const : (37044 : Rat) ≤ 64000 := by norm_num
+    have h_step_c : 37044 * (u^3 * v^2) ≤ 64000 * (u^3 * v^2) :=
+      mul_le_mul_of_nonneg_right h_const h_u3v2_nn
+    -- Combine: 8000·(u+3)³·(v+1)² ≤ 64000·u³·v²
+    have h_total : 8000 * (u + 3)^3 * (v + 1)^2 ≤ 64000 * (u^3 * v^2) := by
+      calc 8000 * (u + 3)^3 * (v + 1)^2
+          ≤ 9261 * u^3 * (v + 1)^2 := h_step_a
+        _ ≤ 9261 * u^3 * (4 * v^2) := h_step_b
+        _ = 37044 * (u^3 * v^2) := h_step_b'
+        _ ≤ 64000 * (u^3 * v^2) := h_step_c
+    -- Divide by 8000: (u+3)³·(v+1)² ≤ 8·u³·v²
+    have h_8000_pos : (0 : Rat) < 8000 := by norm_num
+    have h_poly_chain : 8000 * ((u + 3)^3 * (v + 1)^2) ≤ 8000 * (8 * (u^3 * v^2)) := by
+      have h_lhs : 8000 * ((u + 3)^3 * (v + 1)^2) = 8000 * (u + 3)^3 * (v + 1)^2 := by ring
+      have h_rhs : 8000 * (8 * (u^3 * v^2)) = 64000 * (u^3 * v^2) := by ring
+      linarith [h_total]
+    have h_poly : (u + 3)^3 * (v + 1)^2 ≤ 8 * (u^3 * v^2) :=
+      le_of_mul_le_mul_left h_poly_chain h_8000_pos
+    -- Final: 1742400·(u+3)³·(v+1)² ≤ 8·(1742400·u³·v²) ≤ 8·2^(3k+59)
+    calc (1742400 : Rat) * (u + 3)^3 * (v + 1)^2
+        = 1742400 * ((u + 3)^3 * (v + 1)^2) := by ring
+      _ ≤ 1742400 * (8 * (u^3 * v^2)) :=
+            mul_le_mul_of_nonneg_left h_poly (by norm_num)
+      _ = 8 * (1742400 * u^3 * v^2) := by ring
+      _ ≤ 8 * 2^(3 * k + 59) :=
+            mul_le_mul_of_nonneg_left ih' (by norm_num : (0:Rat) ≤ 8)
+
+set_option maxHeartbeats 800000 in
+/-- **F.2 term1 bound — Path-α** — main δ term `200·K²·a²/N_α ≤ 1/(8(k+1))` for
+    `0 ≤ a_val ≤ 1/2`, K = 3k+60, N_α = 400·K²·(k+1). -/
+theorem F2_term1_bound_path_alpha (a_val : Rat) (k : Nat)
+    (h_a_nn : 0 ≤ a_val) (h_a_le : 2 * a_val ≤ 1) :
+    200 * ((3 * k + 60 : Nat) : Rat)^2 * a_val^2
+      / ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+      ≤ 1 / (8 * ((k : Rat) + 1)) := by
+  set K : Nat := 3 * k + 60 with hK_def
+  set N : Nat := 400 * K^2 * (k + 1) with hN_def
+  have hK_pos : 0 < K := by rw [hK_def]; omega
+  have hK_rat_pos : (0 : Rat) < (K : Rat) := by exact_mod_cast hK_pos
+  have hK_sq_pos : (0 : Rat) < (K : Rat)^2 := by positivity
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k; linarith
+  have hN_val : (N : Rat) = 400 * (K : Rat)^2 * ((k : Rat) + 1) := by
+    rw [hN_def]; push_cast; ring
+  have h_a_half : a_val ≤ 1/2 := by linarith
+  have h_a_sq_le : a_val^2 ≤ 1/4 := by
+    have : a_val * a_val ≤ (1/2) * (1/2) :=
+      mul_le_mul h_a_half h_a_half h_a_nn (by linarith)
+    have h_sq_eq : a_val^2 = a_val * a_val := sq a_val
+    linarith [h_sq_eq]
+  rw [hN_val]
+  have h_denom_pos : (0 : Rat) < 400 * (K : Rat)^2 * ((k : Rat) + 1) := by positivity
+  have h_8k1_pos : (0 : Rat) < 8 * ((k : Rat) + 1) := by linarith
+  rw [div_le_div_iff₀ h_denom_pos h_8k1_pos]
+  -- Goal: 200·K²·a²·8·(k+1) ≤ 400·K²·(k+1)·1
+  -- Cancel K²·(k+1): 1600·a² ≤ 400 ⟺ a² ≤ 1/4 ✓
+  have h_K_k_nn : 0 ≤ (K : Rat)^2 * ((k : Rat) + 1) :=
+    mul_nonneg (le_of_lt hK_sq_pos) (le_of_lt hk1_pos)
+  have h_1600_a_sq : 1600 * a_val^2 ≤ 400 := by linarith [h_a_sq_le]
+  have h_lhs_eq : 200 * (K : Rat)^2 * a_val^2 * (8 * ((k : Rat) + 1))
+                = 1600 * a_val^2 * ((K : Rat)^2 * ((k : Rat) + 1)) := by ring
+  have h_rhs_eq : 1 * (400 * (K : Rat)^2 * ((k : Rat) + 1))
+                = 400 * ((K : Rat)^2 * ((k : Rat) + 1)) := by ring
+  rw [h_lhs_eq, h_rhs_eq]
+  exact mul_le_mul_of_nonneg_right h_1600_a_sq h_K_k_nn
+
+set_option maxHeartbeats 800000 in
+/-- **F.2 term3 bound — Path-α** — modulus δ term
+    `484·N_α·K/2^(K-1) ≤ 1/(9(k+1))` via `F2_polynomial_bound_at_K_min_path_alpha`,
+    with N_α = 400·K²·(k+1). -/
+theorem F2_term3_bound_path_alpha (k : Nat) :
+    484 * ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) * ((3 * k + 60 : Nat) : Rat)
+      / 2 ^ ((3 * k + 60) - 1)
+      ≤ 1 / (9 * ((k : Rat) + 1)) := by
+  set K : Nat := 3 * k + 60 with hK_def
+  set N : Nat := 400 * K^2 * (k + 1) with hN_def
+  have hK_pos : 0 < K := by rw [hK_def]; omega
+  have hK_rat_pos : (0 : Rat) < (K : Rat) := by exact_mod_cast hK_pos
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k; linarith
+  have hN_val : (N : Rat) = 400 * (K : Rat)^2 * ((k : Rat) + 1) := by
+    rw [hN_def]; push_cast; ring
+  rw [hN_val]
+  have h_pow_pos : (0 : Rat) < 2 ^ (K - 1) := by positivity
+  have h_9k1_pos : (0 : Rat) < 9 * ((k : Rat) + 1) := by linarith
+  rw [div_le_div_iff₀ h_pow_pos h_9k1_pos]
+  -- 484·(400·K²·(k+1))·K·9·(k+1) = 1742400·K³·(k+1)²
+  have h_lhs_eq : 484 * (400 * (K : Rat)^2 * ((k : Rat) + 1)) * (K : Rat)
+                  * (9 * ((k : Rat) + 1))
+                = 1742400 * (K : Rat)^3 * ((k : Rat) + 1)^2 := by ring
+  have h_helper := F2_polynomial_bound_at_K_min_path_alpha k
+  have h_K_cast : ((3 * k + 60 : Nat) : Rat) = (K : Rat) := by rw [hK_def]
+  have h_K_minus_1 : K - 1 = 3 * k + 59 := by rw [hK_def]; omega
+  rw [h_K_cast] at h_helper
+  rw [← h_K_minus_1] at h_helper
+  linarith [h_helper]
+
+set_option maxHeartbeats 800000 in
+/-- **F.2 term2 bound — Path-α** — power δ term `10·a·|a|^(4K) ≤ 1/(72(k+1))`
+    for `0 ≤ a_val ≤ 1/2` and K = 3k+60. At `|a| ≤ 1/2`, `|a|^(4K) ≤ (1/2)^(4K)
+    = 1/2^(4K)`, which decays much faster than at path-β's `(1/4)^(4K) = 1/2^(8K)`.
+    The relaxed `2·|a|≤1` domain still leaves ample slack via the polynomial
+    bound at K_min = 3k+60. -/
+theorem F2_term2_bound_path_alpha (a_val : Rat) (k : Nat)
+    (h_a_nn : 0 ≤ a_val) (h_a_le : 2 * a_val ≤ 1) :
+    10 * a_val * |a_val|^(4 * (3 * k + 60)) ≤ 1 / (72 * ((k : Rat) + 1)) := by
+  set K : Nat := 3 * k + 60 with hK_def
+  have hK_pos : 0 < K := by rw [hK_def]; omega
+  have hK_rat_pos : (0 : Rat) < (K : Rat) := by exact_mod_cast hK_pos
+  have hK_ge_60 : 60 ≤ K := by rw [hK_def]; omega
+  have hK_rat_ge_60 : (60 : Rat) ≤ (K : Rat) := by exact_mod_cast hK_ge_60
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k; linarith
+  have h_a_half : a_val ≤ 1/2 := by linarith
+  have h_a_abs_le : |a_val| ≤ 1/2 := by rw [abs_of_nonneg h_a_nn]; exact h_a_half
+  have h_a_abs_nn : 0 ≤ |a_val| := _root_.abs_nonneg _
+  -- At |a| ≤ 1/2: |a|^(4K) ≤ (1/2)^(4K) = 1/2^(4K).
+  -- Chain: 10·a·|a|^(4K) ≤ 10·(1/2)·(1/2)^(4K) = 5/2^(4K).
+  -- Need 5/2^(4K) ≤ 1/(72(k+1)) ⟺ 360·(k+1) ≤ 2^(4K).
+  -- Via polynomial bound: 1742400·K³·(k+1)² ≤ 2^(K-1) ≤ 2^(4K) (much room).
+  have h_helper := F2_polynomial_bound_at_K_min_path_alpha k
+  have h_K_cast : ((3 * k + 60 : Nat) : Rat) = (K : Rat) := by rw [hK_def]
+  have h_K_minus_1 : K - 1 = 3 * k + 59 := by rw [hK_def]; omega
+  rw [h_K_cast] at h_helper
+  rw [← h_K_minus_1] at h_helper
+  -- 360·(k+1) ≤ 1742400·K³·(k+1)² via simple polynomial bound
+  have hK3_ge : (60 : Rat)^3 ≤ (K : Rat)^3 :=
+    pow_le_pow_left₀ (by norm_num) hK_rat_ge_60 3
+  have h60_3 : (60 : Rat)^3 = 216000 := by norm_num
+  have hK3_ge_216000 : (216000 : Rat) ≤ (K : Rat)^3 := by linarith
+  have hk1_ge_1 : (1 : Rat) ≤ (k : Rat) + 1 := by linarith
+  have hk1_sq_ge_k1 : ((k : Rat) + 1) ≤ ((k : Rat) + 1)^2 := by
+    have h_sq : ((k : Rat) + 1)^2 = ((k : Rat) + 1) * ((k : Rat) + 1) := sq _
+    have : ((k : Rat) + 1) * 1 ≤ ((k : Rat) + 1) * ((k : Rat) + 1) :=
+      mul_le_mul_of_nonneg_left hk1_ge_1 (le_of_lt hk1_pos)
+    linarith [h_sq]
+  have h_360_helper : 360 * ((k : Rat) + 1) ≤ 1742400 * (K : Rat)^3 * ((k : Rat) + 1)^2 := by
+    have h_K3_k1_sq : 1742400 * 216000 * ((k : Rat) + 1)^2
+                    ≤ 1742400 * (K : Rat)^3 * ((k : Rat) + 1)^2 := by
+      have h_k1_sq_nn : 0 ≤ ((k : Rat) + 1)^2 := sq_nonneg _
+      have : 1742400 * 216000 ≤ 1742400 * (K : Rat)^3 := by linarith [hK3_ge_216000]
+      exact mul_le_mul_of_nonneg_right this h_k1_sq_nn
+    have h_360_k1_sq : 360 * ((k : Rat) + 1) ≤ 1742400 * 216000 * ((k : Rat) + 1)^2 := by
+      have : 360 * ((k : Rat) + 1) ≤ 1742400 * 216000 * ((k : Rat) + 1) := by linarith
+      linarith [mul_le_mul_of_nonneg_left hk1_sq_ge_k1
+                  (by norm_num : (0:Rat) ≤ 1742400 * 216000)]
+    linarith [h_360_k1_sq, h_K3_k1_sq]
+  have h_360_2pow : 360 * ((k : Rat) + 1) ≤ 2 ^ (K - 1) := le_trans h_360_helper h_helper
+  -- 2^(K-1) ≤ 2^(4K) via Nat power monotonicity in exponent
+  have h_pow_mono_nat : (2 : Nat) ^ (K - 1) ≤ (2 : Nat) ^ (4 * K) :=
+    Nat.pow_le_pow_right (by norm_num : 1 ≤ 2) (by omega : K - 1 ≤ 4 * K)
+  have h_pow_mono : (2 : Rat) ^ (K - 1) ≤ (2 : Rat) ^ (4 * K) := by
+    have h_cast : ∀ n : Nat, ((2 ^ n : Nat) : Rat) = (2 : Rat) ^ n := fun n => by push_cast; rfl
+    rw [← h_cast (K - 1), ← h_cast (4 * K)]
+    exact_mod_cast h_pow_mono_nat
+  have h_360_4K : 360 * ((k : Rat) + 1) ≤ 2 ^ (4 * K) := le_trans h_360_2pow h_pow_mono
+  -- (1/2)^(4K) = 1/2^(4K)
+  have h_half_pow_eq : ((1 : Rat) / 2) ^ (4 * K) = 1 / (2 : Rat) ^ (4 * K) := by
+    rw [div_pow, one_pow]
+  -- Chain: 10·a·|a|^(4K) ≤ 10·(1/2)·(1/2)^(4K) = 5/2^(4K) ≤ 1/(72(k+1))
+  have h_a_pow_bound : |a_val| ^ (4 * K) ≤ ((1 : Rat) / 2) ^ (4 * K) :=
+    pow_le_pow_left₀ h_a_abs_nn h_a_abs_le _
+  have h_half_pow_nn : 0 ≤ ((1 : Rat) / 2) ^ (4 * K) := by positivity
+  have h_10a_le : 10 * a_val ≤ 10 * (1/2) := by linarith
+  have h_10a_nn : 0 ≤ 10 * a_val := by linarith
+  have h_chain : 10 * a_val * |a_val| ^ (4 * K) ≤ 10 * (1/2) * ((1 : Rat) / 2) ^ (4 * K) := by
+    calc 10 * a_val * |a_val| ^ (4 * K)
+        ≤ 10 * a_val * ((1 : Rat) / 2) ^ (4 * K) :=
+            mul_le_mul_of_nonneg_left h_a_pow_bound h_10a_nn
+      _ ≤ 10 * (1/2) * ((1 : Rat) / 2) ^ (4 * K) :=
+            mul_le_mul_of_nonneg_right h_10a_le h_half_pow_nn
+  have h_simp : 10 * ((1 : Rat) / 2) * ((1 : Rat) / 2) ^ (4 * K)
+              = 5 / 2 ^ (4 * K) := by
+    rw [h_half_pow_eq]; ring
+  have h_2pow_pos : (0 : Rat) < 2 ^ (4 * K) := by positivity
+  have h_72k1_pos : (0 : Rat) < 72 * ((k : Rat) + 1) := by linarith
+  have h_final : (5 : Rat) / (2 : Rat) ^ (4 * K) ≤ 1 / (72 * ((k : Rat) + 1)) := by
+    rw [div_le_div_iff₀ h_2pow_pos h_72k1_pos]
+    -- Need: 5 · 72(k+1) ≤ 1 · 2^(4K) ⟺ 360(k+1) ≤ 2^(4K)
+    have : (5 : Rat) * (72 * ((k : Rat) + 1)) = 360 * ((k : Rat) + 1) := by ring
+    linarith [h_360_4K]
+  linarith [h_chain, h_simp, h_final]
+
+/-- **F.2 Path-α budget closure** — the three Path-α term bounds combine
+    to give `2·N_α·δ_step ≤ 1/(2(k+1))` (equivalently the F.2 main bound),
+    matching the path-β closure structure but at the wider `|a| ≤ 1/2` domain.
+
+    This is the **polynomial-budget summation**: the analogue of the closing
+    `h_sum_le` step in `tangent_defect_gronwall_instance` for path-β. The
+    actual F.2 main lift to Path-α (Step 1.B–1.F of the wider-domain plan)
+    requires also reworking the entire F.2 walk stack with weakened
+    hypotheses; this lemma packages the polynomial closure so that future
+    work can plug it in directly. -/
+theorem F2_path_alpha_budget_closure (a_val : Rat) (k : Nat)
+    (h_a_nn : 0 ≤ a_val) (h_a_le : 2 * a_val ≤ 1) :
+    2 * ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+      * (200 * ((3 * k + 60 : Nat) : Rat)^2
+            * (a_val / ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))^2
+         + 10 * (a_val / ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))
+              * |a_val|^(4 * (3 * k + 60))
+         + 484 * ((3 * k + 60 : Nat) : Rat) / 2 ^ ((3 * k + 60) - 1))
+      ≤ 1 / (2 * ((k : Rat) + 1)) := by
+  have h_t1 := F2_term1_bound_path_alpha a_val k h_a_nn h_a_le
+  have h_t2 := F2_term2_bound_path_alpha a_val k h_a_nn h_a_le
+  have h_t3 := F2_term3_bound_path_alpha k
+  have hk1_pos : (0 : Rat) < (k : Rat) + 1 := by
+    have : (0 : Rat) ≤ (k : Rat) := Nat.cast_nonneg k
+    linarith
+  have hN_nat_pos : (0 : Nat) < 400 * (3 * k + 60)^2 * (k + 1) := by positivity
+  have hN_pos : (0 : Rat) < ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) := by
+    exact_mod_cast hN_nat_pos
+  have hN_ne : ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat) ≠ 0 := ne_of_gt hN_pos
+  -- Expand 2N·(...) into 2·term1 + 2·term2 + 2·term3
+  have h_expand : 2 * ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+        * (200 * ((3 * k + 60 : Nat) : Rat)^2
+              * (a_val / ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))^2
+           + 10 * (a_val / ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))
+                * |a_val|^(4 * (3 * k + 60))
+           + 484 * ((3 * k + 60 : Nat) : Rat) / 2 ^ ((3 * k + 60) - 1))
+      = 2 * (200 * ((3 * k + 60 : Nat) : Rat)^2 * a_val^2
+            / ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))
+        + 2 * (10 * a_val * |a_val|^(4 * (3 * k + 60)))
+        + 2 * (484 * ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+                 * ((3 * k + 60 : Nat) : Rat) / 2 ^ ((3 * k + 60) - 1)) := by
+    field_simp
+  rw [h_expand]
+  have h2_nn : (0 : Rat) ≤ 2 := by norm_num
+  have hT1 : 2 * (200 * ((3 * k + 60 : Nat) : Rat)^2 * a_val^2
+            / ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat))
+           ≤ 2 / (8 * ((k:Rat) + 1)) := by
+    have h := mul_le_mul_of_nonneg_left h_t1 h2_nn
+    rw [mul_one_div] at h
+    exact h
+  have hT2 : 2 * (10 * a_val * |a_val|^(4 * (3 * k + 60)))
+           ≤ 2 / (72 * ((k:Rat) + 1)) := by
+    have h := mul_le_mul_of_nonneg_left h_t2 h2_nn
+    rw [mul_one_div] at h
+    exact h
+  have hT3 : 2 * (484 * ((400 * (3 * k + 60)^2 * (k + 1) : Nat) : Rat)
+                  * ((3 * k + 60 : Nat) : Rat) / 2 ^ ((3 * k + 60) - 1))
+           ≤ 2 / (9 * ((k:Rat) + 1)) := by
+    have h := mul_le_mul_of_nonneg_left h_t3 h2_nn
+    rw [mul_one_div] at h
+    exact h
+  -- Same arithmetic identity as path-β: 1/(4(k+1)) + 1/(36(k+1)) + 2/(9(k+1)) = 1/(2(k+1))
+  have h_sum_le : 2 / (8 * ((k:Rat) + 1)) + 2 / (72 * ((k:Rat) + 1))
+                + 2 / (9 * ((k:Rat) + 1)) = 1 / (2 * ((k:Rat) + 1)) := by
+    field_simp; ring
+  linarith [hT1, hT2, hT3, h_sum_le]
+
 /-! ## F.2 per-step helper — extracts Step 5a + triangle + uniform power bound
 
   Factored out of F.2 main to isolate the big linarith. Given Step 5a's
