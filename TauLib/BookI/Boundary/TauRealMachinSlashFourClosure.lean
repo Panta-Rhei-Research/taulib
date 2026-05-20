@@ -7,11 +7,14 @@ import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Push
 import Mathlib.Tactic.FieldSimp
 import Mathlib.Tactic.Positivity
+import Mathlib.Tactic.IntervalCases
 
 /-!
 # TauLib.BookI.Boundary.TauRealMachinSlashFourClosure
 
 **Phase F.B.1 — structural closure of MachinSlashFourIdentity via F.B.0**.
+**Phase F.C — structural reduction of `MachinDiagonalBoundedHalf`**.
+**Phase F.C.1 — finite-arithmetic discharge of `MachinDiagonalBoundedHalf`**.
 
 After Phase F.B.0 (`TauRealCisInjectivity.lean`) shipped the foundational
 `cisTauReal_injectivity_at_zero` lemma and Phase E Scope 2E
@@ -24,6 +27,12 @@ this module composes these into the **conditional discharge route**: given
 two named hypotheses about `machin_diagonal`, `MachinSlashFourIdentity`
 (and hence the whole keystone chain `MachinIdentity`, `pi_machin ≈ pi`,
 `MachinClassicalLimit`) follows.
+
+With Phase F.C.1 (Part 9, this module), `MachinDiagonalBoundedHalf` is
+now a full theorem (no hypothesis), discharged by composing the
+structural reduction (`MachinDiagonalBoundedHalf_via_N20`) with finite
+Rat-arithmetic checks at depths `0..20`. The entire keystone chain now
+reduces to a SINGLE residual hypothesis: `CisMachinDiagonalImEquivZero`.
 
 ## What this module ships
 
@@ -100,22 +109,14 @@ Rat-arithmetic level.
 
 ## Significance — what the residual gap is
 
-After Phase F.B.1, the **entire keystone chain** reduces to the conjunction
-of TWO precisely-named TauReal propositions:
+After Phase F.C.1, **`MachinDiagonalBoundedHalf` is a full theorem**
+(Part 9 below). The entire keystone chain reduces to a SINGLE residual
+TauReal proposition:
 
-1. **`MachinDiagonalBoundedHalf`**: `∀ n, ((machin_diagonal.approx n).abs).toRat ≤ 1/2`.
-2. **`CisMachinDiagonalImEquivZero`**: `(cisTauReal machin_diagonal).im ≈ TauReal.zero`.
+* **`CisMachinDiagonalImEquivZero`**: `(cisTauReal machin_diagonal).im ≈ TauReal.zero`.
 
-Classical proof sketch of these (NOT formalised here):
-* (1) — **Phase F.C structural reduction (this module, Part 7)**: the
-  bound is reduced via `MachinFullDiff_cauchy_bound` + triangle to a
-  finite small-`n` check at depths `0..N₀ − 1` plus a strong base-case
-  bound `|D(N₀)| ≤ 1/2 − 20/2^N₀ − 1/(8·N₀)`. At canonical depths
-  `N₀ = 20` or `30`, the residual numerical content is a CONCRETE
-  RAT INEQUALITY over the Leibniz partial sums at `1/5`, `1/239`, `1`
-  evaluated at the chosen depth — decidable in principle by exact
-  Rat arithmetic on the (large but finite) partial-sum denominators.
-* (2) — The 45°-line identity at TauReal-equiv level (Scope 2A-lift for
+Classical proof sketch of this (NOT formalised here):
+* The 45°-line identity at TauReal-equiv level (Scope 2A-lift for
   `α = pi_machin_arctan_quarter`) plus an analogous identity at
   `β = arctan_of_rat_seq 1` would give the cisTauReal multiplicativity
   conditions yielding `(cisTauReal(α − β)).im ≈ 0`. The β = arctan(1)
@@ -124,9 +125,24 @@ Classical proof sketch of these (NOT formalised here):
   `(√2/2, √2/2)`-like infrastructure (which would be circular at the
   current programme state).
 
-This module makes the residual content **fully concrete and inspectable**:
-after Phase F.C, the keystone is reduced to (small-`n` finite Rat
-arithmetic at depths `0..N₀`) ∧ (`CisMachinDiagonalImEquivZero`).
+### What Phase F.C.1 ships (Part 9 below)
+
+* **`MachinDiagonal_small_check_at_N20`** — the finite-arithmetic check
+  for depths `0..19`, discharged by `interval_cases n <;>
+  (simp only [...]; norm_num)`.
+
+* **`MachinDiagonal_base_at_N20`** — the strong base-case at depth 20
+  (`|D(20)| ≤ 157/318`), discharged by direct `norm_num` over the
+  fully-unfolded partial-sum expression.
+
+* **`MachinDiagonalBoundedHalf_proved`** — composition of the two above
+  with `MachinDiagonalBoundedHalf_via_N20`, giving the full theorem
+  `MachinDiagonalBoundedHalf` with no hypothesis.
+
+* **`pi_machin_equiv_pi_from_CisIm`** (and the parallel `MachinSlashFour`,
+  `MachinIdentity`, `MachinClassicalLimit` variants) — the entire
+  keystone chain conditional on the SINGLE residual hypothesis
+  `CisMachinDiagonalImEquivZero`.
 
 ## Build state
 
@@ -707,5 +723,122 @@ theorem pi_machin_equiv_pi_via_N30_route
     TauReal.equiv TauReal.pi_machin TauReal.pi :=
   pi_machin_equiv_pi_iff_FB0_hypotheses
     ⟨MachinDiagonalBoundedHalf_via_N30 h_small h_base, h_im⟩
+
+-- ============================================================
+-- PART 9: PHASE F.C.1 — DISCHARGE OF THE FINITE ARITHMETIC CHECK
+--         AT N₀ = 20, COMPLETING `MachinDiagonalBoundedHalf`
+-- ============================================================
+
+/-! ## Phase F.C.1 — discharging the finite Rat-arithmetic check
+
+The structural reduction (Part 7) reduces `MachinDiagonalBoundedHalf` to
+two finite Rat-arithmetic obligations at canonical depth `N₀ = 20`:
+
+1. **Small-`n` check at depths `0..19`**: `|D(n)| ≤ 1/2` for each
+   `n ∈ {0, 1, …, 19}`.
+2. **Strong base-case at depth `20`**: `|D(20)| ≤ 157/318` (with the
+   Cauchy-tail slack `1/159` absorbed into the gap `1/2 − 157/318
+   = 1/2 − 157/318 = (159 − 157)/318 = 2/318 = 1/159`).
+
+Both are pure Rat inequalities over the Leibniz partial sums
+`arctan_partial_rat (1/5) n`, `arctan_partial_rat (1/239) n`,
+`arctan_partial_rat 1 n` at the chosen depth `n`. They are decidable
+by exact Rat arithmetic (`norm_num`) after unfolding the recursive
+definition of `arctan_partial_rat`.
+
+**Implementation**: a single `interval_cases n <;> ...` proof handles
+all 20 small-`n` cases simultaneously. The strong base-case at depth 20
+is a single `norm_num` after unfolding. Both proofs use ONLY the kernel
+axioms `propext`, `Classical.choice`, `Quot.sound` — no `native_decide`,
+no `Lean.ofReduceBool`. -/
+
+/-- **Phase F.C.1 — finite small-`n` check at depths `0..19`**:
+    for every `n < 20`, `((machin_diagonal.approx n).abs).toRat ≤ 1/2`.
+
+    Proof: unfold to the Rat-level diagonal expression, then
+    `interval_cases n` splits into 20 cases. In each case, unfolding
+    the recursive `arctan_partial_rat` and the per-term definition
+    leaves a pure rational inequality discharged by `norm_num`. -/
+theorem MachinDiagonal_small_check_at_N20 :
+    ∀ n, n < 20 → ((TauReal.machin_diagonal.approx n).abs).toRat ≤ 1/2 := by
+  intro n hn
+  rw [TauRat.toRat_abs, TauReal.machin_diagonal_approx_toRat]
+  interval_cases n <;>
+    (simp only [arctan_partial_rat, arctan_pair_term_rat]; norm_num)
+
+/-- **Phase F.C.1 — strong base-case at depth `20`**:
+    `((machin_diagonal.approx 20).abs).toRat ≤ 157/318`.
+
+    The slack `1/2 − 157/318 = 1/159` matches the Cauchy-tail bound
+    at depth 20 (`MachinDiagonalBoundedHalf_tail_at_20`), so the
+    structural reduction (`MachinDiagonalBoundedHalf_via_N20`) applies
+    to conclude `MachinDiagonalBoundedHalf` for all `n`.
+
+    Proof: unfold to the Rat-level diagonal expression at depth 20,
+    fully unfold `arctan_partial_rat` and `arctan_pair_term_rat`, and
+    discharge the resulting concrete Rat inequality with `norm_num`. -/
+theorem MachinDiagonal_base_at_N20 :
+    ((TauReal.machin_diagonal.approx 20).abs).toRat ≤ 157/318 := by
+  rw [TauRat.toRat_abs, TauReal.machin_diagonal_approx_toRat]
+  simp only [arctan_partial_rat, arctan_pair_term_rat]
+  norm_num
+
+/-- **🎯 Phase F.C.1 HEADLINE — `MachinDiagonalBoundedHalf` discharged**:
+    `∀ n, ((machin_diagonal.approx n).abs).toRat ≤ 1/2` is now a
+    full theorem (no hypothesis), discharged by composing the structural
+    reduction (`MachinDiagonalBoundedHalf_via_N20`) with the finite
+    arithmetic checks (`MachinDiagonal_small_check_at_N20` and
+    `MachinDiagonal_base_at_N20`).
+
+    This closes one of the two remaining hypotheses of the keystone
+    chain. The remaining hypothesis is `CisMachinDiagonalImEquivZero`
+    (the imaginary-vanishing of `cis(machin_diagonal)`).
+
+    Axiom budget: 3 kernel axioms (`propext`, `Classical.choice`,
+    `Quot.sound`). No `native_decide`, no `Lean.ofReduceBool`. -/
+theorem MachinDiagonalBoundedHalf_proved : MachinDiagonalBoundedHalf :=
+  MachinDiagonalBoundedHalf_via_N20
+    MachinDiagonal_small_check_at_N20
+    MachinDiagonal_base_at_N20
+
+-- ============================================================
+-- PART 10: DOWNSTREAM — KEYSTONE CHAIN MODULO
+--          `CisMachinDiagonalImEquivZero` ONLY
+-- ============================================================
+
+/-! ## Phase F.C.1 — downstream consequences
+
+With `MachinDiagonalBoundedHalf` discharged, the entire keystone chain
+now reduces to a SINGLE residual hypothesis: `CisMachinDiagonalImEquivZero`.
+
+These corollaries surface the downstream content. -/
+
+/-- **🎯 Phase F.C.1 — keystone reduces to `CisMachinDiagonalImEquivZero`**:
+    `CisMachinDiagonalImEquivZero → pi_machin ≈ pi`.
+
+    The keystone `pi_machin ≈ pi` no longer needs the `MachinDiagonalBoundedHalf`
+    hypothesis — only the imaginary-vanishing of `cis(machin_diagonal)`. -/
+theorem pi_machin_equiv_pi_from_CisIm :
+    CisMachinDiagonalImEquivZero → TauReal.equiv TauReal.pi_machin TauReal.pi :=
+  fun h_im => pi_machin_equiv_pi_iff_FB0_hypotheses
+    ⟨MachinDiagonalBoundedHalf_proved, h_im⟩
+
+/-- **🎯 Phase F.C.1 — `MachinSlashFourIdentity` reduces to `CisMachinDiagonalImEquivZero`**. -/
+theorem MachinSlashFourIdentity_from_CisIm :
+    CisMachinDiagonalImEquivZero → MachinSlashFourIdentity :=
+  fun h_im => MachinSlashFourIdentity_via_machin_diagonal_FB0
+    MachinDiagonalBoundedHalf_proved h_im
+
+/-- **🎯 Phase F.C.1 — `MachinIdentity` reduces to `CisMachinDiagonalImEquivZero`**. -/
+theorem MachinIdentity_from_CisIm :
+    CisMachinDiagonalImEquivZero → MachinIdentity :=
+  fun h_im => MachinIdentity_via_FB0
+    MachinDiagonalBoundedHalf_proved h_im
+
+/-- **🎯 Phase F.C.1 — `MachinClassicalLimit` reduces to `CisMachinDiagonalImEquivZero`**. -/
+theorem MachinClassicalLimit_from_CisIm :
+    CisMachinDiagonalImEquivZero → MachinClassicalLimit :=
+  fun h_im => MachinClassicalLimit_via_FB0
+    MachinDiagonalBoundedHalf_proved h_im
 
 end Tau.Boundary
