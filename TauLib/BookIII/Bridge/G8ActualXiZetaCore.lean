@@ -1,4 +1,4 @@
-import Mathlib.NumberTheory.LSeries.RiemannZeta
+import TauLib.BookIII.Bridge.G8ActualXiOrthodoxCore
 import TauLib.BookIII.Bridge.G8ActualOrthodoxCenteredChart
 
 /-!
@@ -6,14 +6,14 @@ import TauLib.BookIII.Bridge.G8ActualOrthodoxCenteredChart
 
 Receiving-side orthodox `xi`/`zeta` chart core for the G8f corridor.
 
-This module intentionally imports Mathlib's Riemann-zeta development.  That is
-the right boundary: tau-native constructions must remain earned from the tau
-kernel, while the orthodox receiving chart should use orthodox Mathlib objects.
+`G8ActualXiOrthodoxCore` is the sole direct Mathlib import point for the
+orthodox `xi` carrier.  This module builds the centered shadow and receiving
+RH handoff on top of that lower core.
 
 The definitions below do not identify tau zeros with orthodox zeros, do not
-prove O3, and do not establish any global target.  They only define the
-receiving-side `xi` zero object and prove the local chart-hygiene fact that
-off-criticality is exactly off-axis readability in the centered shadow.
+prove O3, and do not establish any global target.  They only prove the local
+chart-hygiene fact that off-criticality is exactly off-axis readability in the
+centered shadow.
 -/
 
 set_option autoImplicit false
@@ -21,45 +21,6 @@ set_option autoImplicit false
 noncomputable section
 
 namespace Tau.BookIII.Bridge
-
-open Complex
-
--- ============================================================
--- ORTHODOX XI CORE
--- ============================================================
-
-/-- Orthodox completed-`xi` wrapper built from Mathlib's entire
-    `completedRiemannZeta₀`.
-
-Mathlib's `completedRiemannZeta` is the completed zeta function with poles at
-`0` and `1`; `completedRiemannZeta₀` is the pole-removed entire object.  The
-formula below is the standard entire normalization
-`xi(s) = 1/2 * (s * (s - 1) * Lambda₀(s) + 1)`.
--/
-def orthodoxXi (s : ℂ) : ℂ :=
-  (1 / 2 : ℂ) *
-    (s * (s - 1) * completedRiemannZeta₀ s + 1)
-
-/-- The orthodox `xi` functional-equation shadow inherited from Mathlib's
-    completed-zeta functional equation. -/
-theorem orthodoxXi_one_sub (s : ℂ) :
-    orthodoxXi (1 - s) = orthodoxXi s := by
-  unfold orthodoxXi
-  rw [completedRiemannZeta₀_one_sub]
-  ring
-
-/-- Receiving-side zero object for the orthodox `xi` wrapper.
-
-This is an orthodox object.  It is not a tau zero and carries no tau preimage
-claim. -/
-structure OrthodoxXiZero where
-  point : ℂ
-  isZero : orthodoxXi point = 0
-
-/-- The orthodox zero is off the critical line when its real coordinate is not
-    `1/2`. -/
-def OrthodoxXiOffCritical (z : OrthodoxXiZero) : Prop :=
-  z.point.re ≠ (1 / 2 : ℝ)
 
 /-- Localization-bearing centered axis offset for an orthodox `xi` zero.
 
@@ -128,32 +89,6 @@ theorem orthodoxXiOffCritical_to_shadowOffAxis
     (h : OrthodoxXiOffCritical z) :
     ShadowOffAxis (orthodoxXiCenteredShadow z) :=
   (orthodoxXiOffCritical_iff_shadowOffAxis z).mp h
-
--- ============================================================
--- UNIVERSE-LIFTED CORRIDOR CARRIER
--- ============================================================
-
-/-- Universe-lifted carrier for existing G8 bridge interfaces.
-
-The mathematical object remains `OrthodoxXiZero`; this carrier only adapts it
-to the current `OffCriticalZeroPullbackContext`, whose zero carrier is
-universe-polymorphic at `Type 2`. -/
-abbrev OrthodoxXiZeroCarrier : Type 2 :=
-  ULift.{2, 0} OrthodoxXiZero
-
-/-- Lift an orthodox `xi` zero into the bridge-interface carrier. -/
-def OrthodoxXiZero.toCarrier (z : OrthodoxXiZero) :
-    OrthodoxXiZeroCarrier :=
-  ULift.up z
-
-/-- Project a bridge-interface carrier back to the orthodox `xi` zero record. -/
-def OrthodoxXiZeroCarrier.toZero (z : OrthodoxXiZeroCarrier) :
-    OrthodoxXiZero :=
-  z.down
-
-/-- Off-criticality for the universe-lifted orthodox `xi` carrier. -/
-def OrthodoxXiCarrierOffCritical (z : OrthodoxXiZeroCarrier) : Prop :=
-  OrthodoxXiOffCritical z.toZero
 
 /-- Centered shadow for the universe-lifted orthodox `xi` carrier. -/
 def orthodoxXiCarrierCenteredShadow (z : OrthodoxXiZeroCarrier) :

@@ -133,6 +133,7 @@ import TauLib.BookIII.Bridge.G8CanonicalTauWitnessSelector
 import TauLib.BookIII.Bridge.G8ActualOrthodoxCenteredChart
 import TauLib.BookIII.Bridge.G8ActualOrthodoxCenteredChartNormalizedCorridor
 import TauLib.BookIII.Bridge.G8CanonicalActualOrthodoxCenteredChartSelector
+import TauLib.BookIII.Bridge.G8ActualXiOrthodoxCore
 import TauLib.BookIII.Bridge.G8ActualXiZetaCore
 import TauLib.BookIII.Bridge.G8ActualXiZetaSource
 import TauLib.BookIII.Bridge.G8ActualXiZetaCorridor
@@ -165,6 +166,29 @@ import TauLib.BookIII.Bridge.G8BookIIICharacterCoverageDischarge
 import TauLib.BookIII.Bridge.G8BookIIICharacterAcceptedRealizationLaw
 import TauLib.BookIII.Bridge.G8BookIIICharacterAcceptedRealizationProofDraft
 import TauLib.BookIII.Bridge.G8BookIIICharacterAcceptedRealizationReduction
+import TauLib.BookIII.Bridge.G8BookIIISigmaFixedCharacterAddressability
+import TauLib.BookIII.Bridge.G8FinalLiveHinge
+import TauLib.BookIII.Bridge.G8ActualXiSigmaFixedReduction
+import TauLib.BookIII.Bridge.G8ActualXiCrossingMediatedReadout
+import TauLib.BookIII.Bridge.G8ActualXiSpectralRealityCore
+import TauLib.BookIII.Bridge.G8ActualXiSigmaFixedFromSpectralReality
+import TauLib.BookIII.Bridge.G8ActualXiCrossingMediatedLanding
+import TauLib.BookIII.Bridge.G8ActualXiSpectralRealityInstantiation
+import TauLib.BookIII.Bridge.G8ActualXiZeroHeightAxisGuardCore
+import TauLib.BookIII.Bridge.G8ActualXiHeightSplitSpectralReality
+import TauLib.BookIII.Bridge.G8ActualXiZeroHeightAxisGuard
+import TauLib.BookIII.Bridge.G8RiemannZetaOpenUnitEtaNonvanishing
+import TauLib.BookIII.Bridge.G8RiemannZetaOpenUnitEtaLFunctionIdentity
+import TauLib.BookIII.Bridge.G8EtaModTwoSeriesAlgebraBoundedSums
+import TauLib.BookIII.Bridge.G8EtaModTwoConditionalSeriesProductBridge
+import TauLib.BookIII.Bridge.G8EtaModTwoRightHalfPlaneProduct
+import TauLib.BookIII.Bridge.G8EtaModTwoOpenUnitContinuation
+import TauLib.BookIII.Bridge.G8EtaModTwoHurwitzOpenUnitProduct
+import TauLib.BookIII.Bridge.G8EtaModTwoConcreteEtaIdentification
+import TauLib.BookIII.Bridge.G8EtaModTwoAbelBoundaryIdentification
+import TauLib.BookIII.Bridge.G8EtaModTwoAbelBoundaryClosure
+import TauLib.BookIII.Bridge.G8EtaModTwoExpZetaBoundaryDischarge
+import TauLib.BookIII.Bridge.G8EtaModTwoLaneAAssembly
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3
