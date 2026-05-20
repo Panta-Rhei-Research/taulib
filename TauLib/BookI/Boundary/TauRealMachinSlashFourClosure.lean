@@ -68,6 +68,36 @@ two named hypotheses about `machin_diagonal`, `MachinSlashFourIdentity`
 * **`MachinClassicalLimit_via_FB0`** — same content phrased as the named
   target `MachinClassicalLimit` (the Rat-level diagonal modulus existence).
 
+## Phase F.C — structural reduction of MachinDiagonalBoundedHalf
+
+The headline Phase F.C contribution is a **structural reduction** of
+`MachinDiagonalBoundedHalf` to a finite small-`n` check:
+
+* **`machin_diagonal_tail_bound`** — Cauchy-tail bound: for `N₀ ≤ n`,
+  `|D(n)| ≤ |D(N₀)| + 20/2^N₀ + 1/(8·N₀)` (composes
+  `MachinFullDiff_cauchy_bound` with the triangle inequality).
+
+* **`MachinDiagonalBoundedHalf_from_basecase_at_depth`** — the headline
+  structural-reduction theorem: given a strong base-case
+  `|D(N₀)| ≤ 1/2 − 20/2^N₀ − 1/(8·N₀)` plus a finite check at depths
+  `0..N₀ − 1`, conclude `MachinDiagonalBoundedHalf` for ALL `n`.
+
+* **`MachinDiagonalBoundedHalf_via_N20` / `..._via_N30`** — specialized
+  forms at canonical depths `N₀ ∈ {20, 30}`, with hard-baked numerical
+  slack witnesses (`tail(20) ≤ 1/159`, `tail(30) ≤ 1/239`).
+
+* **`pi_machin_equiv_pi_via_N20_route` / `..._via_N30_route`** —
+  composite keystone bridges: composing the structural reduction with
+  `pi_machin_equiv_pi_iff_FB0_hypotheses`, the keystone `pi_machin ≈ pi`
+  reduces to a (small-`n` finite Rat check) ∧ (strong base-case) ∧
+  `CisMachinDiagonalImEquivZero`.
+
+This is the cleanest constructive structural decomposition of the
+remaining keystone gap. The structural reduction does NOT invoke any
+classical (limit/derivative) content — it composes the already-shipped
+`MachinFullDiff_cauchy_bound` with the triangle inequality at the
+Rat-arithmetic level.
+
 ## Significance — what the residual gap is
 
 After Phase F.B.1, the **entire keystone chain** reduces to the conjunction
@@ -77,10 +107,14 @@ of TWO precisely-named TauReal propositions:
 2. **`CisMachinDiagonalImEquivZero`**: `(cisTauReal machin_diagonal).im ≈ TauReal.zero`.
 
 Classical proof sketch of these (NOT formalised here):
-* (1) — The partial-sum truncation errors decay geometrically; combined
-  with the Machin identity at the limit, the bound `≤ 1/2` holds at every
-  depth (with substantial slack at large depth and a finite check at
-  small depths).
+* (1) — **Phase F.C structural reduction (this module, Part 7)**: the
+  bound is reduced via `MachinFullDiff_cauchy_bound` + triangle to a
+  finite small-`n` check at depths `0..N₀ − 1` plus a strong base-case
+  bound `|D(N₀)| ≤ 1/2 − 20/2^N₀ − 1/(8·N₀)`. At canonical depths
+  `N₀ = 20` or `30`, the residual numerical content is a CONCRETE
+  RAT INEQUALITY over the Leibniz partial sums at `1/5`, `1/239`, `1`
+  evaluated at the chosen depth — decidable in principle by exact
+  Rat arithmetic on the (large but finite) partial-sum denominators.
 * (2) — The 45°-line identity at TauReal-equiv level (Scope 2A-lift for
   `α = pi_machin_arctan_quarter`) plus an analogous identity at
   `β = arctan_of_rat_seq 1` would give the cisTauReal multiplicativity
@@ -91,7 +125,8 @@ Classical proof sketch of these (NOT formalised here):
   current programme state).
 
 This module makes the residual content **fully concrete and inspectable**:
-the keystone is exactly one (1)-hypothesis-bundle away from full closure.
+after Phase F.C, the keystone is reduced to (small-`n` finite Rat
+arithmetic at depths `0..N₀`) ∧ (`CisMachinDiagonalImEquivZero`).
 
 ## Build state
 
@@ -418,5 +453,259 @@ than the universal statement. -/
 theorem MachinDiagonal_exists_bounded :
     ∃ n, ((TauReal.machin_diagonal.approx n).abs).toRat ≤ 1/2 :=
   ⟨0, MachinDiagonalBoundedHalf_at_zero⟩
+
+-- ============================================================
+-- PART 7: STRUCTURAL REDUCTION — MachinDiagonalBoundedHalf
+--         from a base-case at depth N₀ via Cauchy tail decay
+-- ============================================================
+
+/-! ## Reducing the universal-`n` bound to a finite small-`n` check
+
+By `MachinFullDiff_cauchy_bound`, for `1 ≤ N₀ ≤ n` we have the
+Cauchy-tail bound
+
+  `|D(n) − D(N₀)| ≤ 20/2^N₀ + 1/(8·N₀)`
+
+at the Rat level. Composed with the absolute-value triangle inequality
+(`|D(n)| ≤ |D(N₀)| + |D(n) − D(N₀)|`), this gives the structural
+reduction: if at depth `N₀` we have the **strong** bound
+
+  `|D(N₀)| ≤ 1/2 − 20/2^N₀ − 1/(8·N₀)`,
+
+then for ALL `n ≥ N₀`, `|D(n)| ≤ 1/2`. Combined with a finite check
+at depths `0, 1, …, N₀ − 1`, this discharges `MachinDiagonalBoundedHalf`.
+
+At `N₀ = 20`, the tail is `20/2^20 + 1/160 ≈ 0.006272`, so the
+strong base-case bound becomes `|D(20)| ≤ 0.4937…`. At `N₀ = 30`, the
+tail is `20/2^30 + 1/240 ≈ 0.004167`, giving `|D(30)| ≤ 0.4958…`.
+These are concrete Rat-arithmetic statements about the partial sums
+at finite depth — no classical analysis is invoked.
+
+**Significance**: this reduces the (still-undischarged) classical
+content of the Machin keystone — `MachinDiagonalBoundedHalf` — from
+an infinite universal-`n` statement to a **finite (Rat-computable)**
+small-`n` check at depths `0..N₀`. The reduction is the first
+constructively-shippable contribution toward closing the F.B.1
+hypotheses without invoking the F.6 wider-domain extension. -/
+
+/-- **Helper** — for `n ≥ 1`, the Cauchy-tail bound between `D(n)` and
+    `D(N₀)` at the partial-sum level (composed from
+    `MachinFullDiff_cauchy_bound` and the machin_diagonal_approx_toRat
+    bridge). -/
+private theorem machin_diagonal_approx_toRat_diff_bound
+    (N₀ n : Nat) (hN₀_pos : 1 ≤ N₀) (hN₀_le_n : N₀ ≤ n) :
+    |((TauReal.machin_diagonal.approx n).toRat
+       - (TauReal.machin_diagonal.approx N₀).toRat)|
+      ≤ 20 / (2 : Rat)^N₀ + 1 / (8 * (N₀ : Rat)) := by
+  rw [TauReal.machin_diagonal_approx_toRat, TauReal.machin_diagonal_approx_toRat]
+  exact MachinFullDiff_cauchy_bound n N₀ hN₀_pos hN₀_le_n
+
+/-- **Tail bound**: for `n ≥ N₀ ≥ 1`,
+    `|D(n)| ≤ |D(N₀)| + 20/2^N₀ + 1/(8·N₀)`.
+
+    Direct consequence of `machin_diagonal_approx_toRat_diff_bound` plus
+    the triangle inequality `|x| ≤ |x − y| + |y|`. -/
+theorem machin_diagonal_tail_bound
+    (N₀ n : Nat) (hN₀_pos : 1 ≤ N₀) (hN₀_le_n : N₀ ≤ n) :
+    ((TauReal.machin_diagonal.approx n).abs).toRat
+      ≤ ((TauReal.machin_diagonal.approx N₀).abs).toRat
+        + 20 / (2 : Rat)^N₀ + 1 / (8 * (N₀ : Rat)) := by
+  -- |D(n)| = |D(N₀) + (D(n) − D(N₀))| ≤ |D(N₀)| + |D(n) − D(N₀)|.
+  rw [TauRat.toRat_abs, TauRat.toRat_abs]
+  have h_diff_bd := machin_diagonal_approx_toRat_diff_bound N₀ n hN₀_pos hN₀_le_n
+  -- Triangle: |x| ≤ |y| + |x - y|, with x = D(n), y = D(N₀).
+  have h_tri : |((TauReal.machin_diagonal.approx n).toRat)|
+             ≤ |((TauReal.machin_diagonal.approx N₀).toRat)|
+              + |((TauReal.machin_diagonal.approx n).toRat
+                  - (TauReal.machin_diagonal.approx N₀).toRat)| := by
+    have h := abs_add_le
+      ((TauReal.machin_diagonal.approx N₀).toRat)
+      ((TauReal.machin_diagonal.approx n).toRat
+        - (TauReal.machin_diagonal.approx N₀).toRat)
+    have h_eq : (TauReal.machin_diagonal.approx N₀).toRat
+              + ((TauReal.machin_diagonal.approx n).toRat
+                  - (TauReal.machin_diagonal.approx N₀).toRat)
+              = (TauReal.machin_diagonal.approx n).toRat := by ring
+    rw [h_eq] at h
+    exact h
+  linarith [h_tri, h_diff_bd]
+
+/-- **🎯 Structural reduction from a strong base case at depth N₀**:
+
+    Given:
+    * `N₀ ≥ 1`,
+    * a finite small-`n` check at depths `0, 1, …, N₀ − 1`
+      (`h_small`: each `|D(n)| ≤ 1/2`),
+    * a strong bound at depth `N₀`:
+      `|D(N₀)| ≤ 1/2 − 20/2^N₀ − 1/(8·N₀)`,
+    conclude `MachinDiagonalBoundedHalf`.
+
+    Proof sketch:
+    * For `n < N₀`: by `h_small`.
+    * For `n ≥ N₀`: by `machin_diagonal_tail_bound` plus `h_strong`,
+      `|D(n)| ≤ |D(N₀)| + 20/2^N₀ + 1/(8·N₀) ≤ 1/2`.
+
+    This is the **structural reduction** of `MachinDiagonalBoundedHalf`
+    to a finite Rat-arithmetic check at depths `0..N₀`. The reduction
+    does not invoke any classical (limit/derivative) content — it
+    composes the already-shipped `MachinFullDiff_cauchy_bound` with
+    the triangle inequality.
+
+    Future closure path: combine this reduction with a Rat-level
+    decidability check for the small-`n` partial sums at depth N₀
+    (e.g., via `Nat.decEq` and exact-arithmetic Rat evaluation), then
+    the keystone reduces to a single concrete Rat inequality
+    `|D(N₀_chosen)| ≤ ...` that can in principle be discharged by
+    direct computation. -/
+theorem MachinDiagonalBoundedHalf_from_basecase_at_depth
+    (N₀ : Nat) (hN₀_pos : 1 ≤ N₀)
+    (h_small : ∀ n, n < N₀ → ((TauReal.machin_diagonal.approx n).abs).toRat ≤ 1/2)
+    (h_strong : ((TauReal.machin_diagonal.approx N₀).abs).toRat
+                  ≤ 1/2 - 20 / (2 : Rat)^N₀ - 1 / (8 * (N₀ : Rat))) :
+    MachinDiagonalBoundedHalf := by
+  unfold MachinDiagonalBoundedHalf
+  intro n
+  by_cases h_lt : n < N₀
+  · exact h_small n h_lt
+  · push_neg at h_lt
+    -- h_lt : N₀ ≤ n
+    have h_tail := machin_diagonal_tail_bound N₀ n hN₀_pos h_lt
+    -- h_tail: |D(n)| ≤ |D(N₀)| + 20/2^N₀ + 1/(8·N₀)
+    -- h_strong: |D(N₀)| ≤ 1/2 - 20/2^N₀ - 1/(8·N₀)
+    linarith
+
+/-- **Convenience corollary** — the structural reduction with a UNIFORM
+    bound on `|D(N₀)|` only (no separate strong-tail bound): given
+    `|D(N₀)| ≤ 1/2 − ε`, conclude `MachinDiagonalBoundedHalf`, provided
+    the tail `20/2^N₀ + 1/(8·N₀)` is at most `ε`.
+
+    Useful when the user has a "loose" base-case bound and wants the
+    Cauchy-tail slack absorbed explicitly. -/
+theorem MachinDiagonalBoundedHalf_from_basecase_with_slack
+    (N₀ : Nat) (hN₀_pos : 1 ≤ N₀) (ε : Rat) (_hε_nn : 0 ≤ ε)
+    (h_tail_le : 20 / (2 : Rat)^N₀ + 1 / (8 * (N₀ : Rat)) ≤ ε)
+    (h_small : ∀ n, n < N₀ → ((TauReal.machin_diagonal.approx n).abs).toRat ≤ 1/2)
+    (h_base : ((TauReal.machin_diagonal.approx N₀).abs).toRat ≤ 1/2 - ε) :
+    MachinDiagonalBoundedHalf := by
+  apply MachinDiagonalBoundedHalf_from_basecase_at_depth N₀ hN₀_pos h_small
+  linarith [h_tail_le, h_base]
+
+/-! ## Numerical witnesses at canonical depths
+
+For an inspectable view of the slack thresholds, we record the explicit
+Rat-arithmetic bounds at canonical small depths `N₀ ∈ {10, 20, 30}`.
+These are pure rationals decidable by `norm_num`. They quantify the
+"how close to 1/2" the small-`N₀` base case must be for the structural
+reduction to apply. -/
+
+/-- **Numerical witness at N₀ = 10**: `20/2^10 + 1/80 = 1/64 + 1/80
+    = (5 + 4)/320 = 9/320 + 0/... actually let's compute: 20/1024 = 5/256.
+    5/256 + 1/80 = (5·80 + 256)/(256·80) = (400 + 256)/20480 = 656/20480
+    = 41/1280`. We bound by `1/30` (since `41/1280 < 1/30`: cross-mul:
+    `30·41 = 1230 < 1280 = 1·1280` ✓). -/
+theorem MachinDiagonalBoundedHalf_tail_at_10 :
+    20 / (2 : Rat)^10 + 1 / (8 * (10 : Rat)) ≤ 1 / 30 := by
+  norm_num
+
+/-- **Numerical witness at N₀ = 20**: `20/2^20 + 1/160`.
+    `20/2^20 = 20/1048576 = 5/262144`.
+    `5/262144 + 1/160 = (5·160 + 262144)/(262144·160)
+                      = (800 + 262144)/41943040 = 262944/41943040
+                      < 1/159` (cross-mul: `159 · 262944 = 41808096
+                                < 41943040`). -/
+theorem MachinDiagonalBoundedHalf_tail_at_20 :
+    20 / (2 : Rat)^20 + 1 / (8 * (20 : Rat)) ≤ 1 / 159 := by
+  norm_num
+
+/-- **Numerical witness at N₀ = 30**: `20/2^30 + 1/240`.
+    The tail `1/(8·N₀) = 1/240` dominates by far, since `20/2^30 ≈ 1.86·10⁻⁸`.
+    Bound by `1/239`. -/
+theorem MachinDiagonalBoundedHalf_tail_at_30 :
+    20 / (2 : Rat)^30 + 1 / (8 * (30 : Rat)) ≤ 1 / 239 := by
+  norm_num
+
+/-! ## Specialized reduction at canonical depths
+
+These specialized forms hard-bake the canonical depth choice and the
+matching numerical witness for the slack, leaving only the small-`n`
+finite check and the strong base bound as user obligations. -/
+
+/-- **🎯 Specialized at N₀ = 20**: given
+    * a finite small-`n` check at depths `0..19`, AND
+    * `|D(20)| ≤ 1/2 − 1/159 = 157/318`,
+    conclude `MachinDiagonalBoundedHalf`.
+
+    The depth `20` is chosen as the threshold where the geometric
+    Cauchy-tail decay overwhelms the harmonic `1/(8n)` cost.
+
+    The base-case bound `|D(20)| ≤ 157/318` is a CONCRETE RAT INEQUALITY
+    over the (finite-depth) Leibniz partial sums at `1/5`, `1/239`, `1`. -/
+theorem MachinDiagonalBoundedHalf_via_N20
+    (h_small : ∀ n, n < 20 → ((TauReal.machin_diagonal.approx n).abs).toRat ≤ 1/2)
+    (h_base : ((TauReal.machin_diagonal.approx 20).abs).toRat ≤ 157/318) :
+    MachinDiagonalBoundedHalf := by
+  apply MachinDiagonalBoundedHalf_from_basecase_with_slack
+    20 (by norm_num : 1 ≤ 20) (1/159) (by norm_num : (0 : Rat) ≤ 1/159)
+    MachinDiagonalBoundedHalf_tail_at_20 h_small
+  have h_eq : (1 : Rat) / 2 - 1 / 159 = 157 / 318 := by norm_num
+  linarith [h_eq.symm ▸ h_base]
+
+/-- **🎯 Specialized at N₀ = 30**: given
+    * a finite small-`n` check at depths `0..29`, AND
+    * `|D(30)| ≤ 1/2 − 1/239 = 237/478`,
+    conclude `MachinDiagonalBoundedHalf`. -/
+theorem MachinDiagonalBoundedHalf_via_N30
+    (h_small : ∀ n, n < 30 → ((TauReal.machin_diagonal.approx n).abs).toRat ≤ 1/2)
+    (h_base : ((TauReal.machin_diagonal.approx 30).abs).toRat ≤ 237/478) :
+    MachinDiagonalBoundedHalf := by
+  apply MachinDiagonalBoundedHalf_from_basecase_with_slack
+    30 (by norm_num : 1 ≤ 30) (1/239) (by norm_num : (0 : Rat) ≤ 1/239)
+    MachinDiagonalBoundedHalf_tail_at_30 h_small
+  have h_eq : (1 : Rat) / 2 - 1 / 239 = 237 / 478 := by norm_num
+  linarith [h_eq.symm ▸ h_base]
+
+-- ============================================================
+-- PART 8: COMPOSITE KEYSTONE BRIDGE — combining the structural
+--         reduction with the F.B.0-based discharge route
+-- ============================================================
+
+/-! ## Composite keystone closure from a finite-depth witness
+
+The structural reduction (Part 7) reduces `MachinDiagonalBoundedHalf`
+to a finite check. Composed with `pi_machin_equiv_pi_iff_FB0_hypotheses`,
+we get a complete reduction of the keystone `pi_machin ≈ pi` to:
+
+1. A FINITE small-`n` check at depths `0..N₀ − 1` (each ≤ 1/2),
+2. A STRONG base-case at depth `N₀` (`|D(N₀)| ≤ 1/2 − tail(N₀)`),
+3. The `CisMachinDiagonalImEquivZero` hypothesis (still residual).
+
+This is the cleanest constructive structural decomposition of the
+remaining keystone gap. -/
+
+/-- **🎯 Keystone bridge via N₀ = 20**: given
+    * small-`n` finite check at depths `0..19`,
+    * strong base-case at depth `20` (`|D(20)| ≤ 157/318`), AND
+    * `CisMachinDiagonalImEquivZero`,
+    conclude `pi_machin ≈ pi`. -/
+theorem pi_machin_equiv_pi_via_N20_route
+    (h_small : ∀ n, n < 20 → ((TauReal.machin_diagonal.approx n).abs).toRat ≤ 1/2)
+    (h_base : ((TauReal.machin_diagonal.approx 20).abs).toRat ≤ 157/318)
+    (h_im : CisMachinDiagonalImEquivZero) :
+    TauReal.equiv TauReal.pi_machin TauReal.pi :=
+  pi_machin_equiv_pi_iff_FB0_hypotheses
+    ⟨MachinDiagonalBoundedHalf_via_N20 h_small h_base, h_im⟩
+
+/-- **🎯 Keystone bridge via N₀ = 30**: given
+    * small-`n` finite check at depths `0..29`,
+    * strong base-case at depth `30` (`|D(30)| ≤ 237/478`), AND
+    * `CisMachinDiagonalImEquivZero`,
+    conclude `pi_machin ≈ pi`. -/
+theorem pi_machin_equiv_pi_via_N30_route
+    (h_small : ∀ n, n < 30 → ((TauReal.machin_diagonal.approx n).abs).toRat ≤ 1/2)
+    (h_base : ((TauReal.machin_diagonal.approx 30).abs).toRat ≤ 237/478)
+    (h_im : CisMachinDiagonalImEquivZero) :
+    TauReal.equiv TauReal.pi_machin TauReal.pi :=
+  pi_machin_equiv_pi_iff_FB0_hypotheses
+    ⟨MachinDiagonalBoundedHalf_via_N30 h_small h_base, h_im⟩
 
 end Tau.Boundary
