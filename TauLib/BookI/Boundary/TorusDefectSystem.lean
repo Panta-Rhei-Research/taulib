@@ -1,4 +1,5 @@
 import TauLib.BookI.Boundary.UniversalFixedScalar
+import TauLib.BookI.Boundary.LobeInvariance
 
 /-!
 # TauLib.BookI.Boundary.TorusDefectSystem
@@ -441,5 +442,157 @@ theorem TorusDefectSystem.theorem_4_7_unconditional :
           TorusDefectSystem.bSideConstantThread.point n) :=
   DefectInverseSystem.unpolarisation_theorem
     TorusDefectSystem TorusDefectSystem.bSideConstantThread
+
+-- ============================================================
+-- PART 9: §5.2 L1–L4 lobe-invariance — concrete witnesses
+-- ============================================================
+
+/-- **Concrete σ-equivariant transport on `TorusDefect`** —
+    paper L1 input on this instance.
+
+    We exhibit `sigmaSwap` itself as a (trivially σ-equivariant)
+    transport: `σ ∘ σ = σ ∘ σ` via involutivity.  Any concrete
+    transport functor on `TorusDefect` built from σ and the
+    lobe-label exchange is σ-equivariant by direct case analysis. -/
+theorem TorusDefectSystem.sigmaSwap_isSigmaEquivariant (n : Nat) :
+    TorusDefectSystem.IsSigmaEquivariant n
+      (TorusDefect.sigmaSwap : TorusDefect → TorusDefect) := by
+  intro x
+  show TorusDefect.sigmaSwap (TorusDefect.sigmaSwap x) = _
+  rw [TorusDefect.sigmaSwap_involutive]
+  show x = TorusDefect.sigmaSwap (TorusDefect.sigmaSwap x)
+  rw [TorusDefect.sigmaSwap_involutive]
+
+/-- **L1 on `TorusDefectSystem`**: `sigmaSwap` (as a transport)
+    commutes with itself trivially.  More generally, any
+    `IsSigmaEquivariant` transport on `TorusDefect` satisfies the
+    paper L1 identity at every depth. -/
+theorem TorusDefectSystem.lobeL1_sigmaSwap (n : Nat) (x : TorusDefect) :
+    TorusDefectSystem.sigma_level n (TorusDefect.sigmaSwap x) =
+      TorusDefect.sigmaSwap (TorusDefectSystem.sigma_level n x) :=
+  DefectInverseSystem.LobeL1
+    (TorusDefectSystem.sigmaSwap_isSigmaEquivariant n) x
+
+/-- **Concrete admissible fusion on `TorusDefect`** — paper §5.2
+    L2 input on this instance.
+
+    Defined as the *trivial fusion at the crossing*: admissible
+    iff one of the operands is the crossing anchor; in that case
+    return the other operand.  Inadmissible (`none`) otherwise.
+
+    This is the minimal fusion satisfying paper's "admissible
+    iff x, y share a crossing-labelled class" condition on
+    `TorusDefect` (where the unique crossing-labelled class is
+    `crossing`). -/
+def TorusDefect.trivialFuse : TorusDefect → TorusDefect →
+    Option TorusDefect
+  | TorusDefect.crossing, y => some y
+  | x, TorusDefect.crossing => some x
+  | _, _ => none
+
+/-- **L2 on `TorusDefectSystem`**: the trivial crossing-fusion
+    is σ-twisted-equivariant.
+
+    Direct case analysis: when one operand is the `crossing`
+    (σ-fixed), σ commutes with the projection to the other
+    operand, including the order reversal.  Otherwise both
+    sides are `none`. -/
+theorem TorusDefectSystem.trivialFuse_lobeL2 (n : Nat) :
+    TorusDefectSystem.FusionAdmissibleSwap n
+      (TorusDefect.trivialFuse : TorusDefect → TorusDefect →
+        Option TorusDefect) := by
+  intro x y
+  cases x <;> cases y <;> rfl
+
+/-- **L2 unfolded on `TorusDefectSystem`** — apply
+    `DefectInverseSystem.LobeL2` to the trivial fusion. -/
+theorem TorusDefectSystem.lobeL2_trivialFuse (n : Nat) (x y : TorusDefect) :
+    Option.map (TorusDefectSystem.sigma_level n)
+      (TorusDefect.trivialFuse x y) =
+    TorusDefect.trivialFuse
+      (TorusDefectSystem.sigma_level n y)
+      (TorusDefectSystem.sigma_level n x) :=
+  DefectInverseSystem.LobeL2
+    (TorusDefectSystem.trivialFuse_lobeL2 n) x y
+
+/-- **L3 input on `TorusDefectSystem`**: `Option`-level
+    associativity of the trivial fusion.
+
+    Direct case analysis: the fusion returns `some` only when
+    at least one operand is `crossing`; the bracketed forms
+    agree by direct unfolding on the finite set of 3³ = 27
+    triples. -/
+theorem TorusDefectSystem.trivialFuse_assoc (n : Nat) :
+    TorusDefectSystem.FusionAssoc n
+      (TorusDefect.trivialFuse : TorusDefect → TorusDefect →
+        Option TorusDefect) := by
+  intro x y z
+  show (TorusDefect.trivialFuse x y).bind
+        (fun w => TorusDefect.trivialFuse w z) =
+       (TorusDefect.trivialFuse y z).bind
+         (fun w => TorusDefect.trivialFuse x w)
+  cases x <;> cases y <;> cases z <;> rfl
+
+/-- **L3 on `TorusDefectSystem`**: σ commutes with the
+    left-bracketed three-fold trivial fusion, with the
+    triple-order reversal.
+
+    Derived from `DefectInverseSystem.LobeL3` applied with
+    `trivialFuse_lobeL2` and `trivialFuse_assoc`. -/
+theorem TorusDefectSystem.lobeL3_trivialFuse (n : Nat)
+    (x y z : TorusDefect) :
+    Option.map (TorusDefectSystem.sigma_level n)
+      (TorusDefectSystem.fuseLeft
+        (TorusDefect.trivialFuse : TorusDefect → TorusDefect →
+          Option TorusDefect) x y z) =
+    TorusDefectSystem.fuseLeft
+      (TorusDefect.trivialFuse : TorusDefect → TorusDefect →
+        Option TorusDefect)
+      (TorusDefectSystem.sigma_level n z)
+      (TorusDefectSystem.sigma_level n y)
+      (TorusDefectSystem.sigma_level n x) :=
+  DefectInverseSystem.LobeL3
+    (TorusDefectSystem.trivialFuse_lobeL2 n)
+    (TorusDefectSystem.trivialFuse_assoc n)
+    x y z
+
+/-- **L4 on `TorusDefectSystem`**: anchor rigidity witnessed by
+    the `crossing` element.
+
+    Paper L4 part (i): `Swap crossing = crossing` (definitionally).
+    Paper L4 part (ii) strict-uniqueness form:
+    `sigma_fixed_iff_crossing` already proves every σ-fixed
+    `TorusDefect` element equals `crossing`. -/
+def TorusDefectSystem.anchorRigidity (n : Nat) :
+    TorusDefectSystem.AnchorRigidity n where
+  anchor := TorusDefect.crossing
+  anchor_fixed := rfl
+  uniqueness := fun x h_fix =>
+    (TorusDefect.sigma_fixed_iff_crossing x).mp h_fix
+
+/-- **L4 applied on `TorusDefectSystem`**: the crossing is the
+    unique σ-fixed `TorusDefect` element.  Direct corollary of
+    `DefectInverseSystem.LobeL4_uniqueness` and
+    `TorusDefectSystem.anchorRigidity`. -/
+theorem TorusDefectSystem.lobeL4_uniqueness (n : Nat) (x : TorusDefect)
+    (h_fix : TorusDefectSystem.sigma_level n x = x) :
+    x = TorusDefect.crossing :=
+  DefectInverseSystem.LobeL4_uniqueness
+    (TorusDefectSystem.anchorRigidity n) x h_fix
+
+/-- **Full lobe-invariance package on `TorusDefectSystem`** —
+    bundles L1–L4 with concrete witnesses.
+
+    The litmus test: the abstract scaffold accepts a concrete
+    instance whose L1–L4 hypotheses are dischargeable by direct
+    case analysis on the 3-element `TorusDefect` carrier. -/
+def TorusDefectSystem.lobeInvariance (n : Nat) :
+    TorusDefectSystem.LobeInvariance n where
+  trans := TorusDefect.sigmaSwap
+  trans_sigma_eq := TorusDefectSystem.sigmaSwap_isSigmaEquivariant n
+  fuse := TorusDefect.trivialFuse
+  fuse_sigma_swap := TorusDefectSystem.trivialFuse_lobeL2 n
+  fuse_assoc := TorusDefectSystem.trivialFuse_assoc n
+  anchor_rigid := TorusDefectSystem.anchorRigidity n
 
 end Tau.Boundary

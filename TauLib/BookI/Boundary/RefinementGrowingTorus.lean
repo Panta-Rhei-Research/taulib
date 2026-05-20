@@ -416,4 +416,158 @@ theorem refinementGrowingTorusSystem_theorem_4_7_unconditional :
   DefectInverseSystem.unpolarisation_theorem
     refinementGrowingTorusSystem refinementBSideConstantThread
 
+-- ============================================================
+-- PART 10: §5.2 L1–L4 lobe-invariance — refinement witnesses
+-- ============================================================
+
+/-- **σ-equivariant transport on `RefinedTorusDefect`** — paper L1
+    input on this geometric-growth instance.
+
+    We exhibit `sigmaSwap` itself as a (trivially σ-equivariant)
+    transport.  The L1 identity follows from σ-involutivity. -/
+theorem refinementGrowingTorusSystem_sigmaSwap_isSigmaEquivariant
+    (n : Nat) :
+    refinementGrowingTorusSystem.IsSigmaEquivariant n
+      (RefinedTorusDefect.sigmaSwap : RefinedTorusDefect n →
+        RefinedTorusDefect n) := by
+  intro x
+  show RefinedTorusDefect.sigmaSwap (RefinedTorusDefect.sigmaSwap x) = _
+  rw [RefinedTorusDefect.sigmaSwap_involutive]
+  show x = RefinedTorusDefect.sigmaSwap (RefinedTorusDefect.sigmaSwap x)
+  rw [RefinedTorusDefect.sigmaSwap_involutive]
+
+/-- **L1 on `refinementGrowingTorusSystem`**: `sigmaSwap` commutes
+    with itself trivially at every depth. -/
+theorem refinementGrowingTorusSystem_lobeL1_sigmaSwap (n : Nat)
+    (x : RefinedTorusDefect n) :
+    refinementGrowingTorusSystem.sigma_level n
+      (RefinedTorusDefect.sigmaSwap x) =
+    RefinedTorusDefect.sigmaSwap
+      (refinementGrowingTorusSystem.sigma_level n x) :=
+  DefectInverseSystem.LobeL1
+    (refinementGrowingTorusSystem_sigmaSwap_isSigmaEquivariant n) x
+
+/-- **Crossing-anchored fusion on `RefinedTorusDefect`** — paper
+    §5.2 L2 input on the refinement-growing instance.
+
+    Admissible iff one of the operands is `crossing` (the unique
+    σ-fixed element); in that case return the other operand.
+    Inadmissible (`none`) when both operands are lobe entries.
+
+    Same structural shape as `TorusDefect.trivialFuse`; the
+    refinement-growing carrier has more elements but the same
+    crossing-meeting admissibility rule. -/
+def RefinedTorusDefect.trivialFuse {n : Nat} :
+    RefinedTorusDefect n → RefinedTorusDefect n →
+    Option (RefinedTorusDefect n)
+  | RefinedTorusDefect.crossing, y => some y
+  | x, RefinedTorusDefect.crossing => some x
+  | _, _ => none
+
+/-- **L2 on `refinementGrowingTorusSystem`**: the crossing-anchored
+    fusion is σ-twisted-equivariant.
+
+    Direct case analysis on the 9 (= 3 × 3 by constructor)
+    operand-pair combinations.  Lobe-index data plays no role
+    because the fusion is `none` whenever both operands are
+    lobe entries, and reduces to identity when one is `crossing`. -/
+theorem refinementGrowingTorusSystem_trivialFuse_lobeL2 (n : Nat) :
+    refinementGrowingTorusSystem.FusionAdmissibleSwap n
+      (RefinedTorusDefect.trivialFuse : RefinedTorusDefect n →
+        RefinedTorusDefect n → Option (RefinedTorusDefect n)) := by
+  intro x y
+  cases x <;> cases y <;> rfl
+
+/-- **L2 unfolded on `refinementGrowingTorusSystem`**. -/
+theorem refinementGrowingTorusSystem_lobeL2_trivialFuse (n : Nat)
+    (x y : RefinedTorusDefect n) :
+    Option.map (refinementGrowingTorusSystem.sigma_level n)
+      (RefinedTorusDefect.trivialFuse x y) =
+    RefinedTorusDefect.trivialFuse
+      (refinementGrowingTorusSystem.sigma_level n y)
+      (refinementGrowingTorusSystem.sigma_level n x) :=
+  DefectInverseSystem.LobeL2
+    (refinementGrowingTorusSystem_trivialFuse_lobeL2 n) x y
+
+/-- **L3 input on `refinementGrowingTorusSystem`**: `Option`-level
+    associativity of the crossing-anchored fusion.
+
+    Direct case analysis on the 27 (= 3 × 3 × 3 by constructor)
+    triples.  As with L2, lobe-index data plays no role. -/
+theorem refinementGrowingTorusSystem_trivialFuse_assoc (n : Nat) :
+    refinementGrowingTorusSystem.FusionAssoc n
+      (RefinedTorusDefect.trivialFuse : RefinedTorusDefect n →
+        RefinedTorusDefect n → Option (RefinedTorusDefect n)) := by
+  intro x y z
+  show (RefinedTorusDefect.trivialFuse x y).bind
+        (fun w => RefinedTorusDefect.trivialFuse w z) =
+       (RefinedTorusDefect.trivialFuse y z).bind
+         (fun w => RefinedTorusDefect.trivialFuse x w)
+  cases x <;> cases y <;> cases z <;> rfl
+
+/-- **L3 on `refinementGrowingTorusSystem`**: σ commutes with the
+    left-bracketed three-fold crossing-anchored fusion, with
+    triple-order reversal. -/
+theorem refinementGrowingTorusSystem_lobeL3_trivialFuse (n : Nat)
+    (x y z : RefinedTorusDefect n) :
+    Option.map (refinementGrowingTorusSystem.sigma_level n)
+      (refinementGrowingTorusSystem.fuseLeft
+        (RefinedTorusDefect.trivialFuse : RefinedTorusDefect n →
+          RefinedTorusDefect n → Option (RefinedTorusDefect n))
+        x y z) =
+    refinementGrowingTorusSystem.fuseLeft
+      (RefinedTorusDefect.trivialFuse : RefinedTorusDefect n →
+        RefinedTorusDefect n → Option (RefinedTorusDefect n))
+      (refinementGrowingTorusSystem.sigma_level n z)
+      (refinementGrowingTorusSystem.sigma_level n y)
+      (refinementGrowingTorusSystem.sigma_level n x) :=
+  DefectInverseSystem.LobeL3
+    (refinementGrowingTorusSystem_trivialFuse_lobeL2 n)
+    (refinementGrowingTorusSystem_trivialFuse_assoc n)
+    x y z
+
+/-- **L4 on `refinementGrowingTorusSystem`**: anchor rigidity
+    witnessed by the `crossing` element at each depth.
+
+    Paper L4 part (i): `Swap crossing = crossing` (definitionally).
+    Paper L4 part (ii) strict-uniqueness form:
+    `RefinedTorusDefect.sigma_fixed_iff_crossing` already proves
+    every σ-fixed element equals `crossing`. -/
+def refinementGrowingTorusSystem_anchorRigidity (n : Nat) :
+    refinementGrowingTorusSystem.AnchorRigidity n where
+  anchor := RefinedTorusDefect.crossing
+  anchor_fixed := rfl
+  uniqueness := fun x h_fix =>
+    (RefinedTorusDefect.sigma_fixed_iff_crossing x).mp h_fix
+
+/-- **L4 applied on `refinementGrowingTorusSystem`**: the
+    crossing is the unique σ-fixed `RefinedTorusDefect n` element
+    at every depth. -/
+theorem refinementGrowingTorusSystem_lobeL4_uniqueness (n : Nat)
+    (x : RefinedTorusDefect n)
+    (h_fix : refinementGrowingTorusSystem.sigma_level n x = x) :
+    x = RefinedTorusDefect.crossing :=
+  DefectInverseSystem.LobeL4_uniqueness
+    (refinementGrowingTorusSystem_anchorRigidity n) x h_fix
+
+/-- **Full lobe-invariance package on
+    `refinementGrowingTorusSystem`** — bundles L1–L4 with
+    concrete witnesses.
+
+    Second concrete instance demonstrating the abstract L1–L4
+    scaffold applies on a geometric-growth carrier (defect-level
+    cardinality `2(n+1) + 1`).  Same L1–L4 hypotheses
+    dischargeable structurally as on the static
+    `TorusDefectSystem`, confirming the framework handles
+    growing carriers. -/
+def refinementGrowingTorusSystem_lobeInvariance (n : Nat) :
+    refinementGrowingTorusSystem.LobeInvariance n where
+  trans := RefinedTorusDefect.sigmaSwap
+  trans_sigma_eq :=
+    refinementGrowingTorusSystem_sigmaSwap_isSigmaEquivariant n
+  fuse := RefinedTorusDefect.trivialFuse
+  fuse_sigma_swap := refinementGrowingTorusSystem_trivialFuse_lobeL2 n
+  fuse_assoc := refinementGrowingTorusSystem_trivialFuse_assoc n
+  anchor_rigid := refinementGrowingTorusSystem_anchorRigidity n
+
 end Tau.Boundary
