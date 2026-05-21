@@ -1,0 +1,339 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+
+\title{G8 Lane A Abstract Self-Adjoint Membership Route}
+\author{Private red-team route memo}
+\date{May 21, 2026}
+
+\newcommand{\Spec}{\operatorname{Spec}}
+\newcommand{\im}{\operatorname{Im}}
+\newcommand{\re}{\operatorname{Re}}
+\newcommand{\Mem}{\operatorname{Mem}}
+
+\begin{document}
+\maketitle
+
+\section*{Executive Verdict}
+
+The strong standard-mode theorem
+\[
+  V(z)=\lambda_n=n^2
+\]
+is more than Lane A needs.  It would prove real-valuedness, but it also asks
+for exact quantization of every actual nonzero-height \(\xi\)-carrier into the
+current standard integer-square lemniscate ladder.  The red-team pass found no
+current Book III source proving that global quantization theorem without the
+older determinant/O3 corridor.
+
+The weaker and mathematically better next lane is:
+\[
+  V(z)\in \Spec_{\mathrm{sa}}(H_L)
+  \quad\Longrightarrow\quad
+  \im V(z)=0,
+\]
+where \(H_L\) is a ready self-adjoint lemniscate operator and
+\[
+  V(z)=\iota_{\tau,500}^2
+  \left(s_z(1-s_z)-\frac14\right)
+\]
+is the Lean-selected canonical scaled actual-\(\xi\) readout.
+
+This route is Lane-A-sufficient.  It avoids exact \(n^2\) enumeration and asks
+only for genuine self-adjoint spectral membership of the canonical scaled
+value.  The route is not closed merely by naming a predicate; the membership
+predicate must be operator-native and independently sourced from Book III
+operator theory.
+
+\section*{Lean Surface}
+
+The generic weak surface is
+\[
+\begin{gathered}
+  \verb|G8LemniscateSelfAdjointSpectrumRealitySource|,\\
+  \verb|G8ActualXiIotaTauCanonicalLemniscateSpectralMembershipTarget|.
+\end{gathered}
+\]
+In expanded form it carries:
+\[
+\begin{aligned}
+&\verb|spectralMembership : | \mathbb{C}\to\operatorname{Prop},\\
+&\verb|selfAdjointSpectrumReality : |
+  \forall v,\ \verb|spectralMembership|\,v \to v.\operatorname{im}=0,\\
+&\verb|canonicalMembership : |
+  \forall z,\ \verb|spectralMembership|\,(V(z)).
+\end{aligned}
+\]
+The theorem-backed adapter is:
+\[
+  \verb|G8LemniscateSelfAdjointSpectrumRealitySource.toSpectralParameterReal|.
+\]
+It produces:
+\[
+  \verb|G8ActualXiNonzeroHeightSpectralParameterReal|.
+\]
+
+The canonical source-facing version is
+\[
+  \verb|G8ActualXiIotaTauCanonicalSelfAdjointRealitySource|.
+\]
+Its two load-bearing fields are:
+\[
+\begin{aligned}
+&\verb|membershipSource : |
+  \verb|G8ActualXiIotaTauCanonicalScaledSpectralMembershipSource|,\\
+&\verb|realitySource : |
+  \verb|G8ActualXiIotaTauCanonicalSelfAdjointSpectrumRealitySource|.
+\end{aligned}
+\]
+The already checked adapters are:
+\[
+\begin{gathered}
+  \verb|G8ActualXiIotaTauCanonicalSelfAdjointRealitySource.toTarget|,\\
+  \verb|G8ActualXiIotaTauCanonicalSelfAdjointRealitySource.toBookIIISource|,\\
+  \verb|G8ActualXiIotaTauCanonicalSelfAdjointRealitySource.toSpectralParameterReal|,\\
+  \verb|G8ActualXiIotaTauCanonicalSelfAdjointRealitySource.toOperatorReadoutContext|.
+\end{gathered}
+\]
+
+\section*{Mathematical Statement}
+
+\paragraph{Canonical scaled value.}
+For an actual nonzero-height carrier \(z\), let
+\[
+  q(z)=s_z(1-s_z)-\frac14,
+  \qquad
+  V(z)=c_\tau q(z),
+\]
+where
+\[
+  c_\tau=\iota_{\tau,500}^2\in\mathbb{R},\qquad c_\tau\ne0.
+\]
+
+\paragraph{Weak Lane A abstract membership theorem.}
+Let \(H_L\) be a ready self-adjoint lemniscate operator package.  Let
+\(\Mem_{H_L}(\lambda)\) be a genuine operator-native spectral membership
+predicate for \(H_L\).  Suppose:
+\[
+  \forall \lambda\in\mathbb{C},\quad
+  \Mem_{H_L}(\lambda)\Rightarrow \im(\lambda)=0,
+\]
+and
+\[
+  \forall z\in\mathcal Z_{\xi}^{\ne0},\quad
+  \Mem_{H_L}(V(z)).
+\]
+Then
+\[
+  \forall z\in\mathcal Z_{\xi}^{\ne0},\quad
+  \re(s_z)=\frac12.
+\]
+
+\section*{Line-by-Line Proof}
+
+\begin{enumerate}
+\item Fix an actual nonzero-height \(\xi\)-carrier \(z\), with orthodox point
+  \(s_z=\sigma_z+i\gamma_z\).
+
+\item By the canonical scaled image law,
+  \[
+    V(z)=c_\tau\left(s_z(1-s_z)-\frac14\right).
+  \]
+
+\item By canonical abstract spectral membership,
+  \[
+    \Mem_{H_L}(V(z)).
+  \]
+
+\item By self-adjoint spectral reality for genuine spectral members,
+  \[
+    \im V(z)=0.
+  \]
+
+\item Since \(c_\tau\in\mathbb{R}\) and \(c_\tau\ne0\), scale cancellation gives
+  \[
+    \im\left(s_z(1-s_z)-\frac14\right)=0.
+  \]
+  This is exactly the Lean adapter already isolated by the scaled
+  operator-image modules.
+
+\item Expand the centered quadratic:
+  \[
+    s_z(1-s_z)-\frac14
+    =
+    \left(\sigma_z(1-\sigma_z)+\gamma_z^2-\frac14\right)
+    +i\gamma_z(1-2\sigma_z).
+  \]
+  Hence
+  \[
+    \im\left(s_z(1-s_z)-\frac14\right)
+    =
+    \gamma_z(1-2\sigma_z).
+  \]
+
+\item Therefore
+  \[
+    \gamma_z(1-2\sigma_z)=0.
+  \]
+
+\item Since \(z\) is a nonzero-height carrier, \(\gamma_z\ne0\).
+
+\item Hence \(1-2\sigma_z=0\), so
+  \[
+    \sigma_z=\frac12.
+  \]
+
+\item Because \(z\) was arbitrary, the nonzero-height Lane A spectral reality
+  target follows.
+\end{enumerate}
+
+\section*{Already Closed Downstream}
+
+Once the weak membership route supplies
+\[
+  \verb|G8ActualXiNonzeroHeightSpectralParameterReal|,
+\]
+the existing Lean spine already carries:
+\[
+\begin{gathered}
+  \text{nonzero-height critical-axis forcing},\\
+  \text{height split with the theorem-backed zero-height branch},\\
+  \text{centered-address balance},\\
+  \text{actual boundary-character sigma-fixedness},\\
+  \text{crossing-mediated readout evidence}.
+\end{gathered}
+\]
+The final live hinge still additionally requires the separate Book III
+accepted-tower realization-from-sigma-fixed input.  The abstract self-adjoint
+route only closes the Lane A actual-sigma-fixed side.
+
+\section*{Book III Source Anchors}
+
+\paragraph{Chapter 23.}
+Book III introduces the lemniscate operator \(H_L=-d^2/dx^2\) on the two-lobe
+metric graph with continuity and Kirchhoff conditions.  The manuscript states
+self-adjointness and then invokes compact metric-graph spectral theory to
+obtain real, discrete spectral values.
+
+\paragraph{Chapter 24.}
+The spectral coordinate is
+\[
+  \Lambda(s)=\iota_\tau^2\left(s(1-s)-\frac14\right).
+\]
+The manuscript route from actual zeros to spectral membership is historically
+expressed through the determinant/spectral correspondence bridge.  The active
+Lane A weak route should not use that bridge.  Instead, it should prove a
+direct, operator-native canonical membership theorem if possible.
+
+\paragraph{Chapter 25.}
+The critical-line forcing calculation uses only spectral reality of
+\(\Lambda(\rho)\), the nonzero-height condition, and the centered quadratic
+identity.  It does not need exact standard-mode enumeration.
+
+\section*{What Remains Mathematical}
+
+The remaining theorem is not the algebraic critical-line calculation.  It is:
+\[
+  \forall z\in\mathcal Z_\xi^{\ne0},\quad
+  V(z)\in\Spec_{\mathrm{sa}}(H_L),
+\]
+where the right-hand side must be a genuine spectrum or spectral-readout
+predicate attached to the ready lemniscate operator.
+
+Equivalently, in the current Lean surfaces, the exact remaining payload is the
+pair:
+\[
+\begin{aligned}
+&\text{a genuine source for }
+  \verb|G8LemniscateSelfAdjointSpectrumRealitySource|,\\
+&\text{a genuine proof of }
+  \verb|G8ActualXiIotaTauCanonicalLemniscateSpectralMembershipTarget|.
+\end{aligned}
+\]
+
+\section*{Non-Ad Hoc Requirements}
+
+The membership predicate is acceptable only if all of the following are true:
+\begin{enumerate}
+\item It is sourced from the lemniscate operator package, not from the desired
+  actual-\(\xi\) conclusion.
+\item \(\verb|LemniscateOperatorReady|\) is supplied independently, including
+  self-adjointness, compact-resolvent/discreteness, and domain compatibility
+  obligations.
+\item The implication
+  \[
+    \Mem_{H_L}(\lambda)\Rightarrow \im(\lambda)=0
+  \]
+  comes from self-adjoint spectral reality, not from realness being baked into
+  the definition of \(\Mem_{H_L}\).
+\item Canonical membership
+  \[
+    \Mem_{H_L}(V(z))
+  \]
+  is proved by an operator image theorem for actual \(\xi\)-carriers, not by
+  defining the spectrum to contain the canonical values.
+\item Finite checks remain diagnostic unless they provide exact global
+  membership and exact real-value theorems.
+\end{enumerate}
+
+\section*{Forbidden Shortcuts}
+
+The weak route must not use the final live hinge, accepted coverage, divisor
+transfer, completion uniqueness, determinant transfer, the older O3 bridge, or
+any downstream critical-axis conclusion to prove spectral membership or
+self-adjoint reality.
+
+It also must not define
+\[
+  \Mem_{H_L}(\lambda)
+\]
+as a vacuous predicate or as ``\(\lambda\) is one of the canonical actual
+\(\xi\) values.''  That would make the adapter typecheck while proving no
+operator theorem.
+
+\section*{Recommended Next Lean Wave}
+
+The next implementation step should add a narrow source module, for example:
+\[
+  \verb|G8ActualXiCanonicalAbstractSpectralMembershipSource|.
+\]
+It should split the source theorem into three proof-facing pieces:
+\[
+\begin{aligned}
+&\text{operator-native spectral predicate legitimacy},\\
+&\text{self-adjoint spectral reality for that predicate},\\
+&\text{canonical actual-\(\xi\) membership in that predicate}.
+\end{aligned}
+\]
+
+A clean shape is:
+\[
+\begin{aligned}
+&\verb|spectralMembership : | \mathbb{C}\to\operatorname{Prop},\\
+&\verb|operatorNativeSource : Prop|,\\
+&\verb|selfAdjointReality : |
+  \forall v,\ \verb|spectralMembership|\,v\to v.\operatorname{im}=0,\\
+&\verb|canonicalMembership : |
+  \forall z,\ \verb|spectralMembership|\,(V(z)).
+\end{aligned}
+\]
+The first field should not be consumed as mathematical proof by itself; the
+operator-native source and the canonical membership theorem are the real
+payloads.
+
+\section*{Bottom Line}
+
+The red-team verdict is precise:
+\[
+  \text{standard \(n^2\) membership is sufficient but too strong;}
+\]
+\[
+  \text{abstract self-adjoint spectral membership is sufficient and correctly sized.}
+\]
+The next summit stone is to prove that the canonical scaled actual-\(\xi\)
+value is genuinely in the self-adjoint lemniscate spectral source, and to source
+the real-valuedness implication from the operator's self-adjoint spectral
+theory.  Everything after that on Lane A is already proof-shaped and wired.
+
+\end{document}

@@ -1,0 +1,286 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+
+\title{G8 Lane A A1/A2 Operator Self-Adjoint Proof Map}
+\author{Private red-team proof-map memo}
+\date{May 21, 2026}
+
+\newcommand{\Spec}{\operatorname{Spec}}
+\newcommand{\Dom}{\operatorname{Dom}}
+\newcommand{\im}{\operatorname{Im}}
+\newcommand{\Mem}{\operatorname{Mem}}
+\newcommand{\ptspec}{\operatorname{Spec}_{p}}
+
+\begin{document}
+\maketitle
+
+\section*{Executive Verdict}
+
+Lane A now has three explicit axiom gates.  This memo concerns only the first
+two:
+\[
+\begin{aligned}
+&\text{A1: construct a ready Book III lemniscate operator package},\\
+&\text{A2: construct an operator-native self-adjoint spectral predicate}.
+\end{aligned}
+\]
+The current Lean spine correctly treats A1 as a genuine operator-readiness
+theorem.  It is not finite-check plumbing.  The existing finite
+\(n^2\)-readout and finite self-adjointness checks are useful diagnostics, but
+they do not by themselves construct the analytic graph operator or its ready
+self-adjoint spectral package.
+
+The A2 route should be the analytic point spectrum of the actual Chapter~23
+lemniscate graph operator.  The standard finite/typed \(n^2\) spectrum remains
+compatibility evidence unless it is separately proved to coincide with that
+operator point spectrum.
+
+\section*{Lean Targets}
+
+The Lane-A ledger names the two gates as:
+\begin{itemize}
+\item \texttt{G8LaneAOperatorReadyGate}.
+\item \texttt{G8LaneAOperatorNativeSelfAdjointGate}.
+\end{itemize}
+Expanded, A1 is:
+\begin{itemize}
+\item \texttt{operatorCtx : LemniscateOperatorContext}.
+\item \texttt{operatorReady : LemniscateOperatorReady operatorCtx}.
+\end{itemize}
+The readiness predicate requires:
+\begin{itemize}
+\item \texttt{LemniscateDomainReady operatorCtx.domain}.
+\item \texttt{LemniscateSelfAdjointObligation operatorCtx}.
+\item \texttt{LemniscateCompactResolventObligation operatorCtx}.
+\item \texttt{LemniscateDiscreteSpectrumObligation operatorCtx}.
+\item \texttt{operatorCtx.obligations.obligationsRespectDomain}.
+\item \texttt{operatorCtx.finiteApproximationCompatible}.
+\end{itemize}
+A2 should be discharged by a strict provenance package:
+\[
+  \texttt{G8OperatorNativeSpectralProvenance operatorCtx operatorReady}.
+\]
+Its load-bearing fields are:
+\begin{itemize}
+\item \texttt{spectralMembership}: the exported complex spectral predicate for
+  the ready operator package.
+\item \texttt{nativeMembership : C -> Prop}.
+\item \texttt{kind : G8OperatorNativeSpectralProvenanceKind}.
+\item \texttt{spectralMembership\_iff\_native}.
+\item \texttt{selfAdjointReality\_native}: every native member has
+  \texttt{lambda.im = 0}.
+\end{itemize}
+The final A1/A2 package is:
+\[
+  \texttt{G8LaneAOperatorNativeSelfAdjointSource}.
+\]
+It must not mention actual \(\xi\)-carriers.  Canonical actual-\(\xi\)
+membership is A3.
+
+\section*{Source Anchors}
+
+The source truth for this proof map is Book III, Chapter~23:
+\begin{itemize}
+\item Ch.~23, Definition III.D28: \(H_L=-d^2/dx^2\) on the two-lobe
+  lemniscate metric graph with continuity and Kirchhoff boundary conditions.
+\item Ch.~23, Theorem III.T17: \(H_L\) is self-adjoint by the boundary-form
+  computation and maximality of Kirchhoff boundary conditions.
+\item Ch.~23, Proposition III.P09: compactness of the metric graph gives
+  compact resolvent and discrete real spectrum.
+\item Ch.~23, spectral theorem discussion: the self-adjoint operator with
+  compact resolvent has point spectrum and spectral resolution.
+\end{itemize}
+Chapters~24--25 explain why this operator is useful downstream, but they are
+not A1/A2 proof sources.  In particular, determinant correspondence,
+actual-\(\xi\) membership, critical-line forcing, and accepted tower coverage
+belong to later gates.
+
+\section*{Mathematical Proof Map}
+
+\paragraph{Step 1: construct the metric graph.}
+Let
+\[
+  L=S^1_B\vee S^1_C
+\]
+be the lemniscate graph with two circle lobes meeting at the crossing point
+\(\omega\).  Each lobe is parametrized by an interval with endpoints
+identified at \(\omega\).  This supplies the geometric carrier for the
+operator context.
+
+\paragraph{Step 2: construct the Hilbert space and domain.}
+Define
+\[
+  L^2(L)=L^2(S^1_B)\oplus L^2(S^1_C).
+\]
+The operator domain is the Sobolev/Kirchhoff domain
+\[
+  \Dom(H_L)=
+  \left\{
+    f=(f_B,f_C):
+    f_B,f_C\in H^2,\
+    f_B(\omega)=f_C(\omega),\
+    f'_B(\omega)+f'_C(\omega)=0
+  \right\}.
+\]
+In Lean-facing terms, this step must prove the fields of
+\texttt{LemniscateDomainReady}: Hilbert readiness, value-trace definition and
+continuity, derivative-trace definition and continuity, crossing closure, and
+Kirchhoff closure.
+
+\paragraph{Step 3: define the operator.}
+Define
+\[
+  H_L f = -\frac{d^2 f}{dx^2}
+\]
+edgewise on \(S^1_B\) and \(S^1_C\), with domain \(\Dom(H_L)\).  This
+replaces the current scaffold placeholder by the analytic graph Laplacian.
+
+\paragraph{Step 4: prove symmetry by boundary-form cancellation.}
+For \(f,g\in\Dom(H_L)\), integration by parts on both lobes gives
+\[
+  \langle H_Lf,g\rangle-\langle f,H_Lg\rangle
+  =
+  -\overline{g(\omega)}(f'_B(\omega)+f'_C(\omega))
+  +f(\omega)\overline{(g'_B(\omega)+g'_C(\omega))}.
+\]
+The Kirchhoff conditions for \(f\) and \(g\) make both sums vanish.  Hence the
+boundary form is zero and \(H_L\) is symmetric.
+
+\paragraph{Step 5: prove self-adjointness.}
+The Kirchhoff boundary condition is maximal among boundary conditions yielding
+a symmetric extension for the one-dimensional graph Laplacian.  Equivalently,
+standard quantum-graph theory gives that the Laplacian on a compact metric
+graph with Kirchhoff vertex conditions is self-adjoint.  This proves:
+\[
+  H_L^*=H_L.
+\]
+This is the load-bearing A1 self-adjointness field.  It cannot be replaced by
+finite checks.
+
+\paragraph{Step 6: prove compact resolvent and discrete spectrum.}
+The graph \(L\) is compact.  The Sobolev embedding from the operator domain
+into \(L^2(L)\) is compact, so the resolvent \((H_L-\lambda)^{-1}\) is compact
+for \(\lambda\) off the spectrum.  Therefore \(H_L\) has discrete point
+spectrum with finite-multiplicity eigenvalues and no continuous-spectrum
+residue relevant to this Lane-A predicate.
+
+\paragraph{Step 7: package A1.}
+Build a `LemniscateOperatorContext` whose obligations are the theorems proved
+above, and prove:
+\[
+  \texttt{LemniscateOperatorReady operatorCtx}.
+\]
+Then construct:
+\[
+  \texttt{G8LaneAOperatorReadyGate}.
+\]
+
+\paragraph{Step 8: define the analytic point-spectrum predicate.}
+For a ready operator context, define the native spectral predicate
+\[
+  \Mem_{H_L}(\lambda)
+  \quad:\Longleftrightarrow\quad
+  \lambda\in\ptspec(H_L)
+\]
+where the real eigenvalue is read as a complex value \(r+0i\).  Lean should use
+this predicate as both the exported `spectralMembership` and the
+`nativeMembership`, or prove exact equivalence if the exported wrapper differs.
+Set:
+\[
+  \texttt{kind := .pointSpectrum}.
+\]
+
+\paragraph{Step 9: prove self-adjoint spectral reality.}
+If \(\lambda\in\ptspec(H_L)\), choose a nonzero eigenvector \(\psi\) with
+\[
+  H_L\psi=\lambda\psi.
+\]
+By self-adjointness,
+\[
+  \lambda\|\psi\|^2
+  =
+  \langle H_L\psi,\psi\rangle
+  =
+  \langle \psi,H_L\psi\rangle
+  =
+  \overline{\lambda}\|\psi\|^2.
+\]
+Since \(\psi\ne0\), \(\|\psi\|^2\ne0\), so \(\lambda=\overline{\lambda}\), and
+therefore
+\[
+  \im(\lambda)=0.
+\]
+This is the load-bearing A2 theorem:
+\[
+  \forall \lambda,\ \Mem_{H_L}(\lambda)\to\lambda.\operatorname{im}=0.
+\]
+
+\paragraph{Step 10: package A2 and the combined source.}
+Construct:
+\[
+  \texttt{G8OperatorNativeSpectralProvenance operatorCtx operatorReady}
+\]
+with:
+\begin{itemize}
+\item \texttt{spectralMembership := analyticPointSpectrum}.
+\item \texttt{nativeMembership := analyticPointSpectrum}.
+\item \texttt{kind := .pointSpectrum}.
+\item \texttt{spectralMembership\_iff\_native := fun \_ => Iff.rfl}.
+\item \texttt{selfAdjointReality\_native := pointSpectrum\_real}.
+\end{itemize}
+Then construct:
+\[
+  \texttt{G8LaneAOperatorNativeSelfAdjointSource}.
+\]
+Existing adapters then produce the Lane-A ready gate and operator-native
+self-adjoint gate.  They do not reduce the A3 membership gate.
+
+\section*{Lean Follow-Up Targets}
+
+The next Lean wave should first split a pure A1/A2 core with no actual-\(\xi\)
+imports.  Recommended theorem-facing names:
+\[
+\begin{gathered}
+  \texttt{G8BookIIILemniscateOperatorReadySource},\\
+  \texttt{G8BookIIILemniscateAnalyticPointSpectrumProvenance},\\
+  \texttt{G8BookIIILaneAOperatorNativeSelfAdjointSource}.
+\end{gathered}
+\]
+The clean A1/A2 module should import only operator/core spectral definitions
+and must avoid final-spine or actual-\(\xi\) membership modules.
+
+\section*{Guardrails}
+
+\begin{itemize}
+\item Do not use A3 canonical actual-\(\xi\) membership to construct A1 or A2.
+\item Do not use determinant transfer, O3, completion uniqueness, divisor
+  transfer, accepted coverage, final live hinge, or Mathlib discharge modules.
+\item Do not promote finite checks such as \texttt{self\_adjoint\_check 20},
+  \texttt{k5\_diagonal\_check 20}, or finite spectral-resolution checks into global
+  operator readiness.
+\item Do not treat the standard \(n^2\) readout as the analytic operator point
+  spectrum unless equality with the actual Chapter~23 operator spectrum is
+  separately proved.
+\item Keep ledger axiom counts unchanged until a theorem-backed constructor is
+  actually available.
+\end{itemize}
+
+\section*{Decision Point}
+
+The mathematical route for A1/A2 is clear and non-circular:
+\[
+\begin{aligned}
+&\text{compact Kirchhoff metric graph operator}\\
+&\quad\Rightarrow\text{ self-adjoint ready operator}\\
+&\quad\Rightarrow\text{ real analytic point spectrum}\\
+&\quad\Rightarrow\text{ strict A1/A2 source}.
+\end{aligned}
+\]
+The remaining work is not bridge plumbing.  It is the Lean formalization of the
+Chapter~23 compact-metric-graph operator theorem in exactly the form consumed
+by \texttt{LemniscateOperatorReady} and
+\texttt{G8OperatorNativeSpectralProvenance}.
+
+\end{document}

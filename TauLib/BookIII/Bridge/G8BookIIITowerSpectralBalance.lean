@@ -154,6 +154,30 @@ structure G8BookIIITowerAcceptedSpectralWitnessModel where
       (towerCertificate w hAccepted).stageCert.nf = normalForm w
   status : G8OffCriticalExclusionStatus := .openObligation
 
+/-- Universe-lifted tower balance certificate witness.
+
+The accepted model interface keeps witness carriers in `Type 2`; this wrapper
+contains exactly one Book III tower spectral-balance certificate. -/
+structure G8BookIIITowerCertificateAcceptedWitness : Type 2 where
+  cert : G8BookIIITowerSpectralBalanceCertificate
+
+/-- Certificate-carrier accepted tower model.
+
+This discharges only the model-carrier layer: accepted witnesses are already
+formed tower spectral-balance certificates.  It does not construct pointwise
+accepted witnesses for actual `xi` addresses, and it does not prove centered
+address admission or exact normal-form realization. -/
+def g8BookIIITowerCertificateAcceptedSpectralWitnessModel :
+    G8BookIIITowerAcceptedSpectralWitnessModel where
+  spectralWitness := G8BookIIITowerCertificateAcceptedWitness
+  normalForm := fun w => w.cert.stageCert.nf
+  IsAccepted := fun _ => True
+  towerCertificate := fun w _ => w.cert
+  towerCertificate_normalForm := by
+    intro w _hAccepted
+    rfl
+  status := .openObligation
+
 /-- Accepted tower witnesses are B/C-balanced by their tower certificate. -/
 theorem G8BookIIITowerAcceptedSpectralWitnessModel.acceptedBalanced
     (model : G8BookIIITowerAcceptedSpectralWitnessModel)

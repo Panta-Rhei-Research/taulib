@@ -1,4 +1,5 @@
 import TauLib.BookIII.Bridge.G8ActualXiNonzeroHeightOperatorSpectralReadout
+import TauLib.BookIII.Bridge.G8ActualXiIotaTauOperatorSpectralImageRealization
 import TauLib.BookIII.Bridge.G8ActualXiNonzeroHeightSpectralReality
 
 /-!
@@ -83,6 +84,20 @@ def G8ActualXiNonzeroHeightOperatorSpectralReadoutContext.toSpectralReadoutConte
     ctx.spectralValue_eq_centeredQuadratic
   spectralValue_real := ctx.spectralValue_real
   diagnostics := ctx.diagnostics.toReadoutDiagnostics
+
+/-- The certified `ιτ²` operator-image source instantiates the existing
+    downstream spectral-readout context through the operator readout corridor. -/
+def G8ActualXiIotaTauOperatorSpectralImageSourceContext.toSpectralReadoutContext
+    (ctx : G8ActualXiIotaTauOperatorSpectralImageSourceContext) :
+    G8ActualXiNonzeroHeightSpectralReadoutContext :=
+  ctx.toOperatorSpectralReadoutContext.toSpectralReadoutContext
+
+/-- The Book III `ιτ²` operator-image realization context instantiates the
+    existing downstream spectral-readout context through the source corridor. -/
+def G8ActualXiIotaTauOperatorSpectralImageRealizationContext.toSpectralReadoutContext
+    (ctx : G8ActualXiIotaTauOperatorSpectralImageRealizationContext) :
+    G8ActualXiNonzeroHeightSpectralReadoutContext :=
+  ctx.toSourceContext.toSpectralReadoutContext
 
 -- ============================================================
 -- ADAPTERS TO THE EXISTING LANE-A SPINE

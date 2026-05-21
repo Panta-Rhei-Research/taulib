@@ -1,0 +1,276 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+
+\title{G8 Lane A Strong Standard-Mode Proof Attempt and Pivot}
+\author{Private red-team proof-design memo}
+\date{May 21, 2026}
+
+\newcommand{\Spec}{\operatorname{Spec}}
+\newcommand{\im}{\operatorname{Im}}
+\newcommand{\re}{\operatorname{Re}}
+
+\begin{document}
+\maketitle
+
+\section*{Red-Team Verdict}
+
+The strong exact standard-mode theorem is now isolated with very high
+precision.  In mathematical form it says:
+\[
+  \forall z\in \mathcal Z_{\xi}^{\neq 0},\quad
+  \exists n\in\mathbb N,\quad
+  V(z)=\lambda_n,
+\]
+where
+\[
+  V(z)=\iota_{\tau,500}^2
+  \left(s_z(1-s_z)-\frac14\right)
+\]
+is the Lean-selected canonical scaled actual-\(\xi\) readout, and
+\[
+  \lambda_n =
+  \texttt{Tau.BookIII.Doors.lemniscate\_eigenvalue}\ n
+  =
+  n^2
+\]
+in the current standard lemniscate eigenvalue model.
+
+This theorem is stronger than Lane A strictly needs.  It implies spectral
+reality, but it also asserts exact quantization into the present \(n^2\) ladder:
+for a critical-line point \(s_z=\frac12+i\gamma_z\), it amounts morally to
+\[
+  \iota_{\tau,500}^2\gamma_z^2=n^2.
+\]
+The current Lean and manuscript sources do not yet prove this global
+quantization theorem for every actual nonzero-height \(\xi\)-carrier.
+
+Therefore the strong theorem should be treated as a conditional reduction unless
+a new independent spectral-coordinate theorem is supplied.  The weaker abstract
+spectral-membership route is the better next target for Lane A, because it asks
+only for genuine self-adjoint spectral membership and real-valuedness, not exact
+membership in the current \(n^2\) enumeration.
+
+\section*{Lean Targets}
+
+The strong theorem is represented by:
+\[
+\begin{aligned}
+&\texttt{modeOf : G8ActualXiCanonicalModeExtractionTarget},\\
+&\texttt{alignment :
+G8ActualXiCanonicalModeEigenvalueAlignmentTarget modeOf}.
+\end{aligned}
+\]
+The alignment field expands to:
+\[
+  \forall z,\quad
+  V(z)
+  =
+  \left(
+  \texttt{Tau.BookIII.Doors.lemniscate\_eigenvalue}\ (\texttt{modeOf}\ z)
+  :\mathbb C\right).
+\]
+Once supplied, this packages as
+\[
+  \texttt{G8ActualXiCanonicalStandardEigenvalueMembershipSource}.
+\]
+
+The weaker source-facing target is:
+\[
+  \texttt{G8ActualXiIotaTauCanonicalSelfAdjointRealityTarget}.
+\]
+Even more explicitly, the Lane-A-sufficient payload is:
+\[
+  \forall z\in\mathcal Z_\xi^{\neq 0},\quad
+  \im(V(z))=0.
+\]
+
+\section*{Strong Proof Attempt}
+
+\paragraph{Theorem A: Exact standard-mode source.}
+For every actual nonzero-height \(\xi\)-carrier \(z\), there exists a natural
+number \(n(z)\) such that
+\[
+  V(z)=\lambda_{n(z)}.
+\]
+
+\paragraph{Attempted proof.}
+\begin{enumerate}
+\item Fix \(z\in\mathcal Z_\xi^{\neq 0}\), with orthodox point \(s_z\).
+\item By the canonical scaled image law,
+  \[
+    V(z)=\iota_{\tau,500}^2
+    \left(s_z(1-s_z)-\frac14\right).
+  \]
+\item Prove that \(V(z)\) is a genuine spectral value of the ready Book III
+  lemniscate operator:
+  \[
+    V(z)\in \Spec(H_L).
+  \]
+\item Prove a standard spectrum classification theorem:
+  every member of the chosen standard lemniscate spectrum is exactly
+  \[
+    \lambda_n=n^2
+  \]
+  for some \(n\in\mathbb N\), with the same normalization as the Lean
+  definition \(\texttt{lemniscate\_eigenvalue}\).
+\item Choose \(n(z)\) from this classification.
+\item Define \(\texttt{modeOf}\ z:=n(z)\), obtaining the exact alignment field.
+\end{enumerate}
+
+\paragraph{First blocked lemma.}
+The first missing lemma is:
+\[
+  \forall z\in\mathcal Z_\xi^{\neq 0},\quad
+  V(z)\in \Spec_{\mathrm{std}}(H_L),
+\]
+where
+\[
+  \Spec_{\mathrm{std}}(H_L)=\{n^2:n\in\mathbb N\}
+\]
+is the current standard Lean spectrum.
+
+This is not supplied by self-adjointness.  Self-adjointness proves that spectral
+members are real; it does not prove that a given actual-\(\xi\) value is a
+member, and it does not identify that value with an integer square.
+
+\section*{Why The Strong Target Is Too Strong Right Now}
+
+\paragraph{Integer-square quantization.}
+The current standard eigenvalue model is not merely a generic real spectrum.
+It is the discrete ladder \(\lambda_n=n^2\).  Thus the strong theorem requires:
+\[
+  \iota_{\tau,500}^2
+  \left(s_z(1-s_z)-\frac14\right)=n^2.
+\]
+After the critical-axis simplification this becomes the exact height
+quantization condition:
+\[
+  \iota_{\tau,500}\,|\gamma_z|=n.
+\]
+No current source theorem proves such a global exact quantization law for the
+actual \(\xi\)-zero stream.
+
+\paragraph{Manuscript support.}
+Book III Chapter 23 supports the self-adjoint metric-graph operator and its
+real, discrete spectrum.  Chapter 24 defines
+\[
+  \Lambda(s)=\iota_\tau^2\left(s(1-s)-\frac14\right)
+\]
+and routes zero-to-spectrum membership through the determinant/spectral
+correspondence bridge.  Chapter 25 uses only spectral reality to force the
+critical line.  It does not require exact equality to \(n^2\).
+
+\paragraph{Finite diagnostics.}
+Finite projector checks, finite spectral-resolution checks, finite
+correspondence checks, and finite self-adjoint checks are valuable diagnostics.
+They do not construct a global mode function \(z\mapsto n(z)\), and they do not
+prove exact equality \(V(z)=n^2\).
+
+\paragraph{Normalization risk.}
+The Lean value \(\iota_{\tau,500}^2\) is the certified 500-digit tower scale.
+It is positive and nonzero, which is exactly what the spectral-reality route
+needs.  But the strong standard-mode theorem needs more: it needs exact
+compatibility between this selected scale, the operator normalization, and the
+integer-square enumeration.
+
+\section*{What The Strong Theorem Would Give}
+
+If Theorem A were supplied, the rest of Lane A is already a proof-checked
+adapter chain:
+\begin{enumerate}
+\item Exact standard membership gives a standard eigenvalue index source.
+\item Standard eigenvalues are real-valued after complex readout.
+\item Therefore \(\im(V(z))=0\).
+\item Since \(\iota_{\tau,500}^2\neq0\), the unscaled centered quadratic has
+  zero imaginary coordinate.
+\item The algebraic identity
+  \[
+    \im\left(s_z(1-s_z)-\frac14\right)
+    =
+    \gamma_z(1-2\sigma_z)
+  \]
+  is already formalized.
+\item Since \(z\) is nonzero-height, \(\gamma_z\neq0\), hence
+  \(\sigma_z=\frac12\).
+\item Combined with the closed zero-height eta branch, this gives actual
+  sigma-fixedness.
+\end{enumerate}
+
+\section*{Recommended Pivot}
+
+\paragraph{Theorem B: Abstract self-adjoint spectral membership.}
+Let \(S\) be a genuine self-adjoint lemniscate spectral source with membership
+predicate \(\operatorname{Mem}_S(\lambda)\).  Assume:
+\[
+  \operatorname{Mem}_S(\lambda)\Longrightarrow \im(\lambda)=0
+\]
+and
+\[
+  \forall z\in\mathcal Z_\xi^{\neq0},\quad \operatorname{Mem}_S(V(z)).
+\]
+Then:
+\[
+  \forall z\in\mathcal Z_\xi^{\neq0},\quad
+  \im\left(s_z(1-s_z)-\frac14\right)=0.
+\]
+Thus the nonzero-height Lane A spectral-parameter reality theorem follows.
+
+\paragraph{Proof of Theorem B.}
+\begin{enumerate}
+\item Fix \(z\in\mathcal Z_\xi^{\neq0}\).
+\item By canonical membership, \(\operatorname{Mem}_S(V(z))\).
+\item By self-adjoint spectral reality, \(\im(V(z))=0\).
+\item By the canonical scaled image law,
+  \[
+    V(z)=\iota_{\tau,500}^2
+    \left(s_z(1-s_z)-\frac14\right).
+  \]
+\item Since \(\iota_{\tau,500}^2\) is a nonzero real scalar, the centered
+  quadratic has zero imaginary coordinate.
+\item The centered quadratic identity and nonzero-height condition force
+  \(\re(s_z)=1/2\).
+\end{enumerate}
+
+\section*{Why The Pivot Is Enough For Lane A}
+
+Lane A does not need exact mode extraction.  It needs real-valuedness of the
+canonical scaled spectral value.  Exact standard-mode membership is one way to
+obtain that real-valuedness, but it is not the minimal way.  The minimal
+operator theorem is:
+\[
+  \forall z,\quad \im(V(z))=0,
+\]
+preferably sourced as genuine membership in a self-adjoint lemniscate spectrum.
+
+This aligns with Book III Chapter 25: the critical-line forcing argument uses
+spectral reality, not integer-square mode enumeration.
+
+\section*{Next Lean Translation Target}
+
+The recommended next Lean module should add the weaker source surface before
+attempting the standard-mode ladder again:
+\[
+  \texttt{G8ActualXiCanonicalAbstractSpectralMembershipSource}.
+\]
+It should carry:
+\begin{enumerate}
+\item a genuine spectral membership predicate for the ready lemniscate operator;
+\item a self-adjoint real-valuedness selector for that predicate;
+\item pointwise membership of \(V(z)\) for every actual nonzero-height carrier;
+\item adapters to \(\texttt{G8ActualXiNonzeroHeightSpectralParameterReal}\).
+\end{enumerate}
+
+The strong standard-mode theorem can then be pursued later as a refinement:
+\[
+  \operatorname{Mem}_S(V(z))
+  \quad+\quad
+  \text{standard spectrum classification}
+  \quad\Longrightarrow\quad
+  \exists n,\ V(z)=n^2.
+\]
+This separates the Lane-A proof need from the additional exact enumeration and
+scale-calibration burden.
+
+\end{document}

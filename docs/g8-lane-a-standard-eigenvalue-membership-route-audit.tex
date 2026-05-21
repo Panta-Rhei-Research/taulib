@@ -1,0 +1,257 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+
+\title{G8 Lane A Standard Eigenvalue Membership Route Audit}
+\author{Private red-team memo}
+\date{May 21, 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Executive Verdict}
+
+The current Lean spine has reduced the nonzero-height side of Lane A to one
+exact mathematical payload:
+\[
+  \forall z : \texttt{G8ActualXiNonzeroHeightCarrier},\quad
+  \exists n : \mathbb{N},\quad
+  V(z) = \lambda_n,
+\]
+where
+\[
+  V(z) =
+  \texttt{g8ActualXiIotaTauCanonicalScaledOperatorSpectralValue}\ z
+  = \iota_\tau^2\Bigl(s_z(1-s_z)-\frac14\Bigr)
+\]
+and
+\[
+  \lambda_n =
+  \texttt{Tau.BookIII.Doors.lemniscate\_eigenvalue}\ n.
+\]
+
+Everything downstream from this exact membership theorem is already wired:
+standard eigenvalue membership implies real-valuedness, real-valuedness of the
+nonzero-height centered quadratic forces the critical axis, the zero-height
+eta branch is theorem-backed, and the combined Lane A input gives actual
+sigma-fixedness through the existing adapters.
+
+The audit did not find an unconditional Book III theorem that already proves
+the exact membership statement above.  Book III Chapters 23--25 prove and
+motivate the operator and spectral-reality mechanism, but the actual zero to
+eigenvalue membership step is routed through the determinant/spectral
+correspondence bridge in Chapter 24.  That bridge is explicitly conditional in
+the manuscript and is intentionally not used by the active Lane A route.
+
+\section*{Current Lean Endpoint}
+
+The smallest current proof-facing target is:
+\[
+\begin{aligned}
+&\texttt{G8ActualXiCanonicalModeExtractionTarget} :
+  \texttt{G8ActualXiNonzeroHeightCarrier} \to \mathbb{N},\\
+&\texttt{G8ActualXiCanonicalModeEigenvalueAlignmentTarget}\ \texttt{modeOf} :
+  \forall z,\,
+  V(z) =
+  (\texttt{Tau.BookIII.Doors.lemniscate\_eigenvalue}\ (\texttt{modeOf}\ z)
+  : \mathbb{C}).
+\end{aligned}
+\]
+
+These are packaged by
+\[
+  \texttt{G8ActualXiCanonicalStandardEigenvalueMembershipSource}.
+\]
+Once this package is supplied, the existing proof-checked adapters produce:
+\[
+\begin{gathered}
+  \texttt{G8ActualXiIotaTauCanonicalStandardEigenvalueIndexSource},\\
+  \texttt{G8BookIIILemniscateSpectralCoordinateRealizationSource},\\
+  \texttt{G8CanonicalXiSpectralModeCorrespondenceSource},\\
+  \texttt{G8ActualXiNonzeroHeightSpectralParameterReal}.
+\end{gathered}
+\]
+
+\section*{Closed Lean Facts}
+
+\paragraph{Zero-height side.}
+The eta/paired-series path now supplies the zero-height axis guard.  In
+particular, the positive-half-plane paired eta closure yields:
+\[
+  \texttt{g8ActualXiZeroHeightAxisGuardDischarge\_from\_pairedPositiveHalfPlane}.
+\]
+
+\paragraph{Centered quadratic algebra.}
+For a nonzero-height carrier, real centered quadratic parameter forces
+\[
+  \operatorname{Re}(s_z)=\frac12.
+\]
+This is formalized by
+\[
+  \texttt{g8NonzeroHeightSpectralParameterReal\_forces\_re\_eq\_half}.
+\]
+
+\paragraph{Scale algebra.}
+The certified \(\iota_\tau^2\) scale is nonzero, and the scaled-real to
+unscaled-real adapter is already formalized.  Thus real-valuedness of
+\[
+  \iota_\tau^2\Bigl(s_z(1-s_z)-\frac14\Bigr)
+\]
+is sufficient to make the unscaled centered quadratic real.
+
+\paragraph{Standard eigenvalue reality.}
+Lean's standard lemniscate eigenvalue readout is definitionally \(n^2\), so a
+value equal to a standard eigenvalue has zero imaginary coordinate after
+complex readout:
+\[
+  \texttt{g8StandardLemniscateEigenvalueSpectrum\_real}.
+\]
+
+\paragraph{Coordinate plumbing.}
+The finite coordinate system is now pure plumbing.  The self-stage coordinate
+represents every standard mode:
+\[
+  \texttt{g8CanonicalXiSpectralCoordinateMode\_self\_stage}\ n = n,
+\]
+and the coordinate-realization target is equivalent to standard eigenvalue
+membership.
+
+\section*{Manuscript Anchors}
+
+\paragraph{Chapter 23.}
+The lemniscate operator is defined as \(H_L=-d^2/dx^2\) on the two-lobe metric
+graph with continuity and Kirchhoff boundary conditions.  The manuscript states
+self-adjointness of \(H_L\), and then obtains real, discrete spectrum from
+standard compact metric graph theory.
+
+\paragraph{Chapter 24.}
+The spectral parameter is
+\[
+  \Lambda(s)=\iota_\tau^2\left(s(1-s)-\frac14\right),
+\]
+with reflection symmetry and critical-line mapping.  The chapter then states
+the determinant representation and spectral correspondence as conditional:
+\[
+  \zeta_\tau(\rho)=0
+  \quad\Longleftrightarrow\quad
+  \Lambda(\rho)\in \operatorname{Spec}(H_L).
+\]
+
+\paragraph{Chapter 25.}
+Assuming the spectral correspondence, the forcing argument expands
+\[
+  \rho(1-\rho)-\frac14
+  =
+  \left(\sigma(1-\sigma)+\gamma^2-\frac14\right)
+  + i\gamma(1-2\sigma).
+\]
+Self-adjoint spectral reality makes the imaginary part vanish.  For
+\(\gamma\ne0\), this forces \(\sigma=1/2\).
+
+\section*{Line-by-Line Conditional Proof}
+
+Assume the exact standard eigenvalue membership theorem:
+\[
+  \forall z,\ \exists n,\ V(z)=\lambda_n.
+\]
+Then:
+
+\begin{enumerate}
+\item Package the chosen mode \(n=\texttt{modeOf}\ z\) and equality
+  \(V(z)=\lambda_n\) as
+  \(\texttt{G8ActualXiCanonicalStandardEigenvalueMembershipSource}\).
+\item Convert it to
+  \(\texttt{G8ActualXiIotaTauCanonicalStandardEigenvalueIndexSource}\).
+\item Use standard eigenvalue reality to conclude \(V(z).\operatorname{im}=0\).
+\item Use the nonzero certified \(\iota_\tau^2\) scale to conclude
+  \[
+    \operatorname{Im}\left(s_z(1-s_z)-\frac14\right)=0.
+  \]
+\item Use the centered quadratic identity
+  \[
+    \operatorname{Im}\left(s_z(1-s_z)-\frac14\right)
+    =
+    \gamma_z(1-2\sigma_z).
+  \]
+\item Since \(z\) is in the nonzero-height subtype, \(\gamma_z\ne0\).
+  Therefore \(1-2\sigma_z=0\), so \(\sigma_z=1/2\).
+\item Thus no nonzero-height actual xi carrier is off-critical.
+\item Combine with the already theorem-backed zero-height guard to obtain the
+  height-split Lane A input.
+\item The height-split input gives actual centered-address balance and actual
+  sigma-fixedness.
+\item With the separate accepted-tower realization-from-sigma-fixed input,
+  the existing final live hinge and conditional handoff apply.
+\end{enumerate}
+
+\section*{What Is Still Missing}
+
+The exact remaining mathematical theorem is:
+\[
+  \textbf{Actual standard eigenvalue membership:}\quad
+  \forall z : \texttt{G8ActualXiNonzeroHeightCarrier},\
+  \exists n : \mathbb{N},\
+  V(z)=\lambda_n.
+\]
+
+Equivalently, one may prove the stronger source package:
+\[
+  \texttt{G8ActualXiCanonicalStandardEigenvalueMembershipSource}.
+\]
+
+This is stronger than merely proving \(V(z)\in\mathbb{R}\).  It asks for exact
+membership in the standard discrete eigenvalue list.  The current finite
+diagnostic checks do not prove it, and the manuscript route through Chapter 24
+proves it only under the determinant/spectral-correspondence bridge.
+
+\section*{Hidden-Gap Watchlist}
+
+\begin{enumerate}
+\item The Lean standard eigenvalue model uses
+  \(\texttt{lemniscate\_eigenvalue}\ n=n^2\).  The manuscript metric-graph
+  discussion also mentions secular families.  The next proof must verify that
+  the chosen standard-mode list is the intended spectrum for this Lane A
+  operator package, or weaken the source to an abstract spectrum membership
+  predicate if exact \(n^2\) is too narrow.
+\item Finite checks such as
+  \(\texttt{self\_adjoint\_check}\),
+  \(\texttt{spectral\_correspondence\_finite}\),
+  \(\texttt{spectral\_resolution\_check}\), and
+  \(\texttt{projector\_check}\)
+  remain diagnostics.  They cannot construct the global mode \(n\).
+\item Proving membership through O3, determinant transfer, accepted coverage,
+  the final live hinge, full divisor transfer, or completion uniqueness would
+  be circular for this Lane A source theorem.
+\item If the intended route proves only real-valuedness of \(V(z)\), then the
+  standard eigenvalue membership target is too strong.  The correct next Lean
+  move would be to add an abstract self-adjoint spectral membership source
+  rather than force equality to \(n^2\).
+\end{enumerate}
+
+\section*{Recommended Next Move}
+
+Do not try to promote finite diagnostics into membership.  Instead choose one
+of two honest next theorem targets:
+
+\begin{enumerate}
+\item Strong route:
+  prove
+  \[
+    \texttt{G8ActualXiCanonicalModeEigenvalueAlignmentTarget}\ \texttt{modeOf}
+  \]
+  by constructing an exact standard mode for every actual nonzero-height
+  carrier.
+\item Weaker but possibly more faithful route:
+  prove an abstract spectral membership theorem for the canonical scaled value
+  in the self-adjoint lemniscate spectrum, then use spectral reality directly
+  without requiring equality to the current \(n^2\) readout.
+\end{enumerate}
+
+The red-team recommendation is to attempt the weaker abstract membership route
+first, because Book III Chapters 23--25 naturally support
+\(\Lambda(s)\in\operatorname{Spec}(H_L)\) and spectral reality, while exact
+equality to the finite \(n^2\) readout may encode additional discretization
+choices that are not yet justified for every actual xi carrier.
+
+\end{document}

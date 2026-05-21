@@ -167,6 +167,23 @@ theorem G8XiSigmaFixedNFAddressability.sigmaFixed
   rcases hAddr with ⟨cert, _hEq⟩
   exact cert.sigmaFixed
 
+/-- A pointwise sigma-fixed canonical `xi` character is NF-addressable by its
+    own normalized centered boundary address. -/
+theorem G8XiBoundaryCharacterSigmaFixed.toNFAddressability
+    {z : OrthodoxXiZeroCarrier}
+    (hSigma : G8XiBoundaryCharacterSigmaFixed z) :
+    G8XiSigmaFixedNFAddressability z := by
+  refine
+    ⟨{ stage := 0
+       nf := (orthodoxXiCarrierCenteredBoundaryPointAddress z).normalize.nf
+       sigmaFixed := hSigma
+       bcBalanced :=
+        G8XiBoundaryCharacterSigmaFixed.centeredAddress_bcBalanced hSigma
+       character_nf_aligned := ?_ },
+      rfl⟩
+  unfold orthodoxXiCarrierBoundaryCharacter
+  exact ⟨rfl, rfl⟩
+
 -- ============================================================
 -- ACCEPTED REALIZATION FROM SIGMA-FIXED ADDRESSABILITY
 -- ============================================================
