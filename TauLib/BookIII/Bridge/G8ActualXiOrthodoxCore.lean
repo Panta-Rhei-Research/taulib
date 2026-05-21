@@ -2,6 +2,10 @@ import Mathlib.NumberTheory.LSeries.Nonvanishing
 import Mathlib.NumberTheory.LSeries.Linearity
 import Mathlib.NumberTheory.LSeries.SumCoeff
 import Mathlib.Analysis.Complex.AbelLimit
+import Mathlib.Analysis.Complex.SummableUniformlyOn
+import Mathlib.Topology.Algebra.InfiniteSum.TsumUniformlyOn
+import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
+import Mathlib.Analysis.Calculus.MeanValue
 
 /-!
 # TauLib.BookIII.Bridge.G8ActualXiOrthodoxCore
@@ -9,7 +13,7 @@ import Mathlib.Analysis.Complex.AbelLimit
 Low-level orthodox `xi` carrier core for the G8f/Lane-A corridor.
 
 This is the sole bridge-zone module in the Lane-A core split that directly
-imports Mathlib's Riemann-zeta and zeta-nonvanishing development.  It defines
+imports Mathlib's orthodox zeta and classical-analysis support.  It defines
 only the orthodox completed-`xi` wrapper, its zero carrier, and the
 carrier-level off-critical predicate.  Centered shadows, boundary addresses,
 spectral-reality forcing, and final RH handoffs live in higher modules.

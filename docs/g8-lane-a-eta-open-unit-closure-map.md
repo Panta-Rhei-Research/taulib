@@ -35,37 +35,62 @@
 - `G8EtaModTwoExpZetaBoundaryDischarge` reduces the remaining Abel boundary
   theorem to the pointwise equality between the concrete conditional eta value
   and `-HurwitzZeta.expZeta`.
+- `G8EtaModTwoPairedSeriesBoundary` closes the finite regrouping step:
+  `g8EtaModTwoConcretePairedPartial_tendsto_concreteEta` proves that the
+  odd/even paired eta partial sums converge to the same concrete conditional
+  eta value on `0 < x < 1`.
+- The same module proves that a paired ExpZeta boundary theorem,
+  `G8EtaModTwoPairedExpZetaBoundaryOnOpenUnit`, is exactly sufficient for the
+  pointwise ExpZeta/concrete-eta equality and hence for the zero-height guard.
+- `G8EtaModTwoPairedExpZetaBoundaryTheorem` closes the low-level bridge from
+  concrete paired terms to the analytic paired series
+  `g8EtaModTwoPairedEtaSeries`.
+- The remaining positive-half-plane payload is packaged as
+  `G8EtaModTwoPairedEtaSeriesEqNegExpZetaOnPositiveHalfPlane`, carrying paired
+  summability on `0 < Re(s)` and equality of the paired series with
+  `-HurwitzZeta.expZeta`.
+- `G8EtaModTwoPairedStripEstimate` and `G8EtaModTwoPairedDerivativeMVT` close
+  the MVT derivative majorant needed for paired eta convergence.
+- `G8EtaModTwoPairedLocalUniformConvergence` upgrades that strip estimate to
+  local-uniform convergence and pointwise summability on `0 < Re(s)`.
+- `G8EtaModTwoPairedPositiveHalfPlaneClosure` closes the remaining eta payload:
+  it proves safe-half-plane agreement with the mod-two `LSeries`, applies the
+  analytic identity theorem across the positive half-plane, specializes to the
+  real open unit interval, identifies concrete eta with `-expZeta`, derives
+  zeta nonvanishing on `0 < x < 1`, and discharges the zero-height guard.
 
 ## What Remains Analytic
 
-- Boundary-value identification of Mathlib's additive-character `expZeta` with
-  the concrete shifted Abel radial limit:
-  `G8EtaModTwoExpZetaAbelBoundaryValueOnOpenUnit`.
-- This implies the older mod-two `ZMod.LFunction` boundary target by
-  `g8EtaModTwoLFunctionAbelBoundaryValueOnOpenUnit_of_expZetaBoundary`.
-- Equivalently, it is enough to prove the sharper pointwise target
-  `G8EtaModTwoExpZetaConcreteEtaOnOpenUnit`.
-
-Together these form `G8EtaModTwoOpenUnitEtaClosureData`, which forwards through
-the existing zero-height discharge path.
+- The eta/open-unit zero-height payload is now closed theorem-backed by the
+  paired positive-half-plane route.
+- The remaining Lane-A analytic payload is no longer the real-axis
+  zero-height guard; it is the nonzero-height spectral-parameter reality input:
+  `∀ z : OrthodoxXiZeroCarrier,
+    (orthodoxXiCarrierCenteredQuadratic z).im = 0`.
+- `G8ActualXiNonzeroHeightSpectralReality` sharpens this further to the
+  nonzero-height subtype:
+  `G8ActualXiNonzeroHeightSpectralParameterReal`.
+  This is now the preferred Lane-A payload, because zero-height carriers are
+  already handled by the theorem-backed eta guard.
+- Together with the now theorem-backed zero-height guard, that spectral reality
+  field supplies `G8ActualXiHeightSplitSpectralRealityInputs` through
+  `G8ActualXiZeroHeightAxisGuardDischarge.toHeightSplitInputs`.
+- The final live hinge still also requires the independent Book III tower
+  input `G8BookIIIAcceptedTowerRealizationFromSigmaFixed`; the eta work does
+  not construct accepted tower witnesses.
 
 ## Non-Circularity Guardrails
 
 - This route does not use `RiemannHypothesis`, accepted coverage, the final live
   hinge, O3, full divisor transfer, or analytic-completion uniqueness.
-- The concrete eta series agreement is already theorem-backed; what remains is
-  the analytic identification of Mathlib's continued `ZMod.LFunction` with the
-  Abel boundary value of that conditional series on `0 < x < 1`.
+- The concrete eta series agreement and its analytic identification with
+  Mathlib's continued additive-character `expZeta` on `0 < x < 1` are now
+  theorem-backed through the paired positive-half-plane closure.
 - The product identity theorem uses Mathlib's identity theorem from the safe
   right half-plane and does not use RH, accepted coverage, or any final-spine
   handoff.
 - Real-valued zeta on `0 < x < 1` is now a consequence of the Abel
   identification plus the closed product identity, not an independent
   assumption.
-- If Mathlib's Abel-continuation APIs are expanded later, the named Abel target
-  above is the exact place to instantiate them.  Current Mathlib exposes the
-  additive-character analytic-continuation equality
-  `ZMod.LFunction_stdAddChar_eq_expZeta`, but not the corresponding radial
-  Abel-boundary theorem for `expZeta` on `0 < x < 1`.
 - Height-split and final-live-hinge forwarding is intentionally restored only
   downstream in `G8EtaModTwoLaneAAssembly`.

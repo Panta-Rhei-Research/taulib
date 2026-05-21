@@ -171,6 +171,7 @@ import TauLib.BookIII.Bridge.G8FinalLiveHinge
 import TauLib.BookIII.Bridge.G8ActualXiSigmaFixedReduction
 import TauLib.BookIII.Bridge.G8ActualXiCrossingMediatedReadout
 import TauLib.BookIII.Bridge.G8ActualXiSpectralRealityCore
+import TauLib.BookIII.Bridge.G8ActualXiNonzeroHeightSpectralCore
 import TauLib.BookIII.Bridge.G8ActualXiSigmaFixedFromSpectralReality
 import TauLib.BookIII.Bridge.G8ActualXiCrossingMediatedLanding
 import TauLib.BookIII.Bridge.G8ActualXiSpectralRealityInstantiation
@@ -188,7 +189,17 @@ import TauLib.BookIII.Bridge.G8EtaModTwoConcreteEtaIdentification
 import TauLib.BookIII.Bridge.G8EtaModTwoAbelBoundaryIdentification
 import TauLib.BookIII.Bridge.G8EtaModTwoAbelBoundaryClosure
 import TauLib.BookIII.Bridge.G8EtaModTwoExpZetaBoundaryDischarge
+import TauLib.BookIII.Bridge.G8EtaModTwoPairedSeriesBoundary
+import TauLib.BookIII.Bridge.G8EtaModTwoPairedExpZetaBoundaryTheorem
+import TauLib.BookIII.Bridge.G8EtaModTwoPairedPositiveHalfPlaneAnalyticity
+import TauLib.BookIII.Bridge.G8EtaModTwoPairedStripEstimate
+import TauLib.BookIII.Bridge.G8EtaModTwoPairedDerivativeMVT
+import TauLib.BookIII.Bridge.G8EtaModTwoPairedLocalUniformConvergence
+import TauLib.BookIII.Bridge.G8EtaModTwoPairedPositiveHalfPlaneClosure
 import TauLib.BookIII.Bridge.G8EtaModTwoLaneAAssembly
+import TauLib.BookIII.Bridge.G8ActualXiNonzeroHeightSpectralReality
+import TauLib.BookIII.Bridge.G8ActualXiNonzeroHeightOperatorSpectralReadout
+import TauLib.BookIII.Bridge.G8ActualXiNonzeroHeightSpectralReadout
 
 -- Part X: Mirror
 import TauLib.BookIII.Mirror.ProofTheoryE3

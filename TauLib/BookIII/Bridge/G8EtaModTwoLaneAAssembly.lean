@@ -1,5 +1,5 @@
 import TauLib.BookIII.Bridge.G8ActualXiZeroHeightAxisGuard
-import TauLib.BookIII.Bridge.G8EtaModTwoExpZetaBoundaryDischarge
+import TauLib.BookIII.Bridge.G8EtaModTwoPairedSeriesBoundary
 
 /-!
 # TauLib.BookIII.Bridge.G8EtaModTwoLaneAAssembly
@@ -82,5 +82,16 @@ def G8ActualXiHeightSplitSpectralRealityInputs.ofEtaModTwoExpZetaConcreteEta
     G8ActualXiHeightSplitSpectralRealityInputs :=
   (G8ActualXiZeroHeightAxisGuardDischarge.ofEtaModTwoExpZetaConcreteEta
     hConcrete).toHeightSplitInputs spectralParameterReal
+
+/-- With spectral-parameter reality, the paired ExpZeta boundary theorem
+    supplies the height-split Lane-A input object. -/
+def G8ActualXiHeightSplitSpectralRealityInputs.ofEtaModTwoPairedBoundary
+    (hPaired : G8EtaModTwoPairedExpZetaBoundaryOnOpenUnit)
+    (spectralParameterReal :
+      ∀ z : OrthodoxXiZeroCarrier,
+        (orthodoxXiCarrierCenteredQuadratic z).im = 0) :
+    G8ActualXiHeightSplitSpectralRealityInputs :=
+  (G8ActualXiZeroHeightAxisGuardDischarge.ofEtaModTwoPairedBoundary
+    hPaired).toHeightSplitInputs spectralParameterReal
 
 end Tau.BookIII.Bridge

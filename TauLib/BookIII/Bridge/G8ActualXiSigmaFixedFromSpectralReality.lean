@@ -1,4 +1,4 @@
-import TauLib.BookIII.Bridge.G8ActualXiSpectralRealityCore
+import TauLib.BookIII.Bridge.G8ActualXiNonzeroHeightSpectralCore
 import TauLib.BookIII.Bridge.G8ActualXiSigmaFixedReduction
 
 /-!
@@ -56,25 +56,6 @@ def G8ActualXiSpectralRealityContext.ofInputs
   spectralParameterReal := inputs.spectralParameterReal
   nontrivialHeight := inputs.nontrivialHeight
   centeredQuadratic_readout := orthodoxXiCarrierCenteredQuadratic_im
-
--- ============================================================
--- REALITY FORCING
--- ============================================================
-
-/-- Pure algebraic forcing step: a real central-quadratic readout and nonzero
-    height force the centered real coordinate onto the critical axis. -/
-theorem g8CenteredQuadraticReality_forces_re_eq_half
-    {sigma gamma : ℝ}
-    (hReality : gamma * (1 - 2 * sigma) = 0)
-    (hHeight : gamma ≠ 0) :
-    sigma = (1 / 2 : ℝ) := by
-  rcases mul_eq_zero.mp hReality with hGamma | hAxis
-  · exact False.elim (hHeight hGamma)
-  · have hTwo : (2 : ℝ) * sigma = 1 :=
-      (sub_eq_zero.mp hAxis).symm
-    calc
-      sigma = ((2 : ℝ) * sigma) / 2 := by ring
-      _ = 1 / 2 := by rw [hTwo]
 
 /-- The spectral-reality context forces each actual carrier onto the orthodox
     critical axis. -/

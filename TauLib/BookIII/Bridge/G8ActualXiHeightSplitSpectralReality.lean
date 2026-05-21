@@ -1,4 +1,5 @@
 import TauLib.BookIII.Bridge.G8ActualXiSpectralRealityInstantiation
+import TauLib.BookIII.Bridge.G8ActualXiNonzeroHeightSpectralCore
 import TauLib.BookIII.Bridge.G8ActualXiZeroHeightAxisGuardCore
 
 /-!
@@ -31,10 +32,6 @@ namespace Tau.BookIII.Bridge
 -- ============================================================
 -- HEIGHT-SPLIT INPUTS
 -- ============================================================
-
-/-- Actual `xi` carriers whose orthodox point has nonzero imaginary height. -/
-abbrev G8ActualXiNonzeroHeightCarrier : Type 2 :=
-  { z : OrthodoxXiZeroCarrier // z.toZero.point.im ≠ 0 }
 
 /-- Height-split Lane-A inputs.
 
@@ -177,13 +174,6 @@ theorem G8ActualXiZeroHeightOffCriticalFalsifier.refutesHeightSplitInputs
     (inputs : G8ActualXiHeightSplitSpectralRealityInputs) :
     False :=
   w.refutesZeroHeightAxis inputs.zeroHeightAxis
-
-/-- A nonzero-height carrier with non-real centered quadratic parameter
-    refutes the spectral-parameter reality input. -/
-structure G8ActualXiNonzeroHeightCenteredQuadraticNonrealFalsifier where
-  z : G8ActualXiNonzeroHeightCarrier
-  nonreal :
-    (orthodoxXiCarrierCenteredQuadratic z.1).im ≠ 0
 
 /-- Nonzero-height non-real centered quadratic evidence refutes height-split
     spectral-reality inputs. -/
