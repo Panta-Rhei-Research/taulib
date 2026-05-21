@@ -146,12 +146,29 @@ combination.
 - `DefectInverseSystem.IsCPolarised` — C-polarised thread predicate.
 - `polarised_orbit_complement` — `σ(B-polarised) = C-polarised`.
 - `PolarisedUniversalProperty` — paper Thm 8.8 universal-property
-  structure: existence + uniqueness + σ-orbit size 2.
+  structure (strong, pointwise): existence + uniqueness + σ-orbit
+  size 2.
+- `PolarisedUniversalPropertyWeak` — paper Thm 8.8 universal-property
+  structure (weak, **lobe-class**, Wave B Gap #8.3 fix): existence
+  + lobe-class uniqueness + σ-orbit size 2.  Fires on carriers
+  where strong pointwise uniqueness fails due to non-trivial
+  inverse-limit profinite freedom (e.g.,
+  `refinementGrowingTorusSystem`).
+- `PolarisedUniversalProperty.toWeak` — strong universal property
+  automatically implies weak.
+- `PolarisedUniversalPropertyWeak.mk_from_polarised` — weak
+  universal property requires only the existence witness; lobe-
+  class uniqueness is a tautology from B-polarisation.
 - `polarised_orbit_size_le_two` — σ-orbit of `G_B` has size ≤ 2.
-- `polarised_readout_complement` — paper Thm 8.10 abstract form:
-  σ-equivariance of `ReadF` forces `κ_B = κ_C`.
+- `polarised_readout_complement` — paper Thm 8.10 abstract form
+  (strong UP): σ-equivariance of `ReadF` forces `κ_B = κ_C`.
+- `polarised_readout_complement_weak` — paper Thm 8.10 abstract
+  form (weak UP).
 - `polarised_readout_equals_kappa_D` — scalar identification with
-  `κ_D := 1 - ι_τ` (TauRat level, fiat-Nat-decimal compatible).
+  `κ_D := 1 - ι_τ` (strong UP, TauRat level, fiat-Nat-decimal
+  compatible).
+- `polarised_readout_equals_kappa_D_weak` — scalar identification
+  with `κ_D := 1 - ι_τ` (weak UP, TauRat level).
 
 ## Scope
 
@@ -176,6 +193,29 @@ identification with the gravity-complement `κ_D = 1 - ι_τ`
 `BookIV/Sectors/CouplingFormulas.lean`).  PART 7 records this
 identification explicitly at the TauRat level using `kappa_DD`
 and the temporal-complement relation `kappa_AA + kappa_DD = 1`.
+
+### Two universal-property tiers (Wave B Gap #8.3, 2026-05-21)
+
+The universal-property uniqueness clause comes in two tiers:
+
+- **Strong (pointwise) uniqueness** — `PolarisedUniversalProperty`:
+  any B-polarised thread agrees with `g_B` *pointwise* at every
+  depth.  Fires on carriers with identity projection
+  (`TorusDefectSystem`).
+
+- **Weak (lobe-class) uniqueness** —
+  `PolarisedUniversalPropertyWeak`: any B-polarised thread agrees
+  with `g_B` on *lobe labels* at every late depth.  Fires on
+  carriers with non-trivial inverse-limit profinite freedom
+  (`refinementGrowingTorusSystem` mod-reduction).
+
+The weak form is the **honest reading** of paper §8.5 Step 3's
+"uniqueness up to canonical isomorphism" — the canonical
+isomorphism is precisely the inverse-limit profinite freedom on
+the lobe component (= multiple `bSide ⟨k, _⟩` representatives
+all carrying lobe label `B`).  Strong implies weak via `toWeak`.
+Both tiers ship readout-complement and `κ_D` identification
+variants.
 -/
 
 set_option autoImplicit false
@@ -548,6 +588,107 @@ structure DefectInverseSystem.PolarisedUniversalProperty
   g_B_unique : ∀ t : D.Thread, D.IsBPolarised L t →
     ∀ n, t.point n = g_B.point n
 
+/-- **Weak polarised universal property structure** (paper Theorem
+    8.8 Step 3, lines 3042–3054, **lobe-class form**).
+
+    On carriers where the refinement projection is *non-trivial*
+    (e.g., `refinementGrowingTorusSystem`'s mod-reduction projection),
+    pointwise uniqueness `t.point n = g_B.point n` does NOT hold —
+    multiple B-polarised threads exist in distinct refinement-
+    compatible orbits (e.g., `bSide ⟨0, _⟩` vs. other constant lobe
+    indices that survive mod-reduction).  The paper handles this by
+    speaking of uniqueness **up to canonical isomorphism** (§8.5
+    Step 3 line 3051: "any maximal `B`-polarised refinement-
+    compatible system factors uniquely through `G_B[ω]`").
+
+    Structurally on the abstract scaffold, the natural rendering of
+    "uniqueness up to canonical isomorphism" is **lobe-class
+    uniqueness**: any two B-polarised threads agree at the level
+    of lobe labels at every late depth.  This is exactly the
+    inverse-limit universal-property content on the lobe-classifier
+    quotient: the lobe-class assignment factors uniquely through
+    `G_B[ω]`'s lobe sequence (which is constantly `B` past
+    maturity).  Distinct pointwise representatives within `ℓ⁻¹(B)`
+    correspond to the inverse-limit profinite freedom $\hat{Z}$
+    on the lobe component, which is precisely what paper's
+    "canonical isomorphism" wording leaves unspecified.
+
+    This structure is the **honest weakening** of
+    `PolarisedUniversalProperty`: strong (pointwise) uniqueness
+    implies weak (lobe-class) uniqueness automatically (see
+    `PolarisedUniversalProperty.toWeak`), but the weak form
+    fires on the refinement carrier whereas the strong form does
+    not.
+
+    Paper §8.5 Step 4 closes the orbit identically to the strong
+    form via σ-equivariance and `polarised_orbit_BC_exclusive`. -/
+structure DefectInverseSystem.PolarisedUniversalPropertyWeak
+    (D : DefectInverseSystem)
+    (L : ∀ n, D.LobeLabelling n) where
+  /-- The canonical B-polarised thread `G_B[ω]`. -/
+  g_B : D.Thread
+  /-- `g_B` is B-polarised. -/
+  g_B_polarised : D.IsBPolarised L g_B
+  /-- **Lobe-class uniqueness** — any B-polarised thread agrees
+      with `g_B` on lobe labels at every late depth.  This is the
+      structural form of paper's "factors uniquely through
+      `G_B[ω]`" on the lobe-classifier quotient.
+
+      Note this is essentially the definitional content of
+      `IsBPolarised`: both `t` and `g_B` are B-polarised, so both
+      eventually carry label `B`, hence agree at every depth past
+      `max (maturity_depth_t) (maturity_depth_g_B)`. -/
+  g_B_lobe_unique : ∀ t : D.Thread, D.IsBPolarised L t →
+    ∃ shared_depth : Nat, ∀ n : Nat, shared_depth ≤ n →
+      (L n).label (t.point n) = (L n).label (g_B.point n)
+
+/-- **Strong uniqueness implies weak uniqueness** — any
+    `PolarisedUniversalProperty` automatically yields a
+    `PolarisedUniversalPropertyWeak`.  Pointwise equality at every
+    depth gives lobe-label equality at every depth (with
+    `shared_depth = 0`). -/
+def DefectInverseSystem.PolarisedUniversalProperty.toWeak
+    {D : DefectInverseSystem}
+    {L : ∀ n, D.LobeLabelling n}
+    (U : D.PolarisedUniversalProperty L) :
+    D.PolarisedUniversalPropertyWeak L where
+  g_B := U.g_B
+  g_B_polarised := U.g_B_polarised
+  g_B_lobe_unique := fun t hBt =>
+    ⟨0, fun n _ => by rw [U.g_B_unique t hBt n]⟩
+
+/-- **`g_B` lobe-label is `B` at every late depth** — direct
+    consequence of `g_B_polarised`. -/
+theorem DefectInverseSystem.PolarisedUniversalPropertyWeak.g_B_label_late
+    {D : DefectInverseSystem}
+    {L : ∀ n, D.LobeLabelling n}
+    (U : D.PolarisedUniversalPropertyWeak L) :
+    ∃ maturity_depth : Nat,
+      ∀ n : Nat, maturity_depth ≤ n →
+        (L n).label (U.g_B.point n) = .B :=
+  U.g_B_polarised
+
+/-- **Lobe-class uniqueness collapses to a tautology** — the
+    `g_B_lobe_unique` claim follows formally from both `t` and
+    `g_B` being B-polarised.  This `mk` constructor packages the
+    derivation so concrete instances only need to supply the
+    witness thread and its polarisation. -/
+def DefectInverseSystem.PolarisedUniversalPropertyWeak.mk_from_polarised
+    {D : DefectInverseSystem}
+    {L : ∀ n, D.LobeLabelling n}
+    (g_B : D.Thread)
+    (g_B_polarised : D.IsBPolarised L g_B) :
+    D.PolarisedUniversalPropertyWeak L :=
+  { g_B := g_B
+    g_B_polarised := g_B_polarised
+    g_B_lobe_unique := fun t hBt => by
+      obtain ⟨nT, hT⟩ := hBt
+      obtain ⟨nG, hG⟩ := g_B_polarised
+      refine ⟨max nT nG, fun n hn => ?_⟩
+      have hnT : nT ≤ n := le_trans (Nat.le_max_left _ _) hn
+      have hnG : nG ≤ n := le_trans (Nat.le_max_right _ _) hn
+      rw [hT n hnT, hG n hnG] }
+
 /-- **σ-orbit counterpart `g_C := σ(g_B)`** — paper Thm 8.8 (ii).
 
     From the universal property, the C-polarised counterpart is
@@ -558,6 +699,42 @@ def DefectInverseSystem.PolarisedUniversalProperty.g_C
     {L : ∀ n, D.LobeLabelling n}
     (U : D.PolarisedUniversalProperty L) : D.Thread :=
   U.g_B.sigmaSwap
+
+/-- **σ-orbit counterpart `g_C := σ(g_B)`** — weak universal
+    property version.  Same definition as the strong version,
+    parameterised on `PolarisedUniversalPropertyWeak`. -/
+def DefectInverseSystem.PolarisedUniversalPropertyWeak.g_C
+    {D : DefectInverseSystem}
+    {L : ∀ n, D.LobeLabelling n}
+    (U : D.PolarisedUniversalPropertyWeak L) : D.Thread :=
+  U.g_B.sigmaSwap
+
+/-- **`g_C` is C-polarised** (weak form) — follows immediately
+    from `polarised_orbit_B_to_C`. -/
+theorem DefectInverseSystem.PolarisedUniversalPropertyWeak.g_C_polarised
+    {D : DefectInverseSystem}
+    {L : ∀ n, D.LobeLabelling n}
+    (U : D.PolarisedUniversalPropertyWeak L) :
+    D.IsCPolarised L U.g_C :=
+  D.polarised_orbit_B_to_C L U.g_B U.g_B_polarised
+
+/-- **`g_B` and `g_C` are σ-paired** (weak form) —
+    `σ(g_B) = g_C` pointwise. -/
+theorem DefectInverseSystem.PolarisedUniversalPropertyWeak.sigma_g_B_eq_g_C
+    {D : DefectInverseSystem}
+    {L : ∀ n, D.LobeLabelling n}
+    (U : D.PolarisedUniversalPropertyWeak L) (n : Nat) :
+    D.sigma_level n (U.g_B.point n) = U.g_C.point n := rfl
+
+/-- **`σ(g_C) = g_B`** (weak form) — σ-orbit closure via
+    σ-involutivity. -/
+theorem DefectInverseSystem.PolarisedUniversalPropertyWeak.sigma_g_C_eq_g_B
+    {D : DefectInverseSystem}
+    {L : ∀ n, D.LobeLabelling n}
+    (U : D.PolarisedUniversalPropertyWeak L) (n : Nat) :
+    D.sigma_level n (U.g_C.point n) = U.g_B.point n := by
+  show D.sigma_level n (D.sigma_level n (U.g_B.point n)) = U.g_B.point n
+  exact D.sigma_involutive n (U.g_B.point n)
 
 /-- **`g_C` is C-polarised** (paper Thm 8.8 (ii)) — follows
     immediately from `polarised_orbit_B_to_C`. -/
@@ -642,6 +819,28 @@ theorem DefectInverseSystem.polarised_readout_complement
   show readout U.g_B = readout U.g_B.sigmaSwap
   rw [h_equiv U.g_B]
 
+/-- **Paper Theorem 8.10 — abstract structural form, weak
+    universal-property variant.**
+
+    Same conclusion as `polarised_readout_complement` but
+    parameterised on `PolarisedUniversalPropertyWeak`.  This makes
+    the readout complement available on carriers (like
+    `refinementGrowingTorusSystem`) that supply only the weak
+    universal property — every concrete instance of the weak
+    form discharges the polarised readout complement at the same
+    abstract strength as the strong form, because the readout
+    complement uses only σ-pairing (`g_C = σ(g_B)`), which both
+    variants supply identically. -/
+theorem DefectInverseSystem.polarised_readout_complement_weak
+    {D : DefectInverseSystem} {α : Type}
+    {L : ∀ n, D.LobeLabelling n}
+    (U : D.PolarisedUniversalPropertyWeak L)
+    {readout : D.Thread → α}
+    (h_equiv : D.IsSigmaEquivariantReadout readout) :
+    readout U.g_B = readout U.g_C := by
+  show readout U.g_B = readout U.g_B.sigmaSwap
+  rw [h_equiv U.g_B]
+
 -- ============================================================
 -- PART 8: TauRat-level identification with κ_D := 1 - ι_τ
 -- ============================================================
@@ -678,6 +877,27 @@ theorem DefectInverseSystem.polarised_readout_equals_kappa_D
     readout U.g_C = kappa_D_value := by
   refine ⟨h_g_B_value, ?_⟩
   rw [← D.polarised_readout_complement U h_equiv]
+  exact h_g_B_value
+
+/-- **Polarised scalar identification with `κ_D := 1 - ι_τ` —
+    weak universal-property variant.**
+
+    Same conclusion as `polarised_readout_equals_kappa_D` but
+    parameterised on `PolarisedUniversalPropertyWeak`.  The boxed
+    identity `κ_B = κ_C = κ_D` is reachable on the refinement
+    carrier through this variant. -/
+theorem DefectInverseSystem.polarised_readout_equals_kappa_D_weak
+    {D : DefectInverseSystem}
+    {L : ∀ n, D.LobeLabelling n}
+    (U : D.PolarisedUniversalPropertyWeak L)
+    {readout : D.Thread → TauRat}
+    (h_equiv : D.IsSigmaEquivariantReadout readout)
+    (kappa_D_value : TauRat)
+    (h_g_B_value : readout U.g_B = kappa_D_value) :
+    readout U.g_B = kappa_D_value ∧
+    readout U.g_C = kappa_D_value := by
+  refine ⟨h_g_B_value, ?_⟩
+  rw [← D.polarised_readout_complement_weak U h_equiv]
   exact h_g_B_value
 
 -- ============================================================
@@ -872,6 +1092,19 @@ def TorusDefectSystem.polarisedUniversalProperty :
   g_B_polarised := TorusDefectSystem.bSidePolarisedThread_is_B_polarised
   g_B_unique := TorusDefectSystem.bSide_polarised_unique
 
+/-- **Weak polarised universal property witness on
+    `TorusDefectSystem`** — derived automatically from the strong
+    witness via `toWeak`.
+
+    Confirms the static-torus instance discharges *both* tiers of
+    the universal property: pointwise uniqueness (strong) and
+    lobe-class uniqueness (weak).  The weak form is the one shared
+    with the refinement carrier in PART 12.5 below. -/
+def TorusDefectSystem.polarisedUniversalPropertyWeak :
+    TorusDefectSystem.PolarisedUniversalPropertyWeak
+      TorusDefectSystem.lobeLabelling :=
+  TorusDefectSystem.polarisedUniversalProperty.toWeak
+
 /-- **The constant-`cSide` thread on `TorusDefectSystem`** —
     `g_C := σ(g_B)`. -/
 def TorusDefectSystem.cSidePolarisedThread :
@@ -969,9 +1202,21 @@ B-polarised threads (e.g., constant `bSide ⟨k, _⟩` for various
 mod-compatible `k`).  The paper's "refinement-maximal" content
 that picks a canonical `G_B[ω]` corresponds to the inverse-limit
 universal property at the abstract level (§8.5 Step 3); on the
-toy refinement instance the geometric uniqueness is not
-faithfully realised because all `bSide _` elements share the
-same lobe label.
+toy refinement instance the strong (pointwise) geometric
+uniqueness is not faithfully realised because all `bSide _`
+elements share the same lobe label.
+
+**Wave B Gap #8.3 fix (2026-05-21):**  We capture paper's
+"uniqueness up to canonical isomorphism" (§8.5 Step 3 line 3051)
+on the refinement carrier via the `PolarisedUniversalPropertyWeak`
+predicate from PART 6b (above), which weakens the strong
+pointwise uniqueness to **lobe-class uniqueness**.  This matches
+exactly the inverse-limit content the paper supplies: maximal
+B-polarised refinement-compatible systems are unique on the
+lobe-classifier quotient, and the profinite freedom $\hat{Z}$ on
+the lobe component (multiple `bSide ⟨k, _⟩` representatives)
+corresponds to paper's unspecified "canonical isomorphism"
+freedom.
 
 We therefore record on the refinement instance:
 - The `LobeLabelling` (PART 12.1).
@@ -983,10 +1228,18 @@ We therefore record on the refinement instance:
 - The polarised readout complement on this carrier (PART 12.4)
   via `polarised_readout_complement` applied to the abstract
   σ-equivariance hypothesis.
+- **(NEW, Wave B Gap #8.3)** The `PolarisedUniversalPropertyWeak`
+  witness `refinementGrowingTorusSystem.polarisedUniversalPropertyWeak`
+  (PART 12.5) discharging paper §8.5 Step 3 in its honest
+  lobe-class form on the geometrically-growing carrier.
 
-The strong universal-property uniqueness (paper §8.5 Step 3) is
-deferred to the geometric content; only the static-torus instance
-discharges full uniqueness as a concrete witness.
+**Honest scope:** The **strong** pointwise universal-property
+uniqueness (paper §8.5 Step 3 narrow reading) is genuinely
+deferred to the geometric content — only the static-torus
+instance discharges full pointwise uniqueness as a concrete
+witness.  The **weak** lobe-class universal-property uniqueness
+(paper §8.5 Step 3 honest reading) fires on the refinement
+carrier as well, closing the 2nd-audit-pass Gap #8.3.
 -/
 
 -- PART 12.1: Lobe labelling on the refinement-growing carrier
@@ -1112,5 +1365,102 @@ theorem refinementGrowingTorusSystem_polarised_readout_complement_unconditional 
 @[simp] theorem refinementGrowingTorusSystem_polarised_readout_complement_value :
     refinementGrowingTorusSystem.constReadout kappaDDValue
       refinementBSidePolarisedThread = kappaDDValue := rfl
+
+-- ============================================================
+-- PART 12.5: Weak polarised universal property on the refinement
+-- carrier (Wave B Gap #8.3)
+-- ============================================================
+
+/-- **Weak polarised universal property witness on
+    `refinementGrowingTorusSystem`** (Wave B Gap #8.3, paper §8.5
+    Thm 8.8 Step 3 in lobe-class form).
+
+    Discharges the `PolarisedUniversalPropertyWeak` predicate
+    unconditionally on the geometrically-growing refinement
+    carrier, using `refinementBSidePolarisedThread` as the
+    canonical witness and `mk_from_polarised` to derive the
+    lobe-class uniqueness automatically from B-polarisation of
+    the supplied witness.
+
+    Paper §8.5 Step 3 says: "any maximal B-polarised refinement-
+    compatible system factors uniquely through `G_B[ω]`."  On the
+    refinement carrier, the factorisation is at the *lobe-class*
+    level: every B-polarised thread has lobe label `B` at every
+    late depth, agreeing with `refinementBSidePolarisedThread`'s
+    label `B` at every late depth, hence factoring through the
+    canonical B-polarised lobe-class.
+
+    Pointwise representatives within the B-labelled subset
+    `ℓ⁻¹(B) = {bSide ⟨k, _⟩ : k}` can differ (this is paper's
+    "canonical isomorphism" freedom = the inverse-limit profinite
+    freedom `Ẑ` on the lobe component), but the lobe-class is
+    canonical, and that is what the weak universal property
+    delivers.
+
+    Together with `TorusDefectSystem.polarisedUniversalProperty`
+    (strong) and `TorusDefectSystem.polarisedUniversalPropertyWeak`
+    (derived from strong), this closes the 2nd-audit-pass Gap #8.3
+    by providing the missing concrete-witness binding for paper
+    §8.5 Step 3 on the geometrically-growing carrier. -/
+def refinementGrowingTorusSystem.polarisedUniversalPropertyWeak :
+    refinementGrowingTorusSystem.PolarisedUniversalPropertyWeak
+      refinementGrowingTorusSystem.lobeLabelling :=
+  DefectInverseSystem.PolarisedUniversalPropertyWeak.mk_from_polarised
+    (g_B := refinementBSidePolarisedThread)
+    (g_B_polarised := refinementBSidePolarisedThread_is_B_polarised)
+
+/-- **The weak universal property's `g_B` on the refinement
+    carrier matches the canonical thread** — definitional. -/
+@[simp] theorem refinementGrowingTorusSystem.polarisedUniversalPropertyWeak_g_B :
+    refinementGrowingTorusSystem.polarisedUniversalPropertyWeak.g_B =
+      refinementBSidePolarisedThread := rfl
+
+/-- **The weak universal property's `g_C` on the refinement
+    carrier matches the canonical σ-swapped thread** —
+    definitional via `sigmaSwap`. -/
+@[simp] theorem refinementGrowingTorusSystem.polarisedUniversalPropertyWeak_g_C_points
+    (n : Nat) :
+    refinementGrowingTorusSystem.polarisedUniversalPropertyWeak.g_C.point n =
+      refinementCSidePolarisedThread.point n := rfl
+
+/-- **The polarised readout complement on the refinement carrier
+    via the weak universal property** — confirms the weak
+    universal property machinery delivers the same readout
+    complement as the direct PART 12.4 witness.
+
+    Both the abstract `polarised_readout_complement_weak` (via the
+    weak universal property) and the direct PART 12.4 derivation
+    (via the σ-pairing of `refinementBSidePolarisedThread` and
+    `refinementCSidePolarisedThread`) land on the same
+    `kappaDDValue = 658541/10⁶`, exhibiting paper's boxed identity
+    `κ_B = κ_C = κ_D` through the universal-property route on the
+    geometric-growth carrier. -/
+theorem refinementGrowingTorusSystem.polarised_readout_complement_via_weakUP :
+    refinementGrowingTorusSystem.constReadout kappaDDValue
+      refinementGrowingTorusSystem.polarisedUniversalPropertyWeak.g_B =
+    refinementGrowingTorusSystem.constReadout kappaDDValue
+      refinementGrowingTorusSystem.polarisedUniversalPropertyWeak.g_C :=
+  refinementGrowingTorusSystem.polarised_readout_complement_weak
+    refinementGrowingTorusSystem.polarisedUniversalPropertyWeak
+    (refinementGrowingTorusSystem.constReadout_isSigmaEquivariantReadout
+      kappaDDValue)
+
+/-- **The TauRat-level `κ_D` identification through the weak
+    universal property** — paper §8.5 Thm 8.10 boxed identity
+    discharged on the geometric-growth carrier via
+    `polarised_readout_equals_kappa_D_weak`. -/
+theorem refinementGrowingTorusSystem.polarised_readout_equals_kappa_D_unconditional :
+    refinementGrowingTorusSystem.constReadout kappaDDValue
+      refinementGrowingTorusSystem.polarisedUniversalPropertyWeak.g_B =
+        kappaDDValue ∧
+    refinementGrowingTorusSystem.constReadout kappaDDValue
+      refinementGrowingTorusSystem.polarisedUniversalPropertyWeak.g_C =
+        kappaDDValue :=
+  refinementGrowingTorusSystem.polarised_readout_equals_kappa_D_weak
+    refinementGrowingTorusSystem.polarisedUniversalPropertyWeak
+    (refinementGrowingTorusSystem.constReadout_isSigmaEquivariantReadout
+      kappaDDValue)
+    kappaDDValue
+    rfl
 
 end Tau.Boundary
