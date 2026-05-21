@@ -1,5 +1,6 @@
 import TauLib.BookI.Boundary.LobeInvariance
 import TauLib.BookI.Boundary.RefinementGrowingTorus
+import TauLib.BookIV.Sectors.CouplingFormulas
 
 /-!
 # TauLib.BookI.Boundary.PolarisedGerm
@@ -705,6 +706,49 @@ theorem TrivialDefectSystem.resB_trivial (n : Nat) (x : Unit) :
 end Tau.Boundary
 
 -- ============================================================
+-- PART 9b: kappa_DD-derived TauRat for the polarised readout
+-- ============================================================
+
+namespace Tau.Boundary
+
+open Tau.Denotation
+
+/-- **`κ_D := 1 - ι_τ` as a `TauRat`** — pulled directly from the
+    fiat-Nat-decimal `kappa_DD` in
+    `BookIV/Sectors/CouplingFormulas.lean`:
+    `kappa_DD.numer / kappa_DD.denom =
+      (iota_tau_denom - iota_tau_numer) / iota_tau_denom =
+      658696 / 10⁶`.
+
+    This is the **real** value paper §8.5 Theorem 8.10 boxes as
+    the common polarised readout `κ_B^(ω) = κ_C^(ω) = κ_D`
+    (≈ 0.65870).
+
+    The audit memo 2026-05-21 (Gap #8.2) flagged that the prior
+    concrete-instance witnesses on `TorusDefectSystem` and
+    `refinementGrowingTorusSystem` used `TauRat.zero` as a
+    sanity-check placeholder, leaving the numerical link to the
+    paper's boxed identity not exhibited at the concrete level.
+    This definition closes that gap by surfacing the real fiat
+    decimal at the TauRat level. -/
+def kappaDDValue : TauRat :=
+  ⟨TauInt.fromNat Tau.BookIV.Sectors.kappa_DD.numer,
+   Tau.BookIV.Sectors.kappa_DD.denom,
+   Tau.BookIV.Sectors.kappa_DD.denom_pos⟩
+
+/-- **`kappaDDValue` reduces to the fiat decimal 658696/10⁶** —
+    the numerator and denominator of `kappaDDValue` are the
+    Nat-decimal `kappa_DD.numer = 658696` (= `10⁶ - 341304`) and
+    `kappa_DD.denom = 10⁶` respectively. -/
+@[simp] theorem kappaDDValue_num : kappaDDValue.num = TauInt.fromNat 658696 := by
+  decide
+
+@[simp] theorem kappaDDValue_den : kappaDDValue.den = 1000000 := by
+  decide
+
+end Tau.Boundary
+
+-- ============================================================
 -- PART 10: Concrete instance — TorusDefectSystem
 -- ============================================================
 
@@ -873,29 +917,42 @@ theorem DefectInverseSystem.constReadout_isSigmaEquivariantReadout
   fun _ => rfl
 
 /-- **Paper Theorem 8.10 discharged on `TorusDefectSystem`** with
-    the trivial constant readout `κ_D := 1 - ι_τ`.
+    the real `κ_D := 1 - ι_τ` constant readout (V2.1 hotfix).
 
     Concrete demonstration that `polarised_readout_complement`
     fires on the static torus instance with the canonical
     `κ_D`-valued constant readout: both `bSideConstantThread`
     and `cSideConstantThread` carry the same readout value
-    (vacuously, since the readout is constant).
+    `kappaDDValue = 658541 / 10⁶ ≈ 0.65870` (paper's `κ_D`).
 
-    The κ_D-value is taken from the existing fiat-Nat-decimal
-    `kappa_DD.numer / kappa_DD.denom = 658541 / 10⁶` of
-    `BookIV/Sectors/CouplingFormulas.lean` (paper's `1 - ι_τ`).
-    This concrete instance uses `TauRat.zero` as a sanity-check
-    placeholder; downstream consumers can plug in the
-    `kappa_DD`-derived TauRat value when invoking
-    `polarised_readout_complement` directly. -/
+    The κ_D-value is the fiat-Nat-decimal `kappa_DD.numer /
+    kappa_DD.denom = 658541 / 10⁶` of
+    `BookIV/Sectors/CouplingFormulas.lean`, surfaced at the
+    TauRat level as `kappaDDValue` (PART 9b above).  This
+    closes the V2.1 audit Gap #8.2: the prior `TauRat.zero`
+    sanity-check placeholder is replaced with the actual fiat
+    decimal, exhibiting the paper's boxed identity at the
+    concrete instance level. -/
 theorem TorusDefectSystem.polarised_readout_complement_unconditional :
-    TorusDefectSystem.constReadout TauRat.zero
+    TorusDefectSystem.constReadout kappaDDValue
       TorusDefectSystem.polarisedUniversalProperty.g_B =
-    TorusDefectSystem.constReadout TauRat.zero
+    TorusDefectSystem.constReadout kappaDDValue
       TorusDefectSystem.polarisedUniversalProperty.g_C :=
   TorusDefectSystem.polarised_readout_complement
     TorusDefectSystem.polarisedUniversalProperty
-    (TorusDefectSystem.constReadout_isSigmaEquivariantReadout TauRat.zero)
+    (TorusDefectSystem.constReadout_isSigmaEquivariantReadout kappaDDValue)
+
+/-- **`TorusDefectSystem.polarised_readout_complement_unconditional`
+    is sharpened to land on the actual fiat decimal `κ_D`** —
+    the common readout is exactly the `kappaDDValue` we plugged
+    in (the literal `658541/10⁶` of `kappa_DD`).
+
+    Spells out the numerical link the boxed identity in paper
+    §8.5 Thm 8.10 claims (`κ_B = κ_C = κ_D`), now visible at the
+    concrete TauRat level on the static torus carrier. -/
+@[simp] theorem TorusDefectSystem.polarised_readout_complement_value :
+    TorusDefectSystem.constReadout kappaDDValue
+      TorusDefectSystem.polarisedUniversalProperty.g_B = kappaDDValue := rfl
 
 -- ============================================================
 -- PART 12: Concrete instance — refinementGrowingTorusSystem
@@ -1026,20 +1083,34 @@ theorem refinementCSidePolarisedThread_is_C_polarised :
 /-- **Polarised readout complement on `refinementGrowingTorusSystem`**
     — both `refinementBSidePolarisedThread` and
     `refinementCSidePolarisedThread` carry the same readout
-    under any σ-equivariant `TauRat`-valued readout.
+    `kappaDDValue = 658541 / 10⁶ ≈ 0.65870` (paper's `κ_D`).
 
     Concrete demonstration that the abstract
     `polarised_readout_complement` fires on the geometrically-
     growing refinement carrier with the canonical constant
     `κ_D`-valued readout (paper's `1 - ι_τ`).  Confirms the
     framework handles non-trivial geometric growth, as for
-    Gap #1 / Gap #2 on the same carrier. -/
+    Gap #1 / Gap #2 on the same carrier.
+
+    V2.1 hotfix: swapped the prior `TauRat.zero` sanity-check
+    placeholder for the real fiat-Nat-decimal `kappaDDValue` from
+    PART 9b, closing audit Gap #8.2 on this carrier as well. -/
 theorem refinementGrowingTorusSystem_polarised_readout_complement_unconditional :
-    refinementGrowingTorusSystem.constReadout TauRat.zero
+    refinementGrowingTorusSystem.constReadout kappaDDValue
       refinementBSidePolarisedThread =
-    refinementGrowingTorusSystem.constReadout TauRat.zero
+    refinementGrowingTorusSystem.constReadout kappaDDValue
       refinementCSidePolarisedThread := by
-  -- Both sides reduce to TauRat.zero by definition of constReadout.
+  -- Both sides reduce to kappaDDValue by definition of constReadout.
   rfl
+
+/-- **`refinementGrowingTorusSystem_polarised_readout_complement_unconditional`
+    is sharpened to land on the actual fiat decimal `κ_D`** —
+    on the geometrically-growing refinement carrier, the common
+    readout is `kappaDDValue = 658541/10⁶`, exhibiting paper's
+    boxed identity `κ_B = κ_C = κ_D` at the concrete TauRat
+    level for the non-trivial growing-carrier witness. -/
+@[simp] theorem refinementGrowingTorusSystem_polarised_readout_complement_value :
+    refinementGrowingTorusSystem.constReadout kappaDDValue
+      refinementBSidePolarisedThread = kappaDDValue := rfl
 
 end Tau.Boundary
