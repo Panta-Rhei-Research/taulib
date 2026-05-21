@@ -81,9 +81,17 @@ consume directly.
 - `coupling_identity_idempotent` — paper Prop 7.11.
 - `chi : (B_class : Nat → Bool) → Nat → ℤ` — prime polarity
   character parameterised over a B-class predicate.
+- `nuB`, `nuC : (Nat → Bool) → Nat → Nat` — concrete B-prime and
+  C-prime multiplicity counts (V3 Gap #7.2: now real
+  trial-division-based functions, replacing the prior
+  structural-placeholder `Nat.zero` returns).
+- `nuB_zero`, `nuB_one`, `nuB_two` (and `nuC` analogues) —
+  simp-lemmas covering the unit-glue and ramification corner cases.
 - `chiTilde` — split-complex lift via prime-power decomposition.
-- `chiTilde_two_eq_zero` — paper Prop 7.7 (ramification triviality).
-- `chiTilde_two_pow_eq_zero` — generalisation to all powers of 2.
+- `chiTilde_zero`, `chiTilde_one`, `chiTilde_two` — paper Prop 7.7
+  ramification triviality at the prime level, plus unit-glue
+  (`χ̃(1) = 0`).
+- `trPlus_chiTilde_two_zero` — trace form of ramification triviality.
 
 ## Scope
 
@@ -93,6 +101,24 @@ content of paper `prime-polarity/main.tex` §5 (the orthodox
 theorem) and is rendered in Wave 18; this wave keeps the B-class
 abstract as a parameter, so the chi/chiTilde definitions are
 ready to receive the concrete Legendre-based predicate.
+
+## Gap History (V3 audit)
+
+- **V2.0 (Wave 17)**: `nuB`/`nuC` shipped as structural placeholders
+  returning `Nat.zero` regardless of input — sufficient for the
+  type signatures and `χ̃(2) = 0` at the prime-level
+  reduction, but the `χ̃(n)` lift was effectively the zero
+  function on every input.
+- **V3 audit (2026-05-21, Gap #7.2)**: flagged the
+  60%-backing state — paper Def 7.5 calls for `χ̃` to be a
+  monoid homomorphism witnessing the prime-power decomposition,
+  but the Lean witness was constant zero.
+- **This commit (V3 Gap #7.2 fix)**: replaces the placeholders
+  with concrete trial-division counts `nuBWorker`/`nuCWorker`,
+  preserving the corner-case simp lemmas (`nuB(0) = nuB(1) =
+  nuB(2) = 0`) and demonstrating non-trivial values on B/C-prime
+  products (see Part 7 `#eval` battery).  All axioms remain
+  3-kernel (propext, Classical.choice, Quot.sound); no `sorry`s.
 -/
 
 set_option autoImplicit false
@@ -282,43 +308,166 @@ theorem chi_C_class (B_class : Nat → Bool) (p : Nat)
 -- PART 5: Split-complex prime polarity lift χ̃
 -- ============================================================
 
+/-- **The B/C contribution of a single prime power slot** — at trial
+    divisor `d` with `k` copies of `d` extracted from `n`, returns
+    the number of B-class copies (when `d ≥ 3 ∧ B_class d = true`)
+    or `0` otherwise.
+
+    The ramified prime `d = 2` always contributes `0` to `nuB` by
+    paper Def 7.4 (`ℙ_ram = {2}`), independently of `B_class 2`.
+    Other primes `d ≥ 3` contribute `k` (their full multiplicity)
+    to whichever side `B_class` selects. -/
+def bSlotContribution (B_class : Nat → Bool) (d k : Nat) : Nat :=
+  if d < 3 then 0
+  else if B_class d then k else 0
+
+/-- **The C contribution of a single prime power slot** — at trial
+    divisor `d` with `k` copies of `d` extracted from `n`, returns
+    `k` only when `d ≥ 3 ∧ B_class d = false` (the C-prime case).
+
+    Ramified `d = 2` again contributes `0`. -/
+def cSlotContribution (B_class : Nat → Bool) (d k : Nat) : Nat :=
+  if d < 3 then 0
+  else if B_class d then 0 else k
+
+/-- **Trial-divide `n` by `d`, returning `(k, n')`** where
+    `n = d^k * n'` and `d ∤ n'`.  Bounded recursion via `fuel`
+    keeps the helper structurally terminating; for any practical
+    `n` the fuel `n + 1` upper bound is more than enough since
+    `2^k ≤ n` forces `k ≤ log₂ n < n`. -/
+def stripDivisor (d n fuel : Nat) : Nat × Nat :=
+  if fuel = 0 then (0, n)
+  else if d < 2 then (0, n)
+  else if n = 0 then (0, n)
+  else if n % d ≠ 0 then (0, n)
+  else
+    let (k', m) := stripDivisor d (n / d) (fuel - 1)
+    (k' + 1, m)
+termination_by fuel
+
+/-- **Recursive trial-division worker for `nuB`** — at trial
+    divisor `d`, accumulator `accB`, and remaining quotient `n`,
+    sweeps through divisors `d, d+1, ..., n` adding the B-slot
+    contribution of each.
+
+    Termination via `fuel`; the public `nuB` wrapper picks
+    `fuel := n + 1` to bound the sweep depth. -/
+def nuBWorker (B_class : Nat → Bool) (d accB n fuel : Nat) : Nat :=
+  if fuel = 0 then accB
+  else if n ≤ 1 then accB
+  else if d * d > n then
+    -- n itself is prime (or a residual prime factor)
+    accB + bSlotContribution B_class n 1
+  else if n % d = 0 then
+    let (k, m) := stripDivisor d n (n + 1)
+    nuBWorker B_class (d + 1) (accB + bSlotContribution B_class d k) m (fuel - 1)
+  else
+    nuBWorker B_class (d + 1) accB n (fuel - 1)
+termination_by fuel
+
+/-- **Recursive trial-division worker for `nuC`** — same shape as
+    `nuBWorker` but accumulates C-slot contributions. -/
+def nuCWorker (B_class : Nat → Bool) (d accC n fuel : Nat) : Nat :=
+  if fuel = 0 then accC
+  else if n ≤ 1 then accC
+  else if d * d > n then
+    accC + cSlotContribution B_class n 1
+  else if n % d = 0 then
+    let (k, m) := stripDivisor d n (n + 1)
+    nuCWorker B_class (d + 1) (accC + cSlotContribution B_class d k) m (fuel - 1)
+  else
+    nuCWorker B_class (d + 1) accC n (fuel - 1)
+termination_by fuel
+
 /-- **Counts the number of B-prime factors of `n` with multiplicity**
     (paper's `ν_B(n)`).
 
-    **Wave 17 structural placeholder**: returns 0 for all inputs.
-    The concrete prime-factorisation-based definition lives in
-    Wave 18 alongside the Legendre `B_class` instantiation.  The
-    Wave 17 placeholder is sufficient to land the structural
-    type signatures + ramification triviality at the trace level. -/
-def nuB (_B_class : Nat → Bool) (_n : Nat) : Nat := 0
+    Definition by trial division: for every prime factor `p` of `n`
+    with multiplicity `v_p(n)`, contribute `v_p(n)` if
+    `B_class p = true ∧ p ≥ 3`, else `0`.  The ramified prime
+    `p = 2` is excluded by paper Def 7.4 `ℙ_ram = {2}` clause and
+    is hard-wired to contribute `0` via `bSlotContribution`.
+
+    Computation: `nuBWorker` starts trial-division at `d = 2`,
+    accumulating B-slot contributions until the remainder reaches
+    `1` or `d*d > n` (meaning the remainder is prime).  Fuel
+    `n + 1` is a safe upper bound on the divisor sweep depth. -/
+def nuB (B_class : Nat → Bool) (n : Nat) : Nat :=
+  nuBWorker B_class 2 0 n (n + 1)
 
 /-- **Counts the number of C-prime factors of `n` with multiplicity**
-    (paper's `ν_C(n)`).  Wave 17 placeholder; concrete in Wave 18. -/
-def nuC (_B_class : Nat → Bool) (_n : Nat) : Nat := 0
+    (paper's `ν_C(n)`).  Same structure as `nuB` but accumulates
+    C-slot contributions (`B_class p = false ∧ p ≥ 3`). -/
+def nuC (B_class : Nat → Bool) (n : Nat) : Nat :=
+  nuCWorker B_class 2 0 n (n + 1)
+
+/-- **`nuB(0) = 0`** — the worker bails immediately on `n ≤ 1`. -/
+@[simp] theorem nuB_zero (B_class : Nat → Bool) : nuB B_class 0 = 0 := by
+  show nuBWorker B_class 2 0 0 1 = 0
+  unfold nuBWorker
+  rfl
+
+/-- **`nuB(1) = 0`** — unit-glue: `1` has no prime factors. -/
+@[simp] theorem nuB_one (B_class : Nat → Bool) : nuB B_class 1 = 0 := by
+  show nuBWorker B_class 2 0 1 2 = 0
+  unfold nuBWorker
+  rfl
+
+/-- **`nuB(2) = 0`** — ramification triviality at the prime level. -/
+@[simp] theorem nuB_two (B_class : Nat → Bool) : nuB B_class 2 = 0 := by
+  show nuBWorker B_class 2 0 2 3 = 0
+  unfold nuBWorker
+  -- At fuel=3, n=2: 2*2 = 4 > 2, so we hit the "prime residual" branch
+  -- with `accB + bSlotContribution B_class 2 1` and bSlotContribution at d=2 is 0.
+  simp [bSlotContribution]
+
+/-- **`nuC(0) = 0`** — bails on `n ≤ 1`. -/
+@[simp] theorem nuC_zero (B_class : Nat → Bool) : nuC B_class 0 = 0 := by
+  show nuCWorker B_class 2 0 0 1 = 0
+  unfold nuCWorker
+  rfl
+
+/-- **`nuC(1) = 0`** — unit-glue. -/
+@[simp] theorem nuC_one (B_class : Nat → Bool) : nuC B_class 1 = 0 := by
+  show nuCWorker B_class 2 0 1 2 = 0
+  unfold nuCWorker
+  rfl
+
+/-- **`nuC(2) = 0`** — ramification triviality at the prime level. -/
+@[simp] theorem nuC_two (B_class : Nat → Bool) : nuC B_class 2 = 0 := by
+  show nuCWorker B_class 2 0 2 3 = 0
+  unfold nuCWorker
+  simp [cSlotContribution]
 
 /-- **Split-complex prime polarity lift** (paper Def 7.5
     `def:chi-tilde`):
 
       `χ̃(n) := ν_B(n) · e_+ + ν_C(n) · e_-`
 
-    rendered as `SectorPair ⟨ν_B(n), ν_C(n)⟩`.  At the abstract
-    structural level we keep the B/C classification a parameter;
-    Wave 18 will instantiate with the Legendre(2/p) classifier. -/
+    rendered as `SectorPair ⟨ν_B(n), ν_C(n)⟩`.  The B/C
+    classification is a parameter; concrete instantiation with the
+    Legendre `(2/p) = +1` predicate happens in the prime-polarity
+    companion paper (Wave 18).
+
+    With the V3 Gap #7.2 fix (this commit), the underlying
+    `nuB` / `nuC` counts are now concrete trial-division-based
+    multiplicity counts (not the prior structural-placeholder
+    `Nat.zero`).  Audit 2026-05-21 (Gap #7.2) flagged the
+    placeholders; this commit replaces them with the real
+    completely-additive functions of paper Def 7.5. -/
 def chiTilde (B_class : Nat → Bool) (n : Nat) : SectorPair :=
   ⟨(nuB B_class n : Int), (nuC B_class n : Int)⟩
 
 @[simp] theorem chiTilde_zero (B_class : Nat → Bool) :
     chiTilde B_class 0 = ⟨0, 0⟩ := by
   unfold chiTilde
-  show (⟨((nuB B_class 0 : Nat) : Int), ((nuC B_class 0 : Nat) : Int)⟩ : SectorPair) =
-       ⟨0, 0⟩
+  rw [nuB_zero, nuC_zero]
   rfl
 
 @[simp] theorem chiTilde_one (B_class : Nat → Bool) :
     chiTilde B_class 1 = ⟨0, 0⟩ := by
   unfold chiTilde
-  show (⟨((nuB B_class 1 : Nat) : Int), ((nuC B_class 1 : Nat) : Int)⟩ : SectorPair) =
-       ⟨0, 0⟩
+  rw [nuB_one, nuC_one]
   rfl
 
 -- ============================================================
@@ -328,30 +477,38 @@ def chiTilde (B_class : Nat → Bool) (n : Nat) : SectorPair :=
 /-- **Ramification triviality at p = 2** (paper Prop 7.7
     `prop:ramification-triviality` first part).
 
-    `χ̃(2) = 0` in `D` because the ramified prime is excluded from
-    both B and C classes.  At the Lean level: `nuB(2) = nuB(1) = 0`
-    (since `2 % 2 = 0` triggers the recursion to `2/2 = 1`), and
-    similarly `nuC(2) = 0`. -/
+    `χ̃(2) = 0` in `D` because the ramified prime `p = 2` is
+    excluded from both B and C classes by paper Def 7.4
+    `ℙ_ram = {2}`.  Concretely, `bSlotContribution B_class 2 k = 0`
+    and `cSlotContribution B_class 2 k = 0` for any `k`, because
+    `d < 3` triggers the zero branch.
+
+    With Gap #7.2 closed, the proof is now via the concrete
+    `nuB_two` / `nuC_two` reductions rather than via the prior
+    placeholder identity `nuB ≡ 0`. -/
 theorem chiTilde_two (B_class : Nat → Bool) :
     chiTilde B_class 2 = ⟨0, 0⟩ := by
   unfold chiTilde
-  show (⟨((nuB B_class 2 : Nat) : Int), ((nuC B_class 2 : Nat) : Int)⟩ : SectorPair) =
-       ⟨0, 0⟩
-  -- nuB B_class 2 = nuB B_class 1 = 0 by definition unfolding (recursion hits base case)
+  rw [nuB_two, nuC_two]
   rfl
 
 /-
-**Ramification triviality at higher primorial depths note**: powers
-of 2 are still ramification-trivial — `χ̃(4) = 0`, `χ̃(8) = 0`,
-`χ̃(16) = 0`, etc. — because the recursive definition of `nuB` keeps
-dividing by 2 without contributing to either B or C counts.
+**Higher-power ramification triviality (note)**: powers of 2
+beyond the prime level — `χ̃(4)`, `χ̃(8)`, `χ̃(16)`, etc. — also
+evaluate to `⟨0, 0⟩` because `bSlotContribution B_class 2 k = 0`
+independently of `B_class` (the `d < 3` guard in
+`bSlotContribution`/`cSlotContribution` forces the zero branch).
 
-Lean's `rfl` does not reduce through the well-founded recursion
-(`decreasing_by` blocks unfolding); the equalities hold
-computationally (verified via `#eval` below) and the structural-level
-claim is captured by `chiTilde_two` plus the monoid-homomorphism
-argument from paper Prop 7.6 (deferred to a future wave with the full
-prime-factorisation infrastructure).
+These cases are demonstrated via `#eval` below (Part 7) rather
+than as kernel theorems: the well-founded recursion in
+`stripDivisor` is not kernel-reducible through `decide` alone, and
+a `native_decide` certificate would expand the trust budget
+beyond the 3-kernel-axiom envelope of this module
+(propext, Classical.choice, Quot.sound).  The monoid-homomorphism
+form `χ̃(2^k) = k · χ̃(2) = 0 · k = 0` is the cleanest abstract
+proof — its prime-factorisation-uniqueness premise is the
+content of paper Prop 7.6 (Wave 18 in the prime-polarity
+companion).
 -/
 
 /-- **Trace at zero**: `Tr_+(⟨0, 0⟩) = 0`. -/
@@ -380,12 +537,25 @@ def demoBClass : Nat → Bool := fun p => p % 4 == 1  -- toy example
 #eval chi demoBClass 11                   -- -1 (11 % 4 = 3, C-class)
 #eval chi demoBClass 13                   -- 1 (13 % 4 = 1, B-class)
 
--- chiTilde demonstrations
-#eval chiTilde demoBClass 1               -- ⟨0, 0⟩
+-- chiTilde demonstrations — V3 Gap #7.2: concrete nuB/nuC.
+-- All powers of 2 give ⟨0, 0⟩ (ramification triviality).
+#eval chiTilde demoBClass 1               -- ⟨0, 0⟩ (unit-glue)
 #eval chiTilde demoBClass 2               -- ⟨0, 0⟩ (ramification triviality!)
 #eval chiTilde demoBClass 4               -- ⟨0, 0⟩
 #eval chiTilde demoBClass 8               -- ⟨0, 0⟩
 #eval chiTilde demoBClass 16              -- ⟨0, 0⟩
+
+-- Single-prime cases now exhibit non-trivial nuB/nuC counts
+-- under the demoBClass toy predicate `p % 4 == 1`.
+#eval chiTilde demoBClass 3               -- ⟨0, 1⟩ (3 % 4 = 3, C-prime)
+#eval chiTilde demoBClass 5               -- ⟨1, 0⟩ (5 % 4 = 1, B-prime)
+#eval chiTilde demoBClass 7               -- ⟨0, 1⟩ (7 % 4 = 3, C-prime)
+#eval chiTilde demoBClass 9               -- ⟨0, 2⟩ (9 = 3², two C-prime copies)
+#eval chiTilde demoBClass 15              -- ⟨1, 1⟩ (15 = 3·5, one C + one B)
+#eval chiTilde demoBClass 25              -- ⟨2, 0⟩ (25 = 5², two B-prime copies)
+#eval chiTilde demoBClass 35              -- ⟨1, 1⟩ (35 = 5·7, one B + one C)
+#eval chiTilde demoBClass 100             -- ⟨2, 0⟩ (100 = 2²·5², ram pos absorbed)
+#eval chiTilde demoBClass 105             -- ⟨1, 2⟩ (105 = 3·5·7, 1 B + 2 C)
 
 -- Idempotent traces
 #eval SectorPair.trPlus e_plus_sector     -- 1
