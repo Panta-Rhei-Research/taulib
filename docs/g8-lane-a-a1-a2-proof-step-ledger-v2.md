@@ -131,6 +131,7 @@ A1.1 tau-native transfer and period corridor:
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12HilbertL2Readiness`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12TraceKirchhoffReadiness`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA13KirchhoffLaplacianConstruction`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA14BoundaryFormCancellation`
 
 A1.2 and later operator sources:
 
@@ -196,7 +197,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 | A1.1 | Construct `L = S1_B vee S1_C` as a compact metric graph. | Closed on the floor-normalized selected carrier route; old raw-carrier upgrade remains optional. | Continue A1.2 on the selected carrier route, or explicitly bridge the selected carrier to old `LemniscateCarrier` if needed by a downstream interface. |
 | A1.2 | Construct the Hilbert space and Sobolev/Kirchhoff domain. | Closed on the selected-carrier route: canonical graph measure, Hilbert/L2 readiness, Sobolev value/derivative trace readiness, crossing agreement closure, Kirchhoff derivative-balance closure, and selected `G8BookIIICh23FloorNormalizedA12HilbertDomainSource`. | Optional raw-carrier transfer remains open; otherwise proceed to A1.3 edgewise Kirchhoff graph Laplacian construction. |
 | A1.3 | Define `H_L = -d^2/dx^2` on the Kirchhoff domain. | Closed on the selected-carrier route: an edgewise H2/Kirchhoff operator-domain carrier, selected L2 output carrier, and exact projection law for `H_L` as the edgewise negative-second-derivative output. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.4/A1.5 evidence; proceed to boundary-form cancellation. |
-| A1.4 | Prove symmetry by boundary-form cancellation. | Proof surface. | Formalize integration by parts on both lobes and cancellation of Kirchhoff boundary terms. |
+| A1.4 | Prove symmetry by boundary-form cancellation. | Closed on the selected-carrier route: edgewise Green bookkeeping from A1.3 plus crossing value-trace cancellation and outgoing derivative-balance cancellation from A1.2 assemble the Kirchhoff boundary-form cancellation source. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.5 maximality evidence; proceed to maximal Kirchhoff self-adjoint extension. |
 | A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Proof surface. | Prove the Kirchhoff extension is maximal symmetric/self-adjoint for the compact graph. |
 | A1.6 | Prove compact resolvent and discrete point spectrum. | Proof surface. | Formalize compact Sobolev embedding/resolvent compactness and the discrete spectrum consequence. |
 | A1.7 | Package A1 as `LemniscateOperatorReady`. | Closed adapter. | Supplies A1 once A1.1-A1.6 are theorem-backed. |
@@ -206,14 +207,15 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 
 ## Remaining Obligations, Compressed
 
-The A1/A2 work now compresses to these live obligations:
+The selected-carrier A1/A2 work now compresses to these live obligations:
 
-1. Edgewise Kirchhoff graph Laplacian construction.
-2. Boundary-form cancellation.
-3. Maximal Kirchhoff self-adjointness.
-4. Compact resolvent and discrete point spectrum.
-5. Operator-native point-spectrum predicate identification.
-6. Self-adjoint eigenpair reality theorem.
+1. Maximal Kirchhoff self-adjointness.
+2. Compact resolvent and discrete point spectrum.
+3. Operator-native point-spectrum predicate identification.
+4. Self-adjoint point-spectrum reality.
+
+The older raw-carrier and bundled-source adapters may still need compatibility
+work, but they are no longer the load-bearing selected-carrier route.
 
 A1.7 and A2.10 are packaging steps and are not listed as open payloads here.
 
@@ -456,6 +458,28 @@ self-adjointness theorem, compact resolvent, or point-spectrum reality.  The
 older proof-map record `G8BookIIIKirchhoffLaplacianSource` remains bundled with
 A1.4/A1.5-style fields, so it should only be inhabited after those later
 operator-theoretic proofs are supplied.
+
+The A1.4 wave then closed the selected-carrier boundary-form cancellation
+layer:
+
+```text
+G8BookIIICh23FloorNormalizedA14ClosedSelectedA13Laplacian
+G8BookIIICh23FloorNormalizedA14EdgewiseGreenBookkeeping
+G8BookIIICh23FloorNormalizedA14CrossingValueTraceCancellation
+G8BookIIICh23FloorNormalizedA14OutgoingDerivativeCancellation
+G8BookIIICh23FloorNormalizedA14EndpointCancellationInput
+G8BookIIICh23FloorNormalizedA14BoundaryFormCancellation
+G8BookIIICh23FloorNormalizedA14KirchhoffSymmetryLaw
+G8BookIIICh23FloorNormalizedA14BoundaryFormCancellationSource
+g8BookIIICh23FloorNormalizedA14BoundaryFormCancellationTarget_closed
+```
+
+This is the selected-carrier A1.4 stone: the edgewise
+negative-second-derivative bookkeeping from A1.3 is now paired with the
+selected crossing value-trace closure and outgoing derivative-balance closure
+from A1.2, yielding the Kirchhoff boundary-form cancellation source.  It
+deliberately does not prove A1.5 maximality/self-adjointness, compact
+resolvent, or point-spectrum reality.
 
 ## Appendix: TauProfinite Compatibility Corridor
 
