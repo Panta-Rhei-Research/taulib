@@ -129,6 +129,7 @@ A1.1 tau-native transfer and period corridor:
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12FiniteLobeLengthLaw`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12GraphMeasureIdentification`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12HilbertL2Readiness`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12TraceKirchhoffReadiness`
 
 A1.2 and later operator sources:
 
@@ -192,7 +193,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 | Step | Proof-map obligation | Current status | What remains |
 | --- | --- | --- | --- |
 | A1.1 | Construct `L = S1_B vee S1_C` as a compact metric graph. | Closed on the floor-normalized selected carrier route; old raw-carrier upgrade remains optional. | Continue A1.2 on the selected carrier route, or explicitly bridge the selected carrier to old `LemniscateCarrier` if needed by a downstream interface. |
-| A1.2 | Construct the Hilbert space and Sobolev/Kirchhoff domain. | Selected-carrier proof surface landed; canonical graph-length profile, finite two-lobe length budget, plus/minus lobe agreement, crossing zero atom, exact selected graph-measure identification, and Hilbert/L2 readiness over the closed selected graph measure closed. | Prove Sobolev trace continuity, crossing closure, and Kirchhoff closure for `G8BookIIICh23FloorNormalizedA12HilbertDomainSource`; use the raw-carrier adapter only after exact raw transfer is supplied. |
+| A1.2 | Construct the Hilbert space and Sobolev/Kirchhoff domain. | Closed on the selected-carrier route: canonical graph measure, Hilbert/L2 readiness, Sobolev value/derivative trace readiness, crossing agreement closure, Kirchhoff derivative-balance closure, and selected `G8BookIIICh23FloorNormalizedA12HilbertDomainSource`. | Optional raw-carrier transfer remains open; otherwise proceed to A1.3 edgewise Kirchhoff graph Laplacian construction. |
 | A1.3 | Define `H_L = -d^2/dx^2` on the Kirchhoff domain. | Proof surface. | Formalize the edgewise graph Laplacian construction. |
 | A1.4 | Prove symmetry by boundary-form cancellation. | Proof surface. | Formalize integration by parts on both lobes and cancellation of Kirchhoff boundary terms. |
 | A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Proof surface. | Prove the Kirchhoff extension is maximal symmetric/self-adjoint for the compact graph. |
@@ -206,13 +207,12 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 
 The A1/A2 work now compresses to these live obligations:
 
-1. Sobolev trace continuity and Kirchhoff domain closure.
-2. Edgewise Kirchhoff graph Laplacian construction.
-3. Boundary-form cancellation.
-4. Maximal Kirchhoff self-adjointness.
-5. Compact resolvent and discrete point spectrum.
-6. Operator-native point-spectrum predicate identification.
-7. Self-adjoint eigenpair reality theorem.
+1. Edgewise Kirchhoff graph Laplacian construction.
+2. Boundary-form cancellation.
+3. Maximal Kirchhoff self-adjointness.
+4. Compact resolvent and discrete point spectrum.
+5. Operator-native point-spectrum predicate identification.
+6. Self-adjoint eigenpair reality theorem.
 
 A1.7 and A2.10 are packaging steps and are not listed as open payloads here.
 
@@ -228,13 +228,23 @@ selected graph-measure target
   -> quotient/completion readiness
 ```
 
-The next most useful theorem is now the selected-carrier trace/domain source:
+The selected-carrier trace/domain source is now closed:
 
 ```text
 selected Hilbert/L2 readiness
   -> Sobolev trace continuity
   -> Kirchhoff crossing closure
   -> Kirchhoff domain readiness
+```
+
+The next most useful theorem is now the edgewise Kirchhoff graph Laplacian
+construction:
+
+```text
+selected Hilbert/domain readiness
+  -> operator domain carrier
+  -> edgewise -d^2/dx^2 graph Laplacian
+  -> boundary-form bookkeeping surface
 ```
 
 A1.1 taught the main tactical rule for this next step: first build the
@@ -398,6 +408,29 @@ selected Hilbert/L2 readiness
   -> crossing agreement closure
   -> outgoing derivative/Kirchhoff balance closure
 ```
+
+The trace/Kirchhoff readiness wave then closed the selected-carrier A1.2
+domain package:
+
+```text
+G8BookIIICh23FloorNormalizedA12ClosedSelectedHilbertReadiness
+G8BookIIICh23FloorNormalizedA12ValueTraceDefined
+G8BookIIICh23FloorNormalizedA12ValueTraceContinuous
+G8BookIIICh23FloorNormalizedA12DerivativeTraceDefined
+G8BookIIICh23FloorNormalizedA12DerivativeTraceContinuous
+G8BookIIICh23FloorNormalizedA12SobolevTraceReadiness
+g8BookIIICh23FloorNormalizedA12TraceReadinessTarget_closed
+G8BookIIICh23FloorNormalizedA12CrossingAgreementClosed
+G8BookIIICh23FloorNormalizedA12KirchhoffConditionClosed
+G8BookIIICh23FloorNormalizedA12CrossingClosureFromBasepointTrace
+G8BookIIICh23FloorNormalizedA12KirchhoffClosureFromOutgoingDerivativeBalance
+g8BookIIICh23FloorNormalizedA12KirchhoffDomainTarget_closed
+g8BookIIICh23FloorNormalizedA12HilbertDomainSourceTarget_closed
+```
+
+This closes A1.2 for the selected floor-normalized Ch.23 carrier.  It still
+does not construct the edgewise graph Laplacian or prove self-adjointness; that
+is the A1.3-A1.5 operator-theory stack.
 
 ## Appendix: TauProfinite Compatibility Corridor
 
