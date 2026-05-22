@@ -132,6 +132,7 @@ A1.1 tau-native transfer and period corridor:
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12TraceKirchhoffReadiness`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA13KirchhoffLaplacianConstruction`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA14BoundaryFormCancellation`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15MaximalKirchhoffSelfAdjointExtension`
 
 A1.2 and later operator sources:
 
@@ -198,7 +199,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 | A1.2 | Construct the Hilbert space and Sobolev/Kirchhoff domain. | Closed on the selected-carrier route: canonical graph measure, Hilbert/L2 readiness, Sobolev value/derivative trace readiness, crossing agreement closure, Kirchhoff derivative-balance closure, and selected `G8BookIIICh23FloorNormalizedA12HilbertDomainSource`. | Optional raw-carrier transfer remains open; otherwise proceed to A1.3 edgewise Kirchhoff graph Laplacian construction. |
 | A1.3 | Define `H_L = -d^2/dx^2` on the Kirchhoff domain. | Closed on the selected-carrier route: an edgewise H2/Kirchhoff operator-domain carrier, selected L2 output carrier, and exact projection law for `H_L` as the edgewise negative-second-derivative output. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.4/A1.5 evidence; proceed to boundary-form cancellation. |
 | A1.4 | Prove symmetry by boundary-form cancellation. | Closed on the selected-carrier route: edgewise Green bookkeeping from A1.3 plus crossing value-trace cancellation and outgoing derivative-balance cancellation from A1.2 assemble the Kirchhoff boundary-form cancellation source. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.5 maximality evidence; proceed to maximal Kirchhoff self-adjoint extension. |
-| A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Proof surface. | Prove the Kirchhoff extension is maximal symmetric/self-adjoint for the compact graph. |
+| A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Exact selected-carrier proof surface: A1.4 symmetry is closed, and the adapter from adjoint-domain exhaustion to maximal Kirchhoff self-adjointness is theorem-backed. | Prove the load-bearing adjoint-domain trace classification/exhaustion theorem for the compact Kirchhoff graph. |
 | A1.6 | Prove compact resolvent and discrete point spectrum. | Proof surface. | Formalize compact Sobolev embedding/resolvent compactness and the discrete spectrum consequence. |
 | A1.7 | Package A1 as `LemniscateOperatorReady`. | Closed adapter. | Supplies A1 once A1.1-A1.6 are theorem-backed. |
 | A2.8 | Define the operator-native analytic point-spectrum predicate. | Proof surface. | Tie the eigenpair predicate to the actual ready operator's analytic point spectrum. |
@@ -209,7 +210,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 
 The selected-carrier A1/A2 work now compresses to these live obligations:
 
-1. Maximal Kirchhoff self-adjointness.
+1. Adjoint-domain trace classification/exhaustion for A1.5 maximality.
 2. Compact resolvent and discrete point spectrum.
 3. Operator-native point-spectrum predicate identification.
 4. Self-adjoint point-spectrum reality.
@@ -221,42 +222,30 @@ A1.7 and A2.10 are packaging steps and are not listed as open payloads here.
 
 ## Best Next Milestone
 
-The selected-carrier Hilbert/L2 readiness source is now closed:
+The selected-carrier operator stack is now:
 
 ```text
-floor-normalized compact metric graph
-selected graph-measure target
-  -> L2/Hilbert readiness
-  -> inner-product compatibility with graph length
-  -> quotient/completion readiness
+A1.1 compact floor-normalized graph
+  -> A1.2 Hilbert/Sobolev/Kirchhoff domain
+  -> A1.3 edgewise -d^2/dx^2 graph Laplacian
+  -> A1.4 boundary-form cancellation / symmetry
+  -> A1.5 adjoint-domain exhaustion target
 ```
 
-The selected-carrier trace/domain source is now closed:
+The next most useful theorem is now the A1.5 adjoint-domain exhaustion
+theorem:
 
 ```text
-selected Hilbert/L2 readiness
-  -> Sobolev trace continuity
-  -> Kirchhoff crossing closure
-  -> Kirchhoff domain readiness
+closed selected A1.4 symmetry
+  -> adjoint boundary traces exist
+  -> adjoint traces satisfy crossing agreement and Kirchhoff balance
+  -> adjoint domain equals the Kirchhoff domain
+  -> maximal Kirchhoff self-adjoint extension
 ```
 
-The next most useful theorem is now the edgewise Kirchhoff graph Laplacian
-construction:
-
-```text
-selected Hilbert/domain readiness
-  -> operator domain carrier
-  -> edgewise -d^2/dx^2 graph Laplacian
-  -> boundary-form bookkeeping surface
-```
-
-A1.1 taught the main tactical rule for this next step: first build the
-selected Ch.23 object with exact proof fields, then add an optional adapter
-back to older raw carriers only if a downstream interface truly needs it.
-For A1.2 that means using
-`G8BookIIICh23FloorNormalizedA11CompactGraphRoute` as the source truth and
-building Hilbert/domain readiness directly over the selected floor-normalized
-two-lobe graph.
+The key discipline remains the same: first prove the selected Ch.23 operator
+fact with exact proof fields, then add compatibility adapters to older raw
+carriers only if a downstream interface truly needs them.
 
 The revised A1.2 implementation path is:
 
@@ -480,6 +469,27 @@ selected crossing value-trace closure and outgoing derivative-balance closure
 from A1.2, yielding the Kirchhoff boundary-form cancellation source.  It
 deliberately does not prove A1.5 maximality/self-adjointness, compact
 resolvent, or point-spectrum reality.
+
+The A1.5 wave then surfaced the exact maximality/self-adjointness hinge:
+
+```text
+G8BookIIICh23FloorNormalizedA15ClosedSelectedA14Cancellation
+G8BookIIICh23FloorNormalizedA15KirchhoffSymmetricOperator
+G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionInput
+G8BookIIICh23FloorNormalizedA15NoProperSymmetricExtension
+G8BookIIICh23FloorNormalizedA15MaximalKirchhoffExtension
+G8BookIIICh23FloorNormalizedA15SelfAdjointnessFromMaximality
+G8BookIIICh23FloorNormalizedA15MaximalKirchhoffSelfAdjointExtensionSource
+g8BookIIICh23FloorNormalizedA15MaximalKirchhoffSelfAdjointExtensionTarget_ofAdjointDomainExhaustion
+```
+
+This is the selected-carrier A1.5 proof surface: closed A1.4 symmetry is now
+wired to maximal self-adjointness through one exact input,
+`G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionInput`.  The remaining
+mathematical payload is the compact-graph adjoint trace classification proving
+that the adjoint domain is exactly the Kirchhoff domain.  A1.5 still does not
+prove compact resolvent, discrete point spectrum, or A2 point-spectrum
+reality.
 
 ## Appendix: TauProfinite Compatibility Corridor
 
