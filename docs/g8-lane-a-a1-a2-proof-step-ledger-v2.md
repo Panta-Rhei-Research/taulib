@@ -139,6 +139,7 @@ A1.1 tau-native transfer and period corridor:
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointAnalyticLawKernel`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15CompactGraphAdjointCalculus`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointCalculusEngine`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15Type1PresentationEngine`
 
 A1.2 and later operator sources:
 
@@ -205,7 +206,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 | A1.2 | Construct the Hilbert space and Sobolev/Kirchhoff domain. | Closed on the selected-carrier route: canonical graph measure, Hilbert/L2 readiness, Sobolev value/derivative trace readiness, crossing agreement closure, Kirchhoff derivative-balance closure, and selected `G8BookIIICh23FloorNormalizedA12HilbertDomainSource`. | Optional raw-carrier transfer remains open; otherwise proceed to A1.3 edgewise Kirchhoff graph Laplacian construction. |
 | A1.3 | Define `H_L = -d^2/dx^2` on the Kirchhoff domain. | Closed on the selected-carrier route: an edgewise H2/Kirchhoff operator-domain carrier, selected L2 output carrier, and exact projection law for `H_L` as the edgewise negative-second-derivative output. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.4/A1.5 evidence; proceed to boundary-form cancellation. |
 | A1.4 | Prove symmetry by boundary-form cancellation. | Closed on the selected-carrier route: edgewise Green bookkeeping from A1.3 plus crossing value-trace cancellation and outgoing derivative-balance cancellation from A1.2 assemble the Kirchhoff boundary-form cancellation source. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.5 maximality evidence; proceed to maximal Kirchhoff self-adjoint extension. |
-| A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Exact selected-carrier proof surface: A1.4 symmetry gives the forward adjoint-domain inclusion; selected A1.2 trace readiness and selected A1.4 Green bookkeeping now feed the graph-H2 trace-recovery and adjoint Green-identity source layer; the analytic-law kernel and compact-graph adjoint calculus source prove both opening reverse-inclusion stones once the true adjoint-domain universe is supplied. The concrete adjoint-calculus engine now forces pointwise regularity/Green witnesses through selected A1.3 representatives, not arbitrary predicates. | Construct `G8BookIIICh23FloorNormalizedA15AdjointCalculusEngineSource` by giving Type-1 presentations of the full adjoint domain and exhaustive Kirchhoff tests over the selected A1.3 domain, then force crossing agreement, Kirchhoff balance, maximal boundary, and graph-H2 regularity recovery. |
+| A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Exact selected-carrier proof surface: A1.4 symmetry gives the forward adjoint-domain inclusion; selected A1.2 trace readiness and selected A1.4 Green bookkeeping now feed the graph-H2 trace-recovery and adjoint Green-identity source layer; the analytic-law kernel and compact-graph adjoint calculus source prove both opening reverse-inclusion stones once the true adjoint-domain universe is supplied. The concrete adjoint-calculus engine now forces pointwise regularity/Green witnesses through selected A1.3 representatives, not arbitrary predicates. The Type-1 presentation layer now closes the Kirchhoff-test side from an exhaustive small presentation and reduces the candidate side to reverse inclusion plus the same small-presentation theorem. | Construct `G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationSource`: a Type-1 exhaustive presentation of the selected Kirchhoff domain, together with reverse adjoint-domain inclusion and non-diagnostic provenance; then force crossing agreement, Kirchhoff balance, maximal boundary, and graph-H2 regularity recovery. |
 | A1.6 | Prove compact resolvent and discrete point spectrum. | Proof surface. | Formalize compact Sobolev embedding/resolvent compactness and the discrete spectrum consequence. |
 | A1.7 | Package A1 as `LemniscateOperatorReady`. | Closed adapter. | Supplies A1 once A1.1-A1.6 are theorem-backed. |
 | A2.8 | Define the operator-native analytic point-spectrum predicate. | Proof surface. | Tie the eigenpair predicate to the actual ready operator's analytic point spectrum. |
@@ -216,7 +217,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 
 The selected-carrier A1/A2 work now compresses to these live obligations:
 
-1. Concrete adjoint-calculus engine source for A1.5 maximality, followed by the remaining reverse-inclusion boundary consequences.
+1. Type-1 adjoint-domain presentation source for A1.5 maximality, followed by the remaining reverse-inclusion boundary consequences.
 2. Compact resolvent and discrete point spectrum.
 3. Operator-native point-spectrum predicate identification.
 4. Self-adjoint point-spectrum reality.
@@ -619,6 +620,40 @@ Green/boundary-form cancellation now supply the pointwise regularity and
 Green fields.  The remaining mathematical theorem is narrower: construct the
 two presentations themselves, proving that they represent the full adjoint
 domain and all Kirchhoff tests and are not finite diagnostic substitutes.
+
+The next presentation layer exposes the universe-level content of that
+theorem.  The selected Kirchhoff operator-domain carrier is `Type 2`, since
+each element carries a `Type 1` function carrier.  The A1.5 engine therefore
+cannot honestly use the selected carrier itself as the engine's `Type 1`
+candidate/test universe.  It needs a small presentation:
+
+```text
+G8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1Presentation
+G8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1PresentationTarget
+G8BookIIICh23FloorNormalizedA15Type1PresentationExhaustsSelectedKirchhoffDomain
+G8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1Presentation.toKirchhoffTestPresentation
+G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationSource
+G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationTarget
+G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationSource.toAdjointCandidatePresentation
+G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationSource.toAdjointCalculusEngineSource
+g8BookIIICh23FloorNormalizedA15AdjointCalculusEngineTarget_ofType1Presentation
+g8BookIIICh23FloorNormalizedA15TwoAnalyticLawTargets_ofType1Presentation
+```
+
+This discharges the test-presentation adapter from an exhaustive small
+presentation and identifies the candidate-presentation side precisely:
+
+```text
+Type-1 exhaustive selected Kirchhoff presentation
+  + reverse adjoint-domain inclusion
+  + graph-H2 recovery/non-diagnostic provenance
+  -> concrete A1.5 adjoint-calculus engine source
+```
+
+The next real proof target is now the small presentation plus reverse
+inclusion package `G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationSource`.
+It is not a finite diagnostic object; it must give a Type-1 carrier whose
+realization map exhausts every selected A1.3 Kirchhoff-domain representative.
 
 ## Appendix: TauProfinite Compatibility Corridor
 
