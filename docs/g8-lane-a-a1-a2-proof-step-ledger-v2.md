@@ -130,6 +130,7 @@ A1.1 tau-native transfer and period corridor:
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12GraphMeasureIdentification`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12HilbertL2Readiness`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12TraceKirchhoffReadiness`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA13KirchhoffLaplacianConstruction`
 
 A1.2 and later operator sources:
 
@@ -194,7 +195,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 | --- | --- | --- | --- |
 | A1.1 | Construct `L = S1_B vee S1_C` as a compact metric graph. | Closed on the floor-normalized selected carrier route; old raw-carrier upgrade remains optional. | Continue A1.2 on the selected carrier route, or explicitly bridge the selected carrier to old `LemniscateCarrier` if needed by a downstream interface. |
 | A1.2 | Construct the Hilbert space and Sobolev/Kirchhoff domain. | Closed on the selected-carrier route: canonical graph measure, Hilbert/L2 readiness, Sobolev value/derivative trace readiness, crossing agreement closure, Kirchhoff derivative-balance closure, and selected `G8BookIIICh23FloorNormalizedA12HilbertDomainSource`. | Optional raw-carrier transfer remains open; otherwise proceed to A1.3 edgewise Kirchhoff graph Laplacian construction. |
-| A1.3 | Define `H_L = -d^2/dx^2` on the Kirchhoff domain. | Proof surface. | Formalize the edgewise graph Laplacian construction. |
+| A1.3 | Define `H_L = -d^2/dx^2` on the Kirchhoff domain. | Closed on the selected-carrier route: an edgewise H2/Kirchhoff operator-domain carrier, selected L2 output carrier, and exact projection law for `H_L` as the edgewise negative-second-derivative output. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.4/A1.5 evidence; proceed to boundary-form cancellation. |
 | A1.4 | Prove symmetry by boundary-form cancellation. | Proof surface. | Formalize integration by parts on both lobes and cancellation of Kirchhoff boundary terms. |
 | A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Proof surface. | Prove the Kirchhoff extension is maximal symmetric/self-adjoint for the compact graph. |
 | A1.6 | Prove compact resolvent and discrete point spectrum. | Proof surface. | Formalize compact Sobolev embedding/resolvent compactness and the discrete spectrum consequence. |
@@ -431,6 +432,30 @@ g8BookIIICh23FloorNormalizedA12HilbertDomainSourceTarget_closed
 This closes A1.2 for the selected floor-normalized Ch.23 carrier.  It still
 does not construct the edgewise graph Laplacian or prove self-adjointness; that
 is the A1.3-A1.5 operator-theory stack.
+
+The A1.3 construction wave then closed the selected-carrier graph-Laplacian
+construction layer:
+
+```text
+G8BookIIICh23FloorNormalizedA13ClosedSelectedHilbertDomain
+G8BookIIICh23FloorNormalizedA13EdgewiseH2KirchhoffDomainReady
+G8BookIIICh23FloorNormalizedA13L2Output
+G8BookIIICh23FloorNormalizedA13OperatorDomain
+g8BookIIICh23FloorNormalizedA13KirchhoffGraphLaplacian
+G8BookIIICh23FloorNormalizedA13EdgewiseNegativeSecondDerivativeLaw
+g8BookIIICh23FloorNormalizedA13KirchhoffGraphLaplacian_edgewiseLaw
+G8BookIIICh23FloorNormalizedA13KirchhoffLaplacianConstructionSource
+g8BookIIICh23FloorNormalizedA13KirchhoffLaplacianConstructionTarget_closed
+```
+
+This is the selected-carrier A1.3 stone: `H_L` is now a concrete projection
+from edgewise H2/Kirchhoff domain data to the assembled selected L2
+negative-second-derivative output.  It deliberately does not prove the A1.4
+boundary-form cancellation theorem, the A1.5 maximal Kirchhoff
+self-adjointness theorem, compact resolvent, or point-spectrum reality.  The
+older proof-map record `G8BookIIIKirchhoffLaplacianSource` remains bundled with
+A1.4/A1.5-style fields, so it should only be inhabited after those later
+operator-theoretic proofs are supplied.
 
 ## Appendix: TauProfinite Compatibility Corridor
 
