@@ -134,6 +134,11 @@ A1.1 tau-native transfer and period corridor:
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA14BoundaryFormCancellation`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15MaximalKirchhoffSelfAdjointExtension`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionProofStones`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointTraceAnnihilatorClassification`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointEquationGreenIdentity`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointAnalyticLawKernel`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15CompactGraphAdjointCalculus`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointCalculusEngine`
 
 A1.2 and later operator sources:
 
@@ -200,7 +205,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 | A1.2 | Construct the Hilbert space and Sobolev/Kirchhoff domain. | Closed on the selected-carrier route: canonical graph measure, Hilbert/L2 readiness, Sobolev value/derivative trace readiness, crossing agreement closure, Kirchhoff derivative-balance closure, and selected `G8BookIIICh23FloorNormalizedA12HilbertDomainSource`. | Optional raw-carrier transfer remains open; otherwise proceed to A1.3 edgewise Kirchhoff graph Laplacian construction. |
 | A1.3 | Define `H_L = -d^2/dx^2` on the Kirchhoff domain. | Closed on the selected-carrier route: an edgewise H2/Kirchhoff operator-domain carrier, selected L2 output carrier, and exact projection law for `H_L` as the edgewise negative-second-derivative output. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.4/A1.5 evidence; proceed to boundary-form cancellation. |
 | A1.4 | Prove symmetry by boundary-form cancellation. | Closed on the selected-carrier route: edgewise Green bookkeeping from A1.3 plus crossing value-trace cancellation and outgoing derivative-balance cancellation from A1.2 assemble the Kirchhoff boundary-form cancellation source. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.5 maximality evidence; proceed to maximal Kirchhoff self-adjoint extension. |
-| A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Exact selected-carrier proof surface: A1.4 symmetry gives the forward adjoint-domain inclusion, and the adapter from reverse inclusion plus maximal boundary evidence to maximal Kirchhoff self-adjointness is theorem-backed. | Prove the reverse adjoint-domain inclusion: adjoint trace existence, boundary-form annihilator classification, crossing agreement, Kirchhoff balance, and graph-H2 regularity recovery. |
+| A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Exact selected-carrier proof surface: A1.4 symmetry gives the forward adjoint-domain inclusion; selected A1.2 trace readiness and selected A1.4 Green bookkeeping now feed the graph-H2 trace-recovery and adjoint Green-identity source layer; the analytic-law kernel and compact-graph adjoint calculus source prove both opening reverse-inclusion stones once the true adjoint-domain universe is supplied. The concrete adjoint-calculus engine now forces pointwise regularity/Green witnesses through selected A1.3 representatives, not arbitrary predicates. | Construct `G8BookIIICh23FloorNormalizedA15AdjointCalculusEngineSource` by giving Type-1 presentations of the full adjoint domain and exhaustive Kirchhoff tests over the selected A1.3 domain, then force crossing agreement, Kirchhoff balance, maximal boundary, and graph-H2 regularity recovery. |
 | A1.6 | Prove compact resolvent and discrete point spectrum. | Proof surface. | Formalize compact Sobolev embedding/resolvent compactness and the discrete spectrum consequence. |
 | A1.7 | Package A1 as `LemniscateOperatorReady`. | Closed adapter. | Supplies A1 once A1.1-A1.6 are theorem-backed. |
 | A2.8 | Define the operator-native analytic point-spectrum predicate. | Proof surface. | Tie the eigenpair predicate to the actual ready operator's analytic point spectrum. |
@@ -211,7 +216,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 
 The selected-carrier A1/A2 work now compresses to these live obligations:
 
-1. Adjoint-domain trace classification/exhaustion for A1.5 maximality.
+1. Concrete adjoint-calculus engine source for A1.5 maximality, followed by the remaining reverse-inclusion boundary consequences.
 2. Compact resolvent and discrete point spectrum.
 3. Operator-native point-spectrum predicate identification.
 4. Self-adjoint point-spectrum reality.
@@ -512,6 +517,108 @@ A1.5 work is the reverse inclusion: recover adjoint traces, classify the
 boundary-form annihilator, force crossing agreement and Kirchhoff balance, and
 recover graph-H2 membership so the adjoint domain lies inside the Kirchhoff
 domain.
+
+The first reverse-inclusion refinement now isolates the two opening stones:
+
+```text
+G8BookIIICh23FloorNormalizedA15SelectedTraceReadinessForAdjoint
+g8BookIIICh23FloorNormalizedA15SelectedTraceReadinessForAdjoint_closed
+G8BookIIICh23FloorNormalizedA15SelectedGreenBookkeepingForAdjoint
+g8BookIIICh23FloorNormalizedA15SelectedGreenBookkeepingForAdjoint_closed
+G8BookIIICh23FloorNormalizedA15AdjointTraceRegularityInput
+G8BookIIICh23FloorNormalizedA15AdjointTraceRegularityInput.toTraceExistenceSource
+G8BookIIICh23FloorNormalizedA15AdjointGreenAnnihilatorInput
+G8BookIIICh23FloorNormalizedA15AdjointGreenAnnihilatorInput.toAnnihilatorClassificationSource
+G8BookIIICh23FloorNormalizedA15TraceAnnihilatorClassificationSource
+```
+
+The theorem-backed part is now clear: A1.2 supplies selected Sobolev trace
+readiness, and A1.4 supplies selected Green bookkeeping.  The remaining
+mathematical content for these two stones is also clear: recover graph-H2
+boundary traces from the adjoint equation, and prove the adjoint pairing law
+against all Kirchhoff test functions so the boundary form is annihilated.
+
+The next A1.5 source layer makes those two analytic laws explicit:
+
+```text
+G8BookIIICh23FloorNormalizedA15GraphH2TraceRecoveryFromAdjointEquation
+G8BookIIICh23FloorNormalizedA15GraphH2TraceRecoveryFromAdjointEquationTarget
+G8BookIIICh23FloorNormalizedA15GraphH2TraceRecoveryFromAdjointEquation.toTraceRegularityInput
+G8BookIIICh23FloorNormalizedA15GraphH2TraceRecoveryFromAdjointEquation.toTraceExistenceSource
+G8BookIIICh23FloorNormalizedA15AdjointPairingGreenIdentityAgainstKirchhoffTests
+G8BookIIICh23FloorNormalizedA15AdjointPairingGreenIdentityAgainstKirchhoffTestsTarget
+G8BookIIICh23FloorNormalizedA15AdjointPairingGreenIdentityAgainstKirchhoffTests.toGreenAnnihilatorInput
+G8BookIIICh23FloorNormalizedA15AdjointPairingGreenIdentityAgainstKirchhoffTests.toAnnihilatorClassificationSource
+G8BookIIICh23FloorNormalizedA15AdjointEquationGreenIdentitySource
+G8BookIIICh23FloorNormalizedA15AdjointEquationGreenIdentitySource.toTraceAnnihilatorClassificationSource
+```
+
+This layer does not claim that the compact-graph adjoint regularity theorem is
+proved.  It says precisely what must be proved next: the adjoint equation must
+recover graph-H2 value and derivative traces, and Green's identity must hold
+against every Kirchhoff test so that the adjoint defect pairing is exactly the
+boundary-form annihilator.
+
+The next refinement packages that exact analytic theorem as a single
+proof-facing kernel:
+
+```text
+G8BookIIICh23FloorNormalizedA15AdjointAnalyticUniverse
+G8BookIIICh23FloorNormalizedA15AdjointEquationRegularityKernel
+G8BookIIICh23FloorNormalizedA15AdjointGreenIdentityKernel
+G8BookIIICh23FloorNormalizedA15AdjointAnalyticLawKernel
+G8BookIIICh23FloorNormalizedA15AdjointAnalyticLawKernel.toTwoAnalyticLawTargets
+G8BookIIICh23FloorNormalizedA15AdjointAnalyticLawKernel.toFirstTwoStonesTarget
+```
+
+This is now the exact load-bearing target for the two analytic laws.  The
+kernel requires a non-vacuous universe of adjoint candidates and Kirchhoff
+tests, pointwise regularity from the adjoint equation, and pointwise Green
+identity against every Kirchhoff test.  Finite diagnostics and selected Green
+bookkeeping remain support data only; they do not construct this kernel.
+
+The next implementation layer inserts all closed selected infrastructure from
+A1.2, A1.3, and A1.4 automatically and exposes the compact-graph adjoint
+calculus theorem as the remaining source:
+
+```text
+G8BookIIICh23FloorNormalizedA15CompactGraphAdjointCalculusSource
+G8BookIIICh23FloorNormalizedA15CompactGraphAdjointCalculusTarget
+G8BookIIICh23FloorNormalizedA15CompactGraphAdjointCalculusSource.toAnalyticUniverse
+G8BookIIICh23FloorNormalizedA15CompactGraphAdjointCalculusSource.toRegularityKernel
+G8BookIIICh23FloorNormalizedA15CompactGraphAdjointCalculusSource.toGreenIdentityKernel
+G8BookIIICh23FloorNormalizedA15CompactGraphAdjointCalculusSource.toAnalyticLawKernel
+G8BookIIICh23FloorNormalizedA15CompactGraphAdjointCalculusSource.toFirstTwoStonesTarget
+g8BookIIICh23FloorNormalizedA15TwoAnalyticLawTargets_ofCompactGraphCalculus
+```
+
+This is the current smallest honest constructor target for the two analytic
+laws.  It no longer asks for selected trace readiness or selected Green
+bookkeeping as new obligations; those are already closed.  It asks exactly for
+the full adjoint-domain candidate coverage, full Kirchhoff-test coverage,
+pointwise adjoint-equation regularity, and pointwise Green identity theorem.
+
+The next engine layer removes the last arbitrary pointwise predicates from
+that source.  It presents adjoint candidates and Kirchhoff tests as Type-1
+presentations with representatives in the selected A1.3 Kirchhoff operator
+domain:
+
+```text
+G8BookIIICh23FloorNormalizedA15SelectedKirchhoffOperatorDomain
+G8BookIIICh23FloorNormalizedA15AdjointCandidatePresentation
+G8BookIIICh23FloorNormalizedA15KirchhoffTestPresentation
+G8BookIIICh23FloorNormalizedA15AdjointCalculusEngineSource
+G8BookIIICh23FloorNormalizedA15AdjointCalculusEngineSource.toCompactGraphAdjointCalculusSource
+g8BookIIICh23FloorNormalizedA15CompactGraphAdjointCalculusTarget_ofEngine
+g8BookIIICh23FloorNormalizedA15TwoAnalyticLawTargets_ofEngine
+```
+
+This is a genuine engine step: selected A1.2 value/derivative trace recovery,
+selected A1.3 edgewise negative-second-derivative laws, and selected A1.4
+Green/boundary-form cancellation now supply the pointwise regularity and
+Green fields.  The remaining mathematical theorem is narrower: construct the
+two presentations themselves, proving that they represent the full adjoint
+domain and all Kirchhoff tests and are not finite diagnostic substitutes.
 
 ## Appendix: TauProfinite Compatibility Corridor
 
