@@ -128,6 +128,7 @@ A1.1 tau-native transfer and period corridor:
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12GraphLengthMeasure`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12FiniteLobeLengthLaw`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12GraphMeasureIdentification`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA12HilbertL2Readiness`
 
 A1.2 and later operator sources:
 
@@ -191,7 +192,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 | Step | Proof-map obligation | Current status | What remains |
 | --- | --- | --- | --- |
 | A1.1 | Construct `L = S1_B vee S1_C` as a compact metric graph. | Closed on the floor-normalized selected carrier route; old raw-carrier upgrade remains optional. | Continue A1.2 on the selected carrier route, or explicitly bridge the selected carrier to old `LemniscateCarrier` if needed by a downstream interface. |
-| A1.2 | Construct the Hilbert space and Sobolev/Kirchhoff domain. | Selected-carrier proof surface landed; canonical graph-length profile, finite two-lobe length budget, plus/minus lobe agreement, crossing zero atom, and exact selected graph-measure identification closed. | Prove L2/Hilbert readiness, trace continuity, crossing closure, and Kirchhoff closure for `G8BookIIICh23FloorNormalizedA12HilbertDomainSource`; use the raw-carrier adapter only after exact raw transfer is supplied. |
+| A1.2 | Construct the Hilbert space and Sobolev/Kirchhoff domain. | Selected-carrier proof surface landed; canonical graph-length profile, finite two-lobe length budget, plus/minus lobe agreement, crossing zero atom, exact selected graph-measure identification, and Hilbert/L2 readiness over the closed selected graph measure closed. | Prove Sobolev trace continuity, crossing closure, and Kirchhoff closure for `G8BookIIICh23FloorNormalizedA12HilbertDomainSource`; use the raw-carrier adapter only after exact raw transfer is supplied. |
 | A1.3 | Define `H_L = -d^2/dx^2` on the Kirchhoff domain. | Proof surface. | Formalize the edgewise graph Laplacian construction. |
 | A1.4 | Prove symmetry by boundary-form cancellation. | Proof surface. | Formalize integration by parts on both lobes and cancellation of Kirchhoff boundary terms. |
 | A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Proof surface. | Prove the Kirchhoff extension is maximal symmetric/self-adjoint for the compact graph. |
@@ -205,21 +206,19 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 
 The A1/A2 work now compresses to these live obligations:
 
-1. Hilbert/L2 readiness over the closed selected graph measure.
-2. Sobolev trace continuity and Kirchhoff domain closure.
-3. Edgewise Kirchhoff graph Laplacian construction.
-4. Boundary-form cancellation.
-5. Maximal Kirchhoff self-adjointness.
-6. Compact resolvent and discrete point spectrum.
-7. Operator-native point-spectrum predicate identification.
-8. Self-adjoint eigenpair reality theorem.
+1. Sobolev trace continuity and Kirchhoff domain closure.
+2. Edgewise Kirchhoff graph Laplacian construction.
+3. Boundary-form cancellation.
+4. Maximal Kirchhoff self-adjointness.
+5. Compact resolvent and discrete point spectrum.
+6. Operator-native point-spectrum predicate identification.
+7. Self-adjoint eigenpair reality theorem.
 
 A1.7 and A2.10 are packaging steps and are not listed as open payloads here.
 
 ## Best Next Milestone
 
-The next most useful theorem is now the selected-carrier Hilbert/L2 readiness
-source:
+The selected-carrier Hilbert/L2 readiness source is now closed:
 
 ```text
 floor-normalized compact metric graph
@@ -229,8 +228,7 @@ selected graph-measure target
   -> quotient/completion readiness
 ```
 
-After that lands, the route returns to the selected-carrier trace/domain
-source:
+The next most useful theorem is now the selected-carrier trace/domain source:
 
 ```text
 selected Hilbert/L2 readiness
@@ -371,6 +369,34 @@ inner product positivity
 inner product completeness
 inner product compatibility with the selected graph measure
 quotient/L2 completion from graph measure
+```
+
+The Hilbert/L2 readiness wave then closed this package over the theorem-backed
+selected graph measure:
+
+```text
+g8BookIIICh23FloorNormalizedA12GraphMeasureSource_closed
+G8BookIIICh23FloorNormalizedA12ClosedSelectedGraphMeasure
+G8BookIIICh23FloorNormalizedA12InnerProductSymmetric
+G8BookIIICh23FloorNormalizedA12InnerProductPositive
+G8BookIIICh23FloorNormalizedA12InnerProductComplete
+G8BookIIICh23FloorNormalizedA12InnerProductCompatibleWithMeasure
+G8BookIIICh23FloorNormalizedA12QuotientCompletionConstructed
+G8BookIIICh23FloorNormalizedA12L2CompletionFromGraphMeasure
+G8BookIIICh23FloorNormalizedA12HilbertL2ReadinessSource
+g8BookIIICh23FloorNormalizedA12HilbertL2ReadinessTarget_closed
+g8BookIIICh23FloorNormalizedA12HilbertReadinessTarget_closed
+```
+
+The trace fields used here are only Hilbert-level availability/continuity
+fields forced by the existing Hilbert-readiness surface.  They do not close the
+later Sobolev value/derivative trace theorem.  The next A1.2 payload is now:
+
+```text
+selected Hilbert/L2 readiness
+  -> Sobolev value-trace and derivative-trace continuity
+  -> crossing agreement closure
+  -> outgoing derivative/Kirchhoff balance closure
 ```
 
 ## Appendix: TauProfinite Compatibility Corridor
