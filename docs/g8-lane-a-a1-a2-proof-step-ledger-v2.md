@@ -133,6 +133,7 @@ A1.1 tau-native transfer and period corridor:
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA13KirchhoffLaplacianConstruction`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA14BoundaryFormCancellation`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15MaximalKirchhoffSelfAdjointExtension`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionProofStones`
 
 A1.2 and later operator sources:
 
@@ -199,7 +200,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 | A1.2 | Construct the Hilbert space and Sobolev/Kirchhoff domain. | Closed on the selected-carrier route: canonical graph measure, Hilbert/L2 readiness, Sobolev value/derivative trace readiness, crossing agreement closure, Kirchhoff derivative-balance closure, and selected `G8BookIIICh23FloorNormalizedA12HilbertDomainSource`. | Optional raw-carrier transfer remains open; otherwise proceed to A1.3 edgewise Kirchhoff graph Laplacian construction. |
 | A1.3 | Define `H_L = -d^2/dx^2` on the Kirchhoff domain. | Closed on the selected-carrier route: an edgewise H2/Kirchhoff operator-domain carrier, selected L2 output carrier, and exact projection law for `H_L` as the edgewise negative-second-derivative output. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.4/A1.5 evidence; proceed to boundary-form cancellation. |
 | A1.4 | Prove symmetry by boundary-form cancellation. | Closed on the selected-carrier route: edgewise Green bookkeeping from A1.3 plus crossing value-trace cancellation and outgoing derivative-balance cancellation from A1.2 assemble the Kirchhoff boundary-form cancellation source. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.5 maximality evidence; proceed to maximal Kirchhoff self-adjoint extension. |
-| A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Exact selected-carrier proof surface: A1.4 symmetry is closed, and the adapter from adjoint-domain exhaustion to maximal Kirchhoff self-adjointness is theorem-backed. | Prove the load-bearing adjoint-domain trace classification/exhaustion theorem for the compact Kirchhoff graph. |
+| A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Exact selected-carrier proof surface: A1.4 symmetry gives the forward adjoint-domain inclusion, and the adapter from reverse inclusion plus maximal boundary evidence to maximal Kirchhoff self-adjointness is theorem-backed. | Prove the reverse adjoint-domain inclusion: adjoint trace existence, boundary-form annihilator classification, crossing agreement, Kirchhoff balance, and graph-H2 regularity recovery. |
 | A1.6 | Prove compact resolvent and discrete point spectrum. | Proof surface. | Formalize compact Sobolev embedding/resolvent compactness and the discrete spectrum consequence. |
 | A1.7 | Package A1 as `LemniscateOperatorReady`. | Closed adapter. | Supplies A1 once A1.1-A1.6 are theorem-backed. |
 | A2.8 | Define the operator-native analytic point-spectrum predicate. | Proof surface. | Tie the eigenpair predicate to the actual ready operator's analytic point spectrum. |
@@ -490,6 +491,27 @@ mathematical payload is the compact-graph adjoint trace classification proving
 that the adjoint domain is exactly the Kirchhoff domain.  A1.5 still does not
 prove compact resolvent, discrete point spectrum, or A2 point-spectrum
 reality.
+
+The follow-up A1.5 proof-stone wave split that exact input further:
+
+```text
+G8BookIIICh23FloorNormalizedA15KirchhoffDomainContainedInAdjointDomain
+g8BookIIICh23FloorNormalizedA15KirchhoffDomainContainedInAdjointDomain_closed
+G8BookIIICh23FloorNormalizedA15AdjointBoundaryTraceExistenceSource
+G8BookIIICh23FloorNormalizedA15BoundaryFormAnnihilatorClassificationSource
+G8BookIIICh23FloorNormalizedA15AdjointCrossingTraceAgreementSource
+G8BookIIICh23FloorNormalizedA15AdjointKirchhoffBalanceSource
+G8BookIIICh23FloorNormalizedA15MaximalIsotropicKirchhoffBoundarySource
+G8BookIIICh23FloorNormalizedA15AdjointDomainContainedInKirchhoffDomainSource
+G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionProofStoneSource
+G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionProofStoneSource.toMaximalKirchhoffSelfAdjointExtensionTarget
+```
+
+The forward inclusion is now theorem-backed by A1.4 symmetry.  The remaining
+A1.5 work is the reverse inclusion: recover adjoint traces, classify the
+boundary-form annihilator, force crossing agreement and Kirchhoff balance, and
+recover graph-H2 membership so the adjoint domain lies inside the Kirchhoff
+domain.
 
 ## Appendix: TauProfinite Compatibility Corridor
 
