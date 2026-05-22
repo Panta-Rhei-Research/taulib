@@ -1,4 +1,5 @@
 import TauLib.BookIII.Bridge.TauCircleParam
+import Mathlib.Analysis.Normed.Group.AddCircle
 import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Topology.Compactness.Compact
 

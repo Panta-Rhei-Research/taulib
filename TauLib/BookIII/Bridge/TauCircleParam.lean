@@ -86,6 +86,44 @@ structure TauCirclePoint where
 
 namespace TauCirclePoint
 
+/-- Semantic equivalence for the current raw tau-circle presentation.
+
+The raw carrier stores proof data and a source-status tag.  Those are
+presentation data, not geometric circle data, so the canonical quotient keeps
+only the tau-angle and tau-complex value up to the kernel equivalences already
+used throughout Book I. -/
+def CanonicalEquivalent (p q : TauCirclePoint) : Prop :=
+  TauReal.equiv p.param.angle q.param.angle ∧
+    TauComplex.equiv p.value q.value
+
+/-- Canonical tau-circle equivalence is reflexive. -/
+theorem canonicalEquivalent_refl (p : TauCirclePoint) :
+    CanonicalEquivalent p p :=
+  ⟨TauReal.equiv_refl p.param.angle, TauComplex.equiv_refl p.value⟩
+
+/-- Canonical tau-circle equivalence is symmetric. -/
+theorem canonicalEquivalent_symm {p q : TauCirclePoint}
+    (h : CanonicalEquivalent p q) :
+    CanonicalEquivalent q p :=
+  ⟨TauReal.equiv_symm h.1, TauComplex.equiv_symm h.2⟩
+
+/-- Canonical tau-circle equivalence is transitive. -/
+theorem canonicalEquivalent_trans {p q r : TauCirclePoint}
+    (hpq : CanonicalEquivalent p q)
+    (hqr : CanonicalEquivalent q r) :
+    CanonicalEquivalent p r :=
+  ⟨TauReal.equiv_trans hpq.1 hqr.1,
+    TauComplex.equiv_trans hpq.2 hqr.2⟩
+
+/-- Setoid quotienting raw tau-circle presentations by their semantic
+    parameter/value data and ignoring source-status and proof-field fibers. -/
+def canonicalSetoid : Setoid TauCirclePoint where
+  r := CanonicalEquivalent
+  iseqv :=
+    ⟨canonicalEquivalent_refl,
+      fun h => canonicalEquivalent_symm h,
+      fun hpq hqr => canonicalEquivalent_trans hpq hqr⟩
+
 /-- The base circle point at τ-angle zero. -/
 def base : TauCirclePoint :=
   { param := BoundedTauAngle.zero
@@ -95,6 +133,35 @@ def base : TauCirclePoint :=
         TauReal.zero
         BoundedTauAngle.zero.bounded_one
     sourceStatus := .tauNativeTrigInterface }
+
+/-- The τ-native circle point represented by a bounded τ-angle via the
+    theorem-backed `cisTauReal` unit-magnitude identity. -/
+def ofBoundedAngle (a : BoundedTauAngle) : TauCirclePoint :=
+  { param := a
+    value := TauComplex.cisTauReal a.angle
+    unitMagnitude := by
+      exact TauComplex.cisTauReal_magSq_equiv_one a.angle a.bounded_one
+    sourceStatus := .tauNativeTrigInterface }
+
+@[simp] theorem ofBoundedAngle_param (a : BoundedTauAngle) :
+    (ofBoundedAngle a).param = a :=
+  rfl
+
+@[simp] theorem ofBoundedAngle_value (a : BoundedTauAngle) :
+    (ofBoundedAngle a).value = TauComplex.cisTauReal a.angle :=
+  rfl
+
+@[simp] theorem ofBoundedAngle_status (a : BoundedTauAngle) :
+    (ofBoundedAngle a).sourceStatus =
+      TauCircleParamStatus.tauNativeTrigInterface :=
+  rfl
+
+/-- The bounded-angle constructor at zero is semantically equivalent to the
+    raw base presentation.  We state this semantically because the raw
+    structure also stores proof fields. -/
+theorem ofBoundedAngle_zero_canonicalEquivalent :
+    CanonicalEquivalent (ofBoundedAngle BoundedTauAngle.zero) base :=
+  ⟨TauReal.equiv_refl _, TauComplex.equiv_refl _⟩
 
 /-- The τ-native unit-magnitude identity for a circle point. -/
 theorem unit_magnitude (p : TauCirclePoint) :
@@ -133,6 +200,72 @@ def cis_add_closure_obligation (p q : TauCirclePoint) : Prop :=
   AdditionLawObligation p q
 
 end TauCirclePoint
+
+/-- Canonical tau-circle point: the semantic quotient of raw
+    `TauCirclePoint` presentations. -/
+abbrev TauCircleCanonicalPoint : Type :=
+  Quotient TauCirclePoint.canonicalSetoid
+
+namespace TauCircleCanonicalPoint
+
+/-- Project a raw tau-circle presentation to the canonical circle quotient. -/
+def mk (p : TauCirclePoint) : TauCircleCanonicalPoint :=
+  Quotient.mk TauCirclePoint.canonicalSetoid p
+
+/-- The canonical base point. -/
+def base : TauCircleCanonicalPoint :=
+  mk TauCirclePoint.base
+
+/-- The canonical tau-circle point represented by a bounded tau angle through
+    the theorem-backed `cisTauReal` parameterization. -/
+def ofBoundedAngle (a : BoundedTauAngle) : TauCircleCanonicalPoint :=
+  mk (TauCirclePoint.ofBoundedAngle a)
+
+@[simp] theorem ofBoundedAngle_zero :
+    ofBoundedAngle BoundedTauAngle.zero = base :=
+  Quotient.sound TauCirclePoint.ofBoundedAngle_zero_canonicalEquivalent
+
+/-- Equivalent raw presentations define the same canonical point. -/
+theorem sound {p q : TauCirclePoint}
+    (h : TauCirclePoint.CanonicalEquivalent p q) :
+    mk p = mk q :=
+  Quotient.sound h
+
+/-- Raw presentations with the same semantic angle and value project to the
+    same canonical point, independently of status and proof fields. -/
+theorem eq_of_param_value {p q : TauCirclePoint}
+    (hParam : TauReal.equiv p.param.angle q.param.angle)
+    (hValue : TauComplex.equiv p.value q.value) :
+    mk p = mk q :=
+  sound ⟨hParam, hValue⟩
+
+/-- The raw base presentation maps to the canonical base point. -/
+@[simp] theorem mk_base :
+    mk TauCirclePoint.base = base :=
+  rfl
+
+/-- Every canonical tau-circle point has a raw representative whose status has
+    been normalized to the tau-native trigonometric interface.
+
+This theorem closes the source-status fiber exposed by the A1.1 reality check:
+status is presentation data, so it can be normalized inside the quotient
+without changing the canonical point. -/
+theorem exists_tauNativeStatus_rep
+    (c : TauCircleCanonicalPoint) :
+    ∃ p : TauCirclePoint,
+      p.sourceStatus = TauCircleParamStatus.tauNativeTrigInterface ∧
+      TauCircleUnitMagnitude p.value ∧
+      mk p = c := by
+  refine Quotient.inductionOn c ?_
+  intro q
+  refine ⟨{ q with sourceStatus := TauCircleParamStatus.tauNativeTrigInterface },
+    rfl, ?_, ?_⟩
+  · exact q.unitMagnitude
+  · exact eq_of_param_value
+      (TauReal.equiv_refl _)
+      (TauComplex.equiv_refl _)
+
+end TauCircleCanonicalPoint
 
 /-- A rational-angle τ-circle point built from the actual τ-native exponential
     stack.  The remaining proof debt is only the packaging of boundedness and

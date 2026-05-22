@@ -1,3 +1,4 @@
+import TauLib.BookIII.Bridge.G8BookIIILemniscateCompactMetricGraphPackage
 import TauLib.BookIII.Bridge.G8LaneAOperatorNativeSelfAdjointSource
 
 /-!
@@ -54,6 +55,38 @@ def G8BookIIILemniscateMetricGraphSource.toCarrierReady
     LemniscateCarrierReady source.carrierCtx :=
   source.carrierReady
 
+/-- Low-level graph/domain core constructors feed the A1.1 metric-graph source
+    surface. -/
+def G8BookIIILemniscateMetricGraphConstructor.toMetricGraphSource
+    (source : G8BookIIILemniscateMetricGraphConstructor) :
+    G8BookIIILemniscateMetricGraphSource where
+  carrierCtx := source.carrierCtx
+  carrierReady := source.carrierReady
+  twoLobeWedgeConstructed :=
+    source.rawWedge.plusBase_eq_crossing =
+      LemniscateCarrier.lobe_base_eq_crossing .plus ∧
+    source.rawWedge.minusBase_eq_crossing =
+      LemniscateCarrier.lobe_base_eq_crossing .minus
+  twoLobeWedgeEvidence := by
+    constructor <;> rfl
+  crossingNodeIdentifiesBasepoints :=
+    source.rawWedge.plusBase_eq_minusBase =
+      LemniscateCarrier.plus_base_eq_minus_base
+  crossingNodeEvidence := by
+    rfl
+  compactMetricGraphEvidence :=
+    source.compactMetricGraphFromRawWedge
+  compactMetricGraphWitness :=
+    source.compactMetricGraphFromRawWedgeEvidence
+  status := source.status
+
+/-- Compact metric graph packages feed the existing A1.1 metric-graph source
+    through the low-level constructor surface. -/
+def G8BookIIILemniscateCompactMetricGraphPackage.toMetricGraphSource
+    (pkg : G8BookIIILemniscateCompactMetricGraphPackage) :
+    G8BookIIILemniscateMetricGraphSource :=
+  pkg.toMetricGraphConstructor.toMetricGraphSource
+
 -- ============================================================
 -- STEP 2: HILBERT AND DOMAIN SOURCE
 -- ============================================================
@@ -87,6 +120,29 @@ def G8BookIIILemniscateHilbertDomainSource.toDomainReady
     (source : G8BookIIILemniscateHilbertDomainSource) :
     LemniscateDomainReady source.domainCtx :=
   source.domainReady
+
+/-- Low-level Kirchhoff-domain readiness data feeds the A1.2 Hilbert/domain
+    source surface. -/
+def
+    G8BookIIILemniscateKirchhoffDomainReadinessData.toHilbertDomainSource
+    (source : G8BookIIILemniscateKirchhoffDomainReadinessData) :
+    G8BookIIILemniscateHilbertDomainSource where
+  graph := source.hilbert.metricGraph.toMetricGraphSource
+  hilbertCtx := source.hilbert.hilbertCtx
+  hilbertUsesGraph := source.hilbert.hilbertUsesGraph
+  hilbertReady := source.hilbert.toHilbertReady
+  domainCtx := source.domainCtx
+  domainUsesHilbert := source.domainUsesHilbert
+  domainReady := source.toDomainReady
+  traceContinuityEvidence := source.traceContinuityEvidence
+  traceContinuityWitness := source.traceContinuityWitness
+  derivativeTraceEvidence := source.derivativeTraceEvidence
+  derivativeTraceWitness := source.derivativeTraceWitness
+  crossingClosureEvidence := source.crossingClosureEvidence
+  crossingClosureWitness := source.crossingClosureWitness
+  kirchhoffClosureEvidence := source.kirchhoffClosureEvidence
+  kirchhoffClosureWitness := source.kirchhoffClosureWitness
+  status := source.status
 
 -- ============================================================
 -- STEP 3: KIRCHHOFF LAPLACIAN SOURCE

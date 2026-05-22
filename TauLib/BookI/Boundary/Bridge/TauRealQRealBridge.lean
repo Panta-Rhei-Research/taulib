@@ -1,5 +1,6 @@
 import TauLib.BookI.Boundary.Bridge.TauRealQCauSeqBridge
 import Mathlib.Data.Real.Basic
+import Mathlib.Data.Real.Archimedean
 import Mathlib.Analysis.Real.Cardinality
 import Mathlib.SetTheory.Cardinal.Continuum
 
