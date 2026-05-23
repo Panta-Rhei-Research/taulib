@@ -2,7 +2,7 @@
 
 Private working ledger for the A1/A2 operator self-adjoint route.
 
-This V2 ledger is the readable North Star for the next implementation waves.
+This V2 ledger was the readable North Star for the A1 implementation waves.
 It compresses the detailed historical ledger into:
 
 - what is now theorem-backed;
@@ -10,8 +10,10 @@ It compresses the detailed historical ledger into:
 - what A1.1 taught us about the rest of A1/A2;
 - where the TauProfinite corridor belongs.
 
-It is not a formal axiom file.  The official weak Lane A ledger remains
-unchanged until theorem-backed constructors replace the official gates.
+Active A2-only successor: `docs/g8-lane-a-a2-proof-step-ledger-v3.md`.
+
+It is not a formal axiom file.  The official weak Lane A ledger now has A1
+and A2 retired theorem-backed; A3 remains the single explicit Lane A axiom.
 
 ## Scope
 
@@ -222,7 +224,7 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 | A1.4 | Prove symmetry by boundary-form cancellation. | Closed on the selected-carrier route: edgewise Green bookkeeping from A1.3 plus crossing value-trace cancellation and outgoing derivative-balance cancellation from A1.2 assemble the Kirchhoff boundary-form cancellation source. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.5 maximality evidence; proceed to maximal Kirchhoff self-adjoint extension. |
 | A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Closed on the selected-carrier route. The lower analytic route now closes distributional equation, graph-H2 recovery, all-test Green identity, trace-annihilator classification, selected endpoint finite traces, finite boundary-annihilator forcing, raw finite-trace reverse inclusion, adjoint-domain exhaustion proof stones, compact-graph adjoint-domain realization, and `G8BookIIICh23FloorNormalizedA15MaximalKirchhoffSelfAdjointExtensionTarget` in `G8BookIIICh23FloorNormalizedA15ReverseInclusionMaximalityAssembly`. | No remaining selected-carrier A1.5 proof stone. The older bundled/raw-carrier compatibility surfaces can be revisited only if a downstream interface requires them; otherwise proceed to A1.6 compact resolvent and discrete spectrum. |
 | A1.6 | Prove compact resolvent and discrete point spectrum. | Closed on the selected-carrier route. The selected self-adjoint A1.1-A1.5 adapter is theorem-backed. The selected compact-embedding corridor is theorem-backed in `G8BookIIICh23FloorNormalizedA16CompactEmbeddingConstruction`. Safe resolvent regularity at `-1` and compact-resolvent factorization are theorem-backed in `G8BookIIICh23FloorNormalizedA16ResolventCompactnessConstruction`. The selected discrete point-spectrum consequence is theorem-backed in `G8BookIIICh23FloorNormalizedA16DiscretePointSpectrumConstruction`. Legacy raw-carrier export remains explicit if an older downstream surface must be inhabited. | Prove exact selected-to-legacy operator transport only if the old `LemniscateOperatorDomain` surface is needed; otherwise proceed to A2 operator-native point-spectrum provenance. |
-| A1.7 | Package A1 as `LemniscateOperatorReady`. | Closed adapter. | Supplies A1 once A1.1-A1.6 are theorem-backed. |
+| A1.7 | Package A1 as `LemniscateOperatorReady`. | Closed and wired into the official weak Lane A ledger. | No remaining A1 ledger obligation. |
 | A2.8 | Define the operator-native analytic point-spectrum predicate. | Proof surface. | Tie the eigenpair predicate to the actual ready operator's analytic point spectrum. |
 | A2.9 | Prove self-adjoint spectral reality. | Proof surface. | Formalize the eigenpair inner-product proof that point-spectrum values have zero imaginary part. |
 | A2.10 | Package A2 and the combined A1/A2 source. | Closed adapter. | Supplies A2 once A2.8-A2.9 are theorem-backed. |
@@ -233,8 +235,9 @@ The selected-carrier A1/A2 work now compresses to these live obligations:
 
 1. Operator-native point-spectrum predicate identification.
 2. Self-adjoint point-spectrum reality.
-3. Exact selected-to-legacy operator transport, only if a downstream surface
-   needs the older raw `LemniscateOperatorDomain` carrier.
+3. Exact selected-to-legacy operator transport, only as an optional
+   strengthening if a future downstream surface needs the older raw
+   `LemniscateOperatorDomain` carrier.
 
 A1.5 is now closed on the selected-carrier route through
 `G8BookIIICh23FloorNormalizedA15ReverseInclusionMaximalityAssembly`; it should
@@ -871,14 +874,15 @@ Why it moved to appendix status:
 
 ## Official Ledger Meaning
 
-The official weak Lane A ledger still has three gates:
+The official weak Lane A ledger now has theorem-backed A1 and A2 constructors
+and one remaining explicit axiom:
 
 ```text
-A1 operator readiness
-A2 operator-native self-adjoint spectral provenance
+A1 operator readiness -- retired / theorem-backed def
+A2 operator-native self-adjoint spectral provenance -- retired / theorem-backed def
 A3 canonical actual-xi membership
 ```
 
-This V2 ledger refines only A1/A2.  It does not lower any axiom count.  Once
-the obligations above are theorem-backed, A1 and A2 can be replaced by
-constructors in the official ledger.  A3 remains separate.
+This V2 ledger refines only A1/A2.  A1 and A2 have now both been replaced by
+constructors in `G8LaneAAxiomLedger`, lowering the Lane A audit count to one.
+A3 remains separate.

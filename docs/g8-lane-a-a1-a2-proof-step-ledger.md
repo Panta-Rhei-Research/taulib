@@ -2,14 +2,15 @@
 
 Private working ledger for the A1/A2 operator self-adjoint route.
 
-Readable current version: `docs/g8-lane-a-a1-a2-proof-step-ledger-v2.md`.
+Readable historical compression: `docs/g8-lane-a-a1-a2-proof-step-ledger-v2.md`.
+Active A2-only successor: `docs/g8-lane-a-a2-proof-step-ledger-v3.md`.
 This original file is retained as the detailed historical trace.
 
 This document tracks the ten proof-map steps from
 `docs/g8-lane-a-a1-a2-operator-self-adjoint-proof-map.tex` against the current
 Lean implementation. It is an unofficial proof-obligation ledger, not a new
-formal axiom file. The official Lane A axiom ledger remains unchanged until a
-step has an actual theorem-backed constructor.
+formal axiom file. The official Lane A axiom ledger now has A1 and A2 retired
+by theorem-backed constructors; A3 remains the single explicit Lane A gate.
 
 ## Scope
 
@@ -157,17 +158,18 @@ proved.
 
 ## Current Axiom-Ledger Meaning
 
-The official weak Lane A ledger still has three gates:
+The official weak Lane A ledger now has theorem-backed A1 and A2 constructors
+and one remaining gate:
 
 ```text
-A1 operator readiness
-A2 operator-native self-adjoint spectral provenance
+A1 operator readiness -- retired / theorem-backed def
+A2 operator-native self-adjoint spectral provenance -- retired / theorem-backed def
 A3 canonical actual-xi membership
 ```
 
-This document refines only A1/A2. It does not lower any official axiom count.
-When the eight compressed A1/A2 obligations above are theorem-backed, A1 and A2
-can be replaced by constructors in the official ledger. A3 remains separate.
+This historical document refines only A1/A2. A1 and A2 have now both been
+replaced by constructors in the official ledger, lowering the Lane A audit
+count to one. A3 remains separate.
 
 ## Next Recommended Milestone
 

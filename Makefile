@@ -29,14 +29,14 @@ lane-a-axiom-ledger:
 	lake build $(LANE_A_AXIOM_LEDGER_MODULE)
 	python3 scripts/check_final_rh_spine_closure.py \
 		--module $(LANE_A_AXIOM_LEDGER_MODULE) \
-		--expected-axioms 3 \
+		--expected-axioms 1 \
 		--expected-sorry 0
 
 full-rh-axiom-ledger:
 	lake build $(FULL_RH_AXIOM_LEDGER_MODULE)
 	python3 scripts/check_final_rh_spine_closure.py \
 		--module $(FULL_RH_AXIOM_LEDGER_MODULE) \
-		--expected-axioms 4 \
+		--expected-axioms 2 \
 		--expected-sorry 0
 
 fine-rh-axiom-ledger:

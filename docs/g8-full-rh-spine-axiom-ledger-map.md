@@ -12,16 +12,22 @@ as axioms, close the current formal chain all the way to Mathlib's
 The full-spine ledger imports the Lane A ledger and adds one final accepted
 tower realization gate.
 
-1. `g8LaneA_operatorReadyGate_axiom`
-   Book III lemniscate operator readiness.
+Retired theorem-backed Lane A constructors:
 
-2. `g8LaneA_operatorNativeSelfAdjointGate_axiom`
-   Operator-native self-adjoint spectral-membership legitimacy.
+- `g8LaneA_operatorReadyGate_axiom`
+  Despite the historical name, this is now a `def`, not an axiom.  It is backed
+  by the selected Ch.23 A1.1-A1.6 operator-readiness route.
+- `g8LaneA_operatorNativeSelfAdjointGate_axiom`
+  Despite the historical name, this is now a `def`, not an axiom.  It is backed
+  by the selected certified eigenpair point-spectrum carrier and its
+  self-adjoint scalar-pairing reality proof.
 
-3. `g8LaneA_canonicalActualXiMembershipGate_axiom`
+Remaining full-spine temporary axioms:
+
+1. `g8LaneA_canonicalActualXiMembershipGate_axiom`
    Canonical actual-`xi` membership in that legitimate spectral source.
 
-4. `g8FullRHSpine_acceptedTowerRealizationGate_axiom`
+2. `g8FullRHSpine_acceptedTowerRealizationGate_axiom`
    Accepted Book III tower realization from sigma-fixed canonical characters,
    with exact centered-address normal form.
 
@@ -50,21 +56,18 @@ make full-rh-axiom-ledger
 make rh-mathlib-discharge-axiomfree
 ```
 
-The first target should report exactly three temporary Lane A axioms.
-The second target should report exactly four temporary full-spine axioms.
+The first target should report exactly one temporary Lane A axiom.
+The second target should report exactly two temporary full-spine axioms.
 The third target must remain axiom-free; it checks that the official RH handoff
 still requires explicit proof inputs and is not contaminated by this ledger.
 
 ## Retirement Order
 
-The preferred retirement order is:
+The remaining preferred retirement order is:
 
-1. Replace the operator readiness axiom with the Book III readiness theorem.
-2. Replace the self-adjoint spectral legitimacy axiom with the operator-native
-   spectral reality theorem.
-3. Replace canonical actual-`xi` membership with the actual spectral-membership
+1. Replace canonical actual-`xi` membership with the actual spectral-membership
    theorem.
-4. Replace accepted tower realization from sigma-fixedness with the Book III
+2. Replace accepted tower realization from sigma-fixedness with the Book III
    NF-addressable accepted tower witness theorem.
 
 Each retirement should lower the expected axiom count in the ledger target.

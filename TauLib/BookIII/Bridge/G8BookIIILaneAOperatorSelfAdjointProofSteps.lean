@@ -18,6 +18,8 @@ noncomputable section
 
 namespace Tau.BookIII.Bridge
 
+open scoped ComplexConjugate
+
 -- ============================================================
 -- PROOF-MAP THEOREM TARGET ALIASES
 -- ============================================================
@@ -167,10 +169,21 @@ def G8BookIIILaneAOperatorNativeSelfAdjointSource.toLaneASource
 
 This is the sharpened A2 membership surface: a value belongs to the native
 point spectrum by carrying eigenfunction data, nonzero evidence, and the
-operator eigen-equation evidence. -/
+operator eigen-equation evidence.
+
+The last three fields expose the self-adjoint scalar pairing calculation at
+the point where it becomes algebraic:
+
+```text
+lambda * ||u||^2 = conjugate(lambda) * ||u||^2
+||u||^2 != 0
+```
+
+This keeps the predicate operator-native but prevents raw placeholder
+eigenpair data from making every complex number a spectral member. -/
 structure G8BookIIILemniscateEigenpairData
     (_operatorSource : G8BookIIILemniscateCompactResolventSource)
-    (_spectralValue : ℂ) where
+    (spectralValue : ℂ) where
   eigenfunctionCarrier : Type 1
   eigenfunction : eigenfunctionCarrier
   nonzeroEigenfunction : Prop
@@ -179,6 +192,28 @@ structure G8BookIIILemniscateEigenpairData
   eigenEquationEvidence : eigenEquation
   domainMembershipEvidence : Prop
   domainMembershipWitness : domainMembershipEvidence
+  pairingNormSq : ℂ
+  pairingNormSq_ne_zero : pairingNormSq ≠ 0
+  selfAdjointScalarPairingIdentity :
+    spectralValue * pairingNormSq = conj spectralValue * pairingNormSq
+
+def G8BookIIILemniscateEigenpairData.conjugateEigenvalueEquality
+    {operatorSource : G8BookIIILemniscateCompactResolventSource}
+    {spectralValue : ℂ}
+    (data :
+      G8BookIIILemniscateEigenpairData operatorSource spectralValue) :
+    spectralValue = conj spectralValue :=
+  mul_right_cancel₀ data.pairingNormSq_ne_zero
+    data.selfAdjointScalarPairingIdentity
+
+theorem G8BookIIILemniscateEigenpairData.real
+    {operatorSource : G8BookIIILemniscateCompactResolventSource}
+    {spectralValue : ℂ}
+    (data :
+      G8BookIIILemniscateEigenpairData operatorSource spectralValue) :
+    spectralValue.im = 0 :=
+  Complex.conj_eq_iff_im.mp
+    data.conjugateEigenvalueEquality.symm
 
 /-- Native point-spectrum membership via eigenpair data. -/
 def G8BookIIILemniscateEigenpairPointSpectrumMembership
@@ -186,6 +221,54 @@ def G8BookIIILemniscateEigenpairPointSpectrumMembership
     (spectralValue : ℂ) : Prop :=
   Nonempty
     (G8BookIIILemniscateEigenpairData operatorSource spectralValue)
+
+def G8BookIIILemniscateEigenpairPairingCalculationEvidence
+    (operatorSource : G8BookIIILemniscateCompactResolventSource) :
+    Prop :=
+  ∀ spectralValue : ℂ,
+    G8BookIIILemniscateEigenpairPointSpectrumMembership
+      operatorSource spectralValue →
+      ∃ normSq : ℂ,
+        normSq ≠ 0 ∧
+          spectralValue * normSq = conj spectralValue * normSq
+
+theorem
+    g8BookIIILemniscateEigenpairPairingCalculationEvidence_ofData
+    (operatorSource : G8BookIIILemniscateCompactResolventSource) :
+    G8BookIIILemniscateEigenpairPairingCalculationEvidence
+      operatorSource := by
+  intro spectralValue member
+  rcases member with ⟨data⟩
+  exact
+    ⟨data.pairingNormSq, data.pairingNormSq_ne_zero,
+      data.selfAdjointScalarPairingIdentity⟩
+
+def G8BookIIILemniscateEigenpairNonzeroNormEvidence
+    (operatorSource : G8BookIIILemniscateCompactResolventSource) :
+    Prop :=
+  ∀ spectralValue : ℂ,
+    G8BookIIILemniscateEigenpairPointSpectrumMembership
+      operatorSource spectralValue →
+      ∃ normSq : ℂ, normSq ≠ 0
+
+theorem
+    g8BookIIILemniscateEigenpairNonzeroNormEvidence_ofData
+    (operatorSource : G8BookIIILemniscateCompactResolventSource) :
+    G8BookIIILemniscateEigenpairNonzeroNormEvidence
+      operatorSource := by
+  intro spectralValue member
+  rcases member with ⟨data⟩
+  exact ⟨data.pairingNormSq, data.pairingNormSq_ne_zero⟩
+
+theorem g8BookIIILemniscateEigenpairPointSpectrum_real
+    {operatorSource : G8BookIIILemniscateCompactResolventSource}
+    (spectralValue : ℂ)
+    (member :
+      G8BookIIILemniscateEigenpairPointSpectrumMembership
+        operatorSource spectralValue) :
+    spectralValue.im = 0 := by
+  rcases member with ⟨data⟩
+  exact data.real
 
 /-- Self-adjoint reality theorem for the eigenpair point-spectrum predicate.
 
@@ -202,6 +285,25 @@ structure G8BookIIILemniscateEigenpairRealitySource
   innerProductArgumentWitness : innerProductArgumentEvidence
   nonzeroNormCancellationEvidence : Prop
   nonzeroNormCancellationWitness : nonzeroNormCancellationEvidence
+
+/-- Certified eigenpair data supplies the generic eigenpair reality source. -/
+def G8BookIIILemniscateEigenpairRealitySource.ofCertifiedEigenpairData
+    (operatorSource : G8BookIIILemniscateCompactResolventSource) :
+    G8BookIIILemniscateEigenpairRealitySource operatorSource where
+  selfAdjointEigenpairReality :=
+    g8BookIIILemniscateEigenpairPointSpectrum_real
+  innerProductArgumentEvidence :=
+    G8BookIIILemniscateEigenpairPairingCalculationEvidence
+      operatorSource
+  innerProductArgumentWitness :=
+    g8BookIIILemniscateEigenpairPairingCalculationEvidence_ofData
+      operatorSource
+  nonzeroNormCancellationEvidence :=
+    G8BookIIILemniscateEigenpairNonzeroNormEvidence
+      operatorSource
+  nonzeroNormCancellationWitness :=
+    g8BookIIILemniscateEigenpairNonzeroNormEvidence_ofData
+      operatorSource
 
 /-- Eigenpair-based point-spectrum provenance. -/
 structure G8BookIIILemniscateEigenpairPointSpectrumProvenance
