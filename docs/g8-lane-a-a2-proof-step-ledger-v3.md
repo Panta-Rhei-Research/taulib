@@ -3,9 +3,11 @@
 Private working ledger for the now-discharged Lane A A2 operator-native
 self-adjoint spectral provenance route.
 
-This V3 supersedes the active-planning role of
+This V3 superseded the active-planning role of
 `docs/g8-lane-a-a1-a2-proof-step-ledger-v2.md`.  V2 remains the historical
-record of the A1/A2 climb.  V3 starts from the new official state:
+record of the A1/A2 climb.  Active A3 planning has moved to
+`docs/g8-lane-a-a3-proof-step-ledger-v4.md`.  V3 starts from the new official
+state:
 
 ```text
 A1 operator readiness                         closed / theorem-backed

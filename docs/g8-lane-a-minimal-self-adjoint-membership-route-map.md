@@ -1,6 +1,7 @@
 # G8 Lane A Minimal Self-Adjoint Membership Route Map
 
-Private audit note, May 21, 2026.
+Private audit note, May 21, 2026.  Updated May 23, 2026 after A1 and A2 were
+retired theorem-backed in the official weak Lane A ledger.
 
 ## Purpose
 
@@ -59,15 +60,13 @@ The quarantined weak ledger remains:
 G8LaneAAxiomLedger -> G8FullRHSpineAxiomLedger
 ```
 
-The current Lane A ledger still has three temporary gates:
+The current Lane A ledger now has one temporary gate:
 
-1. operator readiness;
-2. operator-native self-adjoint spectral legitimacy;
-3. canonical actual-`xi` membership.
+1. canonical actual-`xi` membership.
 
-The full-spine ledger adds the accepted tower realization gate. This wave
-does not reduce those counts; it only makes the minimal route reusable outside
-the quarantine ledger.
+The full-spine ledger adds the accepted tower realization gate.  A1 and A2 are
+now theorem-backed; active planning for the remaining Lane A membership theorem
+lives in `docs/g8-lane-a-a3-proof-step-ledger-v4.md`.
 
 ## Guardrails
 

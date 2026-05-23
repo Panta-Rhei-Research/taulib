@@ -2,6 +2,10 @@
 
 Private implementation note, May 21, 2026.
 
+Updated May 23, 2026: A1 and A2 are now theorem-backed in the official weak
+Lane A ledger.  The remaining A3 proof-step plan is
+`docs/g8-lane-a-a3-proof-step-ledger-v4.md`.
+
 ## What Landed
 
 `TauLib.BookIII.Bridge.G8ActualXiCanonicalAbstractSpectralMembershipSource`

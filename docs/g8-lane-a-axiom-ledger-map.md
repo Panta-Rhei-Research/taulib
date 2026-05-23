@@ -15,6 +15,9 @@ we can audit and retire them one by one.
 
 Expected temporary axioms: `1`.
 
+Active proof-step ledger for retiring the remaining gate:
+`docs/g8-lane-a-a3-proof-step-ledger-v4.md`.
+
 Retired theorem-backed constructor:
 
 - `g8LaneA_operatorReadyGate_axiom`
