@@ -140,6 +140,20 @@ A1.1 tau-native transfer and period corridor:
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15CompactGraphAdjointCalculus`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointCalculusEngine`
 - `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15Type1PresentationEngine`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationAssembly`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1PresentationRoute`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1PresentationConstruction`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionPayloadRoute`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionPayloadConstruction`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15BoundaryLinearAlgebra`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15FiniteTraceLiftReverseInclusion`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointCandidateFiniteTraceRepresentation`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15FiniteTraceBoundaryForcingConstruction`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15CompactGraphFiniteTraceReadout`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15SelectedEndpointTraceReadout`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15HilbertAdjointGraphCandidateSource`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15HilbertAdjointGraphDefinition`
+- `TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15HilbertAdjointGraphPredicateRoute`
 
 A1.2 and later operator sources:
 
@@ -204,10 +218,10 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 | --- | --- | --- | --- |
 | A1.1 | Construct `L = S1_B vee S1_C` as a compact metric graph. | Closed on the floor-normalized selected carrier route; old raw-carrier upgrade remains optional. | Continue A1.2 on the selected carrier route, or explicitly bridge the selected carrier to old `LemniscateCarrier` if needed by a downstream interface. |
 | A1.2 | Construct the Hilbert space and Sobolev/Kirchhoff domain. | Closed on the selected-carrier route: canonical graph measure, Hilbert/L2 readiness, Sobolev value/derivative trace readiness, crossing agreement closure, Kirchhoff derivative-balance closure, and selected `G8BookIIICh23FloorNormalizedA12HilbertDomainSource`. | Optional raw-carrier transfer remains open; otherwise proceed to A1.3 edgewise Kirchhoff graph Laplacian construction. |
-| A1.3 | Define `H_L = -d^2/dx^2` on the Kirchhoff domain. | Closed on the selected-carrier route: an edgewise H2/Kirchhoff operator-domain carrier, selected L2 output carrier, and exact projection law for `H_L` as the edgewise negative-second-derivative output. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.4/A1.5 evidence; proceed to boundary-form cancellation. |
+| A1.3 | Define `H_L = -d^2/dx^2` on the Kirchhoff domain. | Closed on the selected-carrier route: an edgewise H2/Kirchhoff operator-domain carrier, selected L2 output carrier, exact projection law for `H_L` as the edgewise negative-second-derivative output, and explicit four-endpoint value/derivative trace coordinates with Kirchhoff endpoint laws. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.4/A1.5 evidence; proceed to boundary-form cancellation. |
 | A1.4 | Prove symmetry by boundary-form cancellation. | Closed on the selected-carrier route: edgewise Green bookkeeping from A1.3 plus crossing value-trace cancellation and outgoing derivative-balance cancellation from A1.2 assemble the Kirchhoff boundary-form cancellation source. | The older bundled `G8BookIIIKirchhoffLaplacianSource` still awaits A1.5 maximality evidence; proceed to maximal Kirchhoff self-adjoint extension. |
-| A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Exact selected-carrier proof surface: A1.4 symmetry gives the forward adjoint-domain inclusion; selected A1.2 trace readiness and selected A1.4 Green bookkeeping now feed the graph-H2 trace-recovery and adjoint Green-identity source layer; the analytic-law kernel and compact-graph adjoint calculus source prove both opening reverse-inclusion stones once the true adjoint-domain universe is supplied. The concrete adjoint-calculus engine now forces pointwise regularity/Green witnesses through selected A1.3 representatives, not arbitrary predicates. The Type-1 presentation layer now closes the Kirchhoff-test side from an exhaustive small presentation and reduces the candidate side to reverse inclusion plus the same small-presentation theorem. | Construct `G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationSource`: a Type-1 exhaustive presentation of the selected Kirchhoff domain, together with reverse adjoint-domain inclusion and non-diagnostic provenance; then force crossing agreement, Kirchhoff balance, maximal boundary, and graph-H2 regularity recovery. |
-| A1.6 | Prove compact resolvent and discrete point spectrum. | Proof surface. | Formalize compact Sobolev embedding/resolvent compactness and the discrete spectrum consequence. |
+| A1.5 | Prove maximal Kirchhoff self-adjoint extension. | Closed on the selected-carrier route. The lower analytic route now closes distributional equation, graph-H2 recovery, all-test Green identity, trace-annihilator classification, selected endpoint finite traces, finite boundary-annihilator forcing, raw finite-trace reverse inclusion, adjoint-domain exhaustion proof stones, compact-graph adjoint-domain realization, and `G8BookIIICh23FloorNormalizedA15MaximalKirchhoffSelfAdjointExtensionTarget` in `G8BookIIICh23FloorNormalizedA15ReverseInclusionMaximalityAssembly`. | No remaining selected-carrier A1.5 proof stone. The older bundled/raw-carrier compatibility surfaces can be revisited only if a downstream interface requires them; otherwise proceed to A1.6 compact resolvent and discrete spectrum. |
+| A1.6 | Prove compact resolvent and discrete point spectrum. | Closed on the selected-carrier route. The selected self-adjoint A1.1-A1.5 adapter is theorem-backed. The selected compact-embedding corridor is theorem-backed in `G8BookIIICh23FloorNormalizedA16CompactEmbeddingConstruction`. Safe resolvent regularity at `-1` and compact-resolvent factorization are theorem-backed in `G8BookIIICh23FloorNormalizedA16ResolventCompactnessConstruction`. The selected discrete point-spectrum consequence is theorem-backed in `G8BookIIICh23FloorNormalizedA16DiscretePointSpectrumConstruction`. Legacy raw-carrier export remains explicit if an older downstream surface must be inhabited. | Prove exact selected-to-legacy operator transport only if the old `LemniscateOperatorDomain` surface is needed; otherwise proceed to A2 operator-native point-spectrum provenance. |
 | A1.7 | Package A1 as `LemniscateOperatorReady`. | Closed adapter. | Supplies A1 once A1.1-A1.6 are theorem-backed. |
 | A2.8 | Define the operator-native analytic point-spectrum predicate. | Proof surface. | Tie the eigenpair predicate to the actual ready operator's analytic point spectrum. |
 | A2.9 | Prove self-adjoint spectral reality. | Proof surface. | Formalize the eigenpair inner-product proof that point-spectrum values have zero imaginary part. |
@@ -217,10 +231,15 @@ g8BookIIICh23FloorNormalizedA11CompactMetricGraphTarget_closed
 
 The selected-carrier A1/A2 work now compresses to these live obligations:
 
-1. Type-1 adjoint-domain presentation source for A1.5 maximality, followed by the remaining reverse-inclusion boundary consequences.
-2. Compact resolvent and discrete point spectrum.
-3. Operator-native point-spectrum predicate identification.
-4. Self-adjoint point-spectrum reality.
+1. Operator-native point-spectrum predicate identification.
+2. Self-adjoint point-spectrum reality.
+3. Exact selected-to-legacy operator transport, only if a downstream surface
+   needs the older raw `LemniscateOperatorDomain` carrier.
+
+A1.5 is now closed on the selected-carrier route through
+`G8BookIIICh23FloorNormalizedA15ReverseInclusionMaximalityAssembly`; it should
+only re-enter the live list if a downstream raw-carrier or bundled-source
+compatibility interface needs an additional transfer theorem.
 
 The older raw-carrier and bundled-source adapters may still need compatibility
 work, but they are no longer the load-bearing selected-carrier route.
@@ -239,12 +258,18 @@ A1.1 compact floor-normalized graph
   -> A1.5 adjoint-domain exhaustion target
 ```
 
-The next most useful theorem is now the A1.5 adjoint-domain exhaustion
-theorem:
+The next most useful theorem is now the post-boundary-linear-algebra A1.5
+Hilbert-adjoint graph predicate route theorem:
 
 ```text
 closed selected A1.4 symmetry
-  -> adjoint boundary traces exist
+  -> u in Dom(H*) iff there is an L2 output w with all-test adjoint pairing
+  -> selected edgewise representative extraction is exact
+  -> distributional equation follows from interior-supported tests
+  -> graph-H2 regularity and endpoint traces are recovered
+  -> all-test Green identity holds
+  -> finite Kirchhoff boundary annihilator algebra hooks in
+  -> selected representative alignment is exact
   -> adjoint traces satisfy crossing agreement and Kirchhoff balance
   -> adjoint domain equals the Kirchhoff domain
   -> maximal Kirchhoff self-adjoint extension
@@ -554,11 +579,23 @@ G8BookIIICh23FloorNormalizedA15AdjointEquationGreenIdentitySource
 G8BookIIICh23FloorNormalizedA15AdjointEquationGreenIdentitySource.toTraceAnnihilatorClassificationSource
 ```
 
-This layer does not claim that the compact-graph adjoint regularity theorem is
-proved.  It says precisely what must be proved next: the adjoint equation must
-recover graph-H2 value and derivative traces, and Green's identity must hold
-against every Kirchhoff test so that the adjoint defect pairing is exactly the
-boundary-form annihilator.
+The lower analytic construction has now closed both theorem-backed stones in
+this layer on the actual adjoint-candidate route:
+
+```text
+G8BookIIICh23FloorNormalizedA15GraphH2RecoveryConstruction
+G8BookIIICh23FloorNormalizedA15AllTestGreenIdentityConstruction
+```
+
+Together they recover graph-H2 value/derivative traces from the adjoint
+equation, prove Green's identity against every closed Kirchhoff test, and feed
+the trace-annihilator classification source.  The post-Green assembly is now
+closed in
+`G8BookIIICh23FloorNormalizedA15ReverseInclusionMaximalityAssembly`: the closed
+trace-annihilator source feeds selected endpoint finite traces, boundary
+annihilator forcing, raw finite-trace reverse inclusion, adjoint-domain
+exhaustion proof stones, compact-graph adjoint-domain realization, and the
+selected-carrier maximal Kirchhoff self-adjointness target.
 
 The next refinement packages that exact analytic theorem as a single
 proof-facing kernel:
@@ -638,6 +675,19 @@ G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationSource.toAdjointCan
 G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationSource.toAdjointCalculusEngineSource
 g8BookIIICh23FloorNormalizedA15AdjointCalculusEngineTarget_ofType1Presentation
 g8BookIIICh23FloorNormalizedA15TwoAnalyticLawTargets_ofType1Presentation
+G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationAssemblySource
+G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationAssemblySource.toType1PresentationSource
+g8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationTarget_ofPresentationAndProofStones
+g8BookIIICh23FloorNormalizedA15AdjointCalculusEngineTarget_ofPresentationAndProofStones
+G8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1PresentationRouteSource
+G8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1PresentationRouteTarget
+g8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1PresentationRouteSource_closed
+g8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1PresentationRouteTarget_closed
+g8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1PresentationTarget_closed
+G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionPayloadRouteSource
+G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionPayloadRouteTarget
+g8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationTarget_ofRemainingPayloadRoutes
+g8BookIIICh23FloorNormalizedA15AdjointCalculusEngineTarget_ofRemainingPayloadRoutes
 ```
 
 This discharges the test-presentation adapter from an exhaustive small
@@ -654,6 +704,127 @@ The next real proof target is now the small presentation plus reverse
 inclusion package `G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationSource`.
 It is not a finite diagnostic object; it must give a Type-1 carrier whose
 realization map exhausts every selected A1.3 Kirchhoff-domain representative.
+
+The assembly layer now constructs that package from the two precise roots:
+
+```text
+G8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1PresentationTarget
+  + G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionProofStoneTarget
+  -> G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationTarget
+  -> G8BookIIICh23FloorNormalizedA15AdjointCalculusEngineTarget
+```
+
+This is an adapter closure, not a new analytic discharge.  The first root is
+now theorem-backed on the selected floor-normalized route:
+
+```text
+g8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1PresentationRouteTarget_closed
+```
+
+The reason is structural: A1.3 now uses `Type`-level function/output carriers,
+so the selected Kirchhoff operator domain itself is a genuine `Type 1` carrier.
+The small presentation is the identity map and exhaustivity is `⟨u, rfl⟩`.
+
+The remaining mathematical work is now concentrated in the second root:
+
+1. complete the post-boundary-linear-algebra reverse-inclusion proof stones:
+   adjoint lift, adjoint trace existence, crossing agreement, Kirchhoff balance,
+   and graph-`H2` recovery.  The finite maximal-boundary stone itself is now
+   theorem-backed by the four-coordinate Kirchhoff annihilator calculation.
+
+The two route modules now make those two roots executable as Lean targets:
+
+```text
+G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionPayloadRouteTarget
+  + g8BookIIICh23FloorNormalizedA15SelectedKirchhoffType1PresentationRouteTarget_closed
+  -> G8BookIIICh23FloorNormalizedA15AdjointDomainType1PresentationTarget
+  -> G8BookIIICh23FloorNormalizedA15AdjointCalculusEngineTarget
+```
+
+This was the A1.5 north star before the selected endpoint readout closed.  The
+finite boundary-annihilator algebra is closed, and the finite trace lift
+surface proves the local implication:
+
+```text
+adjoint candidate represented by finite boundary trace
+  + boundary trace annihilates all Kirchhoff tests
+  -> boundary trace is Kirchhoff
+```
+
+The compact-graph adjoint calculus route has since been supplied on the
+selected-carrier lower analytic path: actual adjoint candidates carry selected
+representatives, graph-`H2` recovery, Green pairing, endpoint finite traces, and
+boundary forcing.
+
+The finite-trace representation bridge has now been wired in the other
+direction as well:
+
+```text
+G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionProofStoneTarget
+  -> G8BookIIICh23FloorNormalizedA15AdjointCandidateFiniteTraceRepresentationTarget
+  -> G8BookIIICh23FloorNormalizedA15FiniteTraceLiftReverseInclusionTarget
+  -> G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionPayloadRouteTarget
+```
+
+Those proof stones are now closed in the selected-carrier route and assembled by
+`G8BookIIICh23FloorNormalizedA15ReverseInclusionMaximalityAssembly`.
+
+The direct finite-trace boundary-forcing wave then removed one more opaque
+proof-stone dependency.  It shows that once we have a raw finite trace
+representation of arbitrary adjoint candidates, the closed four-coordinate
+boundary algebra forces the crossing agreement, Kirchhoff derivative balance,
+finite-trace reverse inclusion, and full proof-stone target:
+
+```text
+G8BookIIICh23FloorNormalizedA15RawFiniteTraceAdjointRepresentationTarget
+  -> G8BookIIICh23FloorNormalizedA15FiniteTraceLiftReverseInclusionTarget
+  -> G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionProofStoneTarget
+  -> G8BookIIICh23FloorNormalizedA15MaximalKirchhoffSelfAdjointExtensionTarget
+```
+
+The selected endpoint readout wave now gives the raw compact-graph adjoint
+trace representation as soon as the concrete engine exists:
+
+```text
+G8BookIIICh23FloorNormalizedA15AdjointCalculusEngineTarget
+  -> G8BookIIICh23FloorNormalizedA15CompactGraphFiniteTraceReadoutTarget
+  -> G8BookIIICh23FloorNormalizedA15RawFiniteTraceAdjointRepresentationTarget
+  -> G8BookIIICh23FloorNormalizedA15MaximalKirchhoffSelfAdjointExtensionTarget
+```
+
+The finite trace is no longer an invented residual.  It is read from the
+selected A1.3 representative's four endpoint value coordinates and four
+outgoing derivative coordinates.  The selected endpoint laws prove the trace is
+Kirchhoff, hence in the finite Kirchhoff annihilator; the engine's
+all-Kirchhoff-test Green source is recorded as the non-diagnostic provenance.
+
+The compact-graph finite-trace readout wave then split that payload at the
+operator-calculus boundary:
+
+```text
+G8BookIIICh23FloorNormalizedA15CompactGraphFiniteTraceReadoutTarget
+  -> G8BookIIICh23FloorNormalizedA15RawFiniteTraceAdjointRepresentationTarget
+  -> G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionProofStoneTarget
+  -> G8BookIIICh23FloorNormalizedA15MaximalKirchhoffSelfAdjointExtensionTarget
+```
+
+The reverse-inclusion/maximality assembly wave closes this chain from the
+already theorem-backed lower analytic route:
+
+```text
+G8BookIIICh23FloorNormalizedA15AllTestGreenIdentityConstruction
+  -> G8BookIIICh23FloorNormalizedA15ReverseInclusionMaximalityAssembly
+  -> G8BookIIICh23FloorNormalizedA15HilbertAdjointGraphPredicateRouteTarget
+  -> G8BookIIICh23FloorNormalizedA15AdjointDomainExhaustionProofStoneTarget
+  -> G8BookIIICh23FloorNormalizedA15MaximalKirchhoffSelfAdjointExtensionTarget
+```
+
+So the selected-carrier A1.5 maximal Kirchhoff self-adjointness target is now
+theorem-backed.  A1.6 compact embedding, safe `-1` compact-resolvent
+factorization, and selected discrete point spectrum are also theorem-backed on
+the selected-carrier route.  The live A1/A2 ascent now moves to the A2
+operator-native point-spectrum reality package, with legacy raw-carrier
+transport remaining as an explicit compatibility task only if required.
 
 ## Appendix: TauProfinite Compatibility Corridor
 

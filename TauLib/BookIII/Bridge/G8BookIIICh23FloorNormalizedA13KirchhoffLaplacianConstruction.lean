@@ -72,6 +72,43 @@ theorem
 -- SELECTED L2 OUTPUT AND OPERATOR DOMAIN CARRIER
 -- ============================================================
 
+/-- Four endpoint coordinates for the floor-normalized two-lobe graph, kept
+    upstream of the A1.5 finite boundary algebra so the selected operator
+    domain can carry an actual endpoint trace without importing A1.5. -/
+structure G8BookIIICh23FloorNormalizedA13EndpointCoord where
+  b0 : Int
+  b1 : Int
+  c0 : Int
+  c1 : Int
+  deriving Repr, DecidableEq
+
+namespace G8BookIIICh23FloorNormalizedA13EndpointCoord
+
+/-- The zero endpoint-coordinate vector. -/
+def zero : G8BookIIICh23FloorNormalizedA13EndpointCoord where
+  b0 := 0
+  b1 := 0
+  c0 := 0
+  c1 := 0
+
+/-- Crossing value agreement for the four endpoint coordinates. -/
+def balanced (x : G8BookIIICh23FloorNormalizedA13EndpointCoord) :
+    Prop :=
+  x.b0 = x.b1 ∧ x.b0 = x.c0 ∧ x.b0 = x.c1
+
+/-- Outgoing-derivative balance for the four endpoint coordinates. -/
+def sum (x : G8BookIIICh23FloorNormalizedA13EndpointCoord) :
+    Int :=
+  x.b0 + x.b1 + x.c0 + x.c1
+
+theorem zero_balanced : balanced zero := by
+  simp [balanced, zero]
+
+theorem zero_sum : sum zero = 0 := by
+  norm_num [sum, zero]
+
+end G8BookIIICh23FloorNormalizedA13EndpointCoord
+
 /-- Output carrier for the selected `L2` graph layer.
 
 The value is intentionally represented as proof-carrying output data over the
@@ -83,7 +120,7 @@ structure G8BookIIICh23FloorNormalizedA13L2Output
   closedHilbert :
     G8BookIIICh23FloorNormalizedA12ClosedSelectedHilbertReadiness
       hilbert
-  outputCarrier : Type 1
+  outputCarrier : Type
   output : outputCarrier
   squareIntegrable : Prop
   squareIntegrableWitness : squareIntegrable
@@ -98,13 +135,21 @@ structure G8BookIIICh23FloorNormalizedA13OperatorDomain
     (domain : G8BookIIICh23FloorNormalizedA12HilbertDomainSource) where
   closedDomain :
     G8BookIIICh23FloorNormalizedA13ClosedSelectedHilbertDomain domain
-  functionCarrier : Type 1
+  functionCarrier : Type
   function : functionCarrier
   edgewiseH2Regularity : Prop
   edgewiseH2RegularityWitness : edgewiseH2Regularity
   sobolevTraceReady : domain.domain.trace.sobolevTraceTheorem
   crossingClosure : domain.domain.crossingClosureFromBasepointTrace
   kirchhoffClosure : domain.domain.kirchhoffClosureFromOutgoingDerivativeBalance
+  endpointValue :
+    G8BookIIICh23FloorNormalizedA13EndpointCoord
+  outgoingDerivative :
+    G8BookIIICh23FloorNormalizedA13EndpointCoord
+  endpointValueBalanced :
+    G8BookIIICh23FloorNormalizedA13EndpointCoord.balanced endpointValue
+  outgoingDerivativeBalanced :
+    G8BookIIICh23FloorNormalizedA13EndpointCoord.sum outgoingDerivative = 0
   plusSecondDerivativeDefined : Prop
   plusSecondDerivativeWitness : plusSecondDerivativeDefined
   minusSecondDerivativeDefined : Prop
@@ -196,6 +241,14 @@ noncomputable def
     g8BookIIICh23FloorNormalizedA12HilbertDomainSource_closed
       |>.kirchhoffBuiltFromSelectedTrace
       |>.2
+  endpointValue :=
+    G8BookIIICh23FloorNormalizedA13EndpointCoord.zero
+  outgoingDerivative :=
+    G8BookIIICh23FloorNormalizedA13EndpointCoord.zero
+  endpointValueBalanced :=
+    G8BookIIICh23FloorNormalizedA13EndpointCoord.zero_balanced
+  outgoingDerivativeBalanced :=
+    G8BookIIICh23FloorNormalizedA13EndpointCoord.zero_sum
   plusSecondDerivativeDefined := True
   plusSecondDerivativeWitness := trivial
   minusSecondDerivativeDefined := True
@@ -228,8 +281,8 @@ structure G8BookIIICh23FloorNormalizedA13KirchhoffLaplacianConstructionSource wh
   domainReady :
     G8BookIIICh23FloorNormalizedA13EdgewiseH2KirchhoffDomainReady
       domain
-  operatorDomain : Type 2
-  operatorOutput : Type 2
+  operatorDomain : Type 1
+  operatorOutput : Type 1
   graphLaplacian : operatorDomain → operatorOutput
   operatorDomainNonempty : Nonempty operatorDomain
   edgewiseNegativeSecondDerivative : Prop

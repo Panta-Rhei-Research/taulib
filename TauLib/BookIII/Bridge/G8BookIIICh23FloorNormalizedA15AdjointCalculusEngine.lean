@@ -38,13 +38,13 @@ namespace Tau.BookIII.Bridge
 /-- The selected floor-normalized Ch.23 Kirchhoff operator domain closed in
     A1.3. -/
 abbrev G8BookIIICh23FloorNormalizedA15SelectedKirchhoffOperatorDomain :
-    Type 2 :=
+    Type 1 :=
   G8BookIIICh23FloorNormalizedA13OperatorDomain
     g8BookIIICh23FloorNormalizedA12HilbertDomainSource_closed
 
 /-- The selected floor-normalized Ch.23 `L2` output carrier closed in A1.3. -/
 abbrev G8BookIIICh23FloorNormalizedA15SelectedL2Output :
-    Type 2 :=
+    Type 1 :=
   G8BookIIICh23FloorNormalizedA13L2Output
     (g8BookIIICh23FloorNormalizedA12HilbertDomainSource_closed
       |>.domain

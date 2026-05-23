@@ -6,11 +6,12 @@ import TauLib.BookIII.Bridge.G8BookIIICh23FloorNormalizedA15AdjointCalculusEngin
 This module is the next concrete step under the A1.5 compact-graph adjoint
 calculus engine.
 
-The selected Kirchhoff operator domain built in A1.3 is universe-level
-`Type 2`, because each selected graph-domain element carries a `Type 1`
-function carrier.  The A1.5 engine therefore asks for `Type 1` presentations
-of adjoint candidates and Kirchhoff tests, rather than using the selected
-domain type directly.
+The selected Kirchhoff operator domain built in A1.3 is now normalized to a
+`Type 1` carrier: its function/output carriers are `Type`-level graph data,
+not arbitrary higher-universe carriers.  The A1.5 engine still asks for
+explicit `Type 1` presentations of adjoint candidates and Kirchhoff tests, so
+the universe-lowering theorem is visible rather than hidden in the domain
+definition.
 
 This file isolates that exact small-presentation theorem:
 
